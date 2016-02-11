@@ -1,0 +1,27 @@
+
+      <div class="smart-green" >  
+        <div  ng-controller="AppCtrl"> 
+		<h1>List of Employees</h1>
+            
+            <table>  <!--class is used to access the class of bootstrap -->
+                <thead>
+                    <tr>
+                        <th>code</th>
+                        <th>name</th>
+                        <th>city</th>
+                         <tr ng-repeat="emp in employee1"> <!--used to access the contactlist object -->
+                       <td> {{emp.code}}</td>
+                        <td>{{emp.name}}</td>
+                        <td>{{emp.city}}</td>
+						
+                        <td> <input type="button" ng-click="edit(emp._id)" value="EDIT" class="btn btn-link"/> </button></td>
+						 <td> <input type="button" ng-click="remove(emp._id)" value="REMOVE" class="btn btn-link" /> </button></td>
+                        
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+                        
+                  
+     </div>
+        
