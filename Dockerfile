@@ -15,7 +15,9 @@ ADD html html
 ADD routes routes
 ADD tests tests
 ADD app.js package.json ./
+RUN npm install
 
 VOLUME ['./tmp']
  
 EXPOSE 3010
+CMD [node app.js]
