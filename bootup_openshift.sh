@@ -51,7 +51,7 @@ echo "[INFO] Start the OpenShift server ..."
 # Prepare directories for bind-mounting
 dirs=(openshift.local.volumes openshift.local.config openshift.local.etcd)
 for d in ${dirs[@]}; do
-  mkdir -p #{ORIGIN_DIR}/${d} && chcon -Rt svirt_sandbox_file_t #{ORIGIN_DIR}/${d}
+  mkdir -p ${ORIGIN_DIR}/${d} && chcon -Rt svirt_sandbox_file_t ${ORIGIN_DIR}/${d}
 done
 
 docker run -d --name "origin" --privileged --net=host --pid=host -v /:/rootfs:ro -v /var/run:/var/run:rw -v /sys:/sys:ro -v /var/lib/docker:/var/lib/docker:rw -v ${ORIGIN_DIR}/openshift.local.volumes:${ORIGIN_DIR}/openshift.local.volumes:z -v ${ORIGIN_DIR}/openshift.local.config:${ORIGIN_DIR}/openshift.local.config:z -v ${ORIGIN_DIR}/openshift.local.etcd:${ORIGIN_DIR}/openshift.local.etcd:z ${ORIGIN_IMAGE_NAME} start --master="https://${PUBLIC_ADDRESS}:8443" --etcd-dir="${ORIGIN_DIR}/openshift.local.etcd" --cors-allowed-origins=.*
@@ -152,5 +152,5 @@ if [ ! -f ${ORIGIN_DIR}/configured.user ]; then
   oadm policy add-role-to-user view test-admin --config=${OPENSHIFT_DIR}/admin.kubeconfig
   oc login https://${PUBLIC_ADDRESS}:8443 -u test-admin -p test --certificate-authority=${OPENSHIFT_DIR}/ca.crt &>/dev/null
   oc new-project test --display-name="OpenShift 3 Sample" --description="This is an example project to demonstrate OpenShift v3" &>/dev/null
-  sudo touch #{ORIGIN_DIR}/configured.user
+  sudo touch ${ORIGIN_DIR}/configured.user
 fi
