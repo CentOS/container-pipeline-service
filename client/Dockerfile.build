@@ -1,0 +1,8 @@
+FROM centos
+
+RUN yum -y install docker
+RUN yum -y install git
+
+ADD run.sh /usr/bin/
+
+CMD run.sh

@@ -1,0 +1,7 @@
+FROM centos
+
+RUN yum -y install docker
+
+ADD run-test.sh /usr/bin/
+
+CMD run-test.sh

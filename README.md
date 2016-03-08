@@ -1,1 +1,0 @@
-# cccp-demo-test

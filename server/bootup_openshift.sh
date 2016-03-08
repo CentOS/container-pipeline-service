@@ -2,12 +2,13 @@
 export DOCKER_REGISTRY="docker.io"
 
 # The name of the OpenShift image.
-export ORIGIN_IMAGE_NAME="openshift/origin:v1.1.1"
+export ORIGIN_IMAGE_NAME="openshift/origin:v1.1.3"
 
 # The public IP address the VM created by Vagrant will get.
 # You will use this IP address to connect to OpenShift web console.
-export PUBLIC_ADDRESS="localhost"
-export PUBLIC_HOST="b1.pco.centos.org"
+export PUBLIC_ADDRESS=$(ip -f inet addr show eth0 2> /dev/null | grep 'inet' | awk '{ print $2}' | sed 's#/.*##')
+
+export PUBLIC_HOST="bs.pco.centos.org"
 
 # The directory where OpenShift will store the files.
 # This should be "/var/lib/openshift" in case you're not using the :latest tag.
@@ -74,17 +75,21 @@ for n in ${binaries[@]}; do
   chmod +x /usr/bin/${n}
 done
 
-echo "export OPENSHIFT_DIR=#{ORIGIN_DIR}/openshift.local.config/master" > /etc/profile.d/openshift.sh
+echo "export OPENSHIFT_DIR=${ORIGIN_DIR}/openshift.local.config/master" > /etc/profile.d/openshift.sh
+export OPENSHIFT_DIR=${ORIGIN_DIR}/openshift.local.config/master
 
 export KUBECONFIG=${OPENSHIFT_DIR}/admin.kubeconfig
 chmod go+r ${KUBECONFIG}
 # Create Docker Registry
 if [ ! -f ${ORIGIN_DIR}/configured.registry ]; then
   echo "[INFO] Configure Docker Registry ..."
-  oadm registry --create --credentials=${OPENSHIFT_DIR}/openshift-registry.kubeconfig || exit 1
+  #echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"registry"}}' | oc create -f -
+  #oc get scc privileged -o json | sed '/\"users\"/a \"system:serviceaccount:default:registry\",' | oc replace scc privileged -f -
+  oadm registry --create --credentials=${OPENSHIFT_DIR}/openshift-registry.kubeconfig || exit 1 #--mount-host=/registry || exit 1
   oadm policy add-scc-to-group anyuid system:authenticated || exit 1
   touch ${ORIGIN_DIR}/configured.registry
 fi
+sleep 50 #let the registry run in privileged mode
 
 # For router, we have to create service account first and then use it for
 # router creation.
@@ -95,6 +100,7 @@ if [ ! -f ${ORIGIN_DIR}/configured.router ]; then
   oadm router --create --credentials=${OPENSHIFT_DIR}/openshift-router.kubeconfig --service-account=router
   touch ${ORIGIN_DIR}/configured.router
 fi
+sleep 50 #let the router run
 
 export KUBECONFIG=${OPENSHIFT_DIR}/admin.kubeconfig
 if [ ! -f ${ORIGIN_DIR}/configured.templates ]; then
@@ -154,3 +160,13 @@ if [ ! -f ${ORIGIN_DIR}/configured.user ]; then
   oc new-project test --display-name="OpenShift 3 Sample" --description="This is an example project to demonstrate OpenShift v3" &>/dev/null
   sudo touch ${ORIGIN_DIR}/configured.user
 fi
+
+
+echo "==> Building cccp-build image"
+docker build -t cccp-build -f ./Dockerfile.build . || exit 1
+echo "==> Building cccp-test image"
+docker build -t cccp-test -f ./Dockerfile.test . || exit 1
+echo "==> Building cccp-delivery image"
+docker build -t cccp-delivery -f ./Dockerfile.delivery . || exit 1
+echo "==> Uploading template to OpenShift"
+
