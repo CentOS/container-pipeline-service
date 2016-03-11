@@ -1,6 +1,7 @@
 FROM centos
 
 RUN yum -y install docker
+RUN yum -y install wget
 
 ADD run-delivery.sh /usr/bin/
 
