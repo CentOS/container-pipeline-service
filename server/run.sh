@@ -19,6 +19,8 @@ fi
 _ "Building the image in ${buildpath} with tag ${TAG}"
 docker build --rm --no-cache -t $TAG ${buildpath}
 
+docker run -d -v /set_env.py:/set_env.py $TAG python /set_env.py
+
 TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
 
 #TO=${DOCKER_REGISTRY_SERVICE_HOST}:${DOCKER_REGISTRY_SERVICE_PORT}/$TAG
