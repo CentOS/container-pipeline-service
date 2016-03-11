@@ -5,6 +5,7 @@ function _() {
 }
 
 if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; then
+  ll /var/run/secrets/openshift.io/push/
   cp /var/run/secrets/openshift.io/push/.dockercfg /root/.dockercfg
 fi
 
