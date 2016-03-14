@@ -16,10 +16,25 @@ if [ "$buildpath" == "" ]; then
     buildpath="."
 fi
 
+_ "Copying index reader to docker file"
+cp /cccp_index_reader.py .
+
+_ "Adding index reader to docker file"
+echo "ADD cccp_index_reader.py /set_env/" >> Dockerfile
+echo "ADD ci.centos.org.yaml /set_env/" >> Dockerfile
+echo "RUN yum install -y PyYAML libyaml && python /set_env/cccp_index_reader.py" >> Dockerfile
+
 _ "Building the image in ${buildpath} with tag ${TAG}"
 docker build --rm --no-cache -t $TAG ${buildpath}
 
-docker run -d -v /set_env.py:/set_env.py $TAG python /set_env.py
+#_ "Checking local files form container"
+#ls -a /set_env/
+
+#_ "Setting the environment for running the scripts"
+#docker run --rm -v /cccp_index_reader.py:/set_env/cccp_index_reader.py $TAG python /set_env/cccp_index_reader.py
+
+_ "Running build steps"
+docker run --rm $TAG /bin/bash /build_script
 
 TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
 
