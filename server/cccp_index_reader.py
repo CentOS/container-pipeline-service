@@ -14,10 +14,13 @@ def main():
   test_script = index_yaml[0]["project"]["test_script"]
   delivery_script = index_yaml[0]["project"]["delivery_script"]
 
+  print "==> Getting current directory"
+  curr_dir = os.getcwd()
+
   print "==> Saving scripts for build process"
-  os.symlink(build_script,"/usr/bin/build_script")
-  os.symlink(test_script,"/usr/bin/test_script")
-  os.symlink(delivery_script,"/usr/bin/delivery_Script")
+  os.symlink(curr_dir+build_script,"/usr/bin/build_script")
+  os.symlink(curr_dir+test_script,"/usr/bin/test_script")
+  os.symlink(curr_dir+delivery_script,"/usr/bin/delivery_Script")
   print "==> scripts saved"
 
 if __name__ == '__main__':
