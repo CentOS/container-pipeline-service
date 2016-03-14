@@ -16,6 +16,11 @@ FULL_TO=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
 
 _ "Pulling RC image (${FROM})"
 docker pull ${FULL_FROM}
+
+_ "Running delivery steps"
+docker run --rm ${FULL_FORM} /bin/bash /usr/bin/delivery_script
+
+_ "Tagging for the public registry"
 docker tag ${FULL_FROM} ${FULL_TO}
 
 wget dev-32-43.lon1.centos.org/certs/dev-32-43.lon1.centos.org.crt
