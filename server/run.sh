@@ -34,7 +34,7 @@ docker build --rm --no-cache -t $TAG ${buildpath}
 #docker run --rm -v /cccp_index_reader.py:/set_env/cccp_index_reader.py $TAG python /set_env/cccp_index_reader.py
 
 _ "Running build steps"
-docker run --rm $TAG /bin/bash /build_script
+docker run --rm $TAG /bin/bash /usr/bin/build_script
 
 TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
 
