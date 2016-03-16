@@ -3,23 +3,24 @@ import os
 import yaml
 
 def main():
-  stream = open("/set_env/cccp.yaml",'r')
-  index_yaml = yaml.load(stream)
+  stream = open("/set_env/cccp.yml",'r')
+  cccp_yml = yaml.load(stream)
   stream.close()
-
-  job_id = index_yaml[0]["project"]["name"]
-  image_name = index_yaml[0]["project"]["image_name"]
-  build_script = index_yaml[0]["project"]["build_script"]
-  test_location = index_yaml[0]["project"]["test_location"]
-  test_script = index_yaml[0]["project"]["test_script"]
-  delivery_script = index_yaml[0]["project"]["delivery_script"]
+  
+  job_id = cccp_yml["job-id"]
+  test_skip = cccp_yml["test-skip"]
+  build_script = cccp_yml["build_script"]
+  test_script = cccp_yml["test_script"]
+  delivery_script = cccp_yml["delivery_script"]
 
   print "==> Getting current directory"
   curr_dir = os.getcwd()
 
   print "==> Saving scripts for build process"
   os.symlink(os.path.join(curr_dir,build_script),"/usr/bin/build_script")
-  os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
+  if(test-skip.lower() != "true"):
+    os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
+
   os.symlink(os.path.join(curr_dir,delivery_script),"/usr/bin/delivery_script")
   print "==> scripts saved"
 
