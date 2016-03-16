@@ -14,21 +14,24 @@ optional_attrs = ['rundotshargs']
 overwritten_attrs = ['jobname', 'git_url', 'ci_project', 'jobs']
 
 
-def projectify(project,appid,jobid,giturl,gitpath,gitbranch,notifyemail):
-    project['namespace'] = appid
-    project['jobname'] = jobid
-    project['ci_project'] = appid
-    project['git_url'] = giturl
-    project['rel_path'] = ('/' + gitpath) \
+def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,notifyemail):
+    new_project[0]['project']['namespace'] = appid
+    new_project[0]['project']['jobname'] = jobid
+    new_project[0]['project']['ci_project'] = appid
+    new_project[0]['project']['name'] = appid
+    new_project[0]['project']['git_url'] = giturl
+    new_project[0]['project']['git_branch'] = gitbranch
+    new_project[0]['project']['rel_path'] = ('/' + gitpath) \
         if (gitpath and not gitpath.startswith('/')) else '/'
-    project['jobs'] = ['cccp-rundotsh-job']
+    new_project[0]['project']['jobs'] = ['cccp-rundotsh-job']
     
-    if 'rundotshargs' not in project:
-        project['rundotshargs'] = ''
-    elif project['rundotshargs'] is None:
-        project['rundotshargs'] = ''
-    
-    return project
+    if 'rundotshargs' not in new_project[0]:
+        new_project[0]['project']['rundotshargs'] = ''
+    elif new_project[0]['project']['rundotshargs'] is None:
+        new_project[0]['project']['rundotshargs'] = ''
+
+    new_project[0]['project']['notify_email']= notifyemail
+    return new_project
 
 def main(yamlfile):
     stream = open(yamlfile,'r')
@@ -50,15 +53,15 @@ def main(yamlfile):
                 gitbranch = project['git-branch']
                 notifyemail = project['notify-email']
     		
-                workdir = os.path.join(t, gitpath)
+                #workdir = os.path.join(t, gitpath)
                 generated_filename = os.path.join(
-                    workdir,
+                    t,
                     'cccp_GENERATED.yaml'
                 )   
-
+		new_proj= [{'project':{}}]
                 # overwrite any attributes we care about see: projectify
                 with open(generated_filename, 'w') as outfile:
-                    yaml.dump(projectify(project,appid,jobid,giturl,gitpath,gitbranch,notifyemail), outfile)
+                    yaml.dump(projectify(new_proj,appid,jobid,giturl,gitpath,gitbranch,notifyemail), outfile)
 
                 # run jenkins job builder
                 myargs = ['jenkins-jobs',
