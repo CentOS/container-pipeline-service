@@ -21,7 +21,7 @@ cp /cccp_reader.py .
 
 _ "Adding index reader to docker file"
 echo "ADD cccp_reader.py /set_env/" >> Dockerfile
-echo "ADD cccp.yaml /set_env/" >> Dockerfile
+echo "ADD cccp.yml /set_env/" >> Dockerfile
 echo "RUN yum install -y PyYAML libyaml && python /set_env/cccp_reader.py" >> Dockerfile
 
 _ "Building the image in ${buildpath} with tag ${TAG}"
