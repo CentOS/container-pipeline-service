@@ -1,0 +1,20 @@
+- job-template:
+    name: '{ci_project}-{name}'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: oc-slave
+    scm:
+        - git:
+            url: "{git_url}"
+            skip-tag: True
+    triggers:
+        - pollscm: "H/10 * * * *" 
+    builders:
+        - shell: |
+            cd /opt/cccp-service/client/
+            ./build-project.sh {ci_project}-{name} {image_name} {git_url} {rel_path}
+
+- job-group:
+    name: ci.centos.org-rundotsh-job
+    jobs:
+        - '{ci_project}-{name}'
