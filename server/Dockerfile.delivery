@@ -1,7 +1,7 @@
 FROM centos
 
 RUN yum -y install docker
-RUN yum -y install wget
+RUN yum -y install wget mailx sendmail
 
 ADD run-delivery.sh /usr/bin/
 

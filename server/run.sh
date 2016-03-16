@@ -17,12 +17,12 @@ if [ "$buildpath" == "" ]; then
 fi
 
 _ "Copying index reader to docker file"
-cp /cccp_index_reader.py .
+cp /cccp_reader.py .
 
 _ "Adding index reader to docker file"
-echo "ADD cccp_index_reader.py /set_env/" >> Dockerfile
-echo "ADD ci.centos.org.yaml /set_env/" >> Dockerfile
-echo "RUN yum install -y PyYAML libyaml && python /set_env/cccp_index_reader.py" >> Dockerfile
+echo "ADD cccp_reader.py /set_env/" >> Dockerfile
+echo "ADD cccp.yaml /set_env/" >> Dockerfile
+echo "RUN yum install -y PyYAML libyaml && python /set_env/cccp_reader.py" >> Dockerfile
 
 _ "Building the image in ${buildpath} with tag ${TAG}"
 docker build --rm --no-cache -t $TAG ${buildpath}
