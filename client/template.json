@@ -25,7 +25,7 @@
 	{
       "name": "TARGET_REGISTRY",
       "description": "An URL of a registry where to push the final image",
-      "value": "dev-32-43.lon1.centos.org"
+      "value": "i10.lon0.centos.in:5000"
     },
     {
       "name": "TARGET_NAMESPACE",

@@ -29,6 +29,8 @@ REPO_BUILD_PATH=$4
 
 CWD=`dirname $0`
 NS="--namespace ${NAME}"
+echo "==> login to Openshift server"
+oc login https://172.29.32.42:8443 -u test-admin -p test --certificate-authority=./ca.crt
 
 echo "==>creating new project"
 oc new-project ${NAME} --display-name=${NAME}
