@@ -9,9 +9,9 @@ def main():
   
   job_id = cccp_yml["job-id"]
   test_skip = cccp_yml["test-skip"]
-  build_script = cccp_yml["build_script"]
-  test_script = cccp_yml["test_script"]
-  delivery_script = cccp_yml["delivery_script"]
+  build_script = cccp_yml["build-script"]
+  test_script = cccp_yml["test-script"]
+  delivery_script = cccp_yml["delivery-script"]
 
   print "==> Getting current directory"
   curr_dir = os.getcwd()
