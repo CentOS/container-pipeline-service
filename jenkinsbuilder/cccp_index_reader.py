@@ -58,7 +58,11 @@ def main(yamlfile):
                     t,
                     'cccp_GENERATED.yaml'
                 )   
-		new_proj= [{'project':{}}]
+                new_proj= [{'project':{}}]
+                
+                appid = appid.replace('_','-').replace('/','-')
+                jobid = jobid.replace('_','-').replace('/','-')
+
                 # overwrite any attributes we care about see: projectify
                 with open(generated_filename, 'w') as outfile:
                     yaml.dump(projectify(new_proj,appid,jobid,giturl,gitpath,gitbranch,notifyemail), outfile)
