@@ -16,6 +16,14 @@ if [ "$buildpath" == "" ]; then
     buildpath="."
 fi
 
+_ "Going to build path "
+cd ${buildpath}
+
+_ "Checking cccp.yml exists or rename similar"
+if [ ! -f cccp.yml ]; then
+    mv *cccp.y*ml cccp.yml
+fi
+
 _ "Copying index reader to docker file"
 cp /cccp_reader.py .
 
@@ -25,7 +33,7 @@ echo "ADD cccp.yml /set_env/" >> Dockerfile
 echo "RUN yum install -y PyYAML libyaml && python /set_env/cccp_reader.py" >> Dockerfile
 
 _ "Building the image in ${buildpath} with tag ${TAG}"
-docker build --rm --no-cache -t $TAG ${buildpath}
+docker build --rm --no-cache -t $TAG .
 
 #_ "Checking local files form container"
 #ls -a /set_env/

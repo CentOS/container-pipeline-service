@@ -25,7 +25,7 @@ def main():
     
     if(key == "test-script"):
         test_script = cccp_yml["test-script"]
-        if(test_skip != true):
+        if(test_skip != True):
             os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
     
     if(key == "delivery-script"):

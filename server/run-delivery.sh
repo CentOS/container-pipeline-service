@@ -30,7 +30,8 @@ _ "Pushing final image (${FULL_TO})"
 docker push ${FULL_TO}
 
 OUTPUT_IMAGE=i10.lon0.centos.in/${TARGET_NAMESPACE}/${TO}
-_ "Send mail to notify build is completed"
+_ "Send mail to (${NOTIFY_EMAIL}) notify build is completed (${OUTPUT_IMAGE})"
+
 echo "Build is successful please pull the image (${OUTPUT_IMAGE})" | mail -r container-build-report@centos.org -s "cccp-build is complete" ${NOTIFY_EMAIL}
 
 _ "Cleaning environment"
