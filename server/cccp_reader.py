@@ -7,21 +7,31 @@ def main():
   cccp_yml = yaml.load(stream)
   stream.close()
   
-  job_id = cccp_yml["job-id"]
-  test_skip = cccp_yml["test-skip"]
-  build_script = cccp_yml["build-script"]
-  test_script = cccp_yml["test-script"]
-  delivery_script = cccp_yml["delivery-script"]
-
   print "==> Getting current directory"
   curr_dir = os.getcwd()
-
+ 
   print "==> Saving scripts for build process"
-  os.symlink(os.path.join(curr_dir,build_script),"/usr/bin/build_script")
-  if(test_skip != true):
-    os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
+  
+  for key, value in cccp_yml.iteritems():
+    if(key == "job-id"):
+        job_id = cccp_yml["job-id"]
 
-  os.symlink(os.path.join(curr_dir,delivery_script),"/usr/bin/delivery_script")
+    if(key == "test-skip"):
+        test_skip = cccp_yml["test-skip"]
+    
+    if(key == "build-script"):
+        build_script = cccp_yml["build-script"]
+        os.symlink(os.path.join(curr_dir,build_script),"/usr/bin/build_script")
+    
+    if(key == "test-script"):
+        test_script = cccp_yml["test-script"]
+        if(test_skip != true):
+            os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
+    
+    if(key == "delivery-script"):
+        delivery_script = cccp_yml["delivery-script"]
+        os.symlink(os.path.join(curr_dir,delivery_script),"/usr/bin/delivery_script")
+
   print "==> scripts saved"
 
 if __name__ == '__main__':
