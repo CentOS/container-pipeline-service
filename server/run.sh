@@ -16,6 +16,11 @@ if [ "$buildpath" == "" ]; then
     buildpath="."
 fi
 
+_ "Checking cccp.yml exists or rename similar"
+if [ ! -f cccp.yml ]; then
+    mv *cccp.y*ml cccp.yml
+fi
+
 _ "Copying index reader to docker file"
 cp /cccp_reader.py .
 

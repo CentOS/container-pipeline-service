@@ -18,7 +18,7 @@ def main():
 
   print "==> Saving scripts for build process"
   os.symlink(os.path.join(curr_dir,build_script),"/usr/bin/build_script")
-  if(test_skip != true):
+  if(test_skip != True):
     os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
 
   os.symlink(os.path.join(curr_dir,delivery_script),"/usr/bin/delivery_script")
