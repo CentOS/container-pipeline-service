@@ -1,4 +1,4 @@
-# Container Pipeline PoC
+# CentOS Community Container Pipeline
 
 There was a quick meeting during the DevConf.cz 2016 about CentOS Container Pipeline, what it could consist of and how it could work. Not all details has been sketched out, but some ideas were thrown at the wall to see which one will stick.
 
