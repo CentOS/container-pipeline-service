@@ -1,8 +1,6 @@
 # CentOS Community Container Pipeline
 
-There was a quick meeting during the DevConf.cz 2016 about CentOS Container Pipeline, what it could consist of and how it could work. Not all details has been sketched out, but some ideas were thrown at the wall to see which one will stick.
-
-Idea which I was pushing during the meeting was to use OpenShift as a workflow controller. To be more specific, to use OpenShift Template and a set of custom builds to define a workflow which will accept repository URL as input and will provide tested (production ready) image as output.
+CentOS Community Container Pipeline(cccp) is a process, to provide any onesource developer a platform for containerising there application. This process builds the application from any arbitary git repository. Package the built application along with its runtime in a container image. Tests the image with help of test script and delivers to a publicly available registry. User can anytime pull the tested image from that registry.
 
 ## User Story
 
