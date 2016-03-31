@@ -4,6 +4,6 @@ RUN yum -y install docker
 RUN yum -y install git
 
 ADD run.sh /usr/bin/
-ADD cccp_index_reader.py /
+ADD cccp_reader.py /
 
 CMD run.sh

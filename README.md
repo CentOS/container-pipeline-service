@@ -1,8 +1,6 @@
-# Container Pipeline PoC
+# CentOS Community Container Pipeline
 
-There was a quick meeting during the DevConf.cz 2016 about CentOS Container Pipeline, what it could consist of and how it could work. Not all details has been sketched out, but some ideas were thrown at the wall to see which one will stick.
-
-Idea which I was pushing during the meeting was to use OpenShift as a workflow controller. To be more specific, to use OpenShift Template and a set of custom builds to define a workflow which will accept repository URL as input and will provide tested (production ready) image as output.
+CentOS Community Container Pipeline(cccp) is a process, to provide any onesource developer a platform for containerising there application. This process builds the application from any arbitary git repository. Package the built application along with its runtime in a container image. Tests the image with help of test script and delivers to a publicly available registry. User can anytime pull the tested image from that registry.
 
 ## User Story
 
@@ -12,10 +10,11 @@ I as an application developer want to build, test and deliver my containerized a
 
 My perception of the pipeline is that we want to provide a single input interface to the system (pipeline index) and don't limit ourselves in ways how to deliver the image (i.e. in case of Docker to push to any registry accessible from the pipeline infra). We obviously want to build an image provided by a user, we want to test it with a predefined set of tests and with tests provided by user, we want to deliver the image (i.e. push it to registry) and present logs in case of failures.
 
-![Container Pipeline Diagram](https://docs.google.com/drawings/d/1Izkwa7b7pAM_mpiL6M_qkqOMP_-bzmo1C-IE1fZDGY4/pub?w=960&h=720)
+![Container Pipeline Diagram](https://docs.google.com/drawings/d/1sJfniMspEK9LI5CO9NsoSXhixbMqYNoJjPi9AKHNV-k/pub?w=960&h=720)
 
 1. Input Interface
-    * A web UI/cli which allows user to provide at lease name of the project and repo URL. 
+    * A web UI/cli which allows user to provide at least name of the project and repo URL.
+    * This project tracks [cccp-index.yaml](https://github.com/kbsingh/cccp-index/blob/master/index.yml) as input to the build system.
 2. OpenShift
     * **Build** - Can be Atomic Reactor, result: image tagged as :test pushed
     * **Test** - Can be a script connecting to Jenkins, result: image tagged as :rc pushed

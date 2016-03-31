@@ -1,0 +1,22 @@
+- job-template:
+    name: '{ci_project}-{jobname}'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: oc-slave
+    scm:
+        - git:
+            url: "{git_url}"
+            skip-tag: True
+            branch: "{git_branch}"
+    triggers:
+        - pollscm: "H/10 * * * *" 
+    builders:
+        - shell: |
+            cd /opt/cccp-service/client/
+            ./build-project.sh {namespace}-{jobname} {jobname} {git_url} {rel_path}
+
+- job-group:
+    name: cccp-rundotsh-job
+    jobs:
+        - '{ci-project}-{jobname}'
+
