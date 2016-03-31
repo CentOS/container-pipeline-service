@@ -33,6 +33,11 @@
       "value": "cccp"
     },
     {
+      "name": "NOTIFY_EMAIL",
+      "description": "An email id for notifying after build of final image",
+      "value": ""
+    },
+    {
       "name": "TAG",
       "description": "Tag for the resulting image",
       "value": "cccp-service",
@@ -224,6 +229,10 @@
               {
                 "name": "TARGET_NAMESPACE",
                 "value": "${TARGET_NAMESPACE}"
+              },
+              {
+                "name": "NOTIFY_EMAIL",
+                "value": "${NOTIFY_EMAIL}"
               }
             ]
           }
