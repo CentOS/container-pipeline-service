@@ -4,7 +4,7 @@
   "metadata": {
     "name": "cccp-service",
     "annotations": {
-      "description": "Container Pipeline PoC Template"
+      "description": "Container Pipeline Template"
     }
   },
   "labels": {
@@ -40,7 +40,7 @@
     {
       "name": "TAG",
       "description": "Tag for the resulting image",
-      "value": "cccp-service",
+      "value": "cccp-python",
       "required": true
     },
     {
