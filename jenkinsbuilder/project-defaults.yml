@@ -18,5 +18,4 @@
 - job-group:
     name: cccp-rundotsh-job
     jobs:
-        - '{ci-project}-{jobname}'
-
+        - '{ci_project}-{jobname}'
