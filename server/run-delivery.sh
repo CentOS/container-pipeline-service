@@ -29,7 +29,7 @@ docker tag ${FULL_FROM} ${FULL_TO}
 _ "Pushing final image (${FULL_TO})"
 docker push ${FULL_TO}
 
-OUTPUT_IMAGE=i10.lon0.centos.in/${TARGET_NAMESPACE}/${TO}
+OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
 _ "Starting mail server"
 export REPLYTO=container-build@centos.org
 mkfifo /var/spool/postfix/public/pickup
