@@ -33,7 +33,7 @@ NOTIFY_EMAIL=$5
 CWD=`dirname $0`
 NS="--namespace ${NAME}-${TAG}"
 echo "==> login to Openshift server"
-oc login https://172.29.32.53:8443 -u test-admin -p test --certificate-authority=./ca.crt
+oc login https://openshift:8443 -u test-admin -p test --certificate-authority=./ca.crt
 
 echo "==>creating new project"
 oc new-project ${NAME}-${TAG} --display-name=${NAME}-${TAG}
