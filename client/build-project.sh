@@ -47,8 +47,7 @@ sed -i.bak s/cccp-service/${NAME}-${TAG}/g $CWD/template.json
 _oc ${NS} get --no-headers  -f $CWD/template.json && oc replace -f $CWD/template.json || oc ${NS} create -f $CWD/template.json
 _oc ${NS} process ${NAME}-${TAG} -v SOURCE_REPOSITORY_URL=${REPO},TARGET_NAMESPACE=${NAME},TAG=${TAG},REPO_BUILD_PATH=${REPO_BUILD_PATH},NOTIFY_EMAIL=${NOTIFY_EMAIL} | oc ${NS} create -f -
 
-IP="bs.pco.centos.org"
-#$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | sed 's#/.*##')
+IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | sed 's#/.*##')
 
 BUILD=$(_oc ${NS} start-build build)
 
