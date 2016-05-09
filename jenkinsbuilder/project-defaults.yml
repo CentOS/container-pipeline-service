@@ -13,7 +13,7 @@
     builders:
         - shell: |
             cd /opt/cccp-service/client/
-            ./build-project.sh {namespace}-{jobname} {jobname} {git_url} {rel_path}
+            ./build-project.sh {namespace} {jobname} {git_url} {rel_path}
 
 - job-group:
     name: cccp-rundotsh-job
