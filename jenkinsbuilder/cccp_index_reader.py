@@ -80,7 +80,7 @@ def main(yamlfile):
 
             finally:
                 print "Removing {}".format(t)
-                shutil.rmtree(t)
+                #shutil.rmtree(t)
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@
   "metadata": {
     "name": "cccp-service",
     "annotations": {
-      "description": "Container Pipeline PoC Template"
+      "description": "Container Pipeline Template"
     }
   },
   "labels": {
@@ -25,7 +25,7 @@
 	{
       "name": "TARGET_REGISTRY",
       "description": "An URL of a registry where to push the final image",
-      "value": "dev-32-43.lon1.centos.org"
+      "value": "i10.lon0.centos.in:5000"
     },
     {
       "name": "TARGET_NAMESPACE",
@@ -33,9 +33,14 @@
       "value": "cccp"
     },
     {
+      "name": "NOTIFY_EMAIL",
+      "description": "An email id for notifying after build of final image",
+      "value": ""
+    },
+    {
       "name": "TAG",
       "description": "Tag for the resulting image",
-      "value": "cccp-service",
+      "value": "cccp-python",
       "required": true
     },
     {
@@ -224,6 +229,10 @@
               {
                 "name": "TARGET_NAMESPACE",
                 "value": "${TARGET_NAMESPACE}"
+              },
+              {
+                "name": "NOTIFY_EMAIL",
+                "value": "${NOTIFY_EMAIL}"
               }
             ]
           }

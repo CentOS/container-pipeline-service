@@ -29,9 +29,13 @@ docker tag ${FULL_FROM} ${FULL_TO}
 _ "Pushing final image (${FULL_TO})"
 docker push ${FULL_TO}
 
-OUTPUT_IMAGE=i10.lon0.centos.in/${TARGET_NAMESPACE}/${TO}
-_ "Send mail to (${NOTIFY_EMAIL}) notify build is completed (${OUTPUT_IMAGE})"
+OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
+_ "Starting mail server"
+export REPLYTO=container-build@centos.org
+mkfifo /var/spool/postfix/public/pickup
+postfix start
 
+_ "Send mail to (${NOTIFY_EMAIL}) notify build is completed (${OUTPUT_IMAGE})"
 echo "Build is successful please pull the image (${OUTPUT_IMAGE})" | mail -r container-build-report@centos.org -s "cccp-build is complete" ${NOTIFY_EMAIL}
 
 _ "Cleaning environment"
