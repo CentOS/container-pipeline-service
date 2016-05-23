@@ -1,7 +1,6 @@
 FROM centos
 
-ADD docker.repo /etc/yum.repos.d/docker.repo
-RUN yum -y install docker-engine
+RUN yum -y install docker
 
 RUN yum -y install wget mailx postfix
 
