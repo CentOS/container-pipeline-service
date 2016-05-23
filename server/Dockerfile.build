@@ -1,6 +1,6 @@
 FROM centos
-
-RUN yum -y install docker
+ADD docker.repo /etc/yum.repos.d/docker.repo
+RUN yum -y install docker-engine
 RUN yum -y install git
 
 ADD run.sh /usr/bin/

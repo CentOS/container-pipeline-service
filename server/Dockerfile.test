@@ -1,6 +1,7 @@
 FROM centos
 
-RUN yum -y install docker
+ADD docker.repo /etc/yum.repos.d/docker.repo
+RUN yum -y install docker-engine
 
 ADD run-test.sh /usr/bin/
 
