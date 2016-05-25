@@ -33,4 +33,4 @@ if [ -n "${FULL_TO}" ] || [ -s "/root/.dockercfg" ]; then
 fi
 
 _ "Cleaning environment"
-docker rmi ${FULL_FROM} ${FULL_TO}
+docker rmi ${FULL_FROM}
