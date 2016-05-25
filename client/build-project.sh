@@ -38,11 +38,12 @@ oc login https://openshift:8443 -u test-admin -p test --certificate-authority=./
 echo "==>creating new project"
 oc new-project ${NAME}-${TAG} --display-name=${NAME}-${TAG}
 
-#echo "==> Uploading template to OpenShift"
-#for t in $(echo "build bc is"); do
-#  _oc ${NS} delete $t $(oc get $t -l template=cccp-service --no-headers | awk '{print $1}')
-#done
 sed -i.bak s/cccp-service/${NAME}-${TAG}/g $CWD/template.json
+
+echo "==> Uploading template to OpenShift"
+for t in $(echo "build bc is"); do
+  _oc ${NS} delete $t $(oc get $t -l template=${NAME}-${TAG} --no-headers | awk '{print $1}')
+done
 
 _oc ${NS} get --no-headers  -f $CWD/template.json && oc replace -f $CWD/template.json || oc ${NS} create -f $CWD/template.json
 _oc ${NS} process ${NAME}-${TAG} -v SOURCE_REPOSITORY_URL=${REPO},TARGET_NAMESPACE=${NAME},TAG=${TAG},REPO_BUILD_PATH=${REPO_BUILD_PATH},NOTIFY_EMAIL=${NOTIFY_EMAIL} | oc ${NS} create -f -
