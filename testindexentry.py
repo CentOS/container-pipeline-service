@@ -320,7 +320,7 @@ def mainf():
     Tester().run()
 
     print "\nTests completed\n"
-    print "You can view the test results at " + TestConsts.testdir + "/" + "[id]_[appid]_[jobid]/test.info\n"
+    print "You can view the test results at " + TestConsts.testdir + "/index-test" + "[id]_[appid]_[jobid].info\n"
 
 if __name__ == '__main__':
     mainf()
