@@ -5,6 +5,7 @@ import yaml
 from subprocess import check_call, CalledProcessError, call
 import stat
 import shutil
+import re
 
 class MessageType:
     error = 1
@@ -63,7 +64,6 @@ class TestConsts:
     if not os.path.exists(testdir):
         os.mkdir(testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
 
-
     if os.path.exists(testdir + "/index"):
         currdir = os.path.abspath(".")
         os.chdir(testdir + "/index")
@@ -76,6 +76,7 @@ class TestConsts:
         cmd = ["git", "clone", "https://github.com/kbsingh/cccp-index.git", testdir + "/index"]
         call(cmd)
 
+    print
 
 class TestEntry:
 
@@ -244,25 +245,79 @@ class Tester:
             with open(TestConsts.indxfile) as indexfile:
                 indexentries = yaml.load(indexfile)
 
-            i = 0
+                i = 0
 
-            for item in indexentries["Projects"]:
+            if len(sys.argv) <= 1:
+                for item in indexentries["Projects"]:
 
-                if i > 0:
+                    if i > 0:
 
-                    TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
-                    print "\nNext Entry....\n"
+                        TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                        print "\nNext Entry....\n"
 
-                i += 1
+                    i += 1
+
+            else:
+
+                # Extract params
+                prms = sys.argv[1:]
+
+                i = 0
+
+                while i < len(prms):
+
+                    prm = prms[i]
+
+                    if prm == "--indexproject" or prm == "-i":
+
+                        tid = prms[i+1]
+                        appid = prms[i+2]
+                        jobid = prms[i+3]
+
+                        t = 0
+
+                        for item in indexentries["Projects"]:
+
+                            if t > 0 and tid == item["id"] and appid == item["app-id"] and jobid == item["job-id"]:
+
+                                TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                                print "\nNext Entry....\n"
+
+                            t += 1
+
+                        i += 4
+
+                    elif prm == "--testproject" or prm == "-t":
+
+                        tid = prms[i+1]
+                        appid = prms[i+2]
+                        jobid = prms[i+3]
+                        giturl = prms[i+4]
+                        gitpath = prms[i+5]
+                        gitbranch = prms[i+6]
+                        notifyemail = prms[i+7]
+
+                        TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
+
+                        i += 8
+
+                    elif prm == "--help" or prm == "-h":
+
+                        print
+                        print str.format("Usage : {0} [(--indexproject|-i)|(--testproject|-t)|(--help|-h)] [id appid jobid [giturl gitpath gitbranch notifyemail]]", sys.argv[0])\
+
+                        i += 10000
+
+                    else:
+
+                        i += 1
 
         return
 
 
 def mainf():
 
-    if len(sys.argv) <= 1:
-        tester = Tester()
-        tester.run()
+    Tester().run()
 
     print "\nTests completed\n"
     print "You can view the test results at " + TestConsts.testdir + "/" + "[id]_[appid]_[jobid]/test.info\n"
