@@ -8,6 +8,7 @@ from pprint import PrettyPrinter
 
 pp = PrettyPrinter(indent=4)
 
+
 class MessageType:
     error = 1
     info = 2
@@ -16,8 +17,13 @@ class MessageType:
 
 class StaticHandler:
 
+    def __init__(self):
+
+        return
+
     @staticmethod
     def print_msg(messagetype, msg, testentry=None):
+        """Prints the status messages of the script onto stdout."""
 
         pre_pmsg = ""
         pre_fmsg = ""
@@ -44,6 +50,7 @@ class StaticHandler:
 
     @staticmethod
     def execcmd(cmd):
+        """Executes a cmd list and returns true if cmd executed correctly."""
 
         success = True
 
@@ -57,6 +64,10 @@ class StaticHandler:
         return success
 
 class TestConsts:
+    """Contains constants being used by the script"""
+
+    # This path can be modified by user and it is where the test data will be stored
+    # This includes the index file, the repos and test logs
     testdir = os.path.abspath("./cccp-index-test")
 
     giveexitcode = False
@@ -84,15 +95,18 @@ class TestConsts:
     # If using a local index, just change the path here tpo match that of your index file
     indxfile = testdir + "/index" + "/index.yml"
 
+    # If the test dir does not exist, create it with all permissions
     if not os.path.exists(testdir):
         os.mkdir(testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
 
+    # Check if the index repo exists, if it does, fetch the updates.
     if os.path.exists(testdir + "/index"):
         currdir = os.path.abspath(".")
         os.chdir(testdir + "/index")
-        cmd = ["git", "merge", "--all"]
+        cmd = ["git", "fetch", "--all"]
         os.chdir(currdir)
 
+    # If not, clone it
     else:
         StaticHandler.print_msg(MessageType.info,"Cloning index repo...")
         # Clone the index repo
@@ -102,6 +116,7 @@ class TestConsts:
     print
 
 class TestEntry:
+    """This class runs tests on a single entry"""
 
     def __init__(self, tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail):
 
@@ -123,7 +138,11 @@ class TestEntry:
         self._gitpath = gitpath
         self._gitBranch = gitbranch
         self._notifyEmail = notifyemail
+
+        # The repos will be cloned into this location
         self._git_Data_Location = self._test_location + "/" + self._giturl
+
+        # The location in the git repo against which the tests are to be run
         self._cccp_test_dir = self._git_Data_Location + self._gitpath
 
         if not self._cccp_test_dir.endswith("/"):
@@ -152,6 +171,7 @@ class TestEntry:
         return
 
     def _init_entries(self):
+        """Write the initial entries into this tests log file."""
 
         info = str.format("ID : {0}\nAPP ID : {1}\nJOB ID : {2}\n", self._id, self._appid, self._jobid)
         print info
@@ -166,6 +186,7 @@ class TestEntry:
         return
 
     def _update_branch(self):
+        """Fetches any changes and checks out specified branch"""
 
         currdir = os.path.abspath(".")
 
@@ -341,6 +362,7 @@ class TestEntry:
         return
 
     def run_tests(self):
+        """This function runs all the nessasary tests and returns the collected test data."""
 
         self._init_entries()
 
@@ -349,38 +371,45 @@ class TestEntry:
 
         return self._testData
 
+
 class Tester:
+    """This class reads index file and user input and orchestrates the tests accordingly"""
 
     def __init__(self):
 
         return
 
     def run(self, args):
+        """Runs the tests of the tester."""
 
-        tmpl = []
         resultset = {
             "Projects": []
         }
 
+        # Checks if the index file exists. Required for any tests to proceed
         if os.path.exists(TestConsts.indxfile):
 
+            # read in data from index file.
             with open(TestConsts.indxfile) as indexfile:
                 indexentries = yaml.load(indexfile)
 
                 i = 0
 
+            # If the args used to run this script contain no args or only one arg, that too requesting errorcode
             if len(args) <= 1 or (len(args) == 2 and args[1] in TestConsts.cmdoptions["ErrorCode"]):
 
                 if len(args) == 2:
 
-                    TestConsts.giveexitcode = True
+                    TestConsts.giveexitcode = True # Set the flag for error code
 
+                # Assuming no specifics, read all entries in index file and run tests agains them.
                 for item in indexentries["Projects"]:
 
                     if i > 0:
 
                         tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
 
+                        # Update the result set with the test data.
                         resultset["Projects"].append({
                             "id": item["id"],
                             "app-id": item["app-id"],
@@ -395,16 +424,19 @@ class Tester:
 
                     i += 1
 
+            # This assumes more than 2 parameters were passed.
             else:
 
                 # Extract params
                 prms = args[1:]
                 i = 0
 
+                # read the params
                 while i < len(prms):
 
                     prm = prms[i]
 
+                    # If param specifies fpr index entry, read data adn run tests against the specified project from index file
                     if prm in TestConsts.cmdoptions["IndexEntry"]:
 
                         tid = prms[i+1]
@@ -444,11 +476,13 @@ class Tester:
 
                         i += 4
 
+                    # If error code was requested, set the flag
                     elif prm in TestConsts.cmdoptions["ErrorCode"]:
 
                         TestConsts.giveexitcode = True
                         i += 1
 
+                    # If a test entry was requested, take in all params and run tests against it
                     elif prm in TestConsts.cmdoptions["Test"]:
 
                         tid = prms[i+1]
@@ -461,6 +495,7 @@ class Tester:
 
                         tt = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
 
+                        # Update the result set with result data
                         resultset["Projects"].append({
                             "id": tid,
                             "app-id": appid,
@@ -473,6 +508,7 @@ class Tester:
 
                         i += 8
 
+                    # If help was requsted, give help
                     elif prm in TestConsts.cmdoptions["Help"]:
 
                         print
@@ -483,7 +519,7 @@ class Tester:
                     else:
 
                         i += 1
-
+        # Return resultset
         return resultset
 
 
