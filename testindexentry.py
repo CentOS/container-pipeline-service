@@ -325,7 +325,7 @@ class TestEntry:
             # Check is test-skip is reset
             if cccpyaml["test-skip"] == False:
 
-                StaticHandler.print_msg(MessageType.info, "Test skip is reset, checking for now compulsory test-script")
+                StaticHandler.print_msg(MessageType.info, "Test skip is reset, checking for now compulsory test-script", self)
 
                 # Check if a test-script key is present
                 if "test-script" in cccpyaml.keys():
