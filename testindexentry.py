@@ -123,6 +123,9 @@ class TestEntry:
         if not gitpath.startswith("/"):
             gitpath = "/" + gitpath
 
+        if not gitpath.endswith("/"):
+            gitpath += "/"
+
         fnm = tid + "_" + appid + "_" + jobid
         self._test_location = TestConsts.testdir + "/repos"
 
@@ -145,11 +148,9 @@ class TestEntry:
         # The location in the git repo against which the tests are to be run
         self._cccp_test_dir = self._git_Data_Location + self._gitpath
 
-        if not self._cccp_test_dir.endswith("/"):
-            self._cccp_test_dir += "/"
-
         self._testData = {
             "clone-path": self._git_Data_Location,
+            "git-path" : self._gitpath
             "tests": {
                 "clone": False,
                 "cccpexists": False,
@@ -416,6 +417,7 @@ class Tester:
                             "job-id": item["job-id"],
                             "sanity-passed": tt["tests"]["allpass"],
                             "clone-path": tt["clone-path"],
+                            "git-path": tt["git-path"],
                             "git-branch": item["git-branch"],
                             "notify-email": item["notify-email"]
                         })
@@ -466,6 +468,7 @@ class Tester:
                                     "job-id": item["job-id"],
                                     "sanity-passed": tt["tests"]["allpass"],
                                     "clone-path": tt["clone-path"],
+                                    "git-path": tt["git-path"],
                                     "git-branch": item["git-branch"],
                                     "notify-email": item["notify-email"]
                                 })
@@ -502,6 +505,7 @@ class Tester:
                             "job-id": jobid,
                             "sanity-passed": tt["tests"]["allpass"],
                             "clone-path": tt["clone-path"],
+                            "git-path": tt["git-path"],
                             "git-branch": gitbranch,
                             "notify-email": notifyemail
                         })
