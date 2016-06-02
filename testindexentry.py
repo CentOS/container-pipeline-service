@@ -119,7 +119,7 @@ class TestConsts:
 
     # Check if the index repo exists, if it does, fetch the updates.
     if os.path.exists(testdir + "/index"):
-        currdir = os.path.abspath(".")
+        currdir = os.getcwd()
         os.chdir(testdir + "/index")
         cmd = ["git", "fetch", "--all"]
         os.chdir(currdir)
@@ -208,7 +208,7 @@ class TestEntry:
     def _update_branch(self):
         """Fetches any changes and checks out specified branch"""
 
-        currdir = os.path.abspath(".")
+        currdir = os.getcwd()
 
         os.chdir(self._git_Data_Location)
 
