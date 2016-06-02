@@ -150,7 +150,7 @@ class TestEntry:
 
         self._testData = {
             "clone-path": self._git_Data_Location,
-            "git-path" : self._gitpath
+            "git-path" : self._gitpath,
             "tests": {
                 "clone": False,
                 "cccpexists": False,
