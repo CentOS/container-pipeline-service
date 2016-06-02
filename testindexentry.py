@@ -4,8 +4,9 @@ import sys
 import yaml
 from subprocess import check_call, CalledProcessError, call
 import stat
-import shutil
-import re
+from pprint import PrettyPrinter
+
+pp = PrettyPrinter(indent=4)
 
 class MessageType:
     error = 1
@@ -58,6 +59,28 @@ class StaticHandler:
 class TestConsts:
     testdir = os.path.abspath("./cccp-index-test")
 
+    giveexitcode = False
+    exitcode = 0
+
+    cmdoptions = {
+        "ErrorCode": [
+            "-e",
+            "--useerrorcode"
+        ],
+        "IndexEntry": [
+            "-i",
+            "--indexentry"
+        ],
+        "Test": [
+            "-t",
+            "--testentry"
+        ],
+        "Help": [
+            "-h",
+            "--help"
+        ]
+    }
+
     # If using a local index, just change the path here tpo match that of your index file
     indxfile = testdir + "/index" + "/index.yml"
 
@@ -105,6 +128,18 @@ class TestEntry:
 
         if not self._cccp_test_dir.endswith("/"):
             self._cccp_test_dir += "/"
+
+        self._testData = {
+            "clone-path": self._git_Data_Location,
+            "tests": {
+                "clone": False,
+                "cccpexists": False,
+                "jobidmatch": False,
+                "test-skip": False,
+                "test-script": False,
+                "allpass": False
+            }
+        }
 
         return
 
@@ -172,14 +207,18 @@ class TestEntry:
             else:
 
                 StaticHandler.print_msg(MessageType.error, "Failed to clone repo, skipping...")
+                TestConsts.exitcode += 1
                 success = False
 
+        self._testData["tests"]["clone"] = success
         return success
 
     def _test_cccp_yaml(self):
         """Run sanity checks on the cccp.yml file"""
 
         # FIXME : Finish this method
+
+        # * Find out the the cccp yml file is present
 
         # Map location of the cccp.yml file
         cccpyamlfilepath = ""
@@ -194,13 +233,16 @@ class TestEntry:
 
             if os.path.exists(cccpyamlfilepath):
                 pthexists = True
+                self._testData["tests"]["cccpexists"] = True
                 break
 
         if not pthexists:
             StaticHandler.print_msg(MessageType.error, "Missing cccp.yml file, skipping...", self)
             return
 
-        StaticHandler.print_msg(MessageType.success, "Found cccp.yml file", self)
+        StaticHandler.print_msg(MessageType.success, "Found cccp.yml file, moving on...", self)
+
+        # * Validate for job-id
 
         # Check if the job id supplied matches with job id in cccp.yml
         with open(cccpyamlfilepath) as cccpyamlfile:
@@ -210,16 +252,91 @@ class TestEntry:
 
 #        print str.format("index jid : {0}\ncccp jid : {1}", self._jobid, cccpyaml["job-id"])
 
-        if self._jobid == cccpyaml["job-id"]:
+        if "job-id" in cccpyaml.keys():
 
-            StaticHandler.print_msg(MessageType.success, "Job id matched, continuing...", self)
+            if self._jobid == cccpyaml["job-id"]:
+
+                StaticHandler.print_msg(MessageType.success, "Job id matched, moving on...", self)
+                self._testData["tests"]["jobidmatch"] = True
+
+            else:
+
+                StaticHandler.print_msg(MessageType.error, "Job Ids don't match, skipping...", self)
+                TestConsts.exitcode += 1
+                return
 
         else:
 
-            StaticHandler.print_msg(MessageType.error, "Job Ids dont match, skipping...", self)
+            StaticHandler.print_msg(MessageType.error, "Missing compulsory key, job-id in cccp.yml file...", self)
+            TestConsts.exitcode += 1
             return
 
+        # * Validate for test-skip and test-script
 
+        StaticHandler.print_msg(MessageType.info, "Checking for test-skip flag", self)
+
+        # Check for test skip to be present
+        if "test-skip" in cccpyaml.keys():
+
+            StaticHandler.print_msg(MessageType.info, "Flag found, proceeding to check if its reset...", self)
+
+            # Check is test-skip is reset
+            if cccpyaml["test-skip"] == False:
+
+                StaticHandler.print_msg(MessageType.info, "Test skip is reset, checking for now compulsory test-script")
+
+                # Check if a test-script key is present
+                if "test-script" in cccpyaml.keys():
+
+                    testscript = cccpyaml["test-script"]
+                    testscriptpath = self._cccp_test_dir + testscript
+
+                    # Check if the test script actually exists
+                    if not os.path.exists(testscriptpath):
+
+                        StaticHandler.print_msg(MessageType.error, "The specified test script does not exist, skipping...", self)
+                        TestConsts.exitcode += 1
+                        return
+
+                    else:
+
+                        StaticHandler.print_msg(MessageType.success, "The specified test script exists, moving on...")
+                        self._testData["tests"]["test-skip"] = True
+                        self._testData["tests"]["test-script"] = True
+
+                else:
+
+                    StaticHandler.print_msg(MessageType.error, "Test skip is reset, but test script is missing, skipping...", self)
+                    TestConsts.exitcode += 1
+                    return
+
+            # If test-skip is not reset, check if its set
+            elif cccpyaml["test-skip"] == True:
+
+                StaticHandler.print_msg(MessageType.success, "Test skip is set, moving on...", self)
+                self._testData["tests"]["test-skip"] = True
+                self._testData["tests"]["test-script"] = True
+
+            # If test-skip is not reset or set, then, there is an error
+            else:
+
+                StaticHandler.print_msg(MessageType.error, "Test skip is not reset or set, skipping...", self)
+                TestConsts.exitcode += 1
+                return
+
+        else:
+
+            StaticHandler.print_msg(MessageType.success, "Test skip not found, assuming True and moving on...", self)
+            self._testData["tests"]["test-skip"] = True
+            self._testData["tests"]["test-script"] = True
+
+        # * Check Build script
+
+        # * Check Local Delivery
+
+        self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"]["clone"] and self._testData["tests"]["jobidmatch"] and (
+            self._testData["tests"]["test-skip"] and self._testData["tests"]["test-script"]
+        )
 
         return
 
@@ -230,7 +347,7 @@ class TestEntry:
         if self._clone_repo():
             self._test_cccp_yaml()
 
-        return
+        return self._testData
 
 class Tester:
 
@@ -238,7 +355,12 @@ class Tester:
 
         return
 
-    def run(self):
+    def run(self, args):
+
+        tmpl = []
+        resultset = {
+            "Projects": []
+        }
 
         if os.path.exists(TestConsts.indxfile):
 
@@ -247,12 +369,28 @@ class Tester:
 
                 i = 0
 
-            if len(sys.argv) <= 1:
+            if len(args) <= 1 or (len(args) == 2 and args[1] in TestConsts.cmdoptions["ErrorCode"]):
+
+                if len(args) == 2:
+
+                    TestConsts.giveexitcode = True
+
                 for item in indexentries["Projects"]:
 
                     if i > 0:
 
-                        TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                        tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+
+                        resultset["Projects"].append({
+                            "id": item["id"],
+                            "app-id": item["app-id"],
+                            "job-id": item["job-id"],
+                            "sanity-passed": tt["tests"]["allpass"],
+                            "clone-path": tt["clone-path"],
+                            "git-branch": item["git-branch"],
+                            "notify-email": item["notify-email"]
+                        })
+
                         print "\nNext Entry....\n"
 
                     i += 1
@@ -260,19 +398,27 @@ class Tester:
             else:
 
                 # Extract params
-                prms = sys.argv[1:]
-
+                prms = args[1:]
                 i = 0
 
                 while i < len(prms):
 
                     prm = prms[i]
 
-                    if prm == "--indexproject" or prm == "-i":
+                    if prm in TestConsts.cmdoptions["IndexEntry"]:
 
                         tid = prms[i+1]
                         appid = prms[i+2]
                         jobid = prms[i+3]
+
+                        tid = tid.lstrip()
+                        tid = tid.rstrip()
+
+                        appid = appid.lstrip()
+                        appid = appid.rstrip()
+
+                        jobid = jobid.lstrip()
+                        jobid = jobid.rstrip()
 
                         t = 0
 
@@ -280,14 +426,30 @@ class Tester:
 
                             if t > 0 and tid == item["id"] and appid == item["app-id"] and jobid == item["job-id"]:
 
-                                TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                                tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+
+                                resultset["Projects"].append({
+                                    "id": item["id"],
+                                    "app-id": item["app-id"],
+                                    "job-id": item["job-id"],
+                                    "sanity-passed": tt["tests"]["allpass"],
+                                    "clone-path": tt["clone-path"],
+                                    "git-branch": item["git-branch"],
+                                    "notify-email": item["notify-email"]
+                                })
+
                                 print "\nNext Entry....\n"
 
                             t += 1
 
                         i += 4
 
-                    elif prm == "--testproject" or prm == "-t":
+                    elif prm in TestConsts.cmdoptions["ErrorCode"]:
+
+                        TestConsts.giveexitcode = True
+                        i += 1
+
+                    elif prm in TestConsts.cmdoptions["Test"]:
 
                         tid = prms[i+1]
                         appid = prms[i+2]
@@ -297,11 +459,21 @@ class Tester:
                         gitbranch = prms[i+6]
                         notifyemail = prms[i+7]
 
-                        TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
+                        tt = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
+
+                        resultset["Projects"].append({
+                            "id": tid,
+                            "app-id": appid,
+                            "job-id": jobid,
+                            "sanity-passed": tt["tests"]["allpass"],
+                            "clone-path": tt["clone-path"],
+                            "git-branch": gitbranch,
+                            "notify-email": notifyemail
+                        })
 
                         i += 8
 
-                    elif prm == "--help" or prm == "-h":
+                    elif prm in TestConsts.cmdoptions["Help"]:
 
                         print
                         print str.format("Usage : {0} [(--indexproject|-i)|(--testproject|-t)|(--help|-h)] [id appid jobid [giturl gitpath gitbranch notifyemail]]", sys.argv[0])\
@@ -312,15 +484,26 @@ class Tester:
 
                         i += 1
 
-        return
+        return resultset
 
 
 def mainf():
 
-    Tester().run()
+    rs = Tester().run(sys.argv)
 
     print "\nTests completed\n"
-    print "You can view the test results at " + TestConsts.testdir + "/index-test" + "[id]_[appid]_[jobid].info\n"
+
+    print "\n#################################### RESULTS ###################################\n"
+    pp.pprint(rs)
+    resultsfile = TestConsts.testdir + "/results.yml"
+
+    with open(resultsfile, "w") as resfile:
+        yaml.dump(rs, resfile, default_flow_style=False)
+
+    print "\nYou can view the test results at " + resultsfile + "\n"
+
+    if TestConsts.giveexitcode:
+        sys.exit(TestConsts.exitcode)
 
 if __name__ == '__main__':
     mainf()
