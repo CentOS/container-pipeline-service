@@ -5,14 +5,27 @@ import yaml
 from subprocess import check_call, CalledProcessError, call
 import stat
 from pprint import PrettyPrinter
+from collections import OrderedDict
 
 pp = PrettyPrinter(indent=4)
 
 
+def setup_yaml():
+    """ http://stackoverflow.com/a/8661021 """
+    represent_dict_order = lambda self, data:  self.represent_mapping('tag:yaml.org,2002:map', data.items())
+    yaml.add_representer(OrderedDict, represent_dict_order)
+setup_yaml()
+
+
 class MessageType:
-    error = 1
-    info = 2
-    success = 3
+
+    def __init__(self):
+
+        return
+
+    error = "1"
+    info = "2"
+    success = "3"
 
 
 class StaticHandler:
@@ -63,8 +76,13 @@ class StaticHandler:
 
         return success
 
+
 class TestConsts:
     """Contains constants being used by the script"""
+
+    def __init__(self):
+
+        return
 
     # This path can be modified by user and it is where the test data will be stored
     # This includes the index file, the repos and test logs
@@ -108,12 +126,13 @@ class TestConsts:
 
     # If not, clone it
     else:
-        StaticHandler.print_msg(MessageType.info,"Cloning index repo...")
+        StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
         # Clone the index repo
         cmd = ["git", "clone", "https://github.com/kbsingh/cccp-index.git", testdir + "/index"]
         call(cmd)
 
     print
+
 
 class TestEntry:
     """This class runs tests on a single entry"""
@@ -150,7 +169,7 @@ class TestEntry:
 
         self._testData = {
             "clone-path": self._git_Data_Location,
-            "git-path" : self._gitpath,
+            "git-path": self._gitpath,
             "tests": {
                 "clone": False,
                 "cccpexists": False,
@@ -200,6 +219,7 @@ class TestEntry:
         call(cmd)
 
         cmd = ["git", "checkout", self._gitBranch]
+        call(cmd)
 
         os.chdir(currdir)
 
@@ -316,7 +336,8 @@ class TestEntry:
                     # Check if the test script actually exists
                     if not os.path.exists(testscriptpath):
 
-                        StaticHandler.print_msg(MessageType.error, "The specified test script does not exist, skipping...", self)
+                        StaticHandler.print_msg(MessageType.error,
+                                                "The specified test script does not exist, skipping...", self)
                         TestConsts.exitcode += 1
                         return
 
@@ -328,7 +349,8 @@ class TestEntry:
 
                 else:
 
-                    StaticHandler.print_msg(MessageType.error, "Test skip is reset, but test script is missing, skipping...", self)
+                    StaticHandler.print_msg(MessageType.error,
+                                            "Test skip is reset, but test script is missing, skipping...", self)
                     TestConsts.exitcode += 1
                     return
 
@@ -356,9 +378,10 @@ class TestEntry:
 
         # * Check Local Delivery
 
-        self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"]["clone"] and self._testData["tests"]["jobidmatch"] and (
-            self._testData["tests"]["test-skip"] and self._testData["tests"]["test-script"]
-        )
+        self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"]["clone"]\
+                                             and self._testData["tests"]["jobidmatch"] and \
+                                             (self._testData["tests"]["test-skip"] and
+                                              self._testData["tests"]["test-script"])
 
         return
 
@@ -377,11 +400,13 @@ class Tester:
     """This class reads index file and user input and orchestrates the tests accordingly"""
 
     def __init__(self):
-
+        self._i = ""
         return
 
     def run(self, args):
         """Runs the tests of the tester."""
+
+        t = self._i
 
         resultset = {
             "Projects": []
@@ -401,26 +426,47 @@ class Tester:
 
                 if len(args) == 2:
 
-                    TestConsts.giveexitcode = True # Set the flag for error code
+                    TestConsts.giveexitcode = True  # Set the flag for error code
 
                 # Assuming no specifics, read all entries in index file and run tests agains them.
                 for item in indexentries["Projects"]:
 
                     if i > 0:
 
-                        tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                        tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"],
+                                       item["git-branch"], item["notify-email"]).run_tests()
 
                         # Update the result set with the test data.
-                        resultset["Projects"].append({
-                            "id": item["id"],
-                            "app-id": item["app-id"],
-                            "job-id": item["job-id"],
-                            "sanity-passed": tt["tests"]["allpass"],
-                            "clone-path": tt["clone-path"],
-                            "git-path": tt["git-path"],
-                            "git-branch": item["git-branch"],
-                            "notify-email": item["notify-email"]
-                        })
+                        od = OrderedDict(
+                            (
+                                (
+                                    "id", item["id"]
+                                ),
+                                (
+                                    "app-id", item["app-id"]
+                                ),
+                                (
+                                    "job-id", item["job-id"]
+                                ),
+                                (
+                                    "sanity-passed", tt["tests"]["allpass"]
+                                ),
+                                (
+                                    "clone-path", tt["clone-path"]
+                                ),
+                                (
+                                    "git-path", tt["git-path"]
+                                ),
+                                (
+                                    "git-branch", item["git-branch"]
+                                ),
+                                (
+                                    "notify-email", item["notify-email"]
+                                )
+                            )
+                        )
+
+                        resultset["Projects"].append(od)
 
                         print "\nNext Entry....\n"
 
@@ -438,7 +484,8 @@ class Tester:
 
                     prm = prms[i]
 
-                    # If param specifies fpr index entry, read data adn run tests against the specified project from index file
+                    # If param specifies fpr index entry, read data adn run tests against the specified project from
+                    # index file
                     if prm in TestConsts.cmdoptions["IndexEntry"]:
 
                         tid = prms[i+1]
@@ -460,18 +507,40 @@ class Tester:
 
                             if t > 0 and tid == item["id"] and appid == item["app-id"] and jobid == item["job-id"]:
 
-                                tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                                tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
+                                               item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
 
-                                resultset["Projects"].append({
-                                    "id": item["id"],
-                                    "app-id": item["app-id"],
-                                    "job-id": item["job-id"],
-                                    "sanity-passed": tt["tests"]["allpass"],
-                                    "clone-path": tt["clone-path"],
-                                    "git-path": tt["git-path"],
-                                    "git-branch": item["git-branch"],
-                                    "notify-email": item["notify-email"]
-                                })
+
+                                od = OrderedDict(
+                                    (
+                                        (
+                                            "id", item["id"]
+                                        ),
+                                        (
+                                            "app-id", item["app-id"]
+                                        ),
+                                        (
+                                            "job-id", item["job-id"]
+                                        ),
+                                        (
+                                            "sanity-passed", tt["tests"]["allpass"]
+                                        ),
+                                        (
+                                            "clone-path", tt["clone-path"]
+                                        ),
+                                        (
+                                            "git-path", tt["git-path"]
+                                        ),
+                                        (
+                                            "git-branch", item["git-branch"]
+                                        ),
+                                        (
+                                            "notify-email", item["notify-email"]
+                                        )
+                                    )
+                                )
+
+                                resultset["Projects"].append(od)
 
                                 print "\nNext Entry....\n"
 
@@ -499,16 +568,37 @@ class Tester:
                         tt = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
 
                         # Update the result set with result data
-                        resultset["Projects"].append({
-                            "id": tid,
-                            "app-id": appid,
-                            "job-id": jobid,
-                            "sanity-passed": tt["tests"]["allpass"],
-                            "clone-path": tt["clone-path"],
-                            "git-path": tt["git-path"],
-                            "git-branch": gitbranch,
-                            "notify-email": notifyemail
-                        })
+
+                        od = OrderedDict(
+                            (
+                                (
+                                    "id", tid
+                                ),
+                                (
+                                    "app-id", appid
+                                ),
+                                (
+                                    "job-id", jobid
+                                ),
+                                (
+                                    "sanity-passed", tt["tests"]["allpass"]
+                                ),
+                                (
+                                    "clone-path", tt["clone-path"]
+                                ),
+                                (
+                                    "git-path", tt["git-path"]
+                                ),
+                                (
+                                    "git-branch", gitbranch
+                                ),
+                                (
+                                    "notify-email", notifyemail
+                                )
+                            )
+                        )
+
+                        resultset["Projects"].append(od)
 
                         i += 8
 
@@ -516,7 +606,8 @@ class Tester:
                     elif prm in TestConsts.cmdoptions["Help"]:
 
                         print
-                        print str.format("Usage : {0} [(--indexproject|-i)|(--testproject|-t)|(--help|-h)] [id appid jobid [giturl gitpath gitbranch notifyemail]]", sys.argv[0])\
+                        print str.format("Usage : {0} [(--indexproject|-i)|(--testproject|-t)|(--help|-h)] [id appid"
+                                         " jobid [giturl gitpath gitbranch notifyemail]]", sys.argv[0])\
 
                         i += 10000
 
@@ -524,6 +615,7 @@ class Tester:
 
                         i += 1
         # Return resultset
+
         return resultset
 
 
