@@ -148,10 +148,10 @@ class TestEntry:
         fnm = tid + "_" + appid + "_" + jobid
         self._test_location = TestConsts.testdir + "/repos"
 
-        if not os.path.exists(TestConsts.testdir + "/index-tests"):
-            os.mkdir(TestConsts.testdir + "/index-tests")
+        if not os.path.exists(TestConsts.testdir + "/tests"):
+            os.mkdir(TestConsts.testdir + "/tests")
 
-        self.testinfo = TestConsts.testdir + "/index-tests/" + fnm + ".info"
+        self.testinfo = TestConsts.testdir + "/tests/" + fnm + ".info"
 
         self._id = tid
         self._appid = appid
@@ -325,7 +325,8 @@ class TestEntry:
             # Check is test-skip is reset
             if cccpyaml["test-skip"] == False:
 
-                StaticHandler.print_msg(MessageType.info, "Test skip is reset, checking for now compulsory test-script", self)
+                StaticHandler.print_msg(MessageType.info, "Test skip is reset, checking for now compulsory test-script",
+                                        self)
 
                 # Check if a test-script key is present
                 if "test-script" in cccpyaml.keys():
@@ -343,7 +344,7 @@ class TestEntry:
 
                     else:
 
-                        StaticHandler.print_msg(MessageType.success, "The specified test script exists, moving on...")
+                        StaticHandler.print_msg(MessageType.success, "The specified test script exists, moving on...", self)
                         self._testData["tests"]["test-skip"] = True
                         self._testData["tests"]["test-script"] = True
 
