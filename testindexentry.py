@@ -255,7 +255,7 @@ class TestEntry:
 
             else:
 
-                StaticHandler.print_msg(MessageType.error, "Failed to clone repo, skipping...")
+                StaticHandler.print_msg(MessageType.error, "Failed to clone repo, skipping...", self)
                 TestConsts.exitcode += 1
                 success = False
 
