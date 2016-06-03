@@ -450,10 +450,13 @@ class Tester:
                                     "job-id", item["job-id"]
                                 ),
                                 (
-                                    "sanity-passed", tt["tests"]["allpass"]
+                                    "all-tests-passed", tt["tests"]["allpass"]
                                 ),
                                 (
-                                    "clone-path", tt["clone-path"]
+                                    "test-details", tt["tests"]
+                                ),
+                                (
+                                    "git-clone-path", tt["clone-path"]
                                 ),
                                 (
                                     "git-path", tt["git-path"]
@@ -524,10 +527,13 @@ class Tester:
                                             "job-id", item["job-id"]
                                         ),
                                         (
-                                            "sanity-passed", tt["tests"]["allpass"]
+                                            "all-tests-passed", tt["tests"]["allpass"]
                                         ),
                                         (
-                                            "clone-path", tt["clone-path"]
+                                            "test-details", tt["tests"]
+                                        ),
+                                        (
+                                            "git-clone-path", tt["clone-path"]
                                         ),
                                         (
                                             "git-path", tt["git-path"]
@@ -582,10 +588,13 @@ class Tester:
                                     "job-id", jobid
                                 ),
                                 (
-                                    "sanity-passed", tt["tests"]["allpass"]
+                                    "all-tests-passed", tt["tests"]["allpass"]
                                 ),
                                 (
-                                    "clone-path", tt["clone-path"]
+                                    "test-details", tt["tests"]
+                                ),
+                                (
+                                    "git-clone-path", tt["clone-path"]
                                 ),
                                 (
                                     "git-path", tt["git-path"]
