@@ -442,7 +442,7 @@ class Tester:
 
                     if i > 0:
 
-                        tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"],
+                        testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"],
                                        item["git-branch"], item["notify-email"]).run_tests()
 
                         # Update the result set with the test data.
@@ -458,16 +458,16 @@ class Tester:
                                     "job-id", item["job-id"]
                                 ),
                                 (
-                                    "tests-passed", tt["tests"]["allpass"]
+                                    "tests-passed", testresults["tests"]["allpass"]
                                 ),
                                 (
-                                    "tests-summary", tt["tests"]
+                                    "tests-summary", testresults["tests"]
                                 ),
                                 (
-                                    "git-clone-path", tt["clone-path"]
+                                    "git-clone-path", testresults["clone-path"]
                                 ),
                                 (
-                                    "git-path", tt["git-path"]
+                                    "git-path", testresults["git-path"]
                                 ),
                                 (
                                     "git-branch", item["git-branch"]
@@ -519,7 +519,7 @@ class Tester:
 
                             if t > 0 and tid == item["id"] and appid == item["app-id"] and jobid == item["job-id"]:
 
-                                tt = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
+                                testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
                                                item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
 
 
@@ -535,16 +535,16 @@ class Tester:
                                             "job-id", item["job-id"]
                                         ),
                                         (
-                                            "tests-passed", tt["tests"]["allpass"]
+                                            "tests-passed", testresults["tests"]["allpass"]
                                         ),
                                         (
-                                            "test-summary", tt["tests"]
+                                            "test-summary", testresults["tests"]
                                         ),
                                         (
-                                            "git-clone-path", tt["clone-path"]
+                                            "git-clone-path", testresults["clone-path"]
                                         ),
                                         (
-                                            "git-path", tt["git-path"]
+                                            "git-path", testresults["git-path"]
                                         ),
                                         (
                                             "git-branch", item["git-branch"]
@@ -580,7 +580,7 @@ class Tester:
                         gitbranch = prms[i+6]
                         notifyemail = prms[i+7]
 
-                        tt = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
+                        testresults = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
 
                         # Update the result set with result data
 
@@ -596,16 +596,16 @@ class Tester:
                                     "job-id", jobid
                                 ),
                                 (
-                                    "tests-passed", tt["tests"]["allpass"]
+                                    "tests-passed", testresults["tests"]["allpass"]
                                 ),
                                 (
-                                    "test-summary", tt["tests"]
+                                    "test-summary", testresults["tests"]
                                 ),
                                 (
-                                    "git-clone-path", tt["clone-path"]
+                                    "git-clone-path", testresults["clone-path"]
                                 ),
                                 (
-                                    "git-path", tt["git-path"]
+                                    "git-path", testresults["git-path"]
                                 ),
                                 (
                                     "git-branch", gitbranch
@@ -642,9 +642,6 @@ def mainf():
     rs = Tester().run(sys.argv)
 
     print "\nTests completed\n"
-
-    print "\n#################################### RESULTS ###################################\n"
-    pp.pprint(rs)
     resultsfile = TestConsts.testdir + "/results.yml"
 
     with open(resultsfile, "w") as resfile:
