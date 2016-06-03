@@ -161,8 +161,14 @@ class TestEntry:
         self._gitBranch = gitbranch
         self._notifyEmail = notifyemail
 
+        t = ""
+
         # The repos will be cloned into this location
-        self._git_Data_Location = self._test_location + "/" + self._giturl
+        t = self._giturl.split(":")[1]
+        if t.startswith("//"):
+            t = t[2:]
+
+        self._git_Data_Location = self._test_location + "/" + t
 
         # The location in the git repo against which the tests are to be run
         self._cccp_test_dir = self._git_Data_Location + self._gitpath
