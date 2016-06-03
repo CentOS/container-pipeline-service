@@ -119,6 +119,7 @@ class TestConsts:
 
     # Check if the index repo exists, if it does, fetch the updates.
     if os.path.exists(testdir + "/index"):
+        StaticHandler.print_msg(MessageType.info, "Updating index repo...")
         currdir = os.getcwd()
         os.chdir(testdir + "/index")
         cmd = ["git", "fetch", "--all"]
@@ -457,10 +458,10 @@ class Tester:
                                     "job-id", item["job-id"]
                                 ),
                                 (
-                                    "all-tests-passed", tt["tests"]["allpass"]
+                                    "tests-passed", tt["tests"]["allpass"]
                                 ),
                                 (
-                                    "test-details", tt["tests"]
+                                    "tests-summary", tt["tests"]
                                 ),
                                 (
                                     "git-clone-path", tt["clone-path"]
@@ -534,10 +535,10 @@ class Tester:
                                             "job-id", item["job-id"]
                                         ),
                                         (
-                                            "all-tests-passed", tt["tests"]["allpass"]
+                                            "tests-passed", tt["tests"]["allpass"]
                                         ),
                                         (
-                                            "test-details", tt["tests"]
+                                            "test-summary", tt["tests"]
                                         ),
                                         (
                                             "git-clone-path", tt["clone-path"]
@@ -595,10 +596,10 @@ class Tester:
                                     "job-id", jobid
                                 ),
                                 (
-                                    "all-tests-passed", tt["tests"]["allpass"]
+                                    "tests-passed", tt["tests"]["allpass"]
                                 ),
                                 (
-                                    "test-details", tt["tests"]
+                                    "test-summary", tt["tests"]
                                 ),
                                 (
                                     "git-clone-path", tt["clone-path"]
