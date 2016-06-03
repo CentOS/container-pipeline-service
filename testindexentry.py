@@ -6,6 +6,7 @@ from subprocess import check_call, CalledProcessError, call
 import stat
 from pprint import PrettyPrinter
 from collections import OrderedDict
+from time import sleep
 
 pp = PrettyPrinter(indent=4)
 
@@ -131,6 +132,9 @@ class TestConsts:
         # Clone the index repo
         cmd = ["git", "clone", "https://github.com/kbsingh/cccp-index.git", testdir + "/index"]
         call(cmd)
+
+        sleep(8)
+        os.system("clear")
 
     print
 
@@ -348,12 +352,15 @@ class TestEntry:
 
                         StaticHandler.print_msg(MessageType.error,
                                                 "The specified test script does not exist, skipping...", self)
+
                         TestConsts.exitcode += 1
                         return
 
                     else:
 
-                        StaticHandler.print_msg(MessageType.success, "The specified test script exists, moving on...", self)
+                        StaticHandler.print_msg(MessageType.success, "The specified test script exists, moving on...",
+                                                self)
+
                         self._testData["tests"]["test-script"] = True
 
                 else:
@@ -389,8 +396,10 @@ class TestEntry:
 
         self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"]["clone"]\
                                              and self._testData["tests"]["jobidmatch"] and \
-                                             (self._testData["tests"]["test-skip"] and
-                                              self._testData["tests"]["test-script"])
+                                             (
+                                                 self._testData["tests"]["test-skip"] and
+                                                 self._testData["tests"]["test-script"]
+                                             )
 
         return
 
@@ -401,6 +410,9 @@ class TestEntry:
 
         if self._clone_repo():
             self._test_cccp_yaml()
+
+        sleep(5)
+        os.system("clear")
 
         return self._testData
 
@@ -442,8 +454,8 @@ class Tester:
 
                     if i > 0:
 
-                        testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"], item["git-path"],
-                                       item["git-branch"], item["notify-email"]).run_tests()
+                        testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
+                                                item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
 
                         # Update the result set with the test data.
                         od = OrderedDict(
@@ -521,7 +533,6 @@ class Tester:
 
                                 testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
                                                item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
-
 
                                 od = OrderedDict(
                                     (
