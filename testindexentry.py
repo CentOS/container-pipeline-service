@@ -1,27 +1,28 @@
 #!/bin/python
 import os
-import sys
-import yaml
-from subprocess import check_call, CalledProcessError, call
 import stat
-from pprint import PrettyPrinter
+import sys
 from collections import OrderedDict
+from pprint import PrettyPrinter
+from subprocess import check_call, CalledProcessError, call
 from time import sleep
+
+import yaml
 
 pp = PrettyPrinter(indent=4)
 
 
 def setup_yaml():
     """ http://stackoverflow.com/a/8661021 """
-    represent_dict_order = lambda self, data:  self.represent_mapping('tag:yaml.org,2002:map', data.items())
+    represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
     yaml.add_representer(OrderedDict, represent_dict_order)
+
+
 setup_yaml()
 
 
 class MessageType:
-
     def __init__(self):
-
         return
 
     error = "1"
@@ -30,7 +31,6 @@ class MessageType:
 
 
 class StaticHandler:
-
     def __init__(self):
 
         return
@@ -303,7 +303,7 @@ class TestEntry:
 
         StaticHandler.print_msg(MessageType.info, "Matching job id with one in cccp.yml", self)
 
-#        print str.format("index jid : {0}\ncccp jid : {1}", self._jobid, cccpyaml["job-id"])
+        #        print str.format("index jid : {0}\ncccp jid : {1}", self._jobid, cccpyaml["job-id"])
 
         if "job-id" in cccpyaml.keys():
 
@@ -394,12 +394,12 @@ class TestEntry:
 
         # * Check Local Delivery
 
-        self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"]["clone"]\
-                                             and self._testData["tests"]["jobidmatch"] and \
-                                             (
-                                                 self._testData["tests"]["test-skip"] and
-                                                 self._testData["tests"]["test-script"]
-                                             )
+        self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"][
+            "clone"] and self._testData["tests"]["jobidmatch"] and \
+            (
+                self._testData["tests"]["test-skip"] and
+                self._testData["tests"]["test-script"]
+            )
 
         return
 
@@ -446,14 +446,12 @@ class Tester:
             if len(args) <= 1 or (len(args) == 2 and args[1] in TestConsts.cmdoptions["ErrorCode"]):
 
                 if len(args) == 2:
-
                     TestConsts.giveexitcode = True  # Set the flag for error code
 
                 # Assuming no specifics, read all entries in index file and run tests agains them.
                 for item in indexentries["Projects"]:
 
                     if i > 0:
-
                         testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
                                                 item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
 
@@ -512,9 +510,9 @@ class Tester:
                     # index file
                     if prm in TestConsts.cmdoptions["IndexEntry"]:
 
-                        tid = prms[i+1]
-                        appid = prms[i+2]
-                        jobid = prms[i+3]
+                        tid = prms[i + 1]
+                        appid = prms[i + 2]
+                        jobid = prms[i + 3]
 
                         tid = tid.lstrip()
                         tid = tid.rstrip()
@@ -530,9 +528,9 @@ class Tester:
                         for item in indexentries["Projects"]:
 
                             if t > 0 and tid == item["id"] and appid == item["app-id"] and jobid == item["job-id"]:
-
                                 testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
-                                               item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                                                        item["git-path"], item["git-branch"],
+                                                        item["notify-email"]).run_tests()
 
                                 od = OrderedDict(
                                     (
@@ -583,13 +581,13 @@ class Tester:
                     # If a test entry was requested, take in all params and run tests against it
                     elif prm in TestConsts.cmdoptions["Test"]:
 
-                        tid = prms[i+1]
-                        appid = prms[i+2]
-                        jobid = prms[i+3]
-                        giturl = prms[i+4]
-                        gitpath = prms[i+5]
-                        gitbranch = prms[i+6]
-                        notifyemail = prms[i+7]
+                        tid = prms[i + 1]
+                        appid = prms[i + 2]
+                        jobid = prms[i + 3]
+                        giturl = prms[i + 4]
+                        gitpath = prms[i + 5]
+                        gitbranch = prms[i + 6]
+                        notifyemail = prms[i + 7]
 
                         testresults = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
 
@@ -636,8 +634,7 @@ class Tester:
 
                         print
                         print str.format("Usage : {0} [(--indexproject|-i)|(--testproject|-t)|(--help|-h)] [id appid"
-                                         " jobid [giturl gitpath gitbranch notifyemail]]", sys.argv[0])\
-
+                                         " jobid [giturl gitpath gitbranch notifyemail]]", sys.argv[0])
                         i += 10000
 
                     else:
@@ -649,7 +646,6 @@ class Tester:
 
 
 def mainf():
-
     rs = Tester().run(sys.argv)
 
     print "\nTests completed\n"
@@ -662,6 +658,7 @@ def mainf():
 
     if TestConsts.giveexitcode:
         sys.exit(TestConsts.exitcode)
+
 
 if __name__ == '__main__':
     mainf()
