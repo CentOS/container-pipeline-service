@@ -477,6 +477,9 @@ class Tester:
                                     "git-clone-path", testresults["clone-path"]
                                 ),
                                 (
+                                    "git-track-url", item["git-url"]
+                                ),
+                                (
                                     "git-path", testresults["git-path"]
                                 ),
                                 (
@@ -553,6 +556,9 @@ class Tester:
                                             "git-clone-path", testresults["clone-path"]
                                         ),
                                         (
+                                            "git-track-url", item["git-url"]
+                                        ),
+                                        (
                                             "git-path", testresults["git-path"]
                                         ),
                                         (
@@ -612,6 +618,9 @@ class Tester:
                                 ),
                                 (
                                     "git-clone-path", testresults["clone-path"]
+                                ),
+                                (
+                                    "git-track-url", giturl
                                 ),
                                 (
                                     "git-path", testresults["git-path"]
