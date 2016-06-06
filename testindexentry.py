@@ -187,6 +187,7 @@ class TestEntry:
                 "jobidmatch": False,
                 "test-skip": False,
                 "test-script": False,
+                "build-script": False,
                 "allpass": False
             }
         }
@@ -391,15 +392,33 @@ class TestEntry:
             self._testData["tests"]["test-script"] = True
 
         # * Check Build script
+        StaticHandler.print_msg(MessageType.info, "Checking for build script.", self)
+        if "build-script" in cccpyaml.keys():
+
+            buildscriptfile = cccpyaml["build-script"]
+            buildscriptpath = self._cccp_test_dir + buildscriptfile
+
+            if not os.path.exists(buildscriptpath):
+
+                StaticHandler.print_msg(MessageType.error, "Could not find build script, skipping", self)
+                TestConsts.exitcode += 1
+                return
+
+        else:
+
+            StaticHandler.print_msg(MessageType.success, "No build script specified, moving on", self)
+            self._testData["tests"]["build-script"] = True
 
         # * Check Local Delivery
 
+        # * Set the all pass flag
         self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"][
             "clone"] and self._testData["tests"]["jobidmatch"] and \
             (
                 self._testData["tests"]["test-skip"] and
                 self._testData["tests"]["test-script"]
-            )
+            ) and\
+            self._testData["tests"]["build-script"]
 
         return
 
