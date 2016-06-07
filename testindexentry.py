@@ -6,6 +6,7 @@ from collections import OrderedDict
 from pprint import PrettyPrinter
 from subprocess import check_call, CalledProcessError, call
 from time import sleep
+import argparse
 
 import yaml
 
@@ -36,7 +37,7 @@ class StaticHandler:
         return
 
     @staticmethod
-    def print_msg(messagetype, msg, testentry=None):
+    def print_msg(messagetype, msg, writeinfoobj=None):
         """Prints the status messages of the script onto stdout."""
 
         pre_pmsg = ""
@@ -57,8 +58,8 @@ class StaticHandler:
         print pre_pmsg + msg
         print
 
-        if testentry is not None:
-            testentry.write_info(pre_fmsg + msg)
+        if writeinfoobj is not None:
+            writeinfoobj.write_info(pre_fmsg + msg)
 
         return
 
@@ -77,6 +78,34 @@ class StaticHandler:
 
         return success
 
+    @staticmethod
+    def initialize_all():
+
+        # If the test dir does not exist, create it with all permissions
+        if not os.path.exists(TestConsts.testdir):
+            os.mkdir(TestConsts.testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
+        # Check if the index repo exists, if it does, fetch the updates.
+        if os.path.exists(TestConsts.testdir + "/index"):
+            StaticHandler.print_msg(MessageType.info, "Updating index repo...")
+            currdir = os.getcwd()
+            os.chdir(TestConsts.testdir + "/index")
+            cmd = ["git", "fetch", "--all"]
+            os.chdir(currdir)
+
+        # If not, clone it
+        else:
+            StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
+            # Clone the index repo
+            cmd = ["git", "clone", "https://github.com/kbsingh/cccp-index.git", TestConsts.testdir + "/index"]
+            call(cmd)
+
+            sleep(5)
+
+        print
+
+        return
+
 
 class TestConsts:
     """Contains constants being used by the script"""
@@ -92,51 +121,9 @@ class TestConsts:
     giveexitcode = False
     exitcode = 0
 
-    cmdoptions = {
-        "ErrorCode": [
-            "-e",
-            "--useerrorcode"
-        ],
-        "IndexEntry": [
-            "-i",
-            "--indexentry"
-        ],
-        "Test": [
-            "-t",
-            "--testentry"
-        ],
-        "Help": [
-            "-h",
-            "--help"
-        ]
-    }
-
     # If using a local index, just change the path here tpo match that of your index file
     indxfile = testdir + "/index" + "/index.yml"
 
-    # If the test dir does not exist, create it with all permissions
-    if not os.path.exists(testdir):
-        os.mkdir(testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-
-    # Check if the index repo exists, if it does, fetch the updates.
-    if os.path.exists(testdir + "/index"):
-        StaticHandler.print_msg(MessageType.info, "Updating index repo...")
-        currdir = os.getcwd()
-        os.chdir(testdir + "/index")
-        cmd = ["git", "fetch", "--all"]
-        os.chdir(currdir)
-
-    # If not, clone it
-    else:
-        StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
-        # Clone the index repo
-        cmd = ["git", "clone", "https://github.com/kbsingh/cccp-index.git", testdir + "/index"]
-        call(cmd)
-
-        sleep(8)
-        os.system("clear")
-
-    print
 
 
 class TestEntry:
@@ -151,36 +138,36 @@ class TestEntry:
             gitpath += "/"
 
         fnm = tid + "_" + appid + "_" + jobid
-        self._test_location = TestConsts.testdir + "/repos"
+        self._gitReposlocation = TestConsts.testdir + "/repos"
 
         if not os.path.exists(TestConsts.testdir + "/tests"):
             os.mkdir(TestConsts.testdir + "/tests")
 
-        self.testinfo = TestConsts.testdir + "/tests/" + fnm + ".info"
+        self._testLogFile = TestConsts.testdir + "/tests/" + fnm + ".log"
 
         self._id = tid
-        self._appid = appid
-        self._jobid = jobid
-        self._giturl = giturl
-        self._gitpath = gitpath
+        self._appId = appid
+        self._jobId = jobid
+        self._gitURL = giturl
+        self._gitPath = gitpath
         self._gitBranch = gitbranch
         self._notifyEmail = notifyemail
 
         t = ""
 
         # The repos will be cloned into this location
-        t = self._giturl.split(":")[1]
+        t = self._gitURL.split(":")[1]
         if t.startswith("//"):
             t = t[2:]
 
-        self._git_Data_Location = self._test_location + "/" + t
+        self._gitCloneLocation = self._gitReposlocation + "/" + t
 
         # The location in the git repo against which the tests are to be run
-        self._cccp_test_dir = self._git_Data_Location + self._gitpath
+        self._cccp_test_dir = self._gitCloneLocation + self._gitPath
 
         self._testData = {
-            "clone-path": self._git_Data_Location,
-            "git-path": self._gitpath,
+            "clone-path": self._gitCloneLocation,
+            "git-path": self._gitPath,
             "tests": {
                 "clone": False,
                 "cccpexists": False,
@@ -197,7 +184,7 @@ class TestEntry:
     def write_info(self, msg):
         """Allows outsiders to write to this Entries test.info file."""
 
-        with open(self.testinfo, "a") as infofile:
+        with open(self._testLogFile, "a") as infofile:
             infofile.write("\n" + msg + "\n")
 
         return
@@ -205,14 +192,14 @@ class TestEntry:
     def _init_entries(self):
         """Write the initial entries into this tests log file."""
 
-        info = str.format("ID : {0}\nAPP ID : {1}\nJOB ID : {2}\n", self._id, self._appid, self._jobid)
+        info = str.format("ID : {0}\nAPP ID : {1}\nJOB ID : {2}\n", self._id, self._appId, self._jobId)
         print info
-        info += "GIT : " + self._giturl + "\n"
+        info += "GIT : " + self._gitURL + "\n"
 
         info += "######################################################################################################"
         info += "\n"
 
-        with open(self.testinfo, "w") as infofile:
+        with open(self._testLogFile, "w") as infofile:
             infofile.write(info)
 
         return
@@ -222,7 +209,7 @@ class TestEntry:
 
         currdir = os.getcwd()
 
-        os.chdir(self._git_Data_Location)
+        os.chdir(self._gitCloneLocation)
 
         cmd = ["git", "branch", self._gitBranch]
         call(cmd) or True
@@ -242,7 +229,7 @@ class TestEntry:
 
         success = True
 
-        if os.path.exists(self._git_Data_Location):
+        if os.path.exists(self._gitCloneLocation):
 
             StaticHandler.print_msg(MessageType.info, "Git repo already exist, checking for updates...", self)
             self._update_branch()
@@ -251,7 +238,7 @@ class TestEntry:
         else:
 
             StaticHandler.print_msg(MessageType.info, "Attempting to clone repo...", self)
-            cmd = ["git", "clone", self._giturl, self._git_Data_Location]
+            cmd = ["git", "clone", self._gitURL, self._gitCloneLocation]
 
             if StaticHandler.execcmd(cmd):
                 StaticHandler.print_msg(MessageType.success, "Cloning successful.")
@@ -308,7 +295,7 @@ class TestEntry:
 
         if "job-id" in cccpyaml.keys():
 
-            if self._jobid == cccpyaml["job-id"]:
+            if self._jobId == cccpyaml["job-id"]:
 
                 StaticHandler.print_msg(MessageType.success, "Job id matched, moving on...", self)
                 self._testData["tests"]["jobidmatch"] = True
@@ -404,6 +391,10 @@ class TestEntry:
                 TestConsts.exitcode += 1
                 return
 
+            else:
+                StaticHandler.print_msg(MessageType.success, "Found specified build script.", self)
+                self._testData["tests"]["build-script"] = True
+
         else:
 
             StaticHandler.print_msg(MessageType.success, "No build script specified, moving on", self)
@@ -423,15 +414,14 @@ class TestEntry:
         return
 
     def run_tests(self):
-        """This function runs all the nessasary tests and returns the collected test data."""
+        """This function runs all the necessary tests and returns the collected test data."""
 
         self._init_entries()
 
         if self._clone_repo():
             self._test_cccp_yaml()
 
-        sleep(5)
-        os.system("clear")
+        sleep(4)
 
         return self._testData
 
@@ -441,12 +431,35 @@ class Tester:
 
     def __init__(self):
         self._i = ""
+        self._parser = argparse.ArgumentParser()
+
+        self.init_parser()
+        return
+
+    def init_parser(self):
+
+        self._parser = argparse.ArgumentParser(description="This script checks for errors in cccp entries.")
+        self._parser.add_argument("-e", "--exitcode", help="The script will use the exit code.", action="store_true")
+
+        self._parser.add_argument("-i",
+                                  "--indexentry",
+                                  help="Check a specific index entry", metavar=('ID', 'APPID', 'JOBID'),
+                                  nargs=3, action="append")
+
+        self._parser.add_argument("-t", "--testentry", help="Check a specified entry without validating against index",
+                                                            nargs=7, action="append",
+                                  metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL'))
+
         return
 
     def run(self, args):
         """Runs the tests of the tester."""
 
         t = self._i
+
+        cmdargs = self._parser.parse_args()
+
+        StaticHandler.initialize_all()
 
         resultset = {
             "Projects": []
@@ -461,11 +474,12 @@ class Tester:
 
                 i = 0
 
-            # If the args used to run this script contain no args or only one arg, that too requesting errorcode
-            if len(args) <= 1 or (len(args) == 2 and args[1] in TestConsts.cmdoptions["ErrorCode"]):
+            # If exit code is set set the value :
+            if cmdargs.exitcode is True:
+                TestConsts.giveexitcode = True
 
-                if len(args) == 2:
-                    TestConsts.giveexitcode = True  # Set the flag for error code
+            # If no index entries or test entries were specified do everything
+            if cmdargs.indexentry is None and cmdargs.testentry is None:
 
                 # Assuming no specifics, read all entries in index file and run tests agains them.
                 for item in indexentries["Projects"]:
@@ -516,25 +530,16 @@ class Tester:
 
                     i += 1
 
-            # This assumes more than 2 parameters were passed.
+            # If indexentries or test entries were passed, parse them
             else:
 
-                # Extract params
-                prms = args[1:]
-                i = 0
+                if cmdargs.indexentry is not None:
 
-                # read the params
-                while i < len(prms):
+                    for item in cmdargs.indexentry:
 
-                    prm = prms[i]
-
-                    # If param specifies fpr index entry, read data adn run tests against the specified project from
-                    # index file
-                    if prm in TestConsts.cmdoptions["IndexEntry"]:
-
-                        tid = prms[i + 1]
-                        appid = prms[i + 2]
-                        jobid = prms[i + 3]
+                        tid = item[0]
+                        appid = item[1]
+                        jobid = item[2]
 
                         tid = tid.lstrip()
                         tid = tid.rstrip()
@@ -547,23 +552,24 @@ class Tester:
 
                         t = 0
 
-                        for item in indexentries["Projects"]:
+                        for item1 in indexentries["Projects"]:
 
-                            if t > 0 and tid == item["id"] and appid == item["app-id"] and jobid == item["job-id"]:
-                                testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
-                                                        item["git-path"], item["git-branch"],
-                                                        item["notify-email"]).run_tests()
+                            if t > 0 and tid == item1["id"] and appid == item1["app-id"] and jobid == item1["job-id"]:
+
+                                testresults = TestEntry(item1["id"], item1["app-id"], item1["job-id"], item1["git-url"],
+                                                        item1["git-path"], item1["git-branch"],
+                                                        item1["notify-email"]).run_tests()
 
                                 od = OrderedDict(
                                     (
                                         (
-                                            "id", item["id"]
+                                            "id", item1["id"]
                                         ),
                                         (
-                                            "app-id", item["app-id"]
+                                            "app-id", item1["app-id"]
                                         ),
                                         (
-                                            "job-id", item["job-id"]
+                                            "job-id", item1["job-id"]
                                         ),
                                         (
                                             "tests-passed", testresults["tests"]["allpass"]
@@ -575,16 +581,16 @@ class Tester:
                                             "git-clone-path", testresults["clone-path"]
                                         ),
                                         (
-                                            "git-track-url", item["git-url"]
+                                            "git-track-url", item1["git-url"]
                                         ),
                                         (
                                             "git-path", testresults["git-path"]
                                         ),
                                         (
-                                            "git-branch", item["git-branch"]
+                                            "git-branch", item1["git-branch"]
                                         ),
                                         (
-                                            "notify-email", item["notify-email"]
+                                            "notify-email", item1["notify-email"]
                                         )
                                     )
                                 )
@@ -595,24 +601,18 @@ class Tester:
 
                             t += 1
 
-                        i += 4
-
-                    # If error code was requested, set the flag
-                    elif prm in TestConsts.cmdoptions["ErrorCode"]:
-
-                        TestConsts.giveexitcode = True
-                        i += 1
+                if cmdargs.testentry is not None:
 
                     # If a test entry was requested, take in all params and run tests against it
-                    elif prm in TestConsts.cmdoptions["Test"]:
+                    for item in cmdargs.testentry:
 
-                        tid = prms[i + 1]
-                        appid = prms[i + 2]
-                        jobid = prms[i + 3]
-                        giturl = prms[i + 4]
-                        gitpath = prms[i + 5]
-                        gitbranch = prms[i + 6]
-                        notifyemail = prms[i + 7]
+                        tid = item[0]
+                        appid = item[1]
+                        jobid = item[2]
+                        giturl = item[3]
+                        gitpath = item[4]
+                        gitbranch = item[5]
+                        notifyemail = item[6]
 
                         testresults = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
 
@@ -655,19 +655,6 @@ class Tester:
 
                         resultset["Projects"].append(od)
 
-                        i += 8
-
-                    # If help was requsted, give help
-                    elif prm in TestConsts.cmdoptions["Help"]:
-
-                        print
-                        print str.format("Usage : {0} [(--indexproject|-i)|(--testproject|-t)|(--help|-h)] [id appid"
-                                         " jobid [giturl gitpath gitbranch notifyemail]]", sys.argv[0])
-                        i += 10000
-
-                    else:
-
-                        i += 1
         # Return resultset
 
         return resultset
