@@ -79,28 +79,34 @@ class StaticHandler:
         return success
 
     @staticmethod
-    def initialize_all():
+    def initialize_all(customindex=False):
 
         # If the test dir does not exist, create it with all permissions
         if not os.path.exists(TestConsts.testdir):
             os.mkdir(TestConsts.testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
 
-        # Check if the index repo exists, if it does, fetch the updates.
-        if os.path.exists(TestConsts.testdir + "/index"):
-            StaticHandler.print_msg(MessageType.info, "Updating index repo...")
-            currdir = os.getcwd()
-            os.chdir(TestConsts.testdir + "/index")
-            cmd = ["git", "fetch", "--all"]
-            os.chdir(currdir)
+        if not customindex:
+            # Check if the index repo exists, if it does, fetch the updates.
+            if os.path.exists(TestConsts.testdir + "/index"):
+                StaticHandler.print_msg(MessageType.info, "Updating index repo...")
+                currdir = os.getcwd()
+                os.chdir(TestConsts.testdir + "/index")
+                cmd = ["git", "fetch", "--all"]
+                os.chdir(currdir)
 
-        # If not, clone it
-        else:
-            StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
-            # Clone the index repo
-            cmd = ["git", "clone", "https://github.com/kbsingh/cccp-index.git", TestConsts.testdir + "/index"]
-            call(cmd)
+            # If not, clone it
+            else:
+                StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
+                # Clone the index repo
+                cmd = ["git", "clone", TestConsts.indexgit, TestConsts.testdir + "/index"]
+                call(cmd)
+                currdir = os.getcwd()
+                os.chdir(TestConsts.testdir + "/index")
+                cmd = ["git", "fetch", "--all"]
+                os.chdir(currdir)
+                sleep(5)
 
-            sleep(5)
+        TestConsts.indxfile = TestConsts.testdir + "/index" + "/index.yml"
 
         print
 
@@ -123,6 +129,9 @@ class TestConsts:
 
     # If using a local index, just change the path here tpo match that of your index file
     indxfile = testdir + "/index" + "/index.yml"
+
+    # If need to alter the giturl, edit this
+    indexgit = "https://github.com/kbsingh/cccp-index.git"
 
 
 
@@ -450,6 +459,13 @@ class Tester:
                                                             nargs=7, action="append",
                                   metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL'))
 
+        self._parser.add_argument("-d", "--dumpdirectory", help="Specify your down dump directory, where the test data"
+                                                                " including index, repos etc will be dumped",
+                                  metavar=('DUMPDIRPATH'), nargs=1, action="store")
+
+        self._parser.add_argument("-g", "--indexgit", help="Specify a custom git containing the index.yml",
+                                  metavar=('GITURL'), nargs=1, action="store")
+
         return
 
     def run(self, args):
@@ -459,6 +475,24 @@ class Tester:
 
         cmdargs = self._parser.parse_args()
 
+        if cmdargs.dumpdirectory is not None:
+
+            dpth = cmdargs.dumpdirectory[0]
+
+            if not os.path.isabs(dpth):
+                dpth = os.path.abspath(dpth)
+                TestConsts.testdir = dpth
+
+            if not os.path.exists(dpth):
+                StaticHandler.print_msg(MessageType.error, "Invalid path specified or does not exist")
+                sys.exit(900)
+
+        if cmdargs.indexgit is not None:
+
+            gurl = cmdargs.indexgit[0]
+            TestConsts.indexgit = gurl
+
+        # FIXME: add entry for
         StaticHandler.initialize_all()
 
         resultset = {
