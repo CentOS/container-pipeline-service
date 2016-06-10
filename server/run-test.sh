@@ -12,10 +12,6 @@ function jumpto
     exit
 }
 
-_ "[FAKE] Talking to Jenkins: Please, test the repository ${SOURCE_REPOSITORY_URL}, tests are located in ${REPO_TEST_PATH}"
-_ "[FAKE] Jenkins running..."
-_ "[FAKE] Jenkins returned: PASS"
-
 if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; then
   cp /var/run/secrets/openshift.io/push/.dockercfg /root/.dockercfg
 fi
@@ -27,7 +23,7 @@ _ "Pulling tested image (${FULL_FROM})"
 docker pull ${FULL_FROM} || jumpto sendstatusmail
 
 _ "Checking if test script is getting success"
-if [ `docker run --rm ${FULL_FROM} ls /usr/bin/test_script` -eq 0 ]; then
+if [ `docker run --rm ${FULL_FROM} ls /usr/bin/test_script;echo $?` -eq 0 ]; then
    docker run --rm ${FULL_FROM} /bin/bash /usr/bin/test_script || jumpto sendstatusmail
 fi
 
