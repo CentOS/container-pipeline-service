@@ -74,5 +74,5 @@ _ "Cleaning environment"
 docker rmi ${TO} ${TAG}
 
 sendstatusmail:
-_ "Sending mail of the status if fail"
+_ "Sending mail of failed status to ${NOTIFY_EMAI}"
 docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
