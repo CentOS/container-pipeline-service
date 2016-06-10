@@ -31,8 +31,6 @@ _ "Checking cccp.yml exists or rename similar"
 if [ ! -f cccp.yml ]; then
     mv *cccp.y*ml cccp.yml
     mv .cccp.y*ml cccp.yml
-else
-    jumpto sendstatusmail
 fi
 
 _ "Copying index reader to docker file"
