@@ -72,7 +72,11 @@ fi
 
 _ "Cleaning environment"
 docker rmi ${TAG}
+jumpto end
 
 sendstatusmail:
 _ "Sending mail of failed status to ${NOTIFY_EMAIL}"
 docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
+
+end:
+  exit 0
