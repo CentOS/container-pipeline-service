@@ -71,7 +71,7 @@ if [ -n "${TO}" ] || [ -s "/root/.dockercfg" ]; then
 fi
 
 _ "Cleaning environment"
-docker rmi ${TO} ${TAG}
+docker rmi ${TAG}
 
 sendstatusmail:
 _ "Sending mail of failed status to ${NOTIFY_EMAIL}"
