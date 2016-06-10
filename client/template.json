@@ -108,6 +108,10 @@
               {
                 "name": "REPO_BUILD_PATH",
                 "value": "${REPO_BUILD_PATH}"
+              },
+              {
+                "name": "NOTIFY_EMAIL",
+                "value": "${NOTIFY_EMAIL}"
               }
             ]
           }
@@ -168,6 +172,10 @@
               {
                 "name": "SOURCE_REPOSITORY_URL",
                 "value": "${SOURCE_REPOSITORY_URL}"
+              },
+              {
+                "name": "NOTIFY_EMAIL",
+                "value": "${NOTIFY_EMAIL}"
               }
 
             ]
