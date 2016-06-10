@@ -4,7 +4,7 @@ RUN yum -y update
 
 RUN yum -y install docker
 
-RUN yum -y install wget mailx postfix rsync
+RUN yum -y install wget mailx postfix rsyslog
 
 ADD mail-config.sh /usr/bin/
 
