@@ -75,4 +75,4 @@ docker rmi ${TO} ${TAG}
 
 sendstatusmail:
 _ "Sending mail of the status if fail"
-docker run --rm mail-server /usr/bin/mail-config.sh "Current status is $status"
+docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
