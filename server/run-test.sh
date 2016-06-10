@@ -23,9 +23,9 @@ _ "Pulling tested image (${FULL_FROM})"
 docker pull ${FULL_FROM} || jumpto sendstatusmail
 
 _ "Checking if test script is getting success"
-if [ `docker run --rm ${FULL_FROM} /bin/bash ls /usr/bin/test_script;echo $?` -eq 0 ]; then
-   docker run --rm ${FULL_FROM} /bin/bash /usr/bin/test_script || jumpto sendstatusmail
-fi
+#if [ `docker run --rm ${FULL_FROM} /bin/bash ls /usr/bin/test_script;echo $?` -eq 0 ]; then
+docker run --rm ${FULL_FROM} /bin/bash /usr/bin/test_script || jumpto sendstatusmail
+#fi
 
 _ "Re-tagging tested image (${FULL_FROM} -> ${TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
