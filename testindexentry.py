@@ -1,13 +1,13 @@
 #!/bin/python
+import argparse
 import os
+import shutil
 import stat
 import sys
 from collections import OrderedDict
 from pprint import PrettyPrinter
 from subprocess import check_call, CalledProcessError, call
 from time import sleep
-import argparse
-import shutil
 
 import yaml
 
@@ -627,7 +627,7 @@ class Tester:
 
         return
 
-    def run(self, args):
+    def run(self):
         """Runs the tests of the tester."""
 
         t = self._i
@@ -875,7 +875,7 @@ class Tester:
 
 
 def mainf():
-    rs = Tester().run(sys.argv)
+    rs = Tester().run()
 
     print "\nTests completed\n"
     resultsfile = TestGlobals.testdir + "/results.yml"
