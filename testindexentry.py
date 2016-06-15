@@ -100,6 +100,10 @@ class StaticHandler:
             # If not, clone it
             else:
 
+                if os.path.exists(TestGlobals.testdir + "/index"):
+
+                    shutil.rmtree(TestGlobals.testdir + "/index")
+
                 StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
                 # Clone the index repo
                 cmd = ["git", "clone", TestGlobals.indexgit, TestGlobals.testdir + "/index"]
@@ -139,10 +143,16 @@ class StaticHandler:
 
         if not IndexVerifier.verify_index():
 
-            StaticHandler.print_msg(MessageType.error, "Index verification failed, getting our.")
+            StaticHandler.print_msg(MessageType.error, "Index verification failed, getting out.")
             print
             IndexVerifier.print_err_log()
             sys.exit(900)
+
+        print TestGlobals.indexonly
+
+        if TestGlobals.indexonly:
+
+            sys.exit(0)
 
         print
 
@@ -161,6 +171,7 @@ class TestGlobals:
     testdir = os.path.abspath("./cccp-index-test")
 
     giveexitcode = False
+    indexonly = False
     exitcode = 0
 
     # If using a local index, just change the path here tpo match that of your index file
@@ -196,9 +207,9 @@ class IndexVerifier:
 
     @staticmethod
     def verify_index():
+
         t = {}
         idl = []
-
 
         indxverified = True
         IndexVerifier._errlog = ""
@@ -259,7 +270,7 @@ class TestEntry:
         if not gitpath.endswith("/"):
             gitpath += "/"
 
-        fnm = tid + "_" + appid + "_" + jobid
+        fnm = str(tid) + "_" + appid + "_" + jobid
         self._gitReposlocation = TestGlobals.testdir + "/repos"
 
         if not os.path.exists(TestGlobals.testdir + "/tests"):
@@ -583,6 +594,9 @@ class Tester:
                                                               "DO NOT use with -g", metavar=('INDEXPATH'), nargs=1,
                                   action="store")
 
+        self._parser.add_argument("-x", "--indexonly", help="If this flag is set, only the core index tests are done",
+                                  action="store_true")
+
         return
 
     def run(self, args):
@@ -596,6 +610,10 @@ class Tester:
         if cmdargs.indexgit is not None and cmdargs.customindex is not None:
             StaticHandler.print_msg(MessageType.error, "Error, -g and -c are mutually exclusive, specify either one")
             sys.exit(900)
+
+        if cmdargs.indexonly is not None:
+
+            TestGlobals.indexonly = cmdargs.indexonly
 
         # If dump directory is specified, update the globals
         if cmdargs.dumpdirectory is not None:
