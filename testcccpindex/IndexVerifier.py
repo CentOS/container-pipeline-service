@@ -1,7 +1,7 @@
 #!/bin/python
 
 import yaml
-from TestGlobals import TestGlobals
+from ValidatorGlobals import ValidatorGlobals
 
 
 class IndexVerifier:
@@ -19,7 +19,7 @@ class IndexVerifier:
 
         print errmsg
 
-        errfile = TestGlobals.testdir + "/indexerrors.info"
+        errfile = ValidatorGlobals.testdir + "/indexerrors.info"
 
         with open(errfile, "a+") as indxerr:
             indxerr.write(errmsg)
@@ -42,7 +42,7 @@ class IndexVerifier:
         indxverified = True
         IndexVerifier._errlog = ""
 
-        with open(TestGlobals.indxfile) as indxfile:
+        with open(ValidatorGlobals.indxfile) as indxfile:
             indxdata = yaml.load(indxfile)
 
         for project in indxdata["Projects"]:

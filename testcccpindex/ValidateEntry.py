@@ -3,12 +3,12 @@
 import os
 import yaml
 from time import sleep
-from TestGlobals import TestGlobals
+from ValidatorGlobals import ValidatorGlobals
 from subprocess import call
 from StaticHandler import StaticHandler, MessageType
 
 
-class TestEntry:
+class ValidateEntry:
     """This class runs tests on a single entry"""
 
     def __init__(self, tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail):
@@ -20,12 +20,12 @@ class TestEntry:
             gitpath += "/"
 
         fnm = str(tid) + "_" + appid + "_" + jobid
-        self._gitReposlocation = TestGlobals.testdir + "/repos"
+        self._gitReposlocation = ValidatorGlobals.testdir + "/repos"
 
-        if not os.path.exists(TestGlobals.testdir + "/tests"):
-            os.mkdir(TestGlobals.testdir + "/tests")
+        if not os.path.exists(ValidatorGlobals.testdir + "/tests"):
+            os.mkdir(ValidatorGlobals.testdir + "/tests")
 
-        self._testLogFile = TestGlobals.testdir + "/tests/" + fnm + ".log"
+        self._testLogFile = ValidatorGlobals.testdir + "/tests/" + fnm + ".log"
 
         self._id = tid
         self._appId = appid
@@ -130,7 +130,7 @@ class TestEntry:
             else:
 
                 StaticHandler.print_msg(MessageType.error, "Failed to clone repo, skipping...", self)
-                TestGlobals.exitcode += 1
+                ValidatorGlobals.exitcode += 1
                 success = False
 
         self._testData["tests"]["clone"] = success
@@ -185,13 +185,13 @@ class TestEntry:
             else:
 
                 StaticHandler.print_msg(MessageType.error, "Job Ids don't match, skipping...", self)
-                TestGlobals.exitcode += 1
+                ValidatorGlobals.exitcode += 1
                 return
 
         else:
 
             StaticHandler.print_msg(MessageType.error, "Missing compulsory key, job-id in cccp.yml file...", self)
-            TestGlobals.exitcode += 1
+            ValidatorGlobals.exitcode += 1
             return
 
         # * Validate for test-skip and test-script
@@ -223,7 +223,7 @@ class TestEntry:
                         StaticHandler.print_msg(MessageType.error,
                                                 "The specified test script does not exist, skipping...", self)
 
-                        TestGlobals.exitcode += 1
+                        ValidatorGlobals.exitcode += 1
                         return
 
                     else:
@@ -237,7 +237,7 @@ class TestEntry:
 
                     StaticHandler.print_msg(MessageType.error,
                                             "Test skip is reset, but test script is missing, skipping...", self)
-                    TestGlobals.exitcode += 1
+                    ValidatorGlobals.exitcode += 1
                     return
 
             # If test-skip is not reset, check if its set
@@ -251,7 +251,7 @@ class TestEntry:
             else:
 
                 StaticHandler.print_msg(MessageType.error, "Test skip is not reset or set, skipping...", self)
-                TestGlobals.exitcode += 1
+                ValidatorGlobals.exitcode += 1
                 return
 
         else:
@@ -270,7 +270,7 @@ class TestEntry:
             if not os.path.exists(buildscriptpath):
 
                 StaticHandler.print_msg(MessageType.error, "Could not find build script, skipping", self)
-                TestGlobals.exitcode += 1
+                ValidatorGlobals.exitcode += 1
                 return
 
             else:

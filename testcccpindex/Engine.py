@@ -6,11 +6,11 @@ import os
 import yaml
 from collections import OrderedDict
 from StaticHandler import StaticHandler, MessageType
-from TestGlobals import TestGlobals
-from TestEntry import TestEntry
+from ValidatorGlobals import ValidatorGlobals
+from ValidateEntry import ValidateEntry
 
 
-class Tester:
+class IndexValidator:
     """This class reads index file and user input and orchestrates the tests accordingly"""
 
     def __init__(self):
@@ -87,7 +87,7 @@ class Tester:
 
         if cmdargs.indexonly is not None:
 
-            TestGlobals.indexonly = cmdargs.indexonly
+            ValidatorGlobals.indexonly = cmdargs.indexonly
 
         # If dump directory is specified, update the globals
         if cmdargs.dumpdirectory is not None:
@@ -96,7 +96,7 @@ class Tester:
 
             if not os.path.isabs(dpth):
                 dpth = os.path.abspath(dpth)
-                TestGlobals.testdir = dpth
+                ValidatorGlobals.testdir = dpth
 
             if not os.path.exists(dpth):
                 StaticHandler.print_msg(MessageType.error, "Invalid path specified or does not exist")
@@ -106,7 +106,7 @@ class Tester:
         if cmdargs.indexgit is not None:
 
             gurl = cmdargs.indexgit[0]
-            TestGlobals.indexgit = gurl
+            ValidatorGlobals.indexgit = gurl
             StaticHandler.initialize_all(forceclone=True)
             initialized = True
 
@@ -114,7 +114,7 @@ class Tester:
         if cmdargs.customindex is not None:
 
             cind = cmdargs.customindex[0]
-            TestGlobals.indxfile = cind
+            ValidatorGlobals.indxfile = cind
             StaticHandler.initialize_all(customindex=True)
             initialized = True
 
@@ -126,17 +126,17 @@ class Tester:
         }
 
         # Checks if the index file exists. Required for any tests to proceed
-        if os.path.exists(TestGlobals.indxfile):
+        if os.path.exists(ValidatorGlobals.indxfile):
 
             # read in data from index file.
-            with open(TestGlobals.indxfile) as indexfile:
+            with open(ValidatorGlobals.indxfile) as indexfile:
                 indexentries = yaml.load(indexfile)
 
                 i = 0
 
             # If exit code is set set the value :
             if cmdargs.exitcode is True:
-                TestGlobals.giveexitcode = True
+                ValidatorGlobals.giveexitcode = True
 
             # If no index entries or test entries were specified do everything
             if cmdargs.indexentry is None and cmdargs.testentry is None:
@@ -145,8 +145,8 @@ class Tester:
                 for item in indexentries["Projects"]:
 
                     if i > 0:
-                        testresults = TestEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
-                                                item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
+                        testresults = ValidateEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
+                                                    item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
 
                         # Update the result set with the test data.
                         od = OrderedDict(
@@ -216,9 +216,9 @@ class Tester:
 
                             if t > 0 and tid == item1["id"] and appid == item1["app-id"] and jobid == item1["job-id"]:
 
-                                testresults = TestEntry(item1["id"], item1["app-id"], item1["job-id"], item1["git-url"],
-                                                        item1["git-path"], item1["git-branch"],
-                                                        item1["notify-email"]).run_tests()
+                                testresults = ValidateEntry(item1["id"], item1["app-id"], item1["job-id"], item1["git-url"],
+                                                            item1["git-path"], item1["git-branch"],
+                                                            item1["notify-email"]).run_tests()
 
                                 od = OrderedDict(
                                     (
@@ -274,7 +274,7 @@ class Tester:
                         gitbranch = item[5]
                         notifyemail = item[6]
 
-                        testresults = TestEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
+                        testresults = ValidateEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
 
                         # Update the result set with result data
 

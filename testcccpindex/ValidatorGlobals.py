@@ -2,7 +2,8 @@
 
 import os
 
-class TestGlobals:
+
+class ValidatorGlobals:
     """Contains constants being used by the script"""
 
     def __init__(self):

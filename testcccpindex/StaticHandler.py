@@ -8,7 +8,7 @@ import shutil
 import sys
 from time import sleep
 from IndexVerifier import IndexVerifier
-from TestGlobals import TestGlobals
+from ValidatorGlobals import ValidatorGlobals
 
 
 class MessageType:
@@ -71,35 +71,35 @@ class StaticHandler:
     def initialize_all(customindex=False, forceclone=False):
 
         # If the test dir does not exist, create it with all permissions
-        if not os.path.exists(TestGlobals.testdir):
-            os.mkdir(TestGlobals.testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-            os.mkdir(TestGlobals.testdir + "/index")
+        if not os.path.exists(ValidatorGlobals.testdir):
+            os.mkdir(ValidatorGlobals.testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+            os.mkdir(ValidatorGlobals.testdir + "/index")
 
         if not customindex:
             # Check if the index repo exists, if it does, fetch the updates.
-            if not forceclone and os.path.exists(TestGlobals.testdir + "/index/index.yml"):
+            if not forceclone and os.path.exists(ValidatorGlobals.testdir + "/index/index.yml"):
 
                 StaticHandler.print_msg(MessageType.info, "Updating index repo...")
                 currdir = os.getcwd()
-                os.chdir(TestGlobals.testdir + "/index")
+                os.chdir(ValidatorGlobals.testdir + "/index")
                 cmd = ["git", "fetch", "--all"]
                 os.chdir(currdir)
 
             # If not, clone it
             else:
 
-                if os.path.exists(TestGlobals.testdir + "/index"):
+                if os.path.exists(ValidatorGlobals.testdir + "/index"):
 
-                    shutil.rmtree(TestGlobals.testdir + "/index")
+                    shutil.rmtree(ValidatorGlobals.testdir + "/index")
 
                 StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
                 # Clone the index repo
-                cmd = ["git", "clone", TestGlobals.indexgit, TestGlobals.testdir + "/index"]
+                cmd = ["git", "clone", ValidatorGlobals.indexgit, ValidatorGlobals.testdir + "/index"]
 
                 if StaticHandler.execcmd(cmd):
 
                     currdir = os.getcwd()
-                    os.chdir(TestGlobals.testdir + "/index")
+                    os.chdir(ValidatorGlobals.testdir + "/index")
                     cmd = ["git", "fetch", "--all"]
                     os.chdir(currdir)
 
@@ -109,14 +109,14 @@ class StaticHandler:
                     sys.exit(900)
         else:
 
-            if os.path.exists(TestGlobals.indxfile):
+            if os.path.exists(ValidatorGlobals.indxfile):
 
-                if not os.path.isabs(TestGlobals.indxfile):
+                if not os.path.isabs(ValidatorGlobals.indxfile):
 
-                    TestGlobals.indxfile = os.path.abspath(TestGlobals.indxfile)
+                    ValidatorGlobals.indxfile = os.path.abspath(ValidatorGlobals.indxfile)
 
                 StaticHandler.print_msg(MessageType.info, "Copying index to dump location.")
-                shutil.copy2(TestGlobals.indxfile, TestGlobals.testdir + "/index" + "/index.yml")
+                shutil.copy2(ValidatorGlobals.indxfile, ValidatorGlobals.testdir + "/index" + "/index.yml")
 
             else:
 
@@ -125,7 +125,7 @@ class StaticHandler:
 
             sleep(5)
 
-        TestGlobals.indxfile = TestGlobals.testdir + "/index" + "/index.yml"
+        ValidatorGlobals.indxfile = ValidatorGlobals.testdir + "/index" + "/index.yml"
 
         StaticHandler.print_msg(MessageType.info, "Verifying index formatting ...")
 
@@ -136,9 +136,9 @@ class StaticHandler:
             IndexVerifier.print_err_log()
             sys.exit(900)
 
-        print TestGlobals.indexonly
+        print ValidatorGlobals.indexonly
 
-        if TestGlobals.indexonly:
+        if ValidatorGlobals.indexonly:
 
             sys.exit(0)
 
