@@ -4,8 +4,16 @@ function _() {
     echo "==> $@"
 }
 
+function jumpto
+{
+    label=$1
+    cmd=$(sed -n "/$label:/{:a;n;p;ba};" $0 | grep -v ':$')
+    eval "$cmd"
+    exit
+}
+
 _ "Cloning the source repository..."
-git clone $SOURCE_REPOSITORY_URL
+git clone $SOURCE_REPOSITORY_URL||jumpto sendstatusmail
 
 dirname=${SOURCE_REPOSITORY_URL##*/}
 _ "Entering directory ${dirname##*/}"
@@ -34,7 +42,7 @@ echo "ADD cccp.yml /set_env/" >> Dockerfile
 echo "RUN yum install --disablerepo=* --enablerepo=base -y PyYAML libyaml && python /set_env/cccp_reader.py" >> Dockerfile
 
 _ "Building the image in ${buildpath} with tag ${TAG}"
-docker build --rm --no-cache -t $TAG .
+docker build --rm --no-cache -t $TAG . || jumpto sendstatusmail
 
 #_ "Checking local files form container"
 #ls -a /set_env/
@@ -59,8 +67,16 @@ if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; t
 fi
 
 if [ -n "${TO}" ] || [ -s "/root/.dockercfg" ]; then
-  docker push "${TO}"
+  docker push "${TO}" || jumpto sendstatusmail
 fi
 
 _ "Cleaning environment"
-docker rmi ${TO} ${TAG}
+docker rmi ${TAG}
+jumpto end
+
+sendstatusmail:
+_ "Sending mail of failed status to ${NOTIFY_EMAIL}"
+docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
+
+end:
+  exit 0
