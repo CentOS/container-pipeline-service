@@ -180,9 +180,14 @@ class TestGlobals:
     # If need to alter the giturl, edit this
     indexgit = "https://github.com/kbsingh/cccp-index.git"
 
+
 class IndexVerifier:
 
     _errlog = ""
+
+    def __init__(self):
+
+        return
 
     @staticmethod
     def print_err_log():
@@ -455,7 +460,7 @@ class TestEntry:
             StaticHandler.print_msg(MessageType.info, "Flag found, proceeding to check if its reset...", self)
 
             # Check is test-skip is reset
-            if cccpyaml["test-skip"] == False:
+            if not cccpyaml["test-skip"]:
 
                 StaticHandler.print_msg(MessageType.info, "Test skip is reset, checking for now compulsory test-script",
                                         self)
@@ -492,7 +497,7 @@ class TestEntry:
                     return
 
             # If test-skip is not reset, check if its set
-            elif cccpyaml["test-skip"] == True:
+            elif cccpyaml["test-skip"]:
 
                 StaticHandler.print_msg(MessageType.success, "Test skip is set, moving on...", self)
                 self._testData["tests"]["test-skip"] = True
@@ -576,26 +581,49 @@ class Tester:
 
         self._parser.add_argument("-i",
                                   "--indexentry",
-                                  help="Check a specific index entry", metavar=('ID', 'APPID', 'JOBID'),
-                                  nargs=3, action="append")
+                                  help="Check a specific index entry",
+                                  metavar=('ID', 'APPID', 'JOBID'),
+                                  nargs=3,
+                                  action="append"
+                                  )
 
-        self._parser.add_argument("-t", "--testentry", help="Check a specified entry without validating against index",
-                                                            nargs=7, action="append",
-                                  metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL'))
+        self._parser.add_argument("-t",
+                                  "--testentry",
+                                  help="Check a specified entry without validating against index",
+                                  nargs=7,
+                                  action="append",
+                                  metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL')
+                                  )
 
         self._parser.add_argument("-d", "--dumpdirectory", help="Specify your down dump directory, where the test data"
                                                                 " including index, repos etc will be dumped",
-                                  metavar=('DUMPDIRPATH'), nargs=1, action="store")
+                                  metavar='DUMPDIRPATH',
+                                  nargs=1,
+                                  action="store"
+                                  )
 
-        self._parser.add_argument("-g", "--indexgit", help="Specify a custom git containing the index.yml",
-                                  metavar=('GITURL'), nargs=1, action="store")
+        self._parser.add_argument("-g",
+                                  "--indexgit",
+                                  help="Specify a custom git containing the index.yml",
+                                  metavar='GITURL',
+                                  nargs=1,
+                                  action="store"
+                                  )
 
-        self._parser.add_argument("-c", "--customindex", help="Specify a custom index file, stored locally."
-                                                              "DO NOT use with -g", metavar=('INDEXPATH'), nargs=1,
-                                  action="store")
+        self._parser.add_argument("-c",
+                                  "--customindex",
+                                  help="Specify a custom index file, stored locally."
+                                  "DO NOT use with -g",
+                                  metavar='INDEXPATH',
+                                  nargs=1,
+                                  action="store"
+                                  )
 
-        self._parser.add_argument("-x", "--indexonly", help="If this flag is set, only the core index tests are done",
-                                  action="store_true")
+        self._parser.add_argument("-x",
+                                  "--indexonly",
+                                  help="If this flag is set, only the core index tests are done",
+                                  action="store_true"
+                                  )
 
         return
 
