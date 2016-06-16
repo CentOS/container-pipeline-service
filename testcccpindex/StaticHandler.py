@@ -145,3 +145,10 @@ class StaticHandler:
         print
 
         return
+
+    @staticmethod
+    def is_valid_url(theurl):
+
+        valid = True
+
+        return valid

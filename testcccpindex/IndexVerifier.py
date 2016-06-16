@@ -2,6 +2,7 @@
 
 import yaml
 from ValidatorGlobals import ValidatorGlobals
+import StaticHandler
 
 
 class IndexVerifier:
@@ -57,9 +58,11 @@ class IndexVerifier:
 
             else:
 
-                if project["id"] not in idl:
+                val = project["id"]
 
-                    idl.append(project["id"])
+                if val not in idl:
+
+                    idl.append(val)
 
                 else:
 
@@ -73,7 +76,8 @@ class IndexVerifier:
                 IndexVerifier._add_err_log("Entry lacks an app-id")
 
             else:
-                print "check 2"
+
+                print "App ID checks TBD"
 
             # Check for job-id
             if "job-id" not in project.keys():
@@ -81,7 +85,64 @@ class IndexVerifier:
                 indxverified = False
                 IndexVerifier._add_err_log("Entry lacks a job-id")
 
+
+            # Check git-url
+            if "git-url" not in project.keys():
+
+                indxverified = False
+                IndexVerifier._add_err_log("Entry lacks a git-url")
+
             else:
-                print "check 3"
+
+                val = project["git-url"]
+
+                if not StaticHandler.StaticHandler.is_valid_url(val):
+
+                    indxverified = False
+                    IndexVerifier._add_err_log("Git url is not a proper url")
+
+            # Check git-path
+            if "git-path" not in project.keys():
+
+                indxverified = False
+                IndexVerifier._add_err_log("Entry lacks git-path")
+
+            # Check git-branch
+            if "git-branch" not in project.keys():
+
+                indxverified = False
+                IndexVerifier._add_err_log("Entry lacks git-branch")
+
+            # Check notify-email
+            if "notify-email" not in project.keys():
+
+                indxverified = False
+                IndexVerifier._add_err_log("Entry lacks a notify email.")
+
+            else:
+
+                print "notify-email checks TBD"
+
+            # Checks depends-on
+            if "depends-on" not in project.keys():
+
+                indxverified = False
+                IndexVerifier._add_err_log("Entry lacks depends-on.")
+
+            else:
+
+                val = project["depends-on"]
+
+                if val is not None:
+
+                    for item in val:
+
+                        if item not in idl:
+
+                            indxverified = False
+                            IndexVerifier._add_err_log("One or more items is not an existing project that appears"
+                                                       " before this one in the index.")
+                            break
+
 
         return indxverified
