@@ -35,8 +35,8 @@ NS="--namespace ${NAME}-${TAG}"
 echo "==> login to Openshift server"
 oc login https://openshift:8443 -u test-admin -p test --certificate-authority=./ca.crt
 
-echo "==>creating new project"
-oc new-project ${NAME}-${TAG} --display-name=${NAME}-${TAG}
+echo "==>creating new project or using existing project with same name"
+oc new-project ${NAME}-${TAG} --display-name=${NAME}-${TAG} || oc project ${NAME}-${TAG}
 
 sed -i.bak s/cccp-service/${NAME}-${TAG}/g $CWD/template.json
 
