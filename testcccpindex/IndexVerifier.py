@@ -71,9 +71,6 @@ class IndexVerifier:
 
                 val = project["id"]
 
-                if val == "default":
-                    continue
-
                 if val not in idl:
 
                     idl.append(val)
@@ -82,6 +79,9 @@ class IndexVerifier:
 
                     indxverified = False
                     IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Duplicate entry")
+
+                    if val == "default":
+                        continue
 
             # Check for app-id
             if "app-id" not in project.keys():
