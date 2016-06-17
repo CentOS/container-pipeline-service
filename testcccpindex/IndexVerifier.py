@@ -16,7 +16,7 @@ class IndexVerifier:
     @staticmethod
     def print_err_log():
 
-        errmsg = "Here are the errors we found in the index file : \n" + IndexVerifier._errlog + "\n\n"
+        errmsg = "Here are the logs of the index file verification : \n" + IndexVerifier._errlog + "\n\n"
 
         print errmsg
 
@@ -28,9 +28,19 @@ class IndexVerifier:
         return
 
     @staticmethod
-    def _add_err_log(msg):
+    def _add_err_log(msgtype, msg):
 
-        IndexVerifier._errlog += "\n LOG - " + msg + "\n"
+        if msgtype == StaticHandler.MessageType.error:
+
+            IndexVerifier._errlog += "\n ERROR - " + msg + "\n"
+
+        elif msgtype == StaticHandler.MessageType.info:
+
+            IndexVerifier._errlog += "\n INFO - " + msg + "\n"
+
+        elif msgtype == StaticHandler.MessageType.success:
+
+            IndexVerifier._errlog += "\n SUCCESS - " + msg + "\n"
 
         return
 
@@ -48,13 +58,13 @@ class IndexVerifier:
 
         for project in indxdata["Projects"]:
 
-            IndexVerifier._add_err_log("Verifying project entry : " + str(project))
+            IndexVerifier._add_err_log(StaticHandler.MessageType.info, "Verifying project entry : " + str(project))
 
             # Check for ID
             if "id" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks an ID.")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an ID.")
 
             else:
 
@@ -67,13 +77,13 @@ class IndexVerifier:
                 else:
 
                     indxverified = False
-                    IndexVerifier._add_err_log("Duplicate entry")
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Duplicate entry")
 
             # Check for app-id
             if "app-id" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks an app-id")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an app-id")
 
             else:
 
@@ -83,14 +93,14 @@ class IndexVerifier:
             if "job-id" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks a job-id")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a job-id")
 
 
             # Check git-url
             if "git-url" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks a git-url")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a git-url")
 
             else:
 
@@ -99,25 +109,25 @@ class IndexVerifier:
                 if not StaticHandler.StaticHandler.is_valid_url(val):
 
                     indxverified = False
-                    IndexVerifier._add_err_log("Git url is not a proper url")
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Git url is not a proper url")
 
             # Check git-path
             if "git-path" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks git-path")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-path")
 
             # Check git-branch
             if "git-branch" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks git-branch")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-branch")
 
             # Check notify-email
             if "notify-email" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks a notify email.")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a notify email.")
 
             else:
 
@@ -127,7 +137,7 @@ class IndexVerifier:
             if "depends-on" not in project.keys():
 
                 indxverified = False
-                IndexVerifier._add_err_log("Entry lacks depends-on.")
+                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks depends-on.")
 
             else:
 
@@ -140,9 +150,10 @@ class IndexVerifier:
                         if item not in idl:
 
                             indxverified = False
-                            IndexVerifier._add_err_log("One or more items is not an existing project that appears"
-                                                       " before this one in the index.")
+                            IndexVerifier._add_err_log(StaticHandler.MessageType.error, "One or more items is not an"
+                                                                                        " existing project that appears"
+                                                                                        " before this one in the index."
+                                                       )
                             break
-
 
         return indxverified

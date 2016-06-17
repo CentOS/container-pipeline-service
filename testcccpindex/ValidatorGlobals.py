@@ -20,6 +20,7 @@ class ValidatorGlobals:
 
     # If using a local index, just change the path here tpo match that of your index file
     indxfile = testdir + "/index" + "/index.yml"
+    customindexused = testdir + "/.customindex"
 
     # If need to alter the giturl, edit this
     indexgit = "https://github.com/kbsingh/cccp-index.git"

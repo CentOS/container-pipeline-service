@@ -83,7 +83,7 @@ class IndexValidator:
 
         if cmdargs.indexgit is not None and cmdargs.customindex is not None:
             StaticHandler.print_msg(MessageType.error, "Error, -g and -c are mutually exclusive, specify either one")
-            sys.exit(900)
+            sys.exit(2)
 
         if cmdargs.indexonly is not None:
 
@@ -100,22 +100,23 @@ class IndexValidator:
 
             if not os.path.exists(dpth):
                 StaticHandler.print_msg(MessageType.error, "Invalid path specified or does not exist")
-                sys.exit(900)
+                sys.exit(3)
 
         # If index git is specified, update globals
         if cmdargs.indexgit is not None:
 
             gurl = cmdargs.indexgit[0]
             ValidatorGlobals.indexgit = gurl
-            StaticHandler.initialize_all(forceclone=True)
+            StaticHandler.initialize_all(customindex=True)
             initialized = True
 
         # If customindex is specified, initialize appropriately
         if cmdargs.customindex is not None:
 
+            StaticHandler.markcustomindexusage()
             cind = cmdargs.customindex[0]
             ValidatorGlobals.indxfile = cind
-            StaticHandler.initialize_all(customindex=True)
+            StaticHandler.initialize_all(customindex=True, customindexfile=True)
             initialized = True
 
         if not initialized:

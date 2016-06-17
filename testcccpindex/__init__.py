@@ -17,4 +17,11 @@ if __name__ == '__main__':
     print "\nYou can view the test results at " + resultsfile + "\n"
 
     if ValidatorGlobals.giveexitcode:
-        sys.exit(ValidatorGlobals.exitcode)
+
+        if ValidatorGlobals.exitcode > 0:
+
+            sys.exit(1)
+
+        else:
+
+            sys.exit(0)
