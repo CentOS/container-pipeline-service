@@ -50,6 +50,7 @@ class IndexVerifier:
         t = {}
         idl = []
 
+
         indxverified = True
         IndexVerifier._errlog = ""
 
@@ -69,6 +70,9 @@ class IndexVerifier:
             else:
 
                 val = project["id"]
+
+                if val == "default":
+                    continue
 
                 if val not in idl:
 
@@ -106,10 +110,10 @@ class IndexVerifier:
 
                 val = project["git-url"]
 
-                if not StaticHandler.StaticHandler.is_valid_url(val):
+                if not StaticHandler.StaticHandler.is_valid_git_url(val):
 
                     indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Git url is not a proper url")
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Git url is not in acceptable format.")
 
             # Check git-path
             if "git-path" not in project.keys():

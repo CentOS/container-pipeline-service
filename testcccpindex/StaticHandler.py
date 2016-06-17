@@ -9,6 +9,7 @@ import sys
 from time import sleep
 from IndexVerifier import IndexVerifier
 from ValidatorGlobals import ValidatorGlobals
+import urlparse
 
 
 class MessageType:
@@ -138,7 +139,7 @@ class StaticHandler:
 
             if os.path.exists(ValidatorGlobals.testdir + "/index"):
                 shutil.rmtree(ValidatorGlobals.testdir + "/index")
-                
+
             os.mkdir(ValidatorGlobals.testdir + "/index")
 
             if customindexfile:
@@ -210,8 +211,15 @@ class StaticHandler:
         return
 
     @staticmethod
-    def is_valid_url(theurl):
+    def is_valid_git_url(theurl):
 
         valid = True
+
+        parsedurl = urlparse.urlparse(theurl)
+        print parsedurl
+
+        if parsedurl.scheme != "git":
+
+            valid = False
 
         return valid
