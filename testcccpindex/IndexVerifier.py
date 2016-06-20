@@ -83,9 +83,6 @@ class IndexVerifier:
                         indxverified = False
                         IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Duplicate entry")
 
-                        if val == "default":
-                            continue
-
                 # Check for app-id
                 if "app-id" not in project.keys():
 
@@ -157,11 +154,24 @@ class IndexVerifier:
                             if item not in idl:
 
                                 indxverified = False
-                                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "One or more items is not an"
-                                                                                            " existing project that appears"
-                                                                                            " before this one in the index."
+                                IndexVerifier._add_err_log(StaticHandler.MessageType.error,
+                                                           "One or more items is not an existing project that appears"
+                                                           " before this one in the index."
                                                            )
                                 break
+
+            else:
+
+                theid = project["id"]
+
+                if theid != "default":
+
+                    indxverified = False
+
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error,
+                                               "The first entry must have an ID default, indicating that it is a"
+                                               " template.")
+
             cnt += 1
 
         return indxverified

@@ -23,7 +23,8 @@ class IndexValidator:
     def init_parser(self):
 
         self._parser = argparse.ArgumentParser(description="This script checks for errors in cccp entries.")
-        self._parser.add_argument("-e", "--exitcode", help="The script will use the exit code.", action="store_true")
+        self._parser.add_argument("-e", "--skipexitcode", help="The script will not give exit code on non fatal erros.",
+                                  action="store_true")
 
         self._parser.add_argument("-i",
                                   "--indexentry",
@@ -107,16 +108,14 @@ class IndexValidator:
 
             gurl = cmdargs.indexgit[0]
             ValidatorGlobals.indexgit = gurl
-            StaticHandler.initialize_all(customindex=True)
-            initialized = True
 
         # If customindex is specified, initialize appropriately
         if cmdargs.customindex is not None:
 
-            StaticHandler.markcustomindexusage()
+            StaticHandler.markcustomindexfileusage()
             cind = cmdargs.customindex[0]
             ValidatorGlobals.indxfile = cind
-            StaticHandler.initialize_all(customindex=True, customindexfile=True)
+            StaticHandler.initialize_all(customindexfile=True)
             initialized = True
 
         if not initialized:
@@ -136,8 +135,8 @@ class IndexValidator:
                 i = 0
 
             # If exit code is set set the value :
-            if cmdargs.exitcode is True:
-                ValidatorGlobals.giveexitcode = True
+            if cmdargs.skipexitcode is True:
+                ValidatorGlobals.holdbackexitcode = True
 
             # If no index entries or test entries were specified do everything
             if cmdargs.indexentry is None and cmdargs.testentry is None:

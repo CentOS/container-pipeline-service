@@ -27,7 +27,26 @@ class StaticHandler:
         return
 
     @staticmethod
-    def markcustomindexusage():
+    def setIndexGit(url):
+
+        with open(ValidatorGlobals.indexgitfile, "w") as f:
+            f.write(url)
+
+        return
+
+    @staticmethod
+    def getIndexGit():
+
+        if not os.path.exists(ValidatorGlobals.indexgitfile):
+            StaticHandler.setIndexGit("_none_")
+
+        with open(ValidatorGlobals.indexgitfile, "r") as f:
+            data = f.readline()
+
+        return data
+
+    @staticmethod
+    def markcustomindexfileusage():
 
         with open(ValidatorGlobals.customindexused, "a+"):
             os.utime(ValidatorGlobals.customindexused, None)
@@ -35,7 +54,7 @@ class StaticHandler:
         return
 
     @staticmethod
-    def unmarkcustomindexusage():
+    def unmarkcustomindexfileusage():
 
         if os.path.exists(ValidatorGlobals.customindexused):
             os.remove(ValidatorGlobals.customindexused)
@@ -43,7 +62,7 @@ class StaticHandler:
         return
 
     @staticmethod
-    def customindexused():
+    def customindexfileused():
 
         used = False
 
@@ -98,92 +117,88 @@ class StaticHandler:
     @staticmethod
     def updateIndex(clone=False):
 
-        clonesuccess = False
+        success = True
 
         if clone:
-            # If need to clone, then clone repo and store status in flag.
 
             StaticHandler.print_msg(MessageType.info, "Cloning index repo...")
-            # Clone the index repo
+
+            if os.path.exists(ValidatorGlobals.testdir + "/index"):
+
+                shutil.rmtree(ValidatorGlobals.testdir + "/index")
+
             cmd = ["git", "clone", ValidatorGlobals.indexgit, ValidatorGlobals.testdir + "/index"]
 
-            clonesuccess = StaticHandler.execcmd(cmd)
+            success = StaticHandler.execcmd(cmd)
 
-        if (not clone) or (clone and clonesuccess):
+        if success:
 
-            StaticHandler.print_msg(MessageType.info, "Updating index repo...")
-            currdir = os.getcwd()
-
+            StaticHandler.print_msg(MessageType.info, "Updated index repo...")
+            retpath = os.getcwd()
             os.chdir(ValidatorGlobals.testdir + "/index")
+
             cmd = ["git", "fetch", "--all"]
+
             StaticHandler.execcmd(cmd)
 
-            os.chdir(currdir)
+            os.chdir(retpath)
 
-        if clone and not clonesuccess:
-
-            StaticHandler.print_msg(MessageType.error, "Failed to clone index git repo.")
-
-        return
+        return success
 
     @staticmethod
-    def initialize_all(customindex=False, customindexfile=False):
+    def initialize_all(customindexfile=False):
 
         # If the test dir does not exist, create it with all permissions
         if not os.path.exists(ValidatorGlobals.testdir):
             os.mkdir(ValidatorGlobals.testdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
 
-        if customindex:
+        if customindexfile:
             # Check if custom index is being used and mark its usage.
-            StaticHandler.markcustomindexusage()
+            StaticHandler.markcustomindexfileusage()
+            StaticHandler.print_msg(MessageType.info, "Attempting to copy custom index file over...")
 
             if os.path.exists(ValidatorGlobals.testdir + "/index"):
                 shutil.rmtree(ValidatorGlobals.testdir + "/index")
 
             os.mkdir(ValidatorGlobals.testdir + "/index")
 
-            if customindexfile:
-                # If custom index file, copy it over and use it.
-                if os.path.exists(ValidatorGlobals.indxfile):
+            if os.path.exists(ValidatorGlobals.indxfile):
 
-                    if not os.path.isabs(ValidatorGlobals.indxfile):
-
-                        ValidatorGlobals.indxfile = os.path.abspath(ValidatorGlobals.indxfile)
-
-                    StaticHandler.print_msg(MessageType.info, "Copying index to dump location.")
-
-                    shutil.copy2(ValidatorGlobals.indxfile, ValidatorGlobals.testdir + "/index" + "/index.yml")
-                    ValidatorGlobals.indxfile = ValidatorGlobals.testdir + "/index" + "/index.yml"
-
-                else:
-
-                    StaticHandler.print_msg(MessageType.error, "The index file you specified, does not exist.")
-                    sys.exit(10)
+                shutil.copy2(ValidatorGlobals.indxfile, ValidatorGlobals.testdir + "/index/index.yml")
 
             else:
-                # If not custom index file, then its custom index git, clone it in preparation for use.
-                StaticHandler.updateIndex(clone=True)
+
+                StaticHandler.print_msg(MessageType.error, "Invalid Index file specified, getting out...")
 
         else:
-            # Use default inbuilt giturl
 
-            # Check if custom index has been used, in which case, we will need to reset and clone default giturl
+            currgit = StaticHandler.getIndexGit()
+            customindexfused = StaticHandler.customindexfileused()
+            cloned = False
 
-            if StaticHandler.customindexused():
+            if customindexfused:
 
-                shutil.rmtree(ValidatorGlobals.testdir + "/index")
-                StaticHandler.updateIndex(clone=True)
-                StaticHandler.unmarkcustomindexusage()
+                StaticHandler.unmarkcustomindexfileusage()
+                cloned = StaticHandler.updateIndex(clone=True)
 
             else:
 
-                if os.path.exists(ValidatorGlobals.testdir + "/index"):
+                if currgit == ValidatorGlobals.indexgit:
 
-                    StaticHandler.updateIndex(clone=False)
+                    cloned = StaticHandler.updateIndex(clone=False)
 
                 else:
 
-                    StaticHandler.updateIndex(clone=True)
+                    cloned = StaticHandler.updateIndex(clone=True)
+
+            if not cloned:
+
+                StaticHandler.print_msg(MessageType.error, "Index cloning failed, exiting")
+                sys.exit(3)
+
+            else:
+
+                StaticHandler.setIndexGit(ValidatorGlobals.indexgit)
 
         sleep(5)
 
@@ -196,7 +211,7 @@ class StaticHandler:
             StaticHandler.print_msg(MessageType.error, "Index verification failed, getting out.")
             print
             IndexVerifier.print_err_log()
-            sys.exit(5)
+            sys.exit(4)
 
         IndexVerifier.print_err_log()
 
