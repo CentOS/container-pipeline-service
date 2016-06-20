@@ -49,6 +49,7 @@ class IndexVerifier:
 
         t = {}
         idl = []
+        cnt = 0
 
 
         indxverified = True
@@ -59,105 +60,108 @@ class IndexVerifier:
 
         for project in indxdata["Projects"]:
 
-            IndexVerifier._add_err_log(StaticHandler.MessageType.info, "Verifying project entry : " + str(project))
+            if cnt > 0:
 
-            # Check for ID
-            if "id" not in project.keys():
+                IndexVerifier._add_err_log(StaticHandler.MessageType.info, "Verifying project entry : " + str(project))
 
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an ID.")
+                # Check for ID
+                if "id" not in project.keys():
 
-            else:
-
-                val = project["id"]
-
-                if val not in idl:
-
-                    idl.append(val)
+                    indxverified = False
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an ID.")
 
                 else:
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Duplicate entry")
+                    val = project["id"]
 
-                    if val == "default":
-                        continue
+                    if val not in idl:
 
-            # Check for app-id
-            if "app-id" not in project.keys():
+                        idl.append(val)
 
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an app-id")
+                    else:
 
-            else:
+                        indxverified = False
+                        IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Duplicate entry")
 
-                print "App ID checks TBD"
+                        if val == "default":
+                            continue
 
-            # Check for job-id
-            if "job-id" not in project.keys():
-
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a job-id")
-
-
-            # Check git-url
-            if "git-url" not in project.keys():
-
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a git-url")
-
-            else:
-
-                val = project["git-url"]
-
-                if not StaticHandler.StaticHandler.is_valid_git_url(val):
+                # Check for app-id
+                if "app-id" not in project.keys():
 
                     indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Git url is not in acceptable format.")
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an app-id")
 
-            # Check git-path
-            if "git-path" not in project.keys():
+                else:
 
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-path")
+                    print "App ID checks TBD"
 
-            # Check git-branch
-            if "git-branch" not in project.keys():
+                # Check for job-id
+                if "job-id" not in project.keys():
 
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-branch")
+                    indxverified = False
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a job-id")
 
-            # Check notify-email
-            if "notify-email" not in project.keys():
 
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a notify email.")
+                # Check git-url
+                if "git-url" not in project.keys():
 
-            else:
+                    indxverified = False
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a git-url")
 
-                print "notify-email checks TBD"
+                else:
 
-            # Checks depends-on
-            if "depends-on" not in project.keys():
+                    val = project["git-url"]
 
-                indxverified = False
-                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks depends-on.")
+                    if not StaticHandler.StaticHandler.is_valid_git_url(val):
 
-            else:
+                        indxverified = False
+                        IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Git url is not in acceptable format.")
 
-                val = project["depends-on"]
+                # Check git-path
+                if "git-path" not in project.keys():
 
-                if val is not None:
+                    indxverified = False
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-path")
 
-                    for item in val:
+                # Check git-branch
+                if "git-branch" not in project.keys():
 
-                        if item not in idl:
+                    indxverified = False
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-branch")
 
-                            indxverified = False
-                            IndexVerifier._add_err_log(StaticHandler.MessageType.error, "One or more items is not an"
-                                                                                        " existing project that appears"
-                                                                                        " before this one in the index."
-                                                       )
-                            break
+                # Check notify-email
+                if "notify-email" not in project.keys():
+
+                    indxverified = False
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a notify email.")
+
+                else:
+
+                    print "notify-email checks TBD"
+
+                # Checks depends-on
+                if "depends-on" not in project.keys():
+
+                    indxverified = False
+                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks depends-on.")
+
+                else:
+
+                    val = project["depends-on"]
+
+                    if val is not None:
+
+                        for item in val:
+
+                            if item not in idl:
+
+                                indxverified = False
+                                IndexVerifier._add_err_log(StaticHandler.MessageType.error, "One or more items is not an"
+                                                                                            " existing project that appears"
+                                                                                            " before this one in the index."
+                                                           )
+                                break
+            cnt += 1
 
         return indxverified

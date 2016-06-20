@@ -215,8 +215,11 @@ class StaticHandler:
 
         valid = True
 
+        if theurl is None:
+
+            return False
+
         parsedurl = urlparse.urlparse(theurl)
-        print parsedurl
 
         if parsedurl.scheme != "git":
 
