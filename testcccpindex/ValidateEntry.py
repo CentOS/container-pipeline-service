@@ -96,7 +96,7 @@ class ValidateEntry:
         cmd = ["git", "branch", self._gitBranch]
         call(cmd) or True
 
-        cmd = ["git", "fetch", "--all"]
+        cmd = ["git", "pull", "--all"]
         call(cmd)
 
         cmd = ["git", "checkout", self._gitBranch]

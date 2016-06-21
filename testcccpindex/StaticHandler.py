@@ -137,7 +137,7 @@ class StaticHandler:
             retpath = os.getcwd()
             os.chdir(ValidatorGlobals.testdir + "/index")
 
-            cmd = ["git", "fetch", "--all"]
+            cmd = ["git", "pull", "--all"]
 
             StaticHandler.execcmd(cmd)
 
