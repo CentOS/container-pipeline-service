@@ -87,9 +87,9 @@ class DependencyChecker:
             if os.path.exists(item):
                 os.remove(item)
 
-            if False in testslist:
+        if False in testslist:
 
-                success = False
+            success = False
 
         return success
 
