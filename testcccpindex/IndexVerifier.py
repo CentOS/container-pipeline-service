@@ -49,6 +49,7 @@ class IndexVerifier:
 
         t = {}
         idl = []
+        depl = []
         cnt = 0
 
 
@@ -99,6 +100,13 @@ class IndexVerifier:
                     indxverified = False
                     IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a job-id")
 
+
+                # Prep depl
+                data = str.format("{0}/{1}", project["app-id"], project["job-id"])
+
+                if data not in depl:
+
+                    depl.append(data)
 
                 # Check git-url
                 if "git-url" not in project.keys():
@@ -151,7 +159,7 @@ class IndexVerifier:
 
                         for item in val:
 
-                            if item not in idl:
+                            if item not in depl:
 
                                 indxverified = False
                                 IndexVerifier._add_err_log(StaticHandler.MessageType.error,
