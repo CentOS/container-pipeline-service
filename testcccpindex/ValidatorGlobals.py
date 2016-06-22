@@ -14,12 +14,14 @@ class ValidatorGlobals:
     # This includes the index file, the repos and test logs
     testdir = os.path.abspath("./cccp-index-test")
 
-    giveexitcode = False
+    holdbackexitcode = False
     indexonly = False
     exitcode = 0
 
     # If using a local index, just change the path here tpo match that of your index file
     indxfile = testdir + "/index" + "/index.yml"
+    customindexused = testdir + "/.customindex"
+    indexgitfile = testdir + "/.customgit"
 
     # If need to alter the giturl, edit this
     indexgit = "https://github.com/kbsingh/cccp-index.git"

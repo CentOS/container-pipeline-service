@@ -23,7 +23,8 @@ class IndexValidator:
     def init_parser(self):
 
         self._parser = argparse.ArgumentParser(description="This script checks for errors in cccp entries.")
-        self._parser.add_argument("-e", "--exitcode", help="The script will use the exit code.", action="store_true")
+        self._parser.add_argument("-e", "--skipexitcode", help="The script will not give exit code on non fatal erros.",
+                                  action="store_true")
 
         self._parser.add_argument("-i",
                                   "--indexentry",
@@ -83,7 +84,7 @@ class IndexValidator:
 
         if cmdargs.indexgit is not None and cmdargs.customindex is not None:
             StaticHandler.print_msg(MessageType.error, "Error, -g and -c are mutually exclusive, specify either one")
-            sys.exit(900)
+            sys.exit(2)
 
         if cmdargs.indexonly is not None:
 
@@ -100,22 +101,21 @@ class IndexValidator:
 
             if not os.path.exists(dpth):
                 StaticHandler.print_msg(MessageType.error, "Invalid path specified or does not exist")
-                sys.exit(900)
+                sys.exit(3)
 
         # If index git is specified, update globals
         if cmdargs.indexgit is not None:
 
             gurl = cmdargs.indexgit[0]
             ValidatorGlobals.indexgit = gurl
-            StaticHandler.initialize_all(forceclone=True)
-            initialized = True
 
         # If customindex is specified, initialize appropriately
         if cmdargs.customindex is not None:
 
+            StaticHandler.markcustomindexfileusage()
             cind = cmdargs.customindex[0]
             ValidatorGlobals.indxfile = cind
-            StaticHandler.initialize_all(customindex=True)
+            StaticHandler.initialize_all(customindexfile=True)
             initialized = True
 
         if not initialized:
@@ -135,8 +135,8 @@ class IndexValidator:
                 i = 0
 
             # If exit code is set set the value :
-            if cmdargs.exitcode is True:
-                ValidatorGlobals.giveexitcode = True
+            if cmdargs.skipexitcode is True:
+                ValidatorGlobals.holdbackexitcode = True
 
             # If no index entries or test entries were specified do everything
             if cmdargs.indexentry is None and cmdargs.testentry is None:
