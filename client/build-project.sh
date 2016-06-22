@@ -50,9 +50,12 @@ _oc ${NS} process ${NAME}-${TAG} -v SOURCE_REPOSITORY_URL=${REPO},TARGET_NAMESPA
 
 IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | sed 's#/.*##')
 
-BUILD=$(_oc ${NS} start-build build)
+#BUILD=$(_oc ${NS} start-build build)
 
-[ $? -eq 0 ] && echo -e "Build ${BUILD} started.\nYou can watch builds progress at https://${IP}:8443/console/project/${NAME}/browse/builds"
+#[ $? -eq 0 ] && echo -e "Build ${BUILD} started.\nYou can watch builds progress at https://${IP}:8443/console/project/${NAME}/browse/builds"
+
+echo "==> Send build configs to build tube"
+python $CWD/send_build_request.py ${NAME} ${TAG}
 
 echo "==> Restoring the default template"
 rm -rf $CWD/template.json

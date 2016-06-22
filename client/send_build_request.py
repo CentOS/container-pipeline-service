@@ -2,6 +2,7 @@
 
 import beanstalkc
 import json
+import sys
 
 print "Getting build details from jenkins"
 var build_details = {}
