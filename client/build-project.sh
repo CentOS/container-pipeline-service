@@ -10,6 +10,7 @@ function usage() {
     echo "   REPO_URL  URL of project repository containing Dockerfile"
     echo "   REPO_BUILD_PATH  Relative path to the Dockerfile in the repository"
     echo "   NOTIFY_EMAIL  Email ID to be notified after successful build"
+    echo "   DEPENDS_ON  Dependency list for the current image"
     exit 0
 }
 
@@ -22,12 +23,14 @@ TAG=$2
 REPO=$3
 REPO_BUILD_PATH=$4
 NOTIFY_EMAIL=$5
+DEPENDS_ON=$6
 
 [ "${NAME}" == "" ] || [ "${NAME}" == "-h" ] || [ "${NAME}" == "--help" ] && usage
 [ "${TAG}" == "" ] && usage
 [ "${REPO}" == "" ] && usage
 [ "${REPO_BUILD_PATH}" == "" ] && usage
 [ "${NOTIFY_EMAIL}" == "" ] && usage
+[ "${DEPENDS_ON}" == "" ] && usage
 
 
 CWD=`dirname $0`
@@ -55,7 +58,7 @@ IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | 
 #[ $? -eq 0 ] && echo -e "Build ${BUILD} started.\nYou can watch builds progress at https://${IP}:8443/console/project/${NAME}/browse/builds"
 
 echo "==> Send build configs to build tube"
-python $CWD/send_build_request.py ${NAME} ${TAG}
+python $CWD/send_build_request.py ${NAME} ${TAG} ${DEPENDS_ON}
 
 echo "==> Restoring the default template"
 rm -rf $CWD/template.json
