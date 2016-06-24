@@ -42,7 +42,7 @@ echo "ADD cccp.yml /set_env/" >> Dockerfile
 echo "RUN yum install --disablerepo=* --enablerepo=base -y PyYAML libyaml && python /set_env/cccp_reader.py" >> Dockerfile
 
 _ "Building the image in ${buildpath} with tag ${TAG}"
-docker build --rm --no-cache -t $TAG . || jumpto sendstatusmail
+docker build --rm --no-cache -t $TAG -f $DOCKERFILE_NAME . || jumpto sendstatusmail
 
 #_ "Checking local files form container"
 #ls -a /set_env/
