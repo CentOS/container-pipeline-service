@@ -24,7 +24,7 @@ docker pull ${FULL_FROM} || jumpto sendstatusmail
 
 _ "Checking if test script is getting success"
 #if [ `docker run --rm ${FULL_FROM} /bin/bash ls /usr/bin/test_script;echo $?` -eq 0 ]; then
-docker run --rm ${FULL_FROM} /bin/bash /usr/bin/test_script 
+#docker run --rm ${FULL_FROM} /bin/bash /usr/bin/test_script 
 #|| jumpto sendstatusmail
 #fi
 
