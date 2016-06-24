@@ -50,6 +50,12 @@
       "required": true
     },
     {
+      "name": "DOCKERFILE_NAME",
+      "description": "Name of the dockerfile to be built",
+      "value": "Dockerfile",
+      "required": true
+    },
+    {
       "name": "REPO_TEST_PATH",
       "description": "Path to tests in a repository",
       "value": "/tests",
@@ -108,6 +114,10 @@
               {
                 "name": "REPO_BUILD_PATH",
                 "value": "${REPO_BUILD_PATH}"
+              },
+              {
+                "name": "DOCKERFILE_NAME",
+                "value": "${DOCKERFILE_NAME}"
               },
               {
                 "name": "NOTIFY_EMAIL",
