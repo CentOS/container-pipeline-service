@@ -5,7 +5,7 @@ import json
 import sys
 
 print "Getting build details from jenkins"
-var build_details = {}
+build_details = {}
 build_details['name'] = sys.argv[1]
 build_details['tag']  = sys.argv[2]
 build_details['depends_on'] = sys.argv[3]
