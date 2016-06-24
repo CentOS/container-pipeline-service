@@ -1,6 +1,6 @@
 #!/bin/python
 
-from subprocess import check_call, CalledProcessError
+import subprocess
 import random
 import string
 import os
@@ -8,26 +8,34 @@ import os
 class DependencyChecker:
 
     @staticmethod
-    def execcmd(cmd):
+    def execcmd(cmd, debug=False):
         """Executes a cmd list and returns true if cmd executed correctly."""
 
         success = True
 
         try:
-            check_call(cmd)
+
+            if debug:
+                subprocess.check_call(cmd)
+
+            else:
+                with open(os.devnull, 'w') as devnull:
+                    subprocess.check_call(cmd, stdout=devnull, stderr=subprocess.STDOUT)
+
             success = True
 
-        except CalledProcessError:
+        except subprocess.CalledProcessError:
             success = False
 
         return success
 
-    def __init__(self, registryurl="https://registry.centos.org", checkv1=True, checkv2=True):
+    def __init__(self, registryurl="https://registry.centos.org", checkv1=True, checkv2=True, debug=False):
 
         self._registryURL = registryurl
         self._checkV1 = checkv1
         self._checkV2 = checkv2
         self._tagsdumpfiles = []
+        self._debug = debug
 
         return
 
@@ -44,7 +52,7 @@ class DependencyChecker:
 
         cmd = ["wget", "--output-document=" + jsonfile, theurl]
 
-        step1_success = DependencyChecker.execcmd(cmd)
+        step1_success = DependencyChecker.execcmd(cmd, debug=self._debug)
 
         if step1_success:
 
@@ -71,17 +79,23 @@ class DependencyChecker:
 
             if self._checkV1:
 
-                print "CHECKING V1 REGISTRY..."
+                if self._debug:
+                    print "CHECKING V1 REGISTRY..."
+
                 s1 = self._wgetchecker(v1url)
 
             if self._checkV2:
 
-                print "CHECKING V2 REGISTRY..."
+                if self._debug:
+                    print "CHECKING V2 REGISTRY..."
+
                 s2 = self._wgetchecker(v2url)
 
             testslist.append((self._checkV1 and s1) or (self._checkV2 and s2))
 
-        print "CLEANING UP..."
+        if self._debug:
+            print "CLEANING UP..."
+            
         for item in self._tagsdumpfiles:
 
             if os.path.exists(item):
