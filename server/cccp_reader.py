@@ -19,6 +19,9 @@ def main():
     if(key == "test-skip"):
         test_skip = cccp_yml["test-skip"]
     
+    if(key == "desired-tag"):
+        desired_tag = cccp_yml["desired-tag"]
+
     if(key == "build-script"):
         build_script = cccp_yml["build-script"]
         os.symlink(os.path.join(curr_dir,build_script),"/usr/bin/build_script")
