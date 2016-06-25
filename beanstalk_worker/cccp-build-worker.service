@@ -1,0 +1,5 @@
+[Unit]
+Description=cccp-build-worker.service
+
+[Service]
+ExecStart=/opt/cccp-service/beanstalk_worker/worker_start_build.py
