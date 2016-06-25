@@ -16,12 +16,12 @@ if __name__ == '__main__':
 
     print "\nYou can view the test results at " + resultsfile + "\n"
 
-    if not ValidatorGlobals.holdbackexitcode:
+#    if not ValidatorGlobals.holdbackexitcode:
 
-        if ValidatorGlobals.exitcode > 0:
+    if ValidatorGlobals.exitcode > 0:
 
-            sys.exit(1)
+        sys.exit(1)
 
-        else:
+    else:
 
-            sys.exit(0)
+        sys.exit(0)
