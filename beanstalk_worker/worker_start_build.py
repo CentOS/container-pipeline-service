@@ -23,15 +23,15 @@ while True:
   tag = job_details['tag']
   depends_on = job_details['depends_on']
   
-  print "==> check dependencies are available or not"
-  dependency_present = False
-  if depends_on = None:
-    dependency_present = True
+  #print "==> check dependencies are available or not"
+  #dependency_present = False
+  #if depends_on == None:
+  #  dependency_present = True
 
-  dc = DependencyChecker()
-  while dependency_present != True
-    dependency_present = dc.checkdependencies(depends_on)
-    time.sleep(30)
+  #dc = DependencyChecker()
+  #while dependency_present != True
+  #  dependency_present = dc.checkdependencies(depends_on)
+  #  time.sleep(30)
 
   print "==> Login to openshift server"
   command = "oc login https://openshift:8443 -u test-admin -p test --certificate-authority=./ca.crt"
