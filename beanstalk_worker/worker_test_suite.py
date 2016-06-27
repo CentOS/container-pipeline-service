@@ -52,11 +52,14 @@ def test_job_data(job_data):
         logger.log(level=logging.INFO, msg="Received job data from tube")
         logger.log(level=logging.INFO, msg="Job data: %s" % job_data)
 
-        if job_data.get("tag") != None:
-            image_full_name = job_data.get("image_name") + ":" + \
-                job_data.get("image_tag")
-        else:
-            image_full_name = job_data.get("image_name")
+        # if job_data.get("tag") != None:
+        #     image_full_name = job_data.get("name") + ":" + \
+        #         job_data.get("image_tag")
+        # else:
+        #     image_full_name = job_data.get("name")
+
+        image_full_name = job_data.get('name').split(":")[0] + ":" + \
+            job_data.get("tag")
 
         logger.log(level=logging.INFO, msg="Pulling image %s" % image_full_name)
         pull_data = conn_c7.pull(
