@@ -42,7 +42,7 @@ echo "Build is successful please pull the image (${OUTPUT_IMAGE})" | mail -r con
 sleep 20
 
 _ "Send the image details to test_tube for testing"
-python /tube_request/send_test_request.py ${OUTPUT_IMAGE} "latest"
+python /tube_request/send_test_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} "latest"
 
 _ "Cleaning environment"
 docker rmi ${FULL_FROM} ${FULL_TO}
