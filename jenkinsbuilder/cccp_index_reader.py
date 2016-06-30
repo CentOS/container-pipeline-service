@@ -14,7 +14,7 @@ optional_attrs = ['rundotshargs']
 overwritten_attrs = ['jobname', 'git_url', 'ci_project', 'jobs']
 
 
-def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,dockerfile,dependson,notifyemail):
+def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail):
     new_project[0]['project']['namespace'] = appid
     new_project[0]['project']['jobname'] = jobid
     new_project[0]['project']['ci_project'] = appid
@@ -30,7 +30,7 @@ def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,dockerfile,depen
     elif new_project[0]['project']['rundotshargs'] is None:
         new_project[0]['project']['rundotshargs'] = ''
 
-    new_project[0]['project']['dockerfile_name'] = dockerfile
+    new_project[0]['project']['target_file'] = targetfile
     new_project[0]['project']['depends_on'] = dependson
     new_project[0]['project']['notify_email'] = notifyemail
     return new_project
@@ -53,7 +53,7 @@ def main(yamlfile):
                 giturl = project['git-url']
                 gitpath = project['git-path'] if (project['git-path'] != None) else ''
                 gitbranch = project['git-branch']
-                dockerfile = project['dockerfile-name'] if(project['dockerfile-name'] != None) else 'Dockerfile'
+                targetfile = project['target-file'] if(project['target-file'] != None) else 'Dockerfile'
                 dependson = project['depends-on']
                 notifyemail = project['notify-email']
     		
@@ -69,7 +69,7 @@ def main(yamlfile):
 
                 # overwrite any attributes we care about see: projectify
                 with open(generated_filename, 'w') as outfile:
-                    yaml.dump(projectify(new_proj,appid,jobid,giturl,gitpath,gitbranch,dockerfile,dependson,notifyemail), outfile)
+                    yaml.dump(projectify(new_proj,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail), outfile)
 
                 # run jenkins job builder
                 myargs = ['jenkins-jobs',
