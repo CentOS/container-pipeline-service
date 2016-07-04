@@ -5,8 +5,11 @@ from NutsAndBolts import StaticHandler
 
 
 class Engine:
+    """The engine, runs the vehicle ;)"""
+
     def __init__(self, datadumpdirectory=None, indexgit=None, customindexfile=None, skippass2=False,
                  specificindexentries=None, testindexentries=None):
+        """Initialize the engine, so it knows what to do."""
 
         # Initialze the engine
         StaticHandler.initialize(datadumpdirectory, indexgit, customindexfile)
@@ -19,19 +22,23 @@ class Engine:
         return
 
     def _pass1(self):
+        """Runs the first pass, and returns its success or failure"""
 
         return IndexVerifier().run()
 
     def _pass2(self):
+        """Runs the second pass, and returns its success or failure"""
 
         return IndexEntriesVerifier(self._specificIndexEntries, self._testIndexEntries).run()
 
     def run(self):
+        """Ingition to the engine, this is what does the magic, and returns status of success or failure"""
 
         success = True
         l = Logger()
 
         l.log(Logger.info, "Starting the first pass...")
+
         # Run the first Pass
         pass1 = self._pass1()
 

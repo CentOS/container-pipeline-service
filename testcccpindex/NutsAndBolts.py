@@ -1,9 +1,9 @@
 import os
 import urlparse
+from glob import glob
 from subprocess import check_call, CalledProcessError
 
 import Globals
-from glob import glob
 
 
 class Logger:
@@ -25,6 +25,7 @@ class Logger:
         return
 
     def log(self, logtype, msg):
+        """Logs the message, displaying it on screen, as well as recording it in a file, if one is specified."""
 
         printmsg = ""
         filemsg = ""
@@ -71,6 +72,7 @@ class StaticHandler:
 
     @staticmethod
     def initialize(datadumpdirectory=None, indexgit=None, customindexfile=None):
+        """Initializes some variables, as required, including setting up defaults"""
 
         Logger().log(Logger.info, "Initializing systems...")
 
@@ -101,6 +103,7 @@ class StaticHandler:
 
     @staticmethod
     def _setupFS():
+        """Sets up the filesystem in the dump directory"""
 
         if not os.path.exists(Globals.Globals.dataDumpDirectory):
             os.mkdir(Globals.Globals.dataDumpDirectory)
@@ -126,6 +129,7 @@ class StaticHandler:
 
     @staticmethod
     def is_valid_git_url(theurl):
+        """Checks if a url is valid format"""
 
         valid = True
 
@@ -141,8 +145,11 @@ class StaticHandler:
 
 
 class Tracker:
+    """Tracker keeps track of information required accross runs"""
+
     @staticmethod
     def setCustomIndexUsed(used):
+        """Sets if a custom indexfile was used"""
 
         if used:
 
@@ -158,6 +165,7 @@ class Tracker:
 
     @staticmethod
     def isCustomIndexUsed():
+        """Gets if a custom index file was used"""
 
         used = True
 
@@ -168,6 +176,7 @@ class Tracker:
 
     @staticmethod
     def setPreviousIndexGit(giturl):
+        """Sets the previous index giturl"""
 
         with open(Globals.Globals.previousIndexGitFile, "w+") as fl:
             fl.write(giturl)
@@ -176,6 +185,7 @@ class Tracker:
 
     @staticmethod
     def getPreviousIndexGit():
+        """Gets the previously used index giturl"""
 
         previous = ""
 

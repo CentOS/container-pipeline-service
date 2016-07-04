@@ -8,13 +8,17 @@ import NutsAndBolts
 
 
 class IndexVerifier:
+    """This is the first pass of the system, validating the formatting of the index file."""
+
     def __init__(self):
+        """Initialize the verifier"""
 
         self._logger = NutsAndBolts.Logger(Globals.Globals.dataDumpDirectory + "/index.log")
 
         return
 
     def _cleanupIndex(self):
+        """Cleans up previous index data"""
 
         shutil.rmtree(Globals.Globals.indexDirectory)
         os.mkdir(Globals.Globals.indexDirectory)
@@ -22,14 +26,20 @@ class IndexVerifier:
         return
 
     def _prepareIndex(self):
+        """Prepare the index, by cloning it or copying local index.yml, if specified"""
 
         success = True
 
         # Check if custom index file is specified.
         if Globals.Globals.customIndexFile is not None:
 
+            # Clean up previous index
             self._cleanupIndex()
+
+            # Tell the tracker what was just done
             NutsAndBolts.Tracker.setCustomIndexUsed(True)
+
+            # Copy over specified index to where it should be
             shutil.copy2(Globals.Globals.customIndexFile, Globals.Globals.indexFile)
 
         # Go to the clone index repo way of doing things
@@ -37,10 +47,14 @@ class IndexVerifier:
 
             # print NutsAndBolts.Tracker.getPreviousIndexGit()
 
-            if NutsAndBolts.Tracker.isCustomIndexUsed() or Globals.Globals.indexGit != NutsAndBolts.Tracker.getPreviousIndexGit():
+            # If custom indexfile is used, or the tracker says current indexgit is not the same as previous one
+            if NutsAndBolts.Tracker.isCustomIndexUsed() or \
+                            Globals.Globals.indexGit != NutsAndBolts.Tracker.getPreviousIndexGit():
 
+                # Clean up previous.
                 self._cleanupIndex()
 
+                # Clone the new index
                 cmd = ["git", "clone", Globals.Globals.indexGit, Globals.Globals.indexDirectory]
                 NutsAndBolts.Tracker.setPreviousIndexGit(Globals.Globals.indexGit)
 
@@ -56,6 +70,7 @@ class IndexVerifier:
         return success
 
     def _verifyIndex(self):
+        """Does the validation of the index.yml formatting"""
 
         success = True
 
@@ -66,12 +81,14 @@ class IndexVerifier:
         # Load the index data
         indexdata = ""
 
+        # Open the index file, and read it
         with open(Globals.Globals.indexFile) as indexfile:
             indexdata = yaml.load(indexfile)
 
         # Check if projects entry exists
         self._logger.log(NutsAndBolts.Logger.info, "Checking if \"Projects\" entry exists...")
 
+        # Only if 'Projects' entry is found we go ahead. Else it is a failure at this stage itself
         if "Projects" in indexdata.keys():
 
             self._logger.log(NutsAndBolts.Logger.success, "Entry found, proceeding...")
@@ -188,9 +205,11 @@ class IndexVerifier:
         return success
 
     def run(self):
+        """Runs the Index Verifier"""
 
         self._logger.log(NutsAndBolts.Logger.info, "Preparing the index...")
 
+        # If index can be prepared, only then go ahead with parsing, else failure at this stage itself
         if self._prepareIndex():
 
             self._logger.log(NutsAndBolts.Logger.info, "Verifying index formatting...")

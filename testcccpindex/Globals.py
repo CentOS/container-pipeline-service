@@ -2,6 +2,8 @@ import os
 
 
 class Globals:
+    """Contains the stuff that needs to be accessible by everyone"""
+
     indexGit = "https://github.com/kbsingh/cccp-index.git"
     customIndexFile = None
 

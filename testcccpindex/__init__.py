@@ -53,6 +53,8 @@ def initparser():
 
 
 def mainfunc():
+    """The entry point. Note, if you want dont want argument parsing, feel free to directly use Engine class"""
+
     engine = None
     skippass2 = False
     datadumpdirectory = None
@@ -62,6 +64,8 @@ def mainfunc():
     testentries = None
 
     cmdargs = initparser().parse_args()
+
+    # Set up the parameters to Engine, based on argument parsing.
 
     if cmdargs.indexgiturl is not None and cmdargs.customindexfile is not None:
         Logger().log(Logger.error,
