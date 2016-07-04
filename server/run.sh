@@ -37,21 +37,21 @@ _ "Copying index reader to docker file"
 cp /cccp_reader.py .
 
 _ "Adding index reader to docker file"
-echo "ADD cccp_reader.py /set_env/" >> Dockerfile
-echo "ADD cccp.yml /set_env/" >> Dockerfile
-echo "RUN yum install --disablerepo=* --enablerepo=base -y PyYAML libyaml && python /set_env/cccp_reader.py" >> Dockerfile
+echo "ADD cccp_reader.py /set_env/" >> $TARGET_FILE
+echo "ADD cccp.yml /set_env/" >> $TARGET_FILE
+echo "RUN yum install --disablerepo=* --enablerepo=base -y PyYAML libyaml && python /set_env/cccp_reader.py" >> $TARGET_FILE
 
 _ "Building the image in ${buildpath} with tag ${TAG}"
-docker build --rm --no-cache -t $TAG -f $DOCKERFILE_NAME . || jumpto sendstatusmail
+docker build --rm --no-cache -t $TAG -f $TARGET_FILE . || jumpto sendstatusmail
 
 #_ "Checking local files form container"
 #ls -a /set_env/
 
-#_ "Setting the environment for running the scripts"
-#docker run --rm -v /cccp_index_reader.py:/set_env/cccp_index_reader.py $TAG python /set_env/cccp_index_reader.py
+_ "Setting the environment for running the scripts"
+docker run --rm -v /cccp_index_reader.py:/set_env/cccp_index_reader.py $TAG --entrypoint /bin/bash python /set_env/cccp_index_reader.py
 
 _ "Running build steps"
-#docker run --rm $TAG /bin/bash /usr/bin/build_script
+docker run --rm $TAG --entrypoint /bin/bash /usr/bin/build_script
 
 TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
 
