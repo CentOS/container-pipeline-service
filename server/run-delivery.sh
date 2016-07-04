@@ -19,7 +19,7 @@ _ "Pulling RC image (${FROM})"
 docker pull ${FULL_FROM}
 
 _ "Running delivery steps"
-#docker run --rm ${FULL_FROM} /bin/bash /usr/bin/delivery_script
+docker run --rm ${FULL_FROM} --entrypoint /bin/bash /usr/bin/delivery_script
 
 sleep 20
 
