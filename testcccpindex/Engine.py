@@ -1,320 +1,57 @@
-#!/bin/python
-
-import argparse
-import sys
-import os
-import yaml
-from collections import OrderedDict
-from StaticHandler import StaticHandler, MessageType
-from ValidatorGlobals import ValidatorGlobals
-from ValidateEntry import ValidateEntry
+from IndexEntriesVerifier import IndexEntriesVerifier
+from IndexVerifier import IndexVerifier
+from NutsAndBolts import Logger
+from NutsAndBolts import StaticHandler
 
 
-class IndexValidator:
-    """This class reads index file and user input and orchestrates the tests accordingly"""
+class Engine:
+    """The engine, runs the vehicle ;)"""
 
-    def __init__(self):
-        self._i = ""
-        self._parser = argparse.ArgumentParser()
+    def __init__(self, datadumpdirectory=None, indexgit=None, customindexfile=None, skippass2=False,
+                 specificindexentries=None, testindexentries=None):
+        """Initialize the engine, so it knows what to do."""
 
-        self.init_parser()
-        return
+        # Initialze the engine
+        StaticHandler.initialize(datadumpdirectory, indexgit, customindexfile)
 
-    def init_parser(self):
-
-        self._parser = argparse.ArgumentParser(description="This script checks for errors in cccp entries.")
-        self._parser.add_argument("-e", "--skipexitcode", help="The script will not give exit code on non fatal erros.",
-                                  action="store_true")
-
-        self._parser.add_argument("-i",
-                                  "--indexentry",
-                                  help="Check a specific index entry",
-                                  metavar=('ID', 'APPID', 'JOBID'),
-                                  nargs=3,
-                                  action="append"
-                                  )
-
-        self._parser.add_argument("-t",
-                                  "--testentry",
-                                  help="Check a specified entry without validating against index",
-                                  nargs=7,
-                                  action="append",
-                                  metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL')
-                                  )
-
-        self._parser.add_argument("-d", "--dumpdirectory", help="Specify your down dump directory, where the test data"
-                                                                " including index, repos etc will be dumped",
-                                  metavar='DUMPDIRPATH',
-                                  nargs=1,
-                                  action="store"
-                                  )
-
-        self._parser.add_argument("-g",
-                                  "--indexgit",
-                                  help="Specify a custom git containing the index.yml",
-                                  metavar='GITURL',
-                                  nargs=1,
-                                  action="store"
-                                  )
-
-        self._parser.add_argument("-c",
-                                  "--customindex",
-                                  help="Specify a custom index file, stored locally."
-                                       "DO NOT use with -g",
-                                  metavar='INDEXPATH',
-                                  nargs=1,
-                                  action="store"
-                                  )
-
-        self._parser.add_argument("-x",
-                                  "--indexonly",
-                                  help="If this flag is set, only the core index tests are done",
-                                  action="store_true"
-                                  )
+        # Setup engine starte so its behavior is affected when it is started
+        self._skipPass2 = skippass2
+        self._specificIndexEntries = specificindexentries
+        self._testIndexEntries = testindexentries
 
         return
+
+    def _pass1(self):
+        """Runs the first pass, and returns its success or failure"""
+
+        return IndexVerifier().run()
+
+    def _pass2(self):
+        """Runs the second pass, and returns its success or failure"""
+
+        return IndexEntriesVerifier(self._specificIndexEntries, self._testIndexEntries).run()
 
     def run(self):
-        """Runs the tests of the tester."""
+        """Ingition to the engine, this is what does the magic, and returns status of success or failure"""
 
-        t = self._i
+        success = True
+        l = Logger()
 
-        cmdargs = self._parser.parse_args()
-        initialized = False
+        l.log(Logger.info, "Starting the first pass...")
 
-        if cmdargs.indexgit is not None and cmdargs.customindex is not None:
-            StaticHandler.print_msg(MessageType.error, "Error, -g and -c are mutually exclusive, specify either one")
-            sys.exit(2)
+        # Run the first Pass
+        pass1 = self._pass1()
 
-        if cmdargs.indexonly is not None:
+        # Run the second pass if pass 1 passed and pass is not set to be skipped.
+        if pass1 and not self._skipPass2:
 
-            ValidatorGlobals.indexonly = cmdargs.indexonly
+            l.log(Logger.info, "Starting the second pass")
+            success = self._pass2()
 
-        # If dump directory is specified, update the globals
-        if cmdargs.dumpdirectory is not None:
+        else:
 
-            dpth = cmdargs.dumpdirectory[0]
+            success = pass1
 
-            if not os.path.isabs(dpth):
-                dpth = os.path.abspath(dpth)
-                ValidatorGlobals.testdir = dpth
+        Logger().log(Logger.info, "Operations completed, check the dump directory for more information.")
 
-            if not os.path.exists(dpth):
-                StaticHandler.print_msg(MessageType.error, "Invalid path specified or does not exist")
-                sys.exit(3)
-
-        # If index git is specified, update globals
-        if cmdargs.indexgit is not None:
-
-            gurl = cmdargs.indexgit[0]
-            ValidatorGlobals.indexgit = gurl
-
-        # If customindex is specified, initialize appropriately
-        if cmdargs.customindex is not None:
-
-            StaticHandler.markcustomindexfileusage()
-            cind = cmdargs.customindex[0]
-            ValidatorGlobals.indxfile = cind
-            StaticHandler.initialize_all(customindexfile=True)
-            initialized = True
-
-        if not initialized:
-            StaticHandler.initialize_all()
-
-        resultset = {
-            "Projects": []
-        }
-
-        # Checks if the index file exists. Required for any tests to proceed
-        if os.path.exists(ValidatorGlobals.indxfile):
-
-            # read in data from index file.
-            with open(ValidatorGlobals.indxfile) as indexfile:
-                indexentries = yaml.load(indexfile)
-
-                i = 0
-
-            # If exit code is set set the value :
-            if cmdargs.skipexitcode is True:
-                ValidatorGlobals.holdbackexitcode = True
-
-            # If no index entries or test entries were specified do everything
-            if cmdargs.indexentry is None and cmdargs.testentry is None:
-
-                # Assuming no specifics, read all entries in index file and run tests agains them.
-                for item in indexentries["Projects"]:
-
-                    if i > 0:
-                        testresults = ValidateEntry(item["id"], item["app-id"], item["job-id"], item["git-url"],
-                                                    item["git-path"], item["git-branch"], item["notify-email"]).run_tests()
-
-                        # Update the result set with the test data.
-                        od = OrderedDict(
-                            (
-                                (
-                                    "id", item["id"]
-                                ),
-                                (
-                                    "app-id", item["app-id"]
-                                ),
-                                (
-                                    "job-id", item["job-id"]
-                                ),
-                                (
-                                    "tests-passed", testresults["tests"]["allpass"]
-                                ),
-                                (
-                                    "tests-summary", testresults["tests"]
-                                ),
-                                (
-                                    "git-clone-path", testresults["clone-path"]
-                                ),
-                                (
-                                    "git-track-url", item["git-url"]
-                                ),
-                                (
-                                    "git-path", testresults["git-path"]
-                                ),
-                                (
-                                    "git-branch", item["git-branch"]
-                                ),
-                                (
-                                    "notify-email", item["notify-email"]
-                                )
-                            )
-                        )
-
-                        resultset["Projects"].append(od)
-
-                        print "\nNext Entry....\n"
-
-                    i += 1
-
-            # If indexentries or test entries were passed, parse them
-            else:
-
-                if cmdargs.indexentry is not None:
-
-                    for item in cmdargs.indexentry:
-
-                        tid = item[0]
-                        appid = item[1]
-                        jobid = item[2]
-
-                        tid = tid.lstrip()
-                        tid = tid.rstrip()
-
-                        appid = appid.lstrip()
-                        appid = appid.rstrip()
-
-                        jobid = jobid.lstrip()
-                        jobid = jobid.rstrip()
-
-                        t = 0
-
-                        for item1 in indexentries["Projects"]:
-
-                            if t > 0 and tid == item1["id"] and appid == item1["app-id"] and jobid == item1["job-id"]:
-
-                                testresults = ValidateEntry(item1["id"], item1["app-id"], item1["job-id"], item1["git-url"],
-                                                            item1["git-path"], item1["git-branch"],
-                                                            item1["notify-email"]).run_tests()
-
-                                od = OrderedDict(
-                                    (
-                                        (
-                                            "id", item1["id"]
-                                        ),
-                                        (
-                                            "app-id", item1["app-id"]
-                                        ),
-                                        (
-                                            "job-id", item1["job-id"]
-                                        ),
-                                        (
-                                            "tests-passed", testresults["tests"]["allpass"]
-                                        ),
-                                        (
-                                            "test-summary", testresults["tests"]
-                                        ),
-                                        (
-                                            "git-clone-path", testresults["clone-path"]
-                                        ),
-                                        (
-                                            "git-track-url", item1["git-url"]
-                                        ),
-                                        (
-                                            "git-path", testresults["git-path"]
-                                        ),
-                                        (
-                                            "git-branch", item1["git-branch"]
-                                        ),
-                                        (
-                                            "notify-email", item1["notify-email"]
-                                        )
-                                    )
-                                )
-
-                                resultset["Projects"].append(od)
-
-                                print "\nNext Entry....\n"
-
-                            t += 1
-
-                if cmdargs.testentry is not None:
-
-                    # If a test entry was requested, take in all params and run tests against it
-                    for item in cmdargs.testentry:
-
-                        tid = item[0]
-                        appid = item[1]
-                        jobid = item[2]
-                        giturl = item[3]
-                        gitpath = item[4]
-                        gitbranch = item[5]
-                        notifyemail = item[6]
-
-                        testresults = ValidateEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run_tests()
-
-                        # Update the result set with result data
-
-                        od = OrderedDict(
-                            (
-                                (
-                                    "id", tid
-                                ),
-                                (
-                                    "app-id", appid
-                                ),
-                                (
-                                    "job-id", jobid
-                                ),
-                                (
-                                    "tests-passed", testresults["tests"]["allpass"]
-                                ),
-                                (
-                                    "test-summary", testresults["tests"]
-                                ),
-                                (
-                                    "git-clone-path", testresults["clone-path"]
-                                ),
-                                (
-                                    "git-track-url", giturl
-                                ),
-                                (
-                                    "git-path", testresults["git-path"]
-                                ),
-                                (
-                                    "git-branch", gitbranch
-                                ),
-                                (
-                                    "notify-email", notifyemail
-                                )
-                            )
-                        )
-
-                        resultset["Projects"].append(od)
-
-        # Return resultset
-
-        return resultset
+        return success

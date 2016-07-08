@@ -1,11 +1,13 @@
 #!/bin/python
 
 import os
-import yaml
-from time import sleep
-from ValidatorGlobals import ValidatorGlobals
 from subprocess import call
-from StaticHandler import StaticHandler, MessageType
+from time import sleep
+
+import yaml
+
+from Globals import Globals
+from NutsAndBolts import StaticHandler, Logger
 
 
 class ValidateEntry:
@@ -20,12 +22,10 @@ class ValidateEntry:
             gitpath += "/"
 
         fnm = str(tid) + "_" + appid + "_" + jobid
-        self._gitReposlocation = ValidatorGlobals.testdir + "/repos"
+        self._gitReposlocation = Globals.repoDirectory
 
-        if not os.path.exists(ValidatorGlobals.testdir + "/tests"):
-            os.mkdir(ValidatorGlobals.testdir + "/tests")
-
-        self._testLogFile = ValidatorGlobals.testdir + "/tests/" + fnm + ".log"
+        self._testLogFile = Globals.testsDirectory + "/" + fnm + ".log"
+        self._logger = Logger(self._testLogFile)
 
         self._id = tid
         self._appId = appid
@@ -113,24 +113,23 @@ class ValidateEntry:
 
         if os.path.exists(self._gitCloneLocation):
 
-            StaticHandler.print_msg(MessageType.info, "Git repo already exist, checking for updates...", self)
+            self._logger.log(Logger.info, "Git repo already exist, checking for updates...")
             self._update_branch()
-            StaticHandler.print_msg(MessageType.success, "Changes if any, have been merged...", self)
+            self._logger.log(Logger.success, "Changes if any, have been merged...")
 
         else:
 
-            StaticHandler.print_msg(MessageType.info, "Attempting to clone repo...", self)
+            self._logger.log(Logger.info, "Attempting to clone repo...")
             cmd = ["git", "clone", self._gitURL, self._gitCloneLocation]
 
             if StaticHandler.execcmd(cmd):
-                StaticHandler.print_msg(MessageType.success, "Cloning successful.")
-                StaticHandler.print_msg(MessageType.info, "Checking out branch " + self._gitBranch + "...", self)
+                self._logger.log(Logger.success, "Cloning successful.")
+                self._logger.log(Logger.info, "Checking out branch " + self._gitBranch + "...")
                 self._update_branch()
 
             else:
 
-                StaticHandler.print_msg(MessageType.error, "Failed to clone repo, skipping...", self)
-                ValidatorGlobals.exitcode += 1
+                self._logger.log(Logger.error, "Failed to clone repo, skipping...")
                 success = False
 
         self._testData["tests"]["clone"] = success
@@ -146,7 +145,7 @@ class ValidateEntry:
         # Map location of the cccp.yml file
         cccpyamlfilepath = ""
 
-        StaticHandler.print_msg(MessageType.info, "Checking if a cccp.yml file exists at specified location", self)
+        self._logger.log(Logger.info, "Checking if a cccp.yml file exists at specified location")
 
         # Check if the cccp.yml file exists
         pthexists = False
@@ -160,10 +159,10 @@ class ValidateEntry:
                 break
 
         if not pthexists:
-            StaticHandler.print_msg(MessageType.error, "Missing cccp.yml file, skipping...", self)
+            self._logger.log(Logger.error, "Missing cccp.yml file, skipping...")
             return
 
-        StaticHandler.print_msg(MessageType.success, "Found cccp.yml file, moving on...", self)
+        self._logger.log(Logger.success, "Found cccp.yml file, moving on...")
 
         # * Validate for job-id
 
@@ -171,7 +170,7 @@ class ValidateEntry:
         with open(cccpyamlfilepath) as cccpyamlfile:
             cccpyaml = yaml.load(cccpyamlfile)
 
-        StaticHandler.print_msg(MessageType.info, "Matching job id with one in cccp.yml", self)
+        self._logger.log(Logger.info, "Matching job id with one in cccp.yml")
 
         #        print str.format("index jid : {0}\ncccp jid : {1}", self._jobid, cccpyaml["job-id"])
 
@@ -179,35 +178,32 @@ class ValidateEntry:
 
             if self._jobId == cccpyaml["job-id"]:
 
-                StaticHandler.print_msg(MessageType.success, "Job id matched, moving on...", self)
+                self._logger.log(Logger.success, "Job id matched, moving on...")
                 self._testData["tests"]["jobidmatch"] = True
 
             else:
 
-                StaticHandler.print_msg(MessageType.error, "Job Ids don't match, skipping...", self)
-                ValidatorGlobals.exitcode += 1
+                self._logger.log(Logger.error, "Job Ids don't match, skipping...")
                 return
 
         else:
 
-            StaticHandler.print_msg(MessageType.error, "Missing compulsory key, job-id in cccp.yml file...", self)
-            ValidatorGlobals.exitcode += 1
+            self._logger.log(Logger.error, "Missing compulsory key, job-id in cccp.yml file...")
             return
 
         # * Validate for test-skip and test-script
 
-        StaticHandler.print_msg(MessageType.info, "Checking for test-skip flag", self)
+        self._logger.log(Logger.info, "Checking for test-skip flag")
 
         # Check for test skip to be present
         if "test-skip" in cccpyaml.keys():
 
-            StaticHandler.print_msg(MessageType.info, "Flag found, proceeding to check if its reset...", self)
+            self._logger.log(Logger.info, "Flag found, proceeding to check if its reset...")
 
             # Check is test-skip is reset
             if not cccpyaml["test-skip"]:
 
-                StaticHandler.print_msg(MessageType.info, "Test skip is reset, checking for now compulsory test-script",
-                                        self)
+                self._logger.log(Logger.info, "Test skip is reset, checking for now compulsory test-script")
 
                 self._testData["tests"]["test-skip"] = True
 
@@ -220,48 +216,44 @@ class ValidateEntry:
                     # Check if the test script actually exists
                     if not os.path.exists(testscriptpath):
 
-                        StaticHandler.print_msg(MessageType.error,
-                                                "The specified test script does not exist, skipping...", self)
+                        self._logger.log(Logger.error,
+                                         "The specified test script does not exist, skipping...")
 
-                        ValidatorGlobals.exitcode += 1
                         return
 
                     else:
 
-                        StaticHandler.print_msg(MessageType.success, "The specified test script exists, moving on...",
-                                                self)
+                        self._logger.log(Logger.success, "The specified test script exists, moving on...")
 
                         self._testData["tests"]["test-script"] = True
 
                 else:
 
-                    StaticHandler.print_msg(MessageType.error,
-                                            "Test skip is reset, but test script is missing, skipping...", self)
-                    ValidatorGlobals.exitcode += 1
+                    self._logger.log(Logger.error,
+                                     "Test skip is reset, but test script is missing, skipping...")
                     return
 
             # If test-skip is not reset, check if its set
             elif cccpyaml["test-skip"]:
 
-                StaticHandler.print_msg(MessageType.success, "Test skip is set, moving on...", self)
+                self._logger.log(Logger.success, "Test skip is set, moving on...")
                 self._testData["tests"]["test-skip"] = True
                 self._testData["tests"]["test-script"] = True
 
             # If test-skip is not reset or set, then, there is an error
             else:
 
-                StaticHandler.print_msg(MessageType.error, "Test skip is not reset or set, skipping...", self)
-                ValidatorGlobals.exitcode += 1
+                self._logger.log(Logger.error, "Test skip is not reset or set, skipping...")
                 return
 
         else:
 
-            StaticHandler.print_msg(MessageType.success, "Test skip not found, assuming True and moving on...", self)
+            self._logger.log(Logger.success, "Test skip not found, assuming True and moving on...")
             self._testData["tests"]["test-skip"] = True
             self._testData["tests"]["test-script"] = True
 
         # * Check Build script
-        StaticHandler.print_msg(MessageType.info, "Checking for build script.", self)
+        self._logger.log(Logger.info, "Checking for build script.")
         if "build-script" in cccpyaml.keys():
 
             buildscriptfile = cccpyaml["build-script"]
@@ -269,17 +261,16 @@ class ValidateEntry:
 
             if not os.path.exists(buildscriptpath):
 
-                StaticHandler.print_msg(MessageType.error, "Could not find build script, skipping", self)
-                ValidatorGlobals.exitcode += 1
+                self._logger.log(Logger.error, "Could not find build script, skipping")
                 return
 
             else:
-                StaticHandler.print_msg(MessageType.success, "Found specified build script.", self)
+                self._logger.log(Logger.success, "Found specified build script.")
                 self._testData["tests"]["build-script"] = True
 
         else:
 
-            StaticHandler.print_msg(MessageType.success, "No build script specified, moving on", self)
+            self._logger.log(Logger.success, "No build script specified, moving on")
             self._testData["tests"]["build-script"] = True
 
         # * Check Local Delivery
@@ -295,7 +286,7 @@ class ValidateEntry:
 
         return
 
-    def run_tests(self):
+    def run(self):
         """This function runs all the necessary tests and returns the collected test data."""
 
         self._init_entries()
