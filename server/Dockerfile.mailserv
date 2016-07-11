@@ -6,8 +6,15 @@ RUN yum -y install docker
 
 RUN yum -y install wget mailx postfix rsyslog
 
-ADD mail-config.sh /usr/bin/
+RUN mkdir -p /mail_service/
 
-RUN chmod 777 /usr/bin/mail-config.sh
+ADD mail-config.sh /mail_service/
 
-CMD mail-config.sh
+ADD worker_notify_user.py /mail_service/
+ADD beanstalkc.py /mail_service/
+
+RUN chmod 777 /mail_service/*
+
+RUN echo "172.17.0.1 openshift" >> /etc/hosts
+
+CMD python /mail_service/worker_notify_user.py
