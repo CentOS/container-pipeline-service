@@ -1,185 +1,223 @@
-#!/bin/python
+import os
+import shutil
 
 import yaml
-from ValidatorGlobals import ValidatorGlobals
-import StaticHandler
+
+import Globals
+import NutsAndBolts
 
 
 class IndexVerifier:
-
-    _errlog = ""
+    """This is the first pass of the system, validating the formatting of the index file."""
 
     def __init__(self):
+        """Initialize the verifier"""
+
+        self._logger = NutsAndBolts.Logger(Globals.Globals.dataDumpDirectory + "/index.log")
 
         return
 
-    @staticmethod
-    def print_err_log():
+    def _cleanupIndex(self):
+        """Cleans up previous index data"""
 
-        errmsg = "Here are the logs of the index file verification : \n" + IndexVerifier._errlog + "\n\n"
-
-        print errmsg
-
-        errfile = ValidatorGlobals.testdir + "/indexerrors.info"
-
-        with open(errfile, "a+") as indxerr:
-            indxerr.write(errmsg)
+        shutil.rmtree(Globals.Globals.indexDirectory)
+        os.mkdir(Globals.Globals.indexDirectory)
 
         return
 
-    @staticmethod
-    def _add_err_log(msgtype, msg):
+    def _prepareIndex(self):
+        """Prepare the index, by cloning it or copying local index.yml, if specified"""
 
-        if msgtype == StaticHandler.MessageType.error:
+        success = True
 
-            IndexVerifier._errlog += "\n ERROR - " + msg + "\n"
+        # Check if custom index file is specified.
+        if Globals.Globals.customIndexFile is not None:
 
-        elif msgtype == StaticHandler.MessageType.info:
+            # Clean up previous index
+            self._cleanupIndex()
 
-            IndexVerifier._errlog += "\n INFO - " + msg + "\n"
+            # Tell the tracker what was just done
+            NutsAndBolts.Tracker.setCustomIndexUsed(True)
 
-        elif msgtype == StaticHandler.MessageType.success:
+            # Copy over specified index to where it should be
+            shutil.copy2(Globals.Globals.customIndexFile, Globals.Globals.indexFile)
 
-            IndexVerifier._errlog += "\n SUCCESS - " + msg + "\n"
+        # Go to the clone index repo way of doing things
+        else:
 
-        return
+            # print NutsAndBolts.Tracker.getPreviousIndexGit()
 
-    @staticmethod
-    def verify_index():
+            # If custom indexfile is used, or the tracker says current indexgit is not the same as previous one
+            if NutsAndBolts.Tracker.isCustomIndexUsed() or \
+                            Globals.Globals.indexGit != NutsAndBolts.Tracker.getPreviousIndexGit():
 
-        t = {}
-        idl = []
-        depl = []
-        cnt = 0
+                # Clean up previous.
+                self._cleanupIndex()
 
+                # Clone the new index
+                cmd = ["git", "clone", Globals.Globals.indexGit, Globals.Globals.indexDirectory]
+                NutsAndBolts.Tracker.setPreviousIndexGit(Globals.Globals.indexGit)
 
-        indxverified = True
-        IndexVerifier._errlog = ""
+                if not NutsAndBolts.StaticHandler.execcmd(cmd):
+                    return False
 
-        with open(ValidatorGlobals.indxfile) as indxfile:
-            indxdata = yaml.load(indxfile)
+            getback = os.getcwd()
+            os.chdir(Globals.Globals.indexDirectory)
+            cmd = ["git", "pull", "--all"]
+            success = NutsAndBolts.StaticHandler.execcmd(cmd)
+            os.chdir(getback)
 
-        for project in indxdata["Projects"]:
+        return success
 
-            if cnt > 0:
+    def _verifyIndex(self):
+        """Does the validation of the index.yml formatting"""
 
-                IndexVerifier._add_err_log(StaticHandler.MessageType.info, "Verifying project entry : " + str(project))
+        success = True
 
-                # Check for ID
+        t = None
+        idlist = []
+        containerlist = []
+
+        # Load the index data
+        indexdata = ""
+
+        # Open the index file, and read it
+        with open(Globals.Globals.indexFile) as indexfile:
+            indexdata = yaml.load(indexfile)
+
+        # Check if projects entry exists
+        self._logger.log(NutsAndBolts.Logger.info, "Checking if \"Projects\" entry exists...")
+
+        # Only if 'Projects' entry is found we go ahead. Else it is a failure at this stage itself
+        if "Projects" in indexdata.keys():
+
+            self._logger.log(NutsAndBolts.Logger.success, "Entry found, proceeding...")
+
+            # Go through every entry in the project
+            for project in indexdata["Projects"]:
+
+                self._logger.log(NutsAndBolts.Logger.info, "Verifying entry : " + str(project))
+
+                if "id" in project.keys() and project["id"] == "default":
+                    continue
+
+                # Check the ID
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the id field...")
                 if "id" not in project.keys():
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an ID.")
+                    self._logger.log(NutsAndBolts.Logger.error, "There is no entry for ID")
+                    success = False
 
                 else:
 
-                    val = project["id"]
+                    value = project["id"]
 
-                    if val not in idl:
+                    # Check for duplicate id
+                    if value in idlist:
+                        self._logger.log(NutsAndBolts.Logger.error, "Id is duplicate")
+                        success = False
 
-                        idl.append(val)
+                    idlist.append(value)
 
-                    else:
-
-                        indxverified = False
-                        IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Duplicate entry")
-
-                # Check for app-id
+                # Check the app-id
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the app-id field")
                 if "app-id" not in project.keys():
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks an app-id")
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing app-id entry")
+                    success = False
 
                 else:
 
-                    print "App ID checks TBD"
+                    value = project["app-id"]
+                    t = value
 
-                # Check for job-id
+                # Check job-id
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the job-id field")
                 if "job-id" not in project.keys():
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a job-id")
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing job-id entry")
+                    success = False
 
+                else:
 
-                # Prep depl
-                data = str.format("{0}/{1}", project["app-id"], project["job-id"])
+                    value = project["job-id"]
 
-                if data not in depl:
+                    if t is not None:
+                        t += "/" + str(value)
+                        containerlist.append(t)
 
-                    depl.append(data)
-
-                # Check git-url
+                # Check the git url
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the git-url field")
                 if "git-url" not in project.keys():
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a git-url")
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing git-url entry")
+                    success = False
 
                 else:
 
-                    val = project["git-url"]
+                    value = project["git-url"]
 
-                    if not StaticHandler.StaticHandler.is_valid_git_url(val):
-
-                        indxverified = False
-                        IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Git url is not in acceptable format.")
+                    if not NutsAndBolts.StaticHandler.is_valid_git_url(value):
+                        self._logger.log(NutsAndBolts.Logger.error, "Invalid git url format specified")
 
                 # Check git-path
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the git-path field")
                 if "git-path" not in project.keys():
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing git-path entry")
+                    success = False
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-path")
-
-                # Check git-branch
+                # Check git branch
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the git-branch field")
                 if "git-branch" not in project.keys():
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing git branch entry")
+                    success = False
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks git-branch")
-
-                # Check notify-email
+                # Check notify email
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the notify-email field")
                 if "notify-email" not in project.keys():
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing notify-email entry")
+                    success = False
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks a notify email.")
-
-                else:
-
-                    print "notify-email checks TBD"
-
-                # Checks depends-on
+                # Check depends on
+                self._logger.log(NutsAndBolts.Logger.info, "Checking the depends-on field")
                 if "depends-on" not in project.keys():
 
-                    indxverified = False
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error, "Entry lacks depends-on.")
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing depends-on entry")
+                    success = False
 
                 else:
 
-                    val = project["depends-on"]
+                    valuel = project["depends-on"]
 
-                    if val is not None:
+                    if valuel is not None:
 
-                        for item in val:
+                        for item in valuel:
 
-                            if item not in depl:
+                            if item not in containerlist:
+                                self._logger.log(NutsAndBolts.Logger.error,
+                                                 "Dependency " + item + " missing or not above this item in list")
 
-                                indxverified = False
-                                IndexVerifier._add_err_log(StaticHandler.MessageType.error,
-                                                           "One or more items is not an existing project that appears"
-                                                           " before this one in the index."
-                                                           )
-                                break
+        else:
 
-            else:
+            self._logger.log(NutsAndBolts.Logger.error, "Index file doesnt contain Projects entry at top level, failed")
+            success = False
 
-                theid = project["id"]
+        return success
 
-                if theid != "default":
+    def run(self):
+        """Runs the Index Verifier"""
 
-                    indxverified = False
+        self._logger.log(NutsAndBolts.Logger.info, "Preparing the index...")
 
-                    IndexVerifier._add_err_log(StaticHandler.MessageType.error,
-                                               "The first entry must have an ID default, indicating that it is a"
-                                               " template.")
+        # If index can be prepared, only then go ahead with parsing, else failure at this stage itself
+        if self._prepareIndex():
 
-            cnt += 1
+            self._logger.log(NutsAndBolts.Logger.info, "Verifying index formatting...")
+            return self._verifyIndex()
 
-        return indxverified
+        else:
+
+            self._logger.log(NutsAndBolts.Logger.error,
+                             "Index preperation failed, check the giturl or indexfile specified")
+
+        return False
