@@ -15,6 +15,4 @@ ADD beanstalkc.py /mail_service/
 
 RUN chmod 777 /mail_service/*
 
-RUN echo "172.17.0.1 openshift" >> /etc/hosts
-
 CMD python /mail_service/worker_notify_user.py

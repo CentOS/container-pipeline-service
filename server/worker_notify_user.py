@@ -6,7 +6,7 @@ import subprocess
 import re
 import time
 
-bs = beanstalkc.Connection(host="openshift")
+bs = beanstalkc.Connection(host="172.17.0.1")
 bs.watch("start_build")
 bs.use("failed_build")
 
