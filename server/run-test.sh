@@ -17,7 +17,9 @@ if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; t
 fi
 
 FULL_FROM=${OUTPUT_REGISTRY}/`python -c 'import json, os; print json.loads(os.environ["BUILD"])["metadata"]["namespace"]'`/${FROM}
-FULL_TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
+#FULL_TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
+FULL_TO=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
+
 
 _ "Pulling tested image (${FULL_FROM})"
 docker pull ${FULL_FROM} || jumpto sendstatusmail
@@ -31,12 +33,15 @@ docker run --rm ${FULL_FROM} --entrypoint /bin/bash /usr/bin/test_script
 _ "Re-tagging tested image (${FULL_FROM} -> ${TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
 
-_ "Pushing the image to registry (${FULL_TO})"
+OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
 
+_ "Pushing the image to registry (${OUTPUT_IMAGE})"
+#if [ -n "${FULL_TO}" ] || [ -s "/root/.dockercfg" ]; then
+#  docker push "${FULL_TO}" || jumpto sendstatusmail
+#fi
+docker push ${FULL_TO}||jumpto sendstatusmail
+python /tube_request/send_test_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} "rc"
 
-if [ -n "${FULL_TO}" ] || [ -s "/root/.dockercfg" ]; then
-  docker push "${FULL_TO}" || jumpto sendstatusmail
-fi
 
 _ "Cleaning environment"
 docker rmi ${FULL_FROM}
