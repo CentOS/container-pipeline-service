@@ -10,6 +10,6 @@ RUN mkdir -p /tube_request/
 
 ADD beanstalkc.py /tube_request/
 
-ADD send_test_request.py /tube_request/
+ADD send_notify_request.py /tube_request/
 
 CMD run-delivery.sh
