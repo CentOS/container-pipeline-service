@@ -17,11 +17,11 @@ while True:
   
   print "==> Retrieving message details"
   to_mail = job_details['to_mail']
-  sudject = job_details['subject']
+  subject = job_details['subject']
   msg = job_details['msg']
   
-  print "==> Login to openshift server"
-  command = "/mail_service/mail-config.sh"
+  print "==> sending mail to user"
+  command = "/mail_service/send_mail.sh"
   subprocess.call([command,subject,msg,to_mail])
   
   job.delete()
