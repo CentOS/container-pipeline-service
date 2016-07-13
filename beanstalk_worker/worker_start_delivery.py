@@ -10,6 +10,7 @@ from DependencyChecker import DependencyChecker
 
 bs = beanstalkc.Connection(host="openshift")
 bs.watch("start_delivery")
+bs.use("delivery_failed")
 
 while True:
   print "listening to start_delivery tube"
@@ -18,24 +19,24 @@ while True:
   job_details = json.loads(job.body) 
   
   print "==> Retrieving namespace"
-  name = job_details['name']
-  tag = job_details['tag']
-  build_tag = job_details['build_tag']
+  name_space = job_details['name_space']
+  #tag = job_details['tag']
+  #build_tag = job_details['build_tag']
   
   print "==> Login to openshift server"
   command = "oc login https://openshift:8443 -u test-admin -p test --certificate-authority=./ca.crt"
   os.system(command)
   
   print "==> change project to the desired one"
-  command = "oc project "+name+"-"+tag
+  command = "oc project "+name_space
   os.system(command)
   
   print "==> start the build"
-  command = "oc --namespace "+name+"-"+tag+" start-build delivery"
+  command = "oc --namespace "+name_space+" start-build delivery"
   build_details = os.popen(command).read().rstrip()
   print "build started is "+build_details 
   
-  status_command = "oc get --namespace "+name+"-"+tag+" build/"+build_details+"|grep -v STATUS"
+  status_command = "oc get --namespace "+name_space+" build/"+build_details+"|grep -v STATUS"
   is_running = 1
   
   print "==> Checking the build status"
