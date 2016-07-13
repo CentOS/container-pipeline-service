@@ -30,7 +30,7 @@ docker run --rm ${FULL_FROM} --entrypoint /bin/bash /usr/bin/test_script
 #|| jumpto sendstatusmail
 #fi
 
-_ "Re-tagging tested image (${FULL_FROM} -> ${TO})"
+_ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
 
 OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
