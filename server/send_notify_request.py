@@ -19,5 +19,5 @@ msg_details['to_mail'] = notify_email
 print "Pushing notification details to master_tube"
 bs = beanstalkc.Connection(host=beanstalk_host)
 bs.use("master_tube")
-bs.put(json.dumps(image_details))
+bs.put(json.dumps(msg_details))
 print "notification details pushed to master_tube"
