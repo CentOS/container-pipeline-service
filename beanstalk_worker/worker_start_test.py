@@ -57,6 +57,9 @@ def test_job_data(job_data):
     # else:
     #     image_full_name = job_data.get("name")
 
+    # Receive and send `name_space` key-value as is
+    namespace = job_data.get('name_space')
+
     image_full_name = job_data.get('name').split(":")[0] + ":" + \
         job_data.get("tag")
 
@@ -108,14 +111,16 @@ def test_job_data(job_data):
             "image": image_full_name,
             "msg": msg,
             "logs": package_list,
-            "action": "start_delivery"
+            "action": "start_delivery",
+            "name_space": namespace
         }
     else:
         d = {
             "image": image_full_name,
             "msg": "No updates required",
             "logs": "",
-            "action": "start_delivery"
+            "action": "start_delivery",
+            "name_space": namespace
         }
     bs.use("master_tube")
     jid = bs.put(json.dumps(d))
