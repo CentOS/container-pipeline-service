@@ -104,9 +104,19 @@ def test_job_data(job_data):
     logger.log(level=logging.INFO, msg="Finished test...")
 
     if msg != "" and logs != "":
-        d = {"image": image_full_name, "msg": msg, "logs": package_list}
+        d = {
+            "image": image_full_name,
+            "msg": msg,
+            "logs": package_list,
+            "action": "start_delivery"
+        }
     else:
-        d = {"image": image_full_name, "msg": "No updates required", "logs": ""}
+        d = {
+            "image": image_full_name,
+            "msg": "No updates required",
+            "logs": "",
+            "action": "start_delivery"
+        }
     bs.use("master_tube")
     jid = bs.put(json.dumps(d))
     logger.log(
