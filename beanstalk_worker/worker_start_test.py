@@ -107,7 +107,7 @@ def test_job_data(job_data):
         d = {"image": image_full_name, "msg": msg, "logs": package_list}
     else:
         d = {"image": image_full_name, "msg": "No updates required", "logs": ""}
-    bs.use("start_deliver")
+    bs.use("master_tube")
     jid = bs.put(json.dumps(d))
     logger.log(
         level=logging.INFO,
