@@ -25,10 +25,10 @@ while True:
   elif action == "start_test" :
     bs.use("start_test")
     bs.put(json.dumps(job_details))
-  elif action = "start_delivery" :
+  elif action == "start_delivery" :
     bs.use("start_delivery")
     bs.put(json.dumps(job_details))
-  elif action = "notify_user"
+  elif action == "notify_user"
     bs.use("notify_user")
     bs.put(json.dumps(job_details))
   
