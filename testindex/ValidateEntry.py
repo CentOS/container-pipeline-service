@@ -1,7 +1,7 @@
 #!/bin/python
 
 import os
-from subprocess import call
+import subprocess
 from time import sleep
 
 import yaml
@@ -13,7 +13,7 @@ from NutsAndBolts import StaticHandler, Logger
 class ValidateEntry:
     """This class runs tests on a single entry"""
 
-    def __init__(self, tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail):
+    def __init__(self, tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail, targetfile):
 
         if not gitpath.startswith("/"):
             gitpath = "/" + gitpath
@@ -34,6 +34,7 @@ class ValidateEntry:
         self._gitPath = gitpath
         self._gitBranch = gitbranch
         self._notifyEmail = notifyemail
+        self._targetfile = targetfile
 
         t = ""
 
@@ -57,6 +58,7 @@ class ValidateEntry:
                 "test-skip": False,
                 "test-script": False,
                 "build-script": False,
+                "target-file": False,
                 "allpass": False
             }
         }
@@ -92,15 +94,23 @@ class ValidateEntry:
         currdir = os.getcwd()
 
         os.chdir(self._gitCloneLocation)
+        cmd = "git branch -r | grep -v '\->' | while read remote; do git branch --track \"${remote#origin/}\"" \
+              " \"$remote\"; done"
 
-        cmd = ["git", "branch", self._gitBranch]
-        call(cmd) or True
+        # Get all the branches
+        os.system(cmd)
 
+        # fetch the branches
+        cmd = ["git", "fetch", "--all"]
+        subprocess.call(cmd)
+
+        # Pull for update
         cmd = ["git", "pull", "--all"]
-        call(cmd)
+        subprocess.call(cmd)
 
-        cmd = ["git", "checkout", self._gitBranch]
-        call(cmd)
+        # Checkout required branch
+        cmd = ["git", "checkout", "origin/" + self._gitBranch]
+        subprocess.call(cmd)
 
         os.chdir(currdir)
 
@@ -191,65 +201,67 @@ class ValidateEntry:
             self._logger.log(Logger.error, "Missing compulsory key, job-id in cccp.yml file...")
             return
 
-        # * Validate for test-skip and test-script
+        # * Validate for test-skip
 
         self._logger.log(Logger.info, "Checking for test-skip flag")
 
         # Check for test skip to be present
         if "test-skip" in cccpyaml.keys():
 
-            self._logger.log(Logger.info, "Flag found, proceeding to check if its reset...")
+            self._logger.log(Logger.info, "Flag found, proceeding to check if its set or reset...")
 
-            # Check is test-skip is reset
-            if not cccpyaml["test-skip"]:
+            # Check is test-skip is set or reset
+            if str(cccpyaml["test-skip"]) == str(True) or str(cccpyaml["test-skip"]) == str("False"):
 
-                self._logger.log(Logger.info, "Test skip is reset, checking for now compulsory test-script")
-
+                self._logger.log(Logger.success, "Test skip is a flag, moving on")
                 self._testData["tests"]["test-skip"] = True
 
-                # Check if a test-script key is present
-                if "test-script" in cccpyaml.keys():
-
-                    testscript = cccpyaml["test-script"]
-                    testscriptpath = self._cccp_test_dir + testscript
-
-                    # Check if the test script actually exists
-                    if not os.path.exists(testscriptpath):
-
-                        self._logger.log(Logger.error,
-                                         "The specified test script does not exist, skipping...")
-
-                        return
-
-                    else:
-
-                        self._logger.log(Logger.success, "The specified test script exists, moving on...")
-
-                        self._testData["tests"]["test-script"] = True
-
-                else:
-
-                    self._logger.log(Logger.error,
-                                     "Test skip is reset, but test script is missing, skipping...")
-                    return
-
-            # If test-skip is not reset, check if its set
-            elif cccpyaml["test-skip"]:
-
-                self._logger.log(Logger.success, "Test skip is set, moving on...")
-                self._testData["tests"]["test-skip"] = True
-                self._testData["tests"]["test-script"] = True
-
-            # If test-skip is not reset or set, then, there is an error
             else:
 
-                self._logger.log(Logger.error, "Test skip is not reset or set, skipping...")
+                self._logger.log(Logger.error, "Test skip is a flag and should have true or false value, skipping")
                 return
 
         else:
 
             self._logger.log(Logger.success, "Test skip not found, assuming True and moving on...")
             self._testData["tests"]["test-skip"] = True
+
+        self._logger.log(Logger.info, "Checking for target file")
+
+        # * Check for target-file
+        if self._targetfile is not None:
+
+            targetfilepath = self._cccp_test_dir + self._targetfile
+
+            if not os.path.exists(targetfilepath):
+
+                self._logger.log(Logger.error, "Target file not found, skipping")
+                return
+
+            else:
+
+                self._logger.log(Logger.success, "Target file found, moving on")
+                self._testData["tests"]["target-file"] = True
+
+        # * Check for Test script
+        if "test-script" in cccpyaml.keys():
+
+            testscript = cccpyaml["test-script"]
+            testscriptpath = self._cccp_test_dir + testscript
+
+            if not os.path.exists(testscriptpath):
+
+                self._logger.log(Logger.error, "Could not find test script, skipping")
+                return
+
+            else:
+
+                self._logger.log(Logger.success, "Test script found, moving on")
+                self._testData["tests"]["test-script"] = True
+
+        else:
+
+            self._logger.log(Logger.success, "No test script specified.")
             self._testData["tests"]["test-script"] = True
 
         # * Check Build script
@@ -282,7 +294,7 @@ class ValidateEntry:
                                                  self._testData["tests"]["test-skip"] and
                                                  self._testData["tests"]["test-script"]
                                              ) and \
-                                             self._testData["tests"]["build-script"]
+                                             self._testData["tests"]["build-script"] and self._testData["tests"]["target-file"]
 
         return
 

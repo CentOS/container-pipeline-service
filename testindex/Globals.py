@@ -4,7 +4,8 @@ import os
 class Globals:
     """Contains the stuff that needs to be accessible by everyone"""
 
-    indexGit = "https://github.com/kbsingh/cccp-index.git"
+    indexGit = "https://github.com/CentOS/container-index.git"
+    indexgitbranch = "master"
     customIndexFile = None
 
     dataDumpDirectory = ""
@@ -17,9 +18,11 @@ class Globals:
     previousIndexGitFile = ""
 
     buildinfo = ""
+    oldenviron = None
 
     @staticmethod
     def setdatadirectory(value):
+
         if not os.path.isabs(value):
             value = os.path.abspath(value)
 
