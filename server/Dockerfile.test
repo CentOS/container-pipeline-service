@@ -4,4 +4,10 @@ RUN yum -y install docker
 
 ADD run-test.sh /usr/bin/
 
+RUN mkdir -p /tube_request/
+
+ADD beanstalkc.py /tube_request/
+
+ADD send_test_request.py /tube_request/
+
 CMD run-test.sh
