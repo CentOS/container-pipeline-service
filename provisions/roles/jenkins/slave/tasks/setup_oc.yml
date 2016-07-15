@@ -1,0 +1,44 @@
+---
+# Push oc files to jenkins slaves
+- name: Ensure /opt/cccp-service/client dir exists on Jenkins slaves
+  file: dest=/opt/cccp-service/client state=directory
+
+- name: Push oc files to Jenkins slaves
+  synchronize:
+    mode: push
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - {src: /tmp/oc, dest: /usr/bin/oc}
+    - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
+
+- name: Get openshift build scripts
+  get_url:
+    url: "{{ item }}"
+    dest: /opt/cccp-service/client
+  with_items:
+    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/build-project.sh
+    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/send_build_request.py
+    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/beanstalkc.py
+
+- name: Copy openshift template file
+  template:
+    src: template.json.j2
+    dest: /opt/cccp-service/client/template.json
+
+- name: Ensure jenkins is owner of /opt/cccp-service/client dir in slave
+  file: path=/opt/cccp-service/client owner=jenkins group=jenkins recurse=yes
+
+- name: Ensure  build-project.sh is executable
+  file: path=/opt/cccp-service/client/build-project.sh mode='u+x'
+
+- name: Add host entry for openshift server
+  shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
+
+- name: Create script for image prune
+  template:
+    src: imageprune.sh.j2
+    dest: /usr/bin/delete_images.sh
+ 
+- name: Add cron job to cleanup old images
+  cron: name="registry cleanup" special_time=daily job="/usr/bin/delete_images.sh"

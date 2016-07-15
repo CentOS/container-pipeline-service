@@ -1,0 +1,4 @@
+[jenkins-binary-plugins]
+name=jenkins-binary-plugins
+baseurl=https://copr-be.cloud.fedoraproject.org/results/mizdebsk/jenkins-binary-plugins/fedora-$releasever-$basearch/
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/mizdebsk/jenkins-binary-plugins/pubkey.gpg
