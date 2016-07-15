@@ -28,15 +28,9 @@
     - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/beanstalkc.py
     - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_start_build.py
     - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/DependencyChecker.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_test_suite.py
+    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_start_test.py
+    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_dispatcher.py
+    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_start_delivery.py
 
 - name: Ensure worker_start_build.py is executable
   file: path=/opt/cccp-service/beanstalk_worker/worker_start_build.py mode='u+x'
-
-- name: Get service files for workers
-  get_url:
-    url: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-  with_items:
-    - {src: "https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/cccp-build-worker.service", dest: /etc/systemd/system/cccp-build-worker.service}
-    - {src: "https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/cccp-worker-test.service", dest: /etc/systemd/system/cccp-worker-test.service}
