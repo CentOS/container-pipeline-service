@@ -4,13 +4,13 @@ jenkins_slaves
 openshift
 
 [jenkins_master]
-cccp    ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+cccp     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [jenkins_slaves]
-cccp-1     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+cccp     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [openshift]
-cccp-2     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+cccp     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [all:vars]
 cccp_index_repo=https://github.com/bamachrn/cccp-index.git
