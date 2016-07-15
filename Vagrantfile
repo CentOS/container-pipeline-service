@@ -13,7 +13,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision :hostmanager
   config.hostmanager.manage_host = true
   config.hostmanager.include_offline = true
-  config.ssh.insert_key = false
+  config.ssh.insert_key = true
 
   config.vm.provider "virtualbox" do |vbox, override|
     override.vm.box = "centos/7"
@@ -59,7 +59,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
 
   num_nodes = 2
+<<<<<<< 39196833e9427db197cb27df5c39430819e22929
   if ALLINONE == 1
+=======
+  if ALLINONE
+>>>>>>> Allow running vagrant file in ALLINONE mode.
       inventory_path = "provisions/hosts.vagrant.allinone"
       num_nodes = 0
   else
@@ -81,17 +85,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
+<<<<<<< 39196833e9427db197cb27df5c39430819e22929
   if ALLINONE == 1
     config.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
     config.vm.synced_folder "./", "/home/vagrant/cccp-service", type: "rsync"
   end
 
+=======
+>>>>>>> Allow running vagrant file in ALLINONE mode.
   num_nodes.times do |n|
     node_index = n+1
     config.vm.define "node#{node_index}" do |node|
       node.vm.hostname = "cccp-#{node_index}"
       node.vm.network :private_network, ip: "192.168.100.#{200 + n}"
       node.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
+<<<<<<< 39196833e9427db197cb27df5c39430819e22929
 
       if n == 0
         node.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
@@ -133,4 +141,9 @@ User: test-admin Password: test
 "Happy hacking!
 EOF
   end
+=======
+      # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
+    end
+  end
+>>>>>>> Allow running vagrant file in ALLINONE mode.
 end
