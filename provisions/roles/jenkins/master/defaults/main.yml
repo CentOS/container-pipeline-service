@@ -1,0 +1,29 @@
+jenkins_repo_url: http://pkg.jenkins-ci.org/redhat/jenkins.repo
+jenkins_repo_key_url: http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
+
+private: ~/workspace/centos
+
+oc_slave: cccp-node1.example.com
+
+plugins:
+- github
+
+jenkins_connection_delay: 5
+jenkins_connection_retries: 60
+jenkins_hostname: localhost
+jenkins_http_port: 8080
+jenkins_jar_location: /opt/jenkins-cli.jar
+jenkins_plugins:
+  - git
+  - ssh
+  - multiple-scms
+  - python
+  - ws-cleanup
+jenkins_url_prefix: ""
+
+jenkins_private_key_file: ~/.ssh/id_rsa
+
+jenkins_admin_username: admin
+jenkins_admin_password: admin
+
+cccp_index_repo: https://github.com/kbsingh/cccp-index.git

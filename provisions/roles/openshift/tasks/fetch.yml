@@ -1,0 +1,9 @@
+---
+- name: Pull oc files from openshift
+  synchronize:
+    mode: pull
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - {src: /usr/bin/oc, dest: /tmp/oc}
+    - {src: /var/lib/origin/openshift.local.config/master/ca.crt, dest: /tmp/oc_ca.crt}

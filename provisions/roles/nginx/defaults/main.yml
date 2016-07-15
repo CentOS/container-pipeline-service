@@ -1,0 +1,12 @@
+---
+nginx_user: nginx
+nginx_pid: /var/run/nginx.pid
+nginx_worker_processes: 2
+nginx_worker_connections: 1024
+nginx_conf_template: registry.centos.org.conf.j2
+nginx_conf_filename: registry.centos.org.conf
+ssl_cert_file: /etc/pki/tls/certs/registry.centos.org.pem
+ssl_key_file: /etc/pki/tls/private/registry.centos.org.key
+copy_ssl_certs: false
+ssl_key_template: ssl_nginx.key.j2
+ssl_cert_template: ssl_nginx.crt.j2

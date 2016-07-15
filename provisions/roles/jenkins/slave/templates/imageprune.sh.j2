@@ -1,0 +1,5 @@
+#!/bin/bash
+oc login --token=`curl -k -L -D - -u imageprune:test -H 'X-CSRF-Token: 1' 'https://openshift:8443/oauth/authorize?response_type=token&client_id=openshift-challenging-client' 2>&1 | grep -oP \"access_token=\K[^&]*\"`
+oadm prune images > prune.log
+oc logout
+#send mail from MQ

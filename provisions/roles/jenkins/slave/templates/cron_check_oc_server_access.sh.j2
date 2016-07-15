@@ -1,0 +1,10 @@
+#!/bin/bash
+zabbix_item="openshift.server.oc_funct_test"
+
+oc login https://openshift:8443 --insecure-skip-tls-verify=true -u test-admin -p test
+
+if [ $? = "0" ] ;then
+  zabbix_sender -c /etc/zabbix/zabbix_agentd.conf -k ${zabbix_item} -o 0 >/dev/null
+else
+  zabbix_sender -c /etc/zabbix/zabbix_agentd.conf -k ${zabbix_item} -o 1 >/dev/null
+fi

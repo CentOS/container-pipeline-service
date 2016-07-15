@@ -1,6 +1,2 @@
-.vagrant
-Vagrantfile
-*.pyc
-cccpindextest/
-.cache
-.idea
+*.swp
+*.swo
