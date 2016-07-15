@@ -1,0 +1,11 @@
+---
+- name: Stop Mail Service
+  shell: docker rm -f mail-server
+
+- name: Build mail server image
+  shell: docker build -t mail-server -f ./Dockerfile.mailserv .
+  args:
+      chdir: "{{ ansible_env.HOME }}/cccp-service/mail_service"
+
+- name: Start Mail Service
+  shell: docker run -d --name mail-server mail-server

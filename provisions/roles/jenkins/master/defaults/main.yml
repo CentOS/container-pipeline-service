@@ -26,4 +26,4 @@ jenkins_private_key_file: ~/.ssh/id_rsa
 jenkins_admin_username: admin
 jenkins_admin_password: admin
 
-cccp_index_repo: https://github.com/kbsingh/cccp-index.git
+cccp_index_repo: https://github.com/centos/container-index.git
