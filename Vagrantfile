@@ -72,8 +72,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     master.vm.provision "ansible" do |ansible|
       ansible.limit = 'all'
       ansible.sudo = true
-      ansible.inventory_path = "./hosts.vagrant"
-      ansible.playbook = "vagrant.yml"
+      ansible.inventory_path = "provisions/hosts.vagrant"
+      ansible.playbook = "provisions/vagrant.yml"
     end
   end
 end
