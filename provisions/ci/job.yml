@@ -1,0 +1,98 @@
+- builder:
+    name: centos-cccp-ansible-ci-builders
+    builders:
+        - shell:
+            !include-raw './setup_env.sh'
+        - inject:
+            properties-file: env.properties
+        - python:
+            !include-raw './cccp_ci.py'
+
+- builder:
+    name: centos-cccp-ansible-ci-cleanup-builders
+    builders:
+        - python:
+            !include-raw './cccp_ci_cleanup.py'
+
+# Custom Trigger. Sets up the Github pull request trigger
+# Accepts a parameter {provider}
+- trigger:
+    name: custom-trigger
+    triggers:
+        - github-pull-request:
+            admin-list:
+              - rtnpro
+            white-list:
+              - rtnpro
+            build-desc-template: "build description"
+            trigger-phrase: '#dotests'
+            only-trigger-phrase: true
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci tests"
+            started-status: "centos-ci test started"
+            success-status: "centos-ci test succeeded"
+            failure-status: "centos-ci test failed"
+            error-status: "centos-ci test errored"
+            build-desc-template: ''
+
+- scm:
+    name: custom-scm-git
+    scm:
+        - git:
+            url: https://github.com/rtnpro/centos-cccp-ansible.git
+            git-tool: ci-git
+            wipe-workspace: false
+            skip-tag: true
+            clean:
+                after: true
+            credentials-id: 1d7dba44-5b34-42b3-886c-4d659ffb2aae
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${sha1}"
+
+- job:
+    name: 'centos-cccp-ansible-ci-pr'
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/rtnpro/centos-cccp-ansible/
+    builders:
+        - centos-cccp-ansible-ci-builders
+    publishers:
+        - trigger-parameterized-builds:
+            - project: 'centos-cccp-ansible-ci-cleanup'
+              property-file: 'env.properties'
+              condition: 'ALWAYS'
+    scm:
+        - custom-scm-git
+    triggers:
+        - custom-trigger
+
+- job:
+    name: 'centos-cccp-ansible-ci-master'
+    node: container
+    primary-view: container
+    builders:
+        - centos-cccp-ansible-ci-builders
+    publishers:
+        - trigger-parameterized-builds:
+            - project: 'centos-cccp-ansible-ci-cleanup'
+              property-file: 'env.properties'
+              condition: 'ALWAYS'
+    scm:
+        - git:
+            url: https://github.com/rtnpro/centos-cccp-ansible
+            skip-tag: true
+            branch: master
+    triggers:
+        - pollscm: "0 0 * * * *"
+
+- job:
+    name: 'centos-cccp-ansible-ci-cleanup'
+    node: container
+    ci_project: container
+    builders:
+        - centos-cccp-ansible-ci-cleanup-builders

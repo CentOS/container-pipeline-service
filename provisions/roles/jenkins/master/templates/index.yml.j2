@@ -1,0 +1,17 @@
+- job:
+    name: 'cccp-index'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: master
+    scm:
+        - git:
+            url: "{{ cccp_index_repo }}"
+            skip-tag: True
+    triggers:
+        - pollscm: "H/10 * * * *" 
+    builders:
+        - shell: |
+            git clone https://github.com/bamachrn/cccp-service.git
+            cd cccp-service/jenkinsbuilder
+            python cccp_index_reader.py ../../index.yml
+

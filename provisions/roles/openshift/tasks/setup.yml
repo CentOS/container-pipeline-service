@@ -1,0 +1,64 @@
+---
+- name: Setup openshift registry
+  command: "{{item}}"
+  with_items:
+    - oadm registry --create --credentials={{ openshift_dir }}/openshift-registry.kubeconfig
+    - oadm policy add-scc-to-group anyuid system:authenticated
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  ignore_errors: yes
+
+- name: Wait for Openshift to come up
+  pause: seconds={{ openshift_startup_delay }}
+
+- name: Setup openshift router
+  shell: "{{ item }}"
+  with_items:
+    - oc get scc privileged -o json | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f -
+    - oadm router --create --credentials={{ openshift_dir }}/openshift-router.kubeconfig --service-account=router
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  ignore_errors: yes
+
+- name: Wait for Openshift to come up
+  pause: seconds={{ openshift_startup_delay }}
+
+- name: Create test user 
+  command: "{{ item }}"
+  with_items:
+    - "oadm policy add-role-to-user view test-admin --config={{ kubeconfig }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  ignore_errors: yes
+
+- name: Create image pruner for cleaning up the system
+  command: "{{ item }}"
+  with_items:
+    - "oadm policy add-cluster-role-to-user system:image-pruner imageprune --config={{ kubeconfig }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  ignore_errors: yes
+
+- name: Get cccp service code
+  git: repo=https://github.com/bamachrn/cccp-service.git
+       dest="{{ ansible_env.HOME }}/cccp-service"
+
+- name: Build cccp build image
+  shell: docker build -t cccp-build -f ./Dockerfile.build .
+  args:
+      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
+
+- name: Build cccp test image
+  shell: docker build -t cccp-test -f ./Dockerfile.test .
+  args:
+      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
+
+- name: Build mail server image
+  shell: docker build -t mail-server -f ./Dockerfile.mailserv .
+  args:
+      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
+
+- name: Build cccp delivery image
+  shell: docker build -t cccp-delivery -f ./Dockerfile.delivery .
+  args:
+      chdir: "{{ ansible_env.HOME }}/cccp-service/server"

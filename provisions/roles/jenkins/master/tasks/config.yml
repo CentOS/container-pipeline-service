@@ -1,0 +1,52 @@
+---
+- name: install jenkins launcher config file
+  copy: >
+    src="jenkins.conf"
+    dest="/etc/sysconfig/jenkins"
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: install jenkins master config files
+  copy: >
+    src="{{ item }}"
+    dest="/var/lib/jenkins/{{ item }}"
+  with_items:
+  - config.xml
+  - credentials.xml
+#  - hudson.tasks.Mailer.xml
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: create directories for jenkins slaves config files
+  file: >
+    path="/var/lib/jenkins/nodes/{{ item.name }}"
+    state=directory
+  with_items: "{{ slaves }}"
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: install jenkins slaves config files
+  template: >
+    src="slave-config.xml.j2"
+    dest="/var/lib/jenkins/nodes/{{ item.name }}/config.xml"
+  with_items: "{{ slaves }}"
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: Ensure /etc/jenkins exists
+  file: path=/etc/jenkins state=directory
+
+- name: install private ssh key
+  copy: src="{{ jenkins_private_key_file }}" dest=/etc/jenkins/id_rsa mode=400 owner=jenkins group=jenkins
+  tags:
+  - jenkins
+  - jenkins/master
+  - config

@@ -1,0 +1,17 @@
+[all:children]
+jenkins_master
+jenkins_slaves
+openshift
+
+[jenkins_master]
+cccp-master.example.com     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+
+[jenkins_slaves]
+cccp-node1.example.com     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+
+[openshift]
+cccp-node2.example.com     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+
+[all:vars]
+cccp_index_repo=https://github.com/bamachrn/cccp-index.git
+copy_ssl_certs=true
