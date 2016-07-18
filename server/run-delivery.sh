@@ -9,10 +9,10 @@ if [ "${TARGET_REGISTRY}" == "" ];then
     TARGET_REGISTRY=${OUTPUT_REGISTRY}
 fi
 
-_ "Log in to the internal registry"
-docker login -u serviceaccount -p ${TOKEN} -e serviceaccount@example.org ${OUTPUT_REGISTRY}
+#_ "Log in to the internal registry"
+#docker login -u serviceaccount -p ${TOKEN} -e serviceaccount@example.org ${OUTPUT_REGISTRY}
 
-FULL_FROM=${OUTPUT_REGISTRY}/`python -c 'import json, os; print json.loads(os.environ["BUILD"])["metadata"]["namespace"]'`/${FROM}
+FULL_FROM=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${FROM}
 FULL_TO=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
 
 _ "Pulling RC image (${FROM})"
