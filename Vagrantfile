@@ -13,11 +13,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision :hostmanager
   config.hostmanager.manage_host = true
   config.hostmanager.include_offline = true
-  config.ssh.insert_key = true
+  config.ssh.insert_key = false
 
   config.vm.provider "virtualbox" do |vbox, override|
     override.vm.box = "centos/7"
-    vbox.memory = 1024
+    if ALLINONE == 1
+        vbox.memory = 2048
+    else
+        vbox.memory = 1024
+    end
     vbox.cpus = 2
 
     # Enable multiple guest CPUs if available
@@ -55,7 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
 
   num_nodes = 2
-  if ALLINONE
+  if ALLINONE == 1
       inventory_path = "provisions/hosts.vagrant.allinone"
       num_nodes = 0
   else
