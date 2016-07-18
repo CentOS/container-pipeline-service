@@ -1,0 +1,54 @@
+---
+- name: Disable requiretty in sudoers
+  hosts: all
+  tasks:
+    - name: Disable requiretty in sudoers
+      lineinfile:  dest=/etc/sudoers state=absent regexp="^Defaults    requiretty.*"
+      sudo: yes
+  tags:
+    - jenkins
+    - openshift
+
+- name: Configure Jenkins nodes
+  hosts: all
+  roles:
+    - jenkins/common
+  tags:
+    - jenkins
+
+- name: Setup openshift
+  hosts: openshift
+  roles:
+    - openshift
+  tags:
+    - openshift
+
+- name: Setup jenkins slaves
+  hosts: jenkins_slaves
+  roles:
+    - jenkins/slave
+    - registry
+    - nginx
+  tags:
+    - jenkins
+    - jenkins/slaves
+
+- name: Setup jenkins master
+  hosts: jenkins_master
+  roles:
+    - jenkins/master
+  tags:
+    - jenkins
+    - jenkins/master
+
+- name: Restart workers
+  hosts: jenkins_slaves
+  tasks:
+    - name: Enable and start beanstalk worker services
+      service: name="{{ item }}" state=restarted enabled=yes
+      with_items:
+        - cccp-build-worker
+        - cccp-worker-test
+  tags:
+    - openshift
+    - jenkins/slaves

@@ -1,0 +1,28 @@
+---
+os_templates:
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/jboss-image-streams.json"
+    # DB templates
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-ephemeral-template.json"
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-persistent-template.json"
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-ephemeral-template.json"
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-persistent-template.json"
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-ephemeral-template.json"
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-persistent-template.json"
+    # Jenkins
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-ephemeral-template.json"
+  - "https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-persistent-template.json"
+    # Node.js
+  - "https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json"
+  - "https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json"
+    # EAP
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-amq-persistent-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-amq-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-basic-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-https-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-mongodb-persistent-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-mongodb-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-mysql-persistent-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-mysql-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-postgresql-persistent-s2i.json"
+  - "https://raw.githubusercontent.com/jboss-openshift/application-templates/{{ ose_tag }}/eap/eap64-postgresql-s2i.json"

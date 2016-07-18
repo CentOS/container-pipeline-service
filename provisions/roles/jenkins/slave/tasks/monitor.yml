@@ -1,0 +1,7 @@
+---
+
+- name: Copy cron script to check if oc can access openshift server
+  template: src=cron_check_oc_server_access.sh.j2 dest=/root/cron_check_oc_server_access.sh mode=0755
+
+- name: Add cronjob to check if oc can access Openshift server every minute
+  cron: name="Check if oc can access openshift server" job=/root/cron_check_oc_server_access.sh

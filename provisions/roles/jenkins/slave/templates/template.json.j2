@@ -1,0 +1,259 @@
+{
+  "kind": "Template",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "cccp-service",
+    "annotations": {
+      "description": "Container Pipeline Template"
+    }
+  },
+  "labels": {
+    "template": "cccp-service"
+  },
+  "parameters": [
+    {
+      "name": "SOURCE_REPOSITORY_URL",
+      "description": "The URL of the repository with your application source code",
+      "value": "",
+      "required": true
+    },
+    {
+      "name": "BUILD_TRIGGER_SECRET",
+      "description": "A secret to be used to trigger a build via Origin API",
+      "value": "secret101"
+    },
+	{
+      "name": "TARGET_REGISTRY",
+      "description": "An URL of a registry where to push the final image",
+      "value": "{{ public_registry }}:5000"
+    },
+    {
+      "name": "TARGET_NAMESPACE",
+      "description": "A namespace in the target registry where to push the final image",
+      "value": "cccp"
+    },
+    {
+      "name": "NOTIFY_EMAIL",
+      "description": "An email id for notifying after build of final image",
+      "value": ""
+    },
+    {
+      "name": "TAG",
+      "description": "Tag for the resulting image",
+      "value": "cccp-python",
+      "required": true
+    },
+    {
+      "name": "REPO_BUILD_PATH",
+      "description": "Path to a directory containing a Dockerfile",
+      "value": "/",
+      "required": true
+    },
+    {
+       "name": "DOCKERFILE_NAME",
+       "description": "Name of the dockerfile to be built",
+       "value": "Dockerfile",
+       "required": true
+    },
+    {
+      "name": "REPO_TEST_PATH",
+      "description": "Path to tests in a repository",
+      "value": "/tests",
+      "required": true
+    }
+  ],
+  "objects": [
+    {
+      "kind": "ImageStream",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${TAG}",
+        "annotations": {
+          "description": "Keeps track of changes in the image ${TAG}"
+        }
+      }
+    },
+    {
+      "kind": "BuildConfig",
+      "apiVersion": "v1",
+      "metadata": {
+          "name": "build" 
+      },
+      "spec": {
+        "triggers": [ 
+          {
+            "type": "Generic",
+            "generic": {
+              "secret": "${BUILD_TRIGGER_SECRET}"
+            }
+          }
+        ],
+        "source": { 
+          "type": "Git",
+          "git": {
+            "uri": "${SOURCE_REPOSITORY_URL}"
+          }
+        },
+        "strategy": { 
+          "type": "Custom",
+          "customStrategy": {
+            "exposeDockerSocket": true,
+            "from": {
+              "kind": "DockerImage",
+              "name": "cccp-build"
+            },
+            "env": [
+              {
+                "name": "TAG",
+                "value": "${TAG}:test"
+              },
+              {
+                "name": "SOURCE_REPOSITORY_URL",
+                "value": "${SOURCE_REPOSITORY_URL}"
+              },
+              {
+                "name": "REPO_BUILD_PATH",
+                "value": "${REPO_BUILD_PATH}"
+              },
+              {
+                "name": "DOCKERFILE_NAME",
+                "value": "${DOCKERFILE_NAME}"
+              }
+            ]
+          }
+        },
+        "output": { 
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "${TAG}:test"
+          }
+        }
+      }
+    },
+    {
+      "kind": "BuildConfig",
+      "apiVersion": "v1",
+      "metadata": {
+          "name": "test" 
+      },
+      "spec": {
+        "triggers": [ 
+          {
+            "type": "Generic",
+            "generic": {
+              "secret": "${BUILD_TRIGGER_SECRET}"
+            }
+          },
+          {
+            "type": "ImageChange",
+            "imageChange": {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${TAG}:test"
+              }
+            }
+          }
+        ],
+        "strategy": { 
+          "type": "Custom",
+          "customStrategy": {
+            "exposeDockerSocket": true,
+            "from": {
+              "kind": "DockerImage",
+              "name": "cccp-test"
+            },
+            "env": [
+              {
+                "name": "FROM",
+                "value": "${TAG}:test"
+              },
+              {
+                "name": "TO",
+                "value": "${TAG}:rc"
+              },
+              {
+                "name": "REPO_TEST_PATH",
+                "value": "${REPO_TEST_PATH}"
+              },
+              {
+                "name": "SOURCE_REPOSITORY_URL",
+                "value": "${SOURCE_REPOSITORY_URL}"
+              }
+
+            ]
+          }
+        },
+        "output": { 
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "${TAG}:rc"
+          }
+        }
+      }
+    },
+    {
+      "kind": "BuildConfig",
+      "apiVersion": "v1",
+      "metadata": {
+          "name": "delivery" 
+      },
+      "spec": {
+        "triggers": [ 
+          {
+            "type": "Generic",
+              "generic": {
+              "secret": "${BUILD_TRIGGER_SECRET}"
+            }
+          },
+          {
+            "type": "ImageChange",
+            "imageChange": {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${TAG}:rc"
+              }
+            }
+          }
+        ],
+        "strategy": { 
+          "type": "Custom",
+          "customStrategy": {
+            "exposeDockerSocket": true,
+            "from": {
+              "kind": "DockerImage",
+              "name": "cccp-delivery"
+            },
+            "env": [
+              {
+                "name": "FROM",
+                "value": "${TAG}:rc"
+              },
+              {
+                "name": "TO",
+                "value": "${TAG}:latest"
+              },
+              {
+                "name": "TARGET_REGISTRY",
+                "value": "${TARGET_REGISTRY}"
+              },
+              {
+                "name": "TARGET_NAMESPACE",
+                "value": "${TARGET_NAMESPACE}"
+              },
+              {
+                "name": "NOTIFY_EMAIL",
+                "value": "${NOTIFY_EMAIL}"
+              }
+            ]
+          }
+        },
+        "output": { 
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "${TAG}:rc"
+          }
+        }
+      }
+    }
+  ]
+}

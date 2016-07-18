@@ -1,0 +1,7 @@
+---
+slaves:
+- name: oc-slave
+  host: "{{ oc_slave }}"
+  labels: oc-slave
+  capacity: 1
+  description: Openshift slave

@@ -1,0 +1,22 @@
+[all:children]
+jenkins_master
+jenkins_slaves
+openshift
+
+[jenkins_master]
+jenkins-master
+
+[jenkins_slaves]
+jenkins-slave
+
+[openshift]
+openshift
+
+[all:vars]
+# update as needed
+public_registry=jenkins-slave
+beanstalk_server=openshift
+
+[jenkins_master:vars]
+# update as needed
+oc_slave=jenkins-slave

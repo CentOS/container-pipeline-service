@@ -1,0 +1,21 @@
+---
+- name: Ensure EPEL is installed
+  yum: name=epel-release state=present
+
+- name: Ensure JJB is installed
+  yum: name={{ item }} state=present
+  with_items:
+    - python-setuptools
+    - python2-jenkins-job-builder
+
+- name: Ensure JJB conf dir exists
+  file: dest=/etc/jenkins_jobs state=directory
+
+- name: Copy JJB conf
+  template: src=jenkins_jobs.ini.j2 dest=/etc/jenkins_jobs/jenkins_jobs.ini
+
+- name: Copy Job template
+  template: src=index.yml.j2  dest={{ ansible_env.HOME }}/index.yml
+
+- name: Push job to jenkins
+  shell: jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/index.yml
