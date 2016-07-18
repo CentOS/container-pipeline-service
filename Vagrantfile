@@ -13,7 +13,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision :hostmanager
   config.hostmanager.manage_host = true
   config.hostmanager.include_offline = true
-  config.ssh.insert_key = true
+  config.ssh.insert_key = false
 
   config.vm.provider "virtualbox" do |vbox, override|
     override.vm.box = "centos/7"
@@ -59,11 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
 
   num_nodes = 2
-<<<<<<< 39196833e9427db197cb27df5c39430819e22929
   if ALLINONE == 1
-=======
-  if ALLINONE
->>>>>>> Allow running vagrant file in ALLINONE mode.
       inventory_path = "provisions/hosts.vagrant.allinone"
       num_nodes = 0
   else
