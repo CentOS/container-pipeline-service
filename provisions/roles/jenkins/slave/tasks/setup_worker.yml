@@ -36,3 +36,12 @@
 
 - name: Ensure worker_start_build.py is executable
   file: path=/opt/cccp-service/beanstalk_worker/worker_start_build.py mode='u+x'
+
+- name: Get service files for workers
+  get_url:
+    url: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-build-worker.service", dest: /etc/systemd/system/cccp-build-worker.service}
+    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-worker-test.service", dest: /etc/systemd/system/cccp-worker-test.service}
+

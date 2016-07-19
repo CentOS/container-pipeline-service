@@ -40,3 +40,15 @@
   tags:
     - jenkins
     - jenkins/master
+
+- name: Restart workers
+  hosts: jenkins_slaves
+  tasks:
+    - name: Enable and start beanstalk worker services
+      service: name="{{ item }}" state=restarted enabled=yes
+      with_items:
+        - cccp-build-worker
+        - cccp-worker-test
+  tags:
+    - openshift
+    - jenkins/slaves
