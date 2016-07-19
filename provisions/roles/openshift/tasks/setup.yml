@@ -8,7 +8,7 @@
     KUBECONFIG: "{{ kubeconfig }}"
   ignore_errors: yes
 
-- name: Wait for Openshift to come up
+- name: Wait for Openshift Registry to come up
   pause: seconds={{ openshift_startup_delay }}
 
 - name: Setup openshift router
@@ -20,7 +20,7 @@
     KUBECONFIG: "{{ kubeconfig }}"
   ignore_errors: yes
 
-- name: Wait for Openshift to come up
+- name: Wait for Openshift Router to come up
   pause: seconds={{ openshift_startup_delay }}
 
 - name: Create test user 
@@ -50,11 +50,6 @@
 
 - name: Build cccp test image
   shell: docker build -t cccp-test -f ./Dockerfile.test .
-  args:
-      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
-
-- name: Build mail server image
-  shell: docker build -t mail-server -f ./Dockerfile.mailserv .
   args:
       chdir: "{{ ansible_env.HOME }}/cccp-service/server"
 
