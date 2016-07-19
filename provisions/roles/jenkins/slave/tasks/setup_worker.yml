@@ -44,4 +44,6 @@
   with_items:
     - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-build-worker.service", dest: /etc/systemd/system/cccp-build-worker.service}
     - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
+    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-delivery-worker.service", dest: /etc/systemd/system/cccp-delivery-worker.service}
+    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-dispatcher-worker.service", dest: /etc/systemd/system/cccp-dispatcher-worker.service}
 

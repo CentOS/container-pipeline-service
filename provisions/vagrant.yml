@@ -49,6 +49,8 @@
       with_items:
         - cccp-build-worker
         - cccp-test-worker
+        - cccp-delivery-worker
+        - cccp-dispatcher-worker
   tags:
     - openshift
     - jenkins/slaves
