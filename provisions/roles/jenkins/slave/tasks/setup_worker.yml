@@ -17,6 +17,8 @@
     mode: push
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    rsync_opts:
+        - {{ rsync_ssh_opts }}
   with_items:
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/beanstalk_worker/ca.crt}
 
