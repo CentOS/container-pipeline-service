@@ -6,9 +6,9 @@ unless Vagrant.has_plugin?("vagrant-hostmanager")
   raise 'vagrant-hostmanager plugin is required'
 end
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+ALLINONE = (ENV['ALLINONE'] || 0).to_i
 
-  num_nodes = (ENV['OPENSHIFT_NUM_NODES'] || 2).to_i
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision :hostmanager
   config.hostmanager.manage_host = true
@@ -17,7 +17,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider "virtualbox" do |vbox, override|
     override.vm.box = "centos/7"
-    vbox.memory = 1024
+    if ALLINONE == 1
+        vbox.memory = 2048
+    else
+        vbox.memory = 1024
+    end
     vbox.cpus = 2
 
     # Enable multiple guest CPUs if available
@@ -54,26 +58,34 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
 
-  num_nodes.times do |n|
-    node_index = n+1
-    config.vm.define "node#{node_index}" do |node|
-      node.vm.hostname = "cccp-node#{node_index}.example.com"
-      node.vm.network :private_network, ip: "192.168.100.#{200 + n}"
-      node.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
-      # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
-    end
+  num_nodes = 2
+  if ALLINONE == 1
+      inventory_path = "provisions/hosts.vagrant.allinone"
+      num_nodes = 0
+  else
+      inventory_path = "provisions/hosts.vagrant"
   end
 
   config.vm.define "master" do |master|
-    master.vm.hostname = "cccp-master.example.com"
+    master.vm.hostname = "cccp"
     master.vm.network :private_network, ip: "192.168.100.100"
     master.vm.network :forwarded_port, guest: 8443, host: 8443
     config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
     master.vm.provision "ansible" do |ansible|
       ansible.limit = 'all'
       ansible.sudo = true
-      ansible.inventory_path = "provisions/hosts.vagrant"
+      ansible.inventory_path = inventory_path
       ansible.playbook = "provisions/vagrant.yml"
+    end
+  end
+
+  num_nodes.times do |n|
+    node_index = n+1
+    config.vm.define "node#{node_index}" do |node|
+      node.vm.hostname = "cccp-#{node_index}"
+      node.vm.network :private_network, ip: "192.168.100.#{200 + n}"
+      node.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
+      # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
     end
   end
 end
