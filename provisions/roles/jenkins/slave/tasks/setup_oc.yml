@@ -19,9 +19,9 @@
     url: "{{ item }}"
     dest: /opt/cccp-service/client
   with_items:
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/build-project.sh
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/send_build_request.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/beanstalkc.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/build-project.sh
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/send_build_request.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/beanstalkc.py
 
 - name: Copy openshift template file
   template:

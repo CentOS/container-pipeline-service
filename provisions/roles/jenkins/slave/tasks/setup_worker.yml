@@ -26,16 +26,14 @@
   get_url:
     url: "{{ item }}"
     dest: /opt/cccp-service/beanstalk_worker
+    mode: u+x
   with_items:
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/beanstalkc.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_start_build.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/DependencyChecker.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_start_test.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_dispatcher.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/beanstalk_worker/worker_start_delivery.py
-
-- name: Ensure worker_start_build.py is executable
-  file: path=/opt/cccp-service/beanstalk_worker/worker_start_build.py mode='u+x'
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/beanstalkc.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_build.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/DependencyChecker.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_test.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_dispatcher.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_delivery.py
 
 - name: Get service files for workers
   get_url:
