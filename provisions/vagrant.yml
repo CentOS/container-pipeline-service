@@ -48,7 +48,7 @@
       service: name="{{ item }}" state=restarted enabled=yes
       with_items:
         - cccp-build-worker
-        - cccp-worker-test
+        - cccp-test-worker
   tags:
     - openshift
     - jenkins/slaves
