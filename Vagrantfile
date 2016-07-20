@@ -82,8 +82,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   if ALLINONE == 1
-    config.vm.synced_folder "./", "/opt/cccp-service"
-    config.vm.synced_folder "./", "/home/vagrant/cccp-service"
+    config.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
+    config.vm.synced_folder "./", "/home/vagrant/cccp-service", type: "rsync"
   end
 
   num_nodes.times do |n|
@@ -94,11 +94,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       node.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
 
       if n == 0
-        node.vm.synced_folder "./", "/opt/cccp-service"
+        node.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
       end
 
       if n == 1
-        node.vm.synced_folder "./", "/home/vagrant/cccp-service"
+        node.vm.synced_folder "./", "/home/vagrant/cccp-service", type: "rsync"
       end
       # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
     end
