@@ -17,4 +17,4 @@ cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 rsync_ssh_opts=-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.vagrant.d/insecure_private_key'
 beanstalk_server=openshift
 copy_ssl_certs=True
-oc_slave=cccp1
+oc_slave=cccp-1
