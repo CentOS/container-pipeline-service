@@ -67,6 +67,12 @@
       "value": "/tests",
       "required": true
     },
+    {
+      "name": "TEST_TAG",
+      "description": "Random tag for test-suite image",
+      "value": "20160720085647",
+      "required": true
+    },
 	{
       "name": "BEANSTALK_SERVER",
       "description": "An url for the server where beanstalkd runs",
@@ -135,13 +141,10 @@
                 "value": "${TARGET_FILE}"
               },
               {
-<<<<<<< HEAD
                 "name": "BEANSTALK_SERVER",
                 "value": "${BEANSTALK_SERVER}"
               },
               {
-=======
->>>>>>> f3703e4afaf0e2e3097fd1ce33876efde0d3455a
                 "name": "NOTIFY_EMAIL",
                 "value": "${NOTIFY_EMAIL}"
               }
@@ -196,7 +199,7 @@
               },
               {
                 "name": "TO",
-                "value": "${TAG}:rc"
+                "value": "${TAG}:${TEST_TAG}"
               },
               {
                 "name": "REPO_TEST_PATH",
@@ -223,6 +226,10 @@
                 "value":"${TAG}"
               },
               {
+                "name":"TEST_TAG",
+                "value":"${TEST_TAG}"
+              },
+              {
                 "name": "BEANSTALK_SERVER",
                 "value": "${BEANSTALK_SERVER}"
               }
@@ -232,7 +239,7 @@
         "output": { 
           "to": {
             "kind": "ImageStreamTag",
-            "name": "${TAG}:rc"
+            "name": "${TAG}:${TEST_TAG}"
           }
         }
       }
@@ -263,7 +270,7 @@
             "env": [
               {
                 "name": "FROM",
-                "value": "${TAG}:rc"
+                "value": "${TAG}:${TEST_TAG}"
               },
               {
                 "name": "TO",
