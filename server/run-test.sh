@@ -41,7 +41,7 @@ _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #  docker push "${FULL_TO}" || jumpto sendstatusmail
 #fi
 docker push ${FULL_TO}||jumpto sendstatusmail
-python /tube_request/send_test_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} "rc"
+python /tube_request/send_test_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} ${TEST_TAG}
 
 
 _ "Cleaning environment"
