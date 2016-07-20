@@ -40,8 +40,6 @@
   tags:
     - jenkins
     - jenkins/master
-<<<<<<< HEAD
-=======
 
 - name: Restart workers
   hosts: jenkins_slaves
@@ -56,4 +54,3 @@
   tags:
     - openshift
     - jenkins/slaves
->>>>>>> f3703e4afaf0e2e3097fd1ce33876efde0d3455a
