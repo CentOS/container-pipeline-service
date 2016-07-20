@@ -53,7 +53,7 @@ def main(yamlfile):
                 giturl = project['git-url']
                 gitpath = project['git-path'] if (project['git-path'] != None) else ''
                 gitbranch = project['git-branch']
-                targetfile = project['target-file'] if(project['target-file'] != None) else 'Dockerfile'
+                targetfile = project['target-file']
                 dependson = project['depends-on']
                 notifyemail = project['notify-email']
     		

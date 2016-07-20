@@ -28,6 +28,7 @@ REPO_BUILD_PATH=$5
 TARGET_FILE=$6
 NOTIFY_EMAIL=$7
 DEPENDS_ON=$8
+TEST_TAG=`date +"%Y%m%d%H%M%S"`
 
 [ "${NAME}" == "" ] || [ "${NAME}" == "-h" ] || [ "${NAME}" == "--help" ] && usage
 [ "${TAG}" == "" ] && usage
@@ -55,7 +56,7 @@ for t in $(echo "build bc is"); do
 done
 
 _oc ${NS} get --no-headers  -f $CWD/template.json && oc replace -f $CWD/template.json || oc ${NS} create -f $CWD/template.json
-_oc ${NS} process ${NAME}-${TAG} -v SOURCE_REPOSITORY_URL=${REPO},REPO_BRANCH=${REPO_BRANCH},TARGET_NAMESPACE=${NAME},TAG=${TAG},REPO_BUILD_PATH=${REPO_BUILD_PATH},TARGET_FILE=${TARGET_FILE},NOTIFY_EMAIL=${NOTIFY_EMAIL} | oc ${NS} create -f -
+_oc ${NS} process ${NAME}-${TAG} -v SOURCE_REPOSITORY_URL=${REPO},REPO_BRANCH=${REPO_BRANCH},TARGET_NAMESPACE=${NAME},TAG=${TAG},REPO_BUILD_PATH=${REPO_BUILD_PATH},TARGET_FILE=${TARGET_FILE},NOTIFY_EMAIL=${NOTIFY_EMAIL},TEST_TAG=${TEST_TAG} | oc ${NS} create -f -
 
 IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | sed 's#/.*##')
 
