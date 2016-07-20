@@ -18,3 +18,4 @@ rsync_ssh_opts=-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=
 beanstalk_server=openshift
 copy_ssl_certs=True
 oc_slave=cccp-1
+vagrant=True

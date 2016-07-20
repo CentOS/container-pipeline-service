@@ -76,7 +76,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.sudo = true
       ansible.inventory_path = inventory_path
       ansible.playbook = "provisions/vagrant.yml"
+      ansible.raw_arguments = [
+      ]
     end
+  end
+
+  if ALLINONE == 1
+    config.vm.synced_folder "./", "/opt/cccp-service"
+    config.vm.synced_folder "./", "/home/vagrant/cccp-service"
   end
 
   num_nodes.times do |n|
@@ -85,6 +92,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       node.vm.hostname = "cccp-#{node_index}"
       node.vm.network :private_network, ip: "192.168.100.#{200 + n}"
       node.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
+
+      if n == 0
+        node.vm.synced_folder "./", "/opt/cccp-service"
+      end
+
+      if n == 1
+        node.vm.synced_folder "./", "/home/vagrant/cccp-service"
+      end
       # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
     end
   end
