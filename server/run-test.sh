@@ -41,7 +41,7 @@ _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #  docker push "${FULL_TO}" || jumpto sendstatusmail
 #fi
 docker push ${FULL_TO}||jumpto sendstatusmail
-python /tube_request/send_test_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} "rc"
+python /tube_request/send_test_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} ${TEST_TAG}
 
 
 _ "Cleaning environment"
@@ -50,7 +50,8 @@ jumpto end
 
 sendstatusmail:
 _ "Sending mail of failed status to ${NOTIFY_EMAIL}"
-docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
+python /tube_request/send_failed_notify_request.py ${BEANSTALK_SERVER} ${NOTIFY_EMAIL}
+#docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
 
 end:
   exit 0

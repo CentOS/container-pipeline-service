@@ -92,7 +92,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       node.vm.hostname = "cccp-#{node_index}"
       node.vm.network :private_network, ip: "192.168.100.#{200 + n}"
       node.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
-
       if n == 0
         node.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
       end
