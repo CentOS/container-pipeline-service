@@ -26,3 +26,66 @@ We want to provide a single input interface to the system (pipeline index) and d
 5. Failure UI
     * Probably part of Input Interface, presenting logs from failed builds
 
+## Setting a development environment
+
+### Vagrant
+
+### Setup environment
+
+#### CentOS
+```
+# Install dependencies
+sudo yum install -y epel-release git
+sudo yum install -y ansible1.9 centos-release-scl qemu-kvm libvirt sclo-vagrant1
+
+# start libvirtd
+sudo systemctl start libvirtd; sudo systemctl enable libvirtd
+
+# enable bash on vagrant scl
+sudo scl enable sclo-vagrant1 bash
+```
+
+#### Fedora
+```
+# sudo dnf install -y git ansible vagrant
+```
+
+### Get the code and install vagrant plugins
+
+```
+git clone https://github.com/CentOS/container-pipeline-service
+cd container-pipeline-service
+vagrant plugin install vagrant-host-manager
+```
+
+### Get started
+
+#### Single node setup
+
+```
+ALLINONE=1 vagrant up
+```
+
+#### Multi node setup
+
+```
+vagrant up
+```
+
+### Setup on generic hosts
+
+This will allow to setup single or multi node setup of container pipeline
+on various kinds of hosts, any host that is accessible over SSH, be it, a
+baremetal, a VPS, cloud or local VM, etc.
+
+```
+cd provisions
+
+# Copy sample hosts file and edit as needed
+cp hosts.sample hosts
+
+# Provision the hosts. This assumes that you have added the usernames,
+# passwords or private keys used to access the hosts in the hosts file
+# above
+ansible-playbook -i hosts vagrant.yml
+```
