@@ -103,4 +103,34 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
     end
   end
+
+  if ALLINONE == 1
+      config.vm.post_up_message = <<-EOF
+You have successfully setup CentOS Community Container Pipeline
+Endpoints:
+=================Registry================
+https://cccp:5000/
+=================Jenkins=================
+http://cccp:8080/
+User: admin Password: admin
+================Openshift================
+https://cccp:8443
+User: test-admin Password: test
+"Happy hacking!
+EOF
+  else
+      config.vm.post_up_message = <<-EOF
+You have successfully setup CentOS Community Container Pipeline
+Endpoints:
+=================Registry================
+https://cccp-1:5000/
+=================Jenkins=================
+http://cccp:8080/
+User: admin Password: admin
+================Openshift================
+https://cccp-2:8443
+User: test-admin Password: test
+"Happy hacking!
+EOF
+  end
 end
