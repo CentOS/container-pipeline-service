@@ -75,7 +75,6 @@ jenkins_public_key_file = jenkins.key.pub
 cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 copy_ssl_certs=true
 openshift_startup_delay=150
-beanstalk_server=openshift
 
 [jenkins_master:vars]
 oc_slave={jenkins_slave_host}""").format(

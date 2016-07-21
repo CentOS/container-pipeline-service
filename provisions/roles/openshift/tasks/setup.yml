@@ -8,7 +8,7 @@
     KUBECONFIG: "{{ kubeconfig }}"
   ignore_errors: yes
 
-- name: Wait for Openshift to come up
+- name: Wait for Openshift Registry to come up
   pause: seconds={{ openshift_startup_delay }}
 
 - name: Setup openshift router
@@ -20,7 +20,7 @@
     KUBECONFIG: "{{ kubeconfig }}"
   ignore_errors: yes
 
-- name: Wait for Openshift to come up
+- name: Wait for Openshift Router to come up
   pause: seconds={{ openshift_startup_delay }}
 
 - name: Create test user 
@@ -40,7 +40,7 @@
   ignore_errors: yes
 
 - name: Get cccp service code
-  git: repo=https://github.com/bamachrn/cccp-service.git
+  git: repo=https://github.com/CentOS/container-pipeline-service.git
        dest="{{ ansible_env.HOME }}/cccp-service"
 
 - name: Build cccp build image
@@ -50,11 +50,6 @@
 
 - name: Build cccp test image
   shell: docker build -t cccp-test -f ./Dockerfile.test .
-  args:
-      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
-
-- name: Build mail server image
-  shell: docker build -t mail-server -f ./Dockerfile.mailserv .
   args:
       chdir: "{{ ansible_env.HOME }}/cccp-service/server"
 

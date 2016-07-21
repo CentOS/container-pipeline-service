@@ -16,6 +16,7 @@ openshift
 # update as needed
 public_registry=jenkins-slave
 beanstalk_server=openshift
+rsync_ssh_opts=""
 
 [jenkins_master:vars]
 # update as needed

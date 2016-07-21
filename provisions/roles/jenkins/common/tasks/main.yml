@@ -1,8 +1,4 @@
 ---
-- name: Check if java is installed
-  shell: rpm -q java-1.7.0-openjdk
-  ignore_errors: yes
-  register: rpmq_result
 
 - name: Ensure java is not installed
   yum: name=java state=absent
@@ -11,7 +7,6 @@
   - jenkins/master
   - jenkins/slave
   - config
-  when: "rpmq_result.rc != 0"
 
 - name: install deps on jenkins nodes
   yum: name={{ item }} state=present

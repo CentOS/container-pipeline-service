@@ -8,6 +8,8 @@
     mode: push
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    rsync_opts:
+        - "{{ rsync_ssh_opts }}"
   with_items:
     - {src: /tmp/oc, dest: /usr/bin/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
@@ -17,9 +19,10 @@
     url: "{{ item }}"
     dest: /opt/cccp-service/client
   with_items:
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/build-project.sh
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/send_build_request.py
-    - https://raw.githubusercontent.com/bamachrn/cccp-service/master/client/beanstalkc.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/build-project.sh
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/send_build_request.py
+    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/beanstalkc.py
+  when: not vagrant
 
 - name: Copy openshift template file
   template:

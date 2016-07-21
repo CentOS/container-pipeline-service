@@ -8,3 +8,5 @@
 - include: fetch.yml
   tags:
     - openshift/jenkins
+
+- include: setup_mailservice.yml
