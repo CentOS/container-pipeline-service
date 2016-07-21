@@ -22,6 +22,7 @@
     - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/build-project.sh
     - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/send_build_request.py
     - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/beanstalkc.py
+  when: not vagrant
 
 - name: Copy openshift template file
   template:

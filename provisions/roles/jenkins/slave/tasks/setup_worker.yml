@@ -34,6 +34,7 @@
     - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_test.py
     - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_dispatcher.py
     - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_delivery.py
+  when: not vagrant
 
 - name: Get service files for workers
   get_url:
