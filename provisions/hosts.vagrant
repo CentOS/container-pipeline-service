@@ -4,18 +4,18 @@ jenkins_slaves
 openshift
 
 [jenkins_master]
-cccp    ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+192.168.100.100    ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [jenkins_slaves]
-cccp-1     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+192.168.100.200     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [openshift]
-cccp-2     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+192.168.100.201     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [all:vars]
 cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 rsync_ssh_opts=-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.vagrant.d/insecure_private_key'
 beanstalk_server=openshift
 copy_ssl_certs=True
-oc_slave=cccp-1
+oc_slave=192.168.100.200
 vagrant=True
