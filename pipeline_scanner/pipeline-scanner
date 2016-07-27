@@ -1,6 +1,6 @@
 type: scanner
 scanner_name: pipeline-scanner
-image_name: pipeline-scanner
+image_name: registry.centos.org/dharmit/pipeline-scanner
 default_scan: redhat-release
 custom_args: ['-v', '/var/run/docker.sock:/var/run/docker.sock']
 scans: [
