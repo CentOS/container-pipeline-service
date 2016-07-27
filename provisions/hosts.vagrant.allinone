@@ -14,8 +14,10 @@ openshift
 
 [all:vars]
 cccp_index_repo=https://github.com/bamachrn/cccp-index.git
-rsync_ssh_opts=-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.vagrant.d/insecure_private_key'
+rsync_ssh_opts=-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i {{ ansible_env.HOME }}/.vagrant.d/insecure_private_key'
 vagrant=True
 beanstalk_server=openshift
 copy_ssl_certs=True
 oc_slave=192.168.100.100
+jenkins_public_key_file=/tmp/cccp-jenkins.key.pub
+jenkins_private_key_file=/tmp/cccp-jenkins.key

@@ -58,6 +58,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       inventory_path = "provisions/hosts.vagrant"
   end
 
+  # Ensure Jenkins SSH keys exist
+  system('if [ ! -f /tmp/cccp-jenkins.key ]; then ssh-keygen -t rsa -N "" -f /tmp/cccp-jenkins.key; fi')
+
   config.vm.define "master" do |master|
     master.vm.hostname = "cccp"
     master.vm.network :private_network, ip: "192.168.100.100"
@@ -69,6 +72,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.inventory_path = inventory_path
       ansible.playbook = "provisions/vagrant.yml"
       ansible.raw_arguments = [
+          "-u",
+          "vagrant"
       ]
     end
   end
