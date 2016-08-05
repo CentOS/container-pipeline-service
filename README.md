@@ -1,10 +1,10 @@
 # CentOS Community Container Pipeline
 
-CentOS Community Container Pipeline(cccp) is a process, to provide any onesource developer a platform for containerising there application. This process builds the application from any arbitary git repository. Package the built application along with its runtime in a container image. Tests the image with help of test script and delivers to a publicly available registry. User can anytime pull the tested image from that registry.
+CentOS Community Container Pipeline(cccp) is a process, to provide any opensource developer, a platform for containerising their application(s). This process builds the application(s) from any arbitary git repository/repositories, package the built application along with its runtime in a container image, tests the image with help of test script and delivers to a publicly available registry. A user can anytime pull the tested image from that registry.
 
 ## User Story
 
-I as an application developer want to build, test and deliver my containerized application images so that I can focus on development and be sure images are always available and working for the app users.
+I, as an application developer want to build, test and deliver my containerized application images so that I can focus on development and be sure images are always available and working for the app users.
 
 ## Key parts
 
@@ -14,7 +14,7 @@ We want to provide a single input interface to the system (pipeline index) and d
 
 1. Input Interface
     * A web UI/cli which allows user to provide at least name of the project and repo URL.
-    * This project tracks [cccp-index.yaml](https://github.com/kbsingh/cccp-index/blob/master/index.yml) as input to the build system.
+    * This project tracks [cccp-index.yml](https://github.com/CentOS/container-index/blob/master/index.yml) as input to the build system.
 2. OpenShift
     * **Build** - Can be Atomic Reactor, result: image tagged as :test pushed
     * **Test** - Can be a script connecting to Jenkins, result: image tagged as :rc pushed
@@ -23,7 +23,6 @@ We want to provide a single input interface to the system (pipeline index) and d
     * Infra where **Test** step in OpenShift connects to
 4. Registry
     * Pulp or a registry provided by OpenShift, deployed at https://registry.centos.org/
-5. (1.) Failure UI
+5. Failure UI
     * Probably part of Input Interface, presenting logs from failed builds
-
 
