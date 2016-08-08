@@ -12,7 +12,7 @@
     replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000"'
 
 - name: Restart Docker
-  service: name=docker state=restarted
+  service: name=docker state=restarted enabled=yes
 
 - name: Create openshift shared dirs
   file: name={{item}} state=directory
