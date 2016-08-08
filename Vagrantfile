@@ -3,6 +3,7 @@
 VAGRANTFILE_API_VERSION = "2"
 
 ALLINONE = (ENV['ALLINONE'] || 0).to_i
+HOME = ENV['HOME']
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.insert_key = false
@@ -61,6 +62,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Ensure Jenkins SSH keys exist
   system('if [ ! -f /tmp/cccp-jenkins.key ]; then ssh-keygen -t rsa -N "" -f /tmp/cccp-jenkins.key; fi')
 
+  rsync_ssh_opts = "-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i " + HOME + "/.vagrant.d/insecure_private_key'"
+
   config.vm.define "master" do |master|
     master.vm.hostname = "cccp"
     master.vm.network :private_network, ip: "192.168.100.100"
@@ -73,7 +76,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.playbook = "provisions/vagrant.yml"
       ansible.raw_arguments = [
           "-u",
-          "vagrant"
+          "vagrant",
+          "--extra-vars",
+          '{"rsync_ssh_opts": "' + rsync_ssh_opts + '"}',
       ]
     end
   end
