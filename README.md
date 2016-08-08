@@ -55,7 +55,6 @@ sudo scl enable sclo-vagrant1 bash
 ```
 git clone https://github.com/CentOS/container-pipeline-service
 cd container-pipeline-service
-vagrant plugin install vagrant-host-manager
 ```
 
 ### Get started
