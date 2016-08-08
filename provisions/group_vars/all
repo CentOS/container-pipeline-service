@@ -1,0 +1,3 @@
+---
+vagrant: False
+rsync_ssh_opts: ""
