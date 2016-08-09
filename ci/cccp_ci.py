@@ -107,7 +107,7 @@ def provision(controller):
     run_cmd(
         "cd /root/centos-cccp-ansible && "
         "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts -u root "
-        "--private-key=/root/.ssh/id_rsa vagrant.yml",
+        "--private-key=/root/.ssh/id_rsa provisions/vagrant.yml",
         host=controller)
 
 
