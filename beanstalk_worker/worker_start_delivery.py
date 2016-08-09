@@ -44,13 +44,15 @@ def start_delivery(job_details):
     logger.log(level=logging.INFO,msg="==> start the build")
     command = "oc --namespace "+name_space+" start-build delivery"
     build_details = os.popen(command).read().rstrip()
-
-    logger.log(level=logging.INFO,msg="build started is "+build_details)
+    if build_details=="":
+      logger.log(level=logging.CRITICAL,msg="Delivery could not be started due to error communicating openshift")
+      return 1
+    logger.log(level=logging.INFO,msg="delivery started is "+build_details)
   
     status_command = "oc get --namespace "+name_space+" build/"+build_details+"|grep -v STATUS"
     is_running = 1
   
-    logger.log(level=logging.INFO,msg="==> Checking the build status")
+    logger.log(level=logging.INFO,msg="==> Checking the delivery status")
     while is_running >= 0:
         status= os.popen(status_command).read()
         is_running = re.search("New|Pending|Running",status)
@@ -59,7 +61,7 @@ def start_delivery(job_details):
 
     is_complete=os.popen(status_command).read().find('Complete')
   
-    logger.log(level=logging.INFO,msg="==>If build is successful delete the job else put it to failed build tube")
+    logger.log(level=logging.INFO,msg="==>If delivery is successful delete the job else put it to failed build tube")
     if is_complete < 0:
         bs.put(json.dumps(job_details))
     return 0
