@@ -72,9 +72,9 @@ def start_build(job_details):
 
     is_complete=os.popen(status_command).read().find('Complete')
 
-    logger.log(level=logging.INFO, msg="==>If build is successful delete the job else put it to failed build tube")
     if is_complete < 0:
       bs.put(json.dumps(job_details))
+      logger.log(level=logging.INFO, msg="==>Build is not successful putting it to failed build tube")
 
     return 0
   except Exception as e:
@@ -88,6 +88,7 @@ while True:
     job_details = json.loads(job.body) 
     result = start_build(job_details)
     if result == 0:
+      logger.log(level=logging.INFO, msg="==>Build is successful deleting the job")
       job.delete()
     else:
       logger.log(level=logging.INFO, msg="Job was not succesfull and returned to tube")

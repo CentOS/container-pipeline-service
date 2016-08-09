@@ -61,9 +61,9 @@ def start_delivery(job_details):
 
     is_complete=os.popen(status_command).read().find('Complete')
   
-    logger.log(level=logging.INFO,msg="==>If delivery is successful delete the job else put it to failed build tube")
     if is_complete < 0:
         bs.put(json.dumps(job_details))
+        logger.log(level=logging.INFO,msg="==>Delivery is not successful putting it to failed delivery tube")
     return 0
   except Exception as e:
     logger.log(level=logging.FATAL, msg=e.message)
@@ -76,6 +76,7 @@ while True:
     job_details = json.loads(job.body) 
     result = start_delivery(job_details);
     if result == 0:
+      logger.log(level=logging.INFO,msg="==>Delivery is successful deleting the job")
       job.delete()
     else:
       logger.log(level=logging.INFO, msg="Job was not succesfull and returned to tube")
