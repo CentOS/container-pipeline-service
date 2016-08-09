@@ -10,8 +10,9 @@ import sys
 
 from Atomic import Atomic, mount
 
-# CENTOS7 = "dev-32-94.lon1.centos.org"
-# DOCKER_PORT = "4243"
+DOCKER_HOST = "atomic-scan.vm.centos.org"
+DOCKER_PORT = "4243"
+BEANSTALKD_HOST = "openshift"
 
 logger = logging.getLogger("container-pipeline")
 logger.setLevel(logging.DEBUG)
@@ -31,13 +32,12 @@ image_rootfs_path = ""
 
 try:
     # docker client connection to CentOS 7 system
-    # conn = docker.Client(base_url="tcp://%s:%s" % (
-    #     CENTOS7, DOCKER_PORT
-    # ))
+    conn = docker.Client(base_url="tcp://%s:%s" % (
+        DOCKER_HOST, DOCKER_PORT
+    ))
     # conn.ping()
     # logger.log(level=logging.INFO, msg="Connected to remote docker host %s:%s" %
     #            (CENTOS7, DOCKER_PORT))
-    conn = docker.Client(base_url="unix:///var/run/docker.sock")
 except Exception as e:
     logger.log(level=logging.FATAL, msg="Error connecting to Docker daemon.")
 
@@ -199,7 +199,7 @@ def test_job_data(job_data):
         msg="Put job on master tube with id: %d" % jid
     )
 
-bs = beanstalkc.Connection(host="localhost")
+bs = beanstalkc.Connection(host=BEANSTALKD_HOST)
 bs.watch("start_test")
 
 while True:
