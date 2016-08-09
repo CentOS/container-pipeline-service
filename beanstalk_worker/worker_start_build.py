@@ -54,11 +54,15 @@ def start_build(job_details):
     logger.log(level=logging.INFO, msg="==> start the build")
     command = "oc --namespace "+name+"-"+tag+" start-build build"
     build_details = os.popen(command).read().rstrip()
+    if build_details=="":
+      logger.log(level=logging.CRITICAL, msg="build could not be started as openshift is not reachable")
+      return 1
+
     logger.log(level=logging.INFO, msg="build started is "+build_details)
-  
+
     status_command = "oc get --namespace "+name+"-"+tag+" build/"+build_details+"|grep -v STATUS"
     is_running = 1
-  
+
     logger.log(level=logging.INFO, msg="==> Checking the build status")
     while is_running >= 0:
       status= os.popen(status_command).read()
@@ -67,7 +71,7 @@ def start_build(job_details):
       time.sleep(30)
 
     is_complete=os.popen(status_command).read().find('Complete')
-  
+
     logger.log(level=logging.INFO, msg="==>If build is successful delete the job else put it to failed build tube")
     if is_complete < 0:
       bs.put(json.dumps(job_details))
