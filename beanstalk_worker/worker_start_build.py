@@ -7,6 +7,7 @@ import re
 import time
 from DependencyChecker import DependencyChecker
 import logging
+import sys
 
 
 bs = beanstalkc.Connection(host="openshift")
@@ -87,4 +88,4 @@ while True:
     else:
       logger.log(level=logging.INFO, msg="Job was not succesfull and returned to tube")
   except Exception as e:
-    logger.log(level.FATAK, msg=e.message)
+    logger.log(level.FATAL, msg=e.message)
