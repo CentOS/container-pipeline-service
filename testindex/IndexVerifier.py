@@ -63,8 +63,13 @@ class IndexVerifier:
 
             getback = os.getcwd()
             os.chdir(Globals.Globals.indexDirectory)
-            cmd = ["git", "pull", "--all"]
+            cmd = ["git", "fetch", "--all"]
+            NutsAndBolts.StaticHandler.execcmd(cmd)
+            checkoutbranch = "origin/" + Globals.Globals.indexgitbranch
+            cmd = ["git", "checkout", checkoutbranch]
             success = NutsAndBolts.StaticHandler.execcmd(cmd)
+            cmd = ["git", "pull", "--all"]
+            NutsAndBolts.StaticHandler.execcmd(cmd)
             os.chdir(getback)
 
         return success
@@ -153,13 +158,6 @@ class IndexVerifier:
                     self._logger.log(NutsAndBolts.Logger.error, "Missing git-url entry")
                     success = False
 
-                else:
-
-                    value = project["git-url"]
-
-                    if not NutsAndBolts.StaticHandler.is_valid_git_url(value):
-                        self._logger.log(NutsAndBolts.Logger.error, "Invalid git url format specified")
-
                 # Check git-path
                 self._logger.log(NutsAndBolts.Logger.info, "Checking the git-path field")
                 if "git-path" not in project.keys():
@@ -176,6 +174,12 @@ class IndexVerifier:
                 self._logger.log(NutsAndBolts.Logger.info, "Checking the notify-email field")
                 if "notify-email" not in project.keys():
                     self._logger.log(NutsAndBolts.Logger.error, "Missing notify-email entry")
+                    success = False
+
+                # Check for target-file entry
+                self._logger.log(NutsAndBolts.Logger.info, "Checking for target-file field")
+                if "target-file" not in project.keys():
+                    self._logger.log(NutsAndBolts.Logger.error, "Missing target-file entry")
                     success = False
 
                 # Check depends on

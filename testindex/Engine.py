@@ -8,11 +8,12 @@ class Engine:
     """The engine, runs the vehicle ;)"""
 
     def __init__(self, datadumpdirectory=None, indexgit=None, customindexfile=None, skippass2=False,
-                 specificindexentries=None, testindexentries=None):
+                 specificindexentries=None, testindexentries=None, indexgitbranch="master"):
         """Initialize the engine, so it knows what to do."""
 
         # Initialze the engine
-        StaticHandler.initialize(datadumpdirectory, indexgit, customindexfile)
+        StaticHandler.initialize(datadumpdirectory=datadumpdirectory, indexgit=indexgit, customindexfile=customindexfile
+                                 , indexgitbranch=indexgitbranch)
 
         # Setup engine starte so its behavior is affected when it is started
         self._skipPass2 = skippass2
@@ -51,6 +52,9 @@ class Engine:
         else:
 
             success = pass1
+
+        Logger().log(Logger.info, "Cleaning up systems")
+        StaticHandler.cleanup()
 
         Logger().log(Logger.info, "Operations completed, check the dump directory for more information.")
 
