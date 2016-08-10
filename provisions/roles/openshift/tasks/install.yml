@@ -11,7 +11,7 @@
     - beanstalkd
 
 - name: Start Docker service
-  service: name=docker state=started
+  service: name=docker state=started enabled=yes
 
 - name: Start beanstalkd service
-  service: name=beanstalkd state=started
+  service: name=beanstalkd state=started enabled=yes

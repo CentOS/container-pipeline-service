@@ -2,17 +2,10 @@
 # vi: set ft=ruby :
 VAGRANTFILE_API_VERSION = "2"
 
-unless Vagrant.has_plugin?("vagrant-hostmanager")
-  raise 'vagrant-hostmanager plugin is required'
-end
-
 ALLINONE = (ENV['ALLINONE'] || 0).to_i
+HOME = ENV['HOME']
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-
-  config.vm.provision :hostmanager
-  config.hostmanager.manage_host = true
-  config.hostmanager.include_offline = true
   config.ssh.insert_key = false
 
   config.vm.provider "virtualbox" do |vbox, override|
@@ -66,6 +59,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       inventory_path = "provisions/hosts.vagrant"
   end
 
+  # Ensure Jenkins SSH keys exist
+  system('if [ ! -f /tmp/cccp-jenkins.key ]; then ssh-keygen -t rsa -N "" -f /tmp/cccp-jenkins.key; fi')
+
+  rsync_ssh_opts = "-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i " + HOME + "/.vagrant.d/insecure_private_key'"
+
   config.vm.define "master" do |master|
     master.vm.hostname = "cccp"
     master.vm.network :private_network, ip: "192.168.100.100"
@@ -77,6 +75,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.inventory_path = inventory_path
       ansible.playbook = "provisions/vagrant.yml"
       ansible.raw_arguments = [
+          "-u",
+          "vagrant",
+          "--extra-vars",
+          '{"rsync_ssh_opts": "' + rsync_ssh_opts + '"}',
       ]
     end
   end
@@ -108,12 +110,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 You have successfully setup CentOS Community Container Pipeline
 Endpoints:
 =================Registry================
-https://cccp:5000/
+https://192.168.100.100:5000/
 =================Jenkins=================
-http://cccp:8080/
+http://192.168.100.100:8080/
 User: admin Password: admin
 ================Openshift================
-https://cccp:8443
+https://192.168.100.100:8443
 User: test-admin Password: test
 "Happy hacking!
 EOF
@@ -122,12 +124,12 @@ EOF
 You have successfully setup CentOS Community Container Pipeline
 Endpoints:
 =================Registry================
-https://cccp-1:5000/
+https://192.168.100.200:5000/
 =================Jenkins=================
-http://cccp:8080/
+http://192.168.100.100:8080/
 User: admin Password: admin
 ================Openshift================
-https://cccp-2:8443
+https://192.168.100.201:8443
 User: test-admin Password: test
 "Happy hacking!
 EOF
