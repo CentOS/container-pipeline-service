@@ -87,7 +87,7 @@ def mainfunc():
         indexgitbranch = cmdargs.indexgitbranch[0]
 
     if cmdargs.customindexfile is not None:
-        customindexfile = cmdargs.customindexfile
+        customindexfile = cmdargs.customindexfile[0]
 
     if cmdargs.skippass2 is not None:
         skippass2 = cmdargs.skippass2
