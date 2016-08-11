@@ -14,7 +14,7 @@ bs = beanstalkc.Connection(host="openshift")
 bs.watch("start_build")
 bs.use("failed_build")
 
-logger = logging.getLogger("container-pipeline")
+logger = logging.getLogger("pipeline-build-worker")
 logger.setLevel(logging.DEBUG)
 
 ch = logging.StreamHandler(sys.stdout)
@@ -44,7 +44,7 @@ def start_build(job_details):
     #  time.sleep(30)
 
     logger.log(level=logging.INFO, msg="==> Login to openshift server")
-    command = "oc login https://openshift:8443 -u test-admin -p test --certificate-authority=./ca.crt"
+    command = "oc login https://openshift:8443 -u test-admin -p test --config=node.kubeconfig --certificate-authority=ca.crt"
     os.system(command)
   
     logger.log(level=logging.INFO, msg="==> change project to the desired one")
@@ -78,7 +78,7 @@ def start_build(job_details):
 
     return 0
   except Exception as e:
-    logger.log(level=logging.FATAL, msg=e.message)
+    logger.log(level=logging.CRITICAL, msg=e.message)
     return 1
 
 while True:
@@ -93,4 +93,4 @@ while True:
     else:
       logger.log(level=logging.INFO, msg="Job was not succesfull and returned to tube")
   except Exception as e:
-    logger.log(level.FATAL, msg=e.message)
+    logger.log(level.CRITICAL, msg=e.message)
