@@ -25,6 +25,8 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+command_path = sys.argv[0]
+logger.log(level=logging.INFO,msg="Getting kubeconfig path"+command_path)
 
 def start_build(job_details):
   try:
