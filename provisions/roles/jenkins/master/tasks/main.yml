@@ -14,7 +14,7 @@
 - include: config.yml
 
 - name: restart jenkins
-  service: name=jenkins state=restarted
+  service: name=jenkins state=restarted enabled=yes
 
 - name: Wait for Jenkins to come up
   shell: curl --head --silent http://localhost:8080/cli/

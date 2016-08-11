@@ -68,10 +68,11 @@ class IndexEntriesVerifier:
                 gitbranch = project["git-branch"]
                 gitpath = project["git-path"]
                 notifyemail = project["notify-email"]
+                targetfile = project["target-file"]
 
                 # Default id indicates template, so no tests are run against it.
                 if tid != "default":
-                    testresults = ValidateEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run()
+                    testresults = ValidateEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail, targetfile).run()
                     successlist.append(testresults["tests"]["allpass"])
                     self._addToFinalLog(tid, appid, jobid, testresults)
 
@@ -92,10 +93,11 @@ class IndexEntriesVerifier:
                         gitbranch = project["git-branch"]
                         gitpath = project["git-path"]
                         notifyemail = project["notify-email"]
+                        targetfile = project["target-file"]
 
                         if tid != "default":
                             testresults = ValidateEntry(tid, appid, jobid, giturl, gitpath, gitbranch,
-                                                        notifyemail).run()
+                                                        notifyemail, targetfile).run()
                             successlist.append(testresults["tests"]["allpass"])
                             self._addToFinalLog(tid, appid, jobid, testresults)
 
@@ -111,8 +113,9 @@ class IndexEntriesVerifier:
                     gitpath = item[4]
                     gitbranch = item[5]
                     notifyemail = item[6]
+                    targetfile = item[7]
 
-                    testresults = ValidateEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail).run()
+                    testresults = ValidateEntry(tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail, targetfile).run()
                     successlist.append(testresults["tests"]["allpass"])
                     self._addToFinalLog(tid, appid, jobid, testresults)
 

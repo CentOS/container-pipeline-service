@@ -12,7 +12,7 @@
     replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000"'
 
 - name: Restart Docker
-  service: name=docker state=restarted
+  service: name=docker state=restarted enabled=yes
 
 - name: Create openshift shared dirs
   file: name={{item}} state=directory
@@ -31,6 +31,7 @@
     net: host
     volumes: "{{ openshift_volumes }}"
     command: start --master=https://"{{ansible_default_ipv4.address}}":8443 --etcd-dir="{{openshift_etcd_dir}}" --cors-allowed-origins=.*
+    restart_policy: always
   retries: 2
 
 - name: Wait for Openshift to come up

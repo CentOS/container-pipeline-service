@@ -20,8 +20,8 @@ def initparser():
     parser.add_argument("-t",
                         "--testentry",
                         help="Checks a test entry, independent of index.",
-                        metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL'),
-                        nargs=7,
+                        metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL', 'TARGETFILE'),
+                        nargs=8,
                         action="append")
 
     parser.add_argument("-d",
@@ -35,6 +35,13 @@ def initparser():
                         "--indexgiturl",
                         help="Specify the giturl containing your index.yml",
                         metavar='GITURL',
+                        nargs=1,
+                        action="store")
+
+    parser.add_argument("-b",
+                        "--indexgitbranch",
+                        help="Set if you want to the index to be from a branch other than master",
+                        metavar="INDEXGITBRANCH",
                         nargs=1,
                         action="store")
 
@@ -62,6 +69,7 @@ def mainfunc():
     customindexfile = None
     indexentries = None
     testentries = None
+    indexgitbranch = "master"
 
     cmdargs = initparser().parse_args()
 
@@ -75,8 +83,11 @@ def mainfunc():
     if cmdargs.indexgiturl is not None:
         indexgit = cmdargs.indexgiturl[0]
 
+    if cmdargs.indexgitbranch is not None:
+        indexgitbranch = cmdargs.indexgitbranch[0]
+
     if cmdargs.customindexfile is not None:
-        customindexfile = cmdargs.customindexfile
+        customindexfile = cmdargs.customindexfile[0]
 
     if cmdargs.skippass2 is not None:
         skippass2 = cmdargs.skippass2
@@ -94,9 +105,12 @@ def mainfunc():
         testentries = cmdargs.testentry
 
     engine = Engine(datadumpdirectory=datadumpdirectory, indexgit=indexgit, customindexfile=customindexfile,
-                    skippass2=skippass2, specificindexentries=indexentries, testindexentries=testentries)
+                    skippass2=skippass2, specificindexentries=indexentries, testindexentries=testentries,
+                    indexgitbranch=indexgitbranch)
 
-    if not engine.run():
+    status = engine.run()
+
+    if not status:
         exit(1)
 
     return
