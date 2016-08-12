@@ -57,6 +57,7 @@ def split_logs_to_packages(list_logs):
 def test_job_data(job_data):
     msg = ""
     logs = ""
+    json_data = None
     logger.log(level=logging.INFO, msg="Received job data from tube")
     logger.log(level=logging.INFO, msg="Job data: %s" % job_data)
 
