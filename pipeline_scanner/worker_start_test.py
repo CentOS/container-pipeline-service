@@ -181,7 +181,7 @@ def test_job_data(job_data):
             "image": image_full_name,
             "msg": "Container image requires update",
             "logs": json.dumps(json_data),
-            "action": "start_delivery",
+            "action": "complete_schedule_scan",
             "name_space": namespace
         }
     else:
@@ -189,7 +189,7 @@ def test_job_data(job_data):
             "image": image_full_name,
             "msg": "No updates required",
             "logs": "",
-            "action": "start_delivery",
+            "action": "complete_schedule_scan",
             "name_space": namespace
         }
     bs.use("master_tube")
@@ -200,7 +200,7 @@ def test_job_data(job_data):
     )
 
 bs = beanstalkc.Connection(host=BEANSTALKD_HOST)
-bs.watch("start_test")
+bs.watch("start_schedule_scan")
 
 while True:
     try:
