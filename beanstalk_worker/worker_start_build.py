@@ -25,8 +25,8 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-command_path = sys.argv[0]
-logger.log(level=logging.INFO,msg="Getting kubeconfig path"+command_path)
+config_path = "/".join(sys.argv[0].split("/")[:-1])
+logger.log(level=logging.INFO,msg="Getting kubeconfig path"+config_path)
 
 def start_build(job_details):
   try:
@@ -46,7 +46,7 @@ def start_build(job_details):
     #  time.sleep(30)
 
     logger.log(level=logging.INFO, msg="==> Login to openshift server")
-    command = "oc login https://openshift:8443 -u test-admin -p test --config=node.kubeconfig --certificate-authority=ca.crt"
+    command = "oc login https://openshift:8443 -u test-admin -p test --config="+config_path+"/node.kubeconfig --certificate-authority="+config_path+"/ca.crt"
     os.system(command)
   
     logger.log(level=logging.INFO, msg="==> change project to the desired one")
