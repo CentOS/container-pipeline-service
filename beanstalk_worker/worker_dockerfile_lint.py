@@ -3,6 +3,7 @@
 import beanstalkc
 import json
 import logging
+import os
 import subprocess
 import sys
 
@@ -19,7 +20,15 @@ logger.addHandler(ch)
 
 
 def write_dockerfile(dockerfile):
-    with open("/tmp/dockerfile", "w") as f:
+    if os.path.isdir("/tmp/scan"):
+        logger.log(level=logging.INFO, msg="/tmp/scan directory already exists")
+    elif os.path.isfile("/tmp/scan"):
+        os.remove("/tmp/scan")
+        os.makedirs("/tmp/scan")
+    else:
+        os.makedirs("/tmp/scan")
+
+    with open("/tmp/scan/dockerfile", "w") as f:
         f.write(dockerfile)
 
 
@@ -31,14 +40,18 @@ def lint_job_data(job_data):
 
     dockerfile = job_data.get("dockerfile")
 
-    logger.log(level=logging.INFO, msg="Writing Dockerfile to /tmp/dockerfile")
+    logger.log(level=logging.INFO,
+               msg="Writing Dockerfile to /tmp/scan/dockerfile")
     write_dockerfile(dockerfile)
 
     logger.log(level=logging.INFO, msg="Running Dockerfile Lint check")
     out, err = subprocess.Popen(
-        ["dockerfile_lint",
-         "-f", "/tmp/dockerfile",
-         "-r", "default_rules.yaml"],
+        ["docker",
+         "run",
+         "--rm",
+         "-v",
+         "/tmp/scan:/root/scan:Z",
+         "registry.centos.org/dharmit/dockerfile-lint"],
         stdout=subprocess.PIPE
     ).communicate()
     logger.log(level=logging.INFO, msg="Dockerfile Lint check done")
