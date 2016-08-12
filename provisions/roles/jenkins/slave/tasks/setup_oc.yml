@@ -13,6 +13,7 @@
   with_items:
     - {src: /tmp/oc, dest: /usr/bin/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
+    - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
 
 - name: Get openshift build scripts
   get_url:
