@@ -7,7 +7,7 @@ import logging
 import sys
 import time
 
-CENTOS7 = "dev-32-94.lon1.centos.org"
+CENTOS7 = "atomic-scan.vm.centos.org"
 DOCKER_PORT = "4243"
 
 logger = logging.getLogger("container-pipeline")
