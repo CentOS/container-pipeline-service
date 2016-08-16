@@ -64,8 +64,8 @@ def main(yamlfile):
                 )   
                 new_proj= [{'project':{}}]
                 
-                appid = appid.replace('_','-').replace('/','-')
-                jobid = jobid.replace('_','-').replace('/','-')
+                appid = appid.replace('_','-').replace('/','-').replace('.','-')
+                jobid = jobid.replace('_','-').replace('/','-').replace('.','-')
 
                 # overwrite any attributes we care about see: projectify
                 with open(generated_filename, 'w') as outfile:
