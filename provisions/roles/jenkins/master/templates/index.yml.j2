@@ -11,7 +11,7 @@
         - pollscm: "H/10 * * * *" 
     builders:
         - shell: |
-            git clone https://github.com/bamachrn/cccp-service.git
-            cd cccp-service/jenkinsbuilder
+            git clone https://github.com/CentOS/container-pipeline-service.git
+            cd container-pipeline-service/jenkinsbuilder
             python cccp_index_reader.py ../../index.yml
 
