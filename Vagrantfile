@@ -42,7 +42,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider "libvirt" do |libvirt, override|
     libvirt.cpus = 2
-    libvirt.memory = 1024
+    if ALLINONE == 1
+        libvirt.memory = 2048
+    else
+        libvirt.memory = 1024
+    end
     libvirt.driver = 'kvm'
     override.vm.box = "centos/7"
     override.vm.box_download_checksum = "b2a9f7421e04e73a5acad6fbaf4e9aba78b5aeabf4230eebacc9942e577c1e05"
