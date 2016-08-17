@@ -13,6 +13,7 @@ function usage() {
     echo "   TARGET_FILE  Name for the dockerfile to be built"
     echo "   NOTIFY_EMAIL  Email ID to be notified after successful build"
     echo "   DEPENDS_ON  Dependency list for the current image"
+    echo "   DESIRED_TAG  Tag for the final output image like latest"
     exit 0
 }
 
