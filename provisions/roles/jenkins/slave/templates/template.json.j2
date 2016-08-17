@@ -73,6 +73,12 @@
       "value": "20160720085647",
       "required": true
     },
+    {
+      "name": "DESIRED_TAG",
+      "description": "Desired tag for the final image to be pushed in registry.centos.org",
+      "value": "latest",
+      "required": true
+    },
 	{
       "name": "BEANSTALK_SERVER",
       "description": "An url for the server where beanstalkd runs",
@@ -274,7 +280,7 @@
               },
               {
                 "name": "TO",
-                "value": "${TAG}:latest"
+                "value": "${TAG}:${DESIRED_TAG}"
               },
               {
                 "name": "TARGET_REGISTRY",
