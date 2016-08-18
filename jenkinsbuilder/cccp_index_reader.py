@@ -57,7 +57,11 @@ def main(yamlfile):
                 targetfile = project['target-file']
                 dependson = project['depends-on']
                 notifyemail = project['notify-email']
-    		desiredtag = project['desired-tag']
+
+                try:
+                    desiredtag = project['desired-tag'] if (project['desired-tag'] != None) else 'latest'
+                except Exception as e:
+                    desiredtag = 'latest'
 
                 #workdir = os.path.join(t, gitpath)
                 generated_filename = os.path.join(
