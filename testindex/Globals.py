@@ -4,21 +4,23 @@ import os
 class Globals:
     """Contains the stuff that needs to be accessible by everyone"""
 
-    indexGit = "https://github.com/CentOS/container-index.git"
-    indexgitbranch = "master"
-    customIndexFile = None
+    index_git = "https://github.com/CentOS/container-index.git"
+    index_git_branch = "master"
+    index_location = ""
+    custom_index_location = None
 
-    dataDumpDirectory = ""
-    indexDirectory = ""
-    indexFile = ""
-    repoDirectory = ""
-    testsDirectory = ""
+    data_dump_directory = ""
+    index_directory = ""
+    index_file = ""
+    repo_directory = ""
+    tests_directory = ""
 
-    customindexfileindicator = ""
-    previousIndexGitFile = ""
+    custom_index_file_indicator = ""
+    previous_index_git_file = ""
 
-    buildinfo = ""
-    oldenviron = None
+    build_info = ""
+    old_environ = None
+    indexd_indexyml_transformer_path = os.path.abspath("../jenkinsbuilder/indexdindexymltransform.py")
 
     @staticmethod
     def setdatadirectory(value):
@@ -26,13 +28,14 @@ class Globals:
         if not os.path.isabs(value):
             value = os.path.abspath(value)
 
-        Globals.dataDumpDirectory = value
-        Globals.indexDirectory = value + "/index"
-        Globals.indexFile = Globals.indexDirectory + "/index.yml"
-        Globals.repoDirectory = value + "/repos"
-        Globals.testsDirectory = value + "/tests"
-        Globals.customindexfileindicator = value + "/.customindex"
-        Globals.previousIndexGitFile = value + "/.indexgit"
-        Globals.buildinfo = value + "/builds.info"
+        Globals.data_dump_directory = value
+        Globals.index_directory = value + "/index"
+        Globals.index_file = Globals.index_directory + "/index.yml"
+        Globals.index_location = Globals.index_directory + "/index.d"
+        Globals.repo_directory = value + "/repos"
+        Globals.tests_directory = value + "/tests"
+        Globals.custom_index_file_indicator = value + "/.customindex"
+        Globals.previous_index_git_file = value + "/.indexgit"
+        Globals.build_info = value + "/builds.info"
 
         return

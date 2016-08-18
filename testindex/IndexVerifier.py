@@ -6,6 +6,8 @@ import yaml
 import Globals
 import NutsAndBolts
 
+from glob import glob
+
 
 class IndexVerifier:
     """This is the first pass of the system, validating the formatting of the index file."""
@@ -13,34 +15,34 @@ class IndexVerifier:
     def __init__(self):
         """Initialize the verifier"""
 
-        self._logger = NutsAndBolts.Logger(Globals.Globals.dataDumpDirectory + "/index.log")
+        self._logger = NutsAndBolts.Logger(Globals.Globals.data_dump_directory + "/index.log")
 
         return
 
-    def _cleanupIndex(self):
+    def _cleanup_index(self):
         """Cleans up previous index data"""
 
-        shutil.rmtree(Globals.Globals.indexDirectory)
-        os.mkdir(Globals.Globals.indexDirectory)
+        shutil.rmtree(Globals.Globals.index_directory)
+        os.mkdir(Globals.Globals.index_directory)
 
         return
 
-    def _prepareIndex(self):
+    def _prepare_index(self):
         """Prepare the index, by cloning it or copying local index.yml, if specified"""
 
         success = True
 
         # Check if custom index file is specified.
-        if Globals.Globals.customIndexFile is not None:
+        if Globals.Globals.custom_index_location is not None:
 
             # Clean up previous index
-            self._cleanupIndex()
+            self._cleanup_index()
 
             # Tell the tracker what was just done
             NutsAndBolts.Tracker.setCustomIndexUsed(True)
 
             # Copy over specified index to where it should be
-            shutil.copy2(Globals.Globals.customIndexFile, Globals.Globals.indexFile)
+            shutil.copy2(Globals.Globals.custom_index_location, Globals.Globals.index_location)
 
         # Go to the clone index repo way of doing things
         else:
@@ -49,23 +51,23 @@ class IndexVerifier:
 
             # If custom indexfile is used, or the tracker says current indexgit is not the same as previous one
             if NutsAndBolts.Tracker.isCustomIndexUsed() or \
-                            Globals.Globals.indexGit != NutsAndBolts.Tracker.getPreviousIndexGit():
+                            Globals.Globals.index_git != NutsAndBolts.Tracker.getPreviousIndexGit():
 
                 # Clean up previous.
-                self._cleanupIndex()
+                self._cleanup_index()
 
                 # Clone the new index
-                cmd = ["git", "clone", Globals.Globals.indexGit, Globals.Globals.indexDirectory]
-                NutsAndBolts.Tracker.setPreviousIndexGit(Globals.Globals.indexGit)
+                cmd = ["git", "clone", Globals.Globals.index_git, Globals.Globals.index_directory]
+                NutsAndBolts.Tracker.setPreviousIndexGit(Globals.Globals.index_git)
 
                 if not NutsAndBolts.StaticHandler.execcmd(cmd):
                     return False
 
             getback = os.getcwd()
-            os.chdir(Globals.Globals.indexDirectory)
+            os.chdir(Globals.Globals.index_directory)
             cmd = ["git", "fetch", "--all"]
             NutsAndBolts.StaticHandler.execcmd(cmd)
-            checkoutbranch = "origin/" + Globals.Globals.indexgitbranch
+            checkoutbranch = "origin/" + Globals.Globals.index_git_branch
             cmd = ["git", "checkout", checkoutbranch]
             success = NutsAndBolts.StaticHandler.execcmd(cmd)
             cmd = ["git", "pull", "--all"]
@@ -74,139 +76,89 @@ class IndexVerifier:
 
         return success
 
-    def _verifyIndex(self):
+    def _verify_index(self):
         """Does the validation of the index.yml formatting"""
 
         success = True
 
         t = None
-        idlist = []
         containerlist = []
 
         # Load the index data
         indexdata = ""
 
-        # Open the index file, and read it
-        with open(Globals.Globals.indexFile) as indexfile:
-            indexdata = yaml.load(indexfile)
+        self._logger.log(NutsAndBolts.Logger.info, "Checking the index.d files for format errors.")
 
-        # Check if projects entry exists
-        self._logger.log(NutsAndBolts.Logger.info, "Checking if \"Projects\" entry exists...")
+        for ymlfile in glob(Globals.Globals.index_location + "/*.yml"):
 
-        # Only if 'Projects' entry is found we go ahead. Else it is a failure at this stage itself
-        if "Projects" in indexdata.keys():
+            ymldata = ""
+            file_name = os.path.split(ymlfile)[1]
 
-            self._logger.log(NutsAndBolts.Logger.success, "Entry found, proceeding...")
+            if file_name != "index_template.yml":
 
-            # Go through every entry in the project
-            for project in indexdata["Projects"]:
+                with open(ymlfile, "r") as ymldatasource:
 
-                self._logger.log(NutsAndBolts.Logger.info, "Verifying entry : " + str(project))
+                    ymldata = yaml.load(ymldatasource)
 
-                if "id" in project.keys() and project["id"] == "default":
-                    continue
+                for entry in ymldata:
 
-                # Check the ID
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the id field...")
-                if "id" not in project.keys():
+                    # Check for job-id
+                    self._logger.log(NutsAndBolts.Logger.info, "Checking for job id")
+                    if "job-id" not in entry:
 
-                    self._logger.log(NutsAndBolts.Logger.error, "There is no entry for ID")
-                    success = False
-
-                else:
-
-                    value = project["id"]
-
-                    # Check for duplicate id
-                    if value in idlist:
-                        self._logger.log(NutsAndBolts.Logger.error, "Id is duplicate")
+                        self._logger.log(NutsAndBolts.Logger.error, "Missing job-id field.")
                         success = False
 
-                    idlist.append(value)
+                    else:
 
-                # Check the app-id
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the app-id field")
-                if "app-id" not in project.keys():
+                        self._logger.log(NutsAndBolts.Logger.success, "Job-id has been specified.")
+                        containerlist.append(file_name + "/" + entry["job-id"])
 
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing app-id entry")
-                    success = False
+                    # Check git-url
+                    self._logger.log(NutsAndBolts.Logger.info, "Checking for git url")
+                    if "git-url" not in entry:
 
-                else:
+                        self._logger.log(NutsAndBolts.Logger.error, "Missing git-url field")
+                        success = False
 
-                    value = project["app-id"]
-                    t = value
+                    else:
 
-                # Check job-id
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the job-id field")
-                if "job-id" not in project.keys():
+                        self._logger.log(NutsAndBolts.Logger.success, "Git url has been specified.")
 
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing job-id entry")
-                    success = False
+                    # Check git-path
+                    self._logger.log(NutsAndBolts.Logger.info, "Checking for git path")
+                    if "git-path" not in entry:
 
-                else:
+                        self._logger.log(NutsAndBolts.Logger.error, "Git path has not been specified")
+                        success = False
 
-                    value = project["job-id"]
+                    else:
 
-                    if t is not None:
-                        t += "/" + str(value)
-                        containerlist.append(t)
+                        self._logger.log(NutsAndBolts.Logger.success, "Git path has been specified")
 
-                # Check the git url
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the git-url field")
-                if "git-url" not in project.keys():
+                    # Check git-branch
+                    self._logger.log(NutsAndBolts.Logger.info, "Checking git branch")
+                    if "git-branch" not in entry:
 
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing git-url entry")
-                    success = False
+                        self._logger.log(NutsAndBolts.Logger.error, "Git branch has not been specified")
+                        success = False
 
-                # Check git-path
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the git-path field")
-                if "git-path" not in project.keys():
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing git-path entry")
-                    success = False
+                    else:
 
-                # Check git branch
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the git-branch field")
-                if "git-branch" not in project.keys():
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing git branch entry")
-                    success = False
+                        self._logger.log(NutsAndBolts.Logger.success, "Git branch has been specified.")
 
-                # Check notify email
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the notify-email field")
-                if "notify-email" not in project.keys():
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing notify-email entry")
-                    success = False
+                    # Check notify email
+                    self._logger.log(NutsAndBolts.Logger.info, "Checking notify email")
+                    if "notify-email" not in entry:
 
-                # Check for target-file entry
-                self._logger.log(NutsAndBolts.Logger.info, "Checking for target-file field")
-                if "target-file" not in project.keys():
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing target-file entry")
-                    success = False
+                        self._logger.log(NutsAndBolts.Logger.error, "Notify email has not been specified.")
+                        success = False
 
-                # Check depends on
-                self._logger.log(NutsAndBolts.Logger.info, "Checking the depends-on field")
-                if "depends-on" not in project.keys():
+                    else:
 
-                    self._logger.log(NutsAndBolts.Logger.error, "Missing depends-on entry")
-                    success = False
+                        self._logger.log(NutsAndBolts.Logger.success, "Notify email has been specified.")
 
-                else:
-
-                    valuel = project["depends-on"]
-
-                    if valuel is not None:
-
-                        for item in valuel:
-
-                            if item not in containerlist:
-                                self._logger.log(NutsAndBolts.Logger.error,
-                                                 "Dependency " + item + " missing or not above this item in list")
-
-        else:
-
-            self._logger.log(NutsAndBolts.Logger.error, "Index file doesnt contain Projects entry at top level, failed")
-            success = False
-
-        return success
+            return success
 
     def run(self):
         """Runs the Index Verifier"""
@@ -214,10 +166,10 @@ class IndexVerifier:
         self._logger.log(NutsAndBolts.Logger.info, "Preparing the index...")
 
         # If index can be prepared, only then go ahead with parsing, else failure at this stage itself
-        if self._prepareIndex():
+        if self._prepare_index():
 
             self._logger.log(NutsAndBolts.Logger.info, "Verifying index formatting...")
-            return self._verifyIndex()
+            return self._verify_index()
 
         else:
 

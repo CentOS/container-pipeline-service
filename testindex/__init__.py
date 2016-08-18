@@ -10,20 +10,6 @@ def initparser():
 
     parser = ArgumentParser(description="This script checks for errors in cccp entries.")
 
-    parser.add_argument("-i",
-                        "--indexentry",
-                        help="Checks a specific index entry.",
-                        metavar='ID',
-                        nargs=1,
-                        action="append")
-
-    parser.add_argument("-t",
-                        "--testentry",
-                        help="Checks a test entry, independent of index.",
-                        metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL', 'TARGETFILE'),
-                        nargs=8,
-                        action="append")
-
     parser.add_argument("-d",
                         "--datadumpdirectory",
                         help="Specify your own dump directory for test data such as index, repos and logs",
@@ -47,7 +33,7 @@ def initparser():
 
     parser.add_argument("-c",
                         "--customindexfile",
-                        help="Specify a custom index.yml file which is locally available",
+                        help="Specify a custom index.d path which is locally available",
                         metavar='INDEXPATH',
                         nargs=1,
                         action="store")
@@ -67,18 +53,11 @@ def mainfunc():
     datadumpdirectory = None
     indexgit = None
     customindexfile = None
-    indexentries = None
-    testentries = None
     indexgitbranch = "master"
 
     cmdargs = initparser().parse_args()
 
     # Set up the parameters to Engine, based on argument parsing.
-
-    if cmdargs.indexgiturl is not None and cmdargs.customindexfile is not None:
-        Logger().log(Logger.error,
-                     "indexgiturl and customindexfile are mutually exclusive. So please specify either one")
-        exit(5)
 
     if cmdargs.indexgiturl is not None:
         indexgit = cmdargs.indexgiturl[0]
@@ -95,18 +74,8 @@ def mainfunc():
     if cmdargs.datadumpdirectory is not None:
         datadumpdirectory = cmdargs.datadumpdirectory[0]
 
-    if cmdargs.indexentry is not None:
-
-        indexentries = []
-        for item in cmdargs.indexentry:
-            indexentries.append(int(item[0]))
-
-    if cmdargs.testentry is not None:
-        testentries = cmdargs.testentry
-
-    engine = Engine(datadumpdirectory=datadumpdirectory, indexgit=indexgit, customindexfile=customindexfile,
-                    skippass2=skippass2, specificindexentries=indexentries, testindexentries=testentries,
-                    indexgitbranch=indexgitbranch)
+    engine = Engine(datadumpdirectory=datadumpdirectory, indexgit=indexgit, custom_index_file=customindexfile,
+                    skippass2=skippass2, indexgitbranch=indexgitbranch)
 
     status = engine.run()
 
