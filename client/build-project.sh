@@ -30,7 +30,7 @@ TARGET_FILE=$6
 NOTIFY_EMAIL=$7
 DEPENDS_ON=$8
 TEST_TAG=`date +"%Y%m%d%H%M%S"`
-DESIRED_TAG=$8
+DESIRED_TAG=$9
 
 [ "${NAME}" == "" ] || [ "${NAME}" == "-h" ] || [ "${NAME}" == "--help" ] && usage
 [ "${TAG}" == "" ] && usage
