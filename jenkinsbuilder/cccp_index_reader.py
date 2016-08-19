@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import warnings
 import sys
+from indexdindexymltransform import IndexGenerator
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -35,8 +36,13 @@ def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,depen
     new_project[0]['project']['notify_email'] = notifyemail
     return new_project
 
-def main(yamlfile):
-    stream = open(yamlfile,'r')
+def main(indexdlocation):
+
+    # Convert index.d to index.yml
+    yamlfile = os.path.abspath("./index.yml")
+    IndexGenerator(indexdpath=indexdlocation, indexyml=yamlfile, reverse=False).run()
+
+    stream = open(yamlfile, 'r')
     index_yaml = yaml.load(stream)
     stream.close()
     #print index_yaml['Projects']
