@@ -4,11 +4,15 @@ import beanstalkc
 import docker
 import json
 import logging
+import os
+import subprocess
 import sys
-import time
 
-CENTOS7 = "atomic-scan.vm.centos.org"
+from Atomic import Atomic, mount
+
+DOCKER_HOST = "atomic-scan.vm.centos.org"
 DOCKER_PORT = "4243"
+BEANSTALKD_HOST = "openshift"
 
 logger = logging.getLogger("container-pipeline")
 logger.setLevel(logging.DEBUG)
@@ -21,14 +25,19 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+# set blank values so that they can be used later to clean environment
+
+image_id = ""
+image_rootfs_path = ""
+
 try:
     # docker client connection to CentOS 7 system
-    conn_c7 = docker.Client(base_url="tcp://%s:%s" % (
-        CENTOS7, DOCKER_PORT
+    conn = docker.Client(base_url="tcp://%s:%s" % (
+        DOCKER_HOST, DOCKER_PORT
     ))
-    conn_c7.ping()
-    logger.log(level=logging.INFO, msg="Connected to remote docker host %s:%s" %
-               (CENTOS7, DOCKER_PORT))
+    # conn.ping()
+    # logger.log(level=logging.INFO, msg="Connected to remote docker host %s:%s" %
+    #            (CENTOS7, DOCKER_PORT))
 except Exception as e:
     logger.log(level=logging.FATAL, msg="Error connecting to Docker daemon.")
 
@@ -48,6 +57,7 @@ def split_logs_to_packages(list_logs):
 def test_job_data(job_data):
     msg = ""
     logs = ""
+    json_data = None
     logger.log(level=logging.INFO, msg="Received job data from tube")
     logger.log(level=logging.INFO, msg="Job data: %s" % job_data)
 
@@ -64,53 +74,114 @@ def test_job_data(job_data):
         job_data.get("tag")
 
     logger.log(level=logging.INFO, msg="Pulling image %s" % image_full_name)
-    pull_data = conn_c7.pull(
+    pull_data = conn.pull(
         repository=image_full_name
     )
 
     if 'error' in pull_data:
         logger.log(level=logging.FATAL, msg="Couldn't pull requested image")
         logger.log(level=logging.FATAL, msg=pull_data)
-        sys.exit(1)
+        raise
+
+    # logger.log(level=logging.INFO,
+    #            msg="Creating container for image %s" % image_full_name)
+
+    # container = conn.create_container(image=image_full_name,
+    #                                      command="yum -q check-update")
+
+    atomic_object = Atomic()
+    # get the SHA ID of the image.
+    image_id = atomic_object.get_input_id(image_full_name)
+    image_rootfs_path = os.path.join("/", image_id)
+
+    # create a directory /<image_id> where we'll mount image's rootfs
+    os.makedirs(image_rootfs_path)
+
+    # configure options before mounting the image rootfs
+    logger.log(level=logging.INFO,
+               msg="Setting up system to mount image's rootfs")
+    mount_object = mount.Mount()
+    mount_object.mountpoint = image_rootfs_path
+    mount_object.image = image_id
+    # mount the rootfs in read-write mode. else yum will fail
+    mount_object.options = ["rw"]
 
     logger.log(level=logging.INFO,
-               msg="Creating container for image %s" % image_full_name)
+               msg="Mounting rootfs %s on %s" % (image_id, image_rootfs_path))
 
-    container = conn_c7.create_container(image=image_full_name,
-                                         command="yum -q check-update")
-    logger.log(level=logging.INFO,
-               msg="Created container with ID: %s" % container.get('Id'))
-
-    conn_c7.start(container=container.get('Id'))
+    mount_object.mount()
 
     logger.log(level=logging.INFO,
-               msg="Started container with ID: %s" % container.get('Id'))
+               msg="Successfully mounted image's rootfs")
 
-    time.sleep(10)
-    logs = conn_c7.logs(container=container.get('Id'))
-    if logs != "":
-        list_logs = logs.split("\n")
-        package_list = split_logs_to_packages(list_logs)
-        msg = "Image has package updates. Recommend updating the image"
-        logger.log(level=logging.WARN, msg=msg)
-        logger.log(level=logging.INFO, msg=str(package_list))
+    cmd = "atomic scan --scanner=%s --rootfs=%s %s" % \
+        ("pipeline-scanner", image_rootfs_path, image_id)
 
-    logger.log(level=logging.INFO, msg="Stopping test container")
-    conn_c7.stop(container=container.get('Id'))
+    logger.log(level=logging.INFO,
+               msg="Executing atomic scan: %s" % cmd)
 
-    logger.log(level=logging.INFO, msg="Removing the test container")
-    conn_c7.remove_container(container=container.get('Id'), force=True)
+    process = subprocess.Popen([
+        'atomic',
+        'scan',
+        "--scanner=pipeline-scanner",
+        "--rootfs=%s" % image_rootfs_path,
+        "%s" % image_id
+    ], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    out, err = process.communicate()
+
+    # logger.log(level=logging.INFO,
+    #            msg="Created container with ID: %s" % container.get('Id'))
+
+    # conn.start(container=container.get('Id'))
+
+    # logger.log(level=logging.INFO,
+    #            msg="Started container with ID: %s" % container.get('Id'))
+
+    # time.sleep(10)
+    # logs = conn.logs(container=container.get('Id'))
+
+    # logger.log(level=logging.INFO, msg="Stopping test container")
+    # conn.stop(container=container.get('Id'))
+
+    # logger.log(level=logging.INFO, msg="Removing the test container")
+    # conn.remove_container(container=container.get('Id'), force=True)
+
+    if out != "":
+        # TODO: hacky and ugly. figure a better way
+        output_json_file = os.path.join(
+            out.strip().split()[-1].split('.')[0],
+            "_%s" % image_rootfs_path.split('/')[1],
+            "image_scan_results.json"
+        )
+
+        if os.path.exists(output_json_file):
+            json_data = json.loads(open(output_json_file).read())
+        else:
+            logger.log(level=logging.FATAL,
+                       msg="No scan results found at %s" % output_json_file)
+            raise
+    else:
+        logs = ""
+
+    logger.log(level=logging.INFO,
+               msg="Unmounting image's rootfs from %s" % image_rootfs_path)
+
+    mount_object.unmount()
+
+    os.rmdir(image_rootfs_path)
 
     logger.log(level=logging.INFO, msg="Removing the image %s" % image_full_name)
-    conn_c7.remove_image(image=image_full_name, force=True)
+    conn.remove_image(image=image_full_name, force=True)
 
     logger.log(level=logging.INFO, msg="Finished test...")
 
-    if msg != "" and logs != "":
+    # if msg != "" and logs != "":
+    if json_data != None:
         d = {
             "image": image_full_name,
-            "msg": msg,
-            "logs": package_list,
+            "msg": "Container image requires update",
+            "logs": json.dumps(json_data),
             "action": "start_delivery",
             "name_space": namespace
         }
@@ -126,10 +197,10 @@ def test_job_data(job_data):
     jid = bs.put(json.dumps(d))
     logger.log(
         level=logging.INFO,
-        msg="Put job on 'start_deliver' tube with id: %d" % jid
+        msg="Put job on master tube with id: %d" % jid
     )
 
-bs = beanstalkc.Connection(host="openshift")
+bs = beanstalkc.Connection(host=BEANSTALKD_HOST)
 bs.watch("start_test")
 
 while True:
