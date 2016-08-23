@@ -51,7 +51,7 @@ def lint_job_data(job_data):
          "--rm",
          "-v",
          "/tmp/scan:/root/scan:Z",
-         "registry.centos.org/dharmit/dockerfile-lint"],
+         "registry.centos.org/pipeline-images/dockerfile-lint"],
         stdout=subprocess.PIPE
     ).communicate()
     logger.log(level=logging.INFO, msg="Dockerfile Lint check done")
