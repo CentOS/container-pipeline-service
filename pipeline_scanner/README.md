@@ -7,13 +7,13 @@ Steps to use:
 - Pull Docker image from **registry.centos.org**:
 
 ```
-$ docker pull registry.centos.org/dharmit/pipeline-scanner
+$ docker pull registry.centos.org/pipeline-images/pipeline-scanner
 ```
 
 - Install it using `atomic`:
 
 ```
-    $ atomic install registry.centos.org/dharmit/pipeline-scanner
+    $ atomic install registry.centos.org/pipeline-images/pipeline-scanner
 ```
 
 - Mount the image's rootfs because by default `atomic scan` would mount it in
