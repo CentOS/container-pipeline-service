@@ -9,12 +9,6 @@
     tags:
       - nginx
 
-  - name: Install httpd-tools
-    sudo: yes
-    yum: name=httpd-tools state=present
-    tags:
-      - nginx
-
   - name: Copy SSL certs
     sudo: yes
     template: src={{ item.src }} dest={{ item.dest }}
