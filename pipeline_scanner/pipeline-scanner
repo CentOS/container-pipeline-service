@@ -2,7 +2,6 @@ type: scanner
 scanner_name: pipeline-scanner
 image_name: registry.centos.org/pipeline-images/pipeline-scanner
 default_scan: redhat-release
-custom_args: ['-v', '/var/run/docker.sock:/var/run/docker.sock']
 scans: [
   { name: redhat-release,
     args: ['python', 'scanner.py', 'release'],
