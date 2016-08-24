@@ -14,7 +14,7 @@ optional_attrs = ['rundotshargs']
 overwritten_attrs = ['jobname', 'git_url', 'ci_project', 'jobs']
 
 
-def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail):
+def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail,desiredtag):
     new_project[0]['project']['namespace'] = appid
     new_project[0]['project']['jobname'] = jobid
     new_project[0]['project']['ci_project'] = appid
@@ -33,6 +33,7 @@ def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,depen
     new_project[0]['project']['target_file'] = targetfile
     new_project[0]['project']['depends_on'] = dependson
     new_project[0]['project']['notify_email'] = notifyemail
+    new_project[0]['project']['desired_tag'] = desiredtag
     return new_project
 
 def main(yamlfile):
@@ -56,7 +57,12 @@ def main(yamlfile):
                 targetfile = project['target-file']
                 dependson = project['depends-on']
                 notifyemail = project['notify-email']
-    		
+
+                try:
+                    desiredtag = project['desired-tag'] if (project['desired-tag'] != None) else 'latest'
+                except Exception as e:
+                    desiredtag = 'latest'
+
                 #workdir = os.path.join(t, gitpath)
                 generated_filename = os.path.join(
                     t,
@@ -69,7 +75,7 @@ def main(yamlfile):
 
                 # overwrite any attributes we care about see: projectify
                 with open(generated_filename, 'w') as outfile:
-                    yaml.dump(projectify(new_proj,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail), outfile)
+                    yaml.dump(projectify(new_proj,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail,desiredtag), outfile)
 
                 # run jenkins job builder
                 myargs = ['jenkins-jobs',

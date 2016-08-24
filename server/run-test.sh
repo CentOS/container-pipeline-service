@@ -34,7 +34,7 @@ _ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
 
 NS=${TARGET_NAMESPACE}-${TAG}
-OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
+OUTPUT_IMAGE=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
 
 _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #if [ -n "${FULL_TO}" ] || [ -s "/root/.dockercfg" ]; then
