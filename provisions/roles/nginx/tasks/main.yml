@@ -11,7 +11,7 @@
 
   - name: Install httpd-tools
     sudo: yes
-    yum: name=https-tools state=present
+    yum: name=httpd-tools state=present
     tags:
       - nginx
 
