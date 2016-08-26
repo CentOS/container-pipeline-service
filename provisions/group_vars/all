@@ -1,3 +1,4 @@
 ---
 vagrant: False
 rsync_ssh_opts: ""
+test: false

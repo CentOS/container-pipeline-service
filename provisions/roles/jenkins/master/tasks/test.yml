@@ -1,0 +1,18 @@
+- name: Run cccp-index job
+  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build cccp-index --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }}
+  when: test
+  sudo: yes
+
+- name: Wait for test job to create
+  shell:  java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} list-jobs
+  register: result
+  until: result.stdout.find("bamachrn-python") != -1
+  retries: 50
+  delay: 10
+  when: test
+  sudo: yes
+
+- name: Run bamachrn-python job
+  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build bamachrn-python --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }}
+  when: test
+  sudo: yes
