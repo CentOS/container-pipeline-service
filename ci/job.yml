@@ -45,7 +45,7 @@
     name: custom-scm-git
     scm:
         - git:
-            url: https://github.com/centos/container-pipeline-service.git
+            url: https://github.com/rtnpro/container-pipeline-service.git
             git-tool: ci-git
             wipe-workspace: false
             skip-tag: true
@@ -62,7 +62,7 @@
     ci_project: container
     properties:
         - github:
-            url: https://github.com/centos/container-pipeline-service/
+            url: https://github.com/rtnpro/container-pipeline-service/
     builders:
         - centos-cccp-ansible-ci-builders
     publishers:
@@ -88,7 +88,7 @@
               condition: 'ALWAYS'
     scm:
         - git:
-            url: https://github.com/centos/container-pipeline-service
+            url: https://github.com/rtnpro/container-pipeline-service
             skip-tag: true
             branch: master
     triggers:
