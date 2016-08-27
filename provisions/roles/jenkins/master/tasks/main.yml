@@ -39,8 +39,3 @@
   tags:
     - jenkins
     - monitor
-
-- include: test.yml
-  when: test
-  tags:
-    - test

@@ -54,3 +54,10 @@
   tags:
     - openshift
     - jenkins/slaves
+
+- name: Run jobs on CI
+  hosts: jenkins_master
+  roles:
+      - jenkins/ci
+  tags:
+    - test
