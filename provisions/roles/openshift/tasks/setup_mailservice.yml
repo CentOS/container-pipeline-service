@@ -4,6 +4,7 @@
       name: mail-server
       image: mail-server
       state: absent
+  ignore_errors: true
 
 - name: Build mail server image
   shell: docker build -t mail-server -f ./Dockerfile.mailserv .
