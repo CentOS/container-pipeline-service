@@ -27,6 +27,11 @@ repo_branch = os.environ.get('ghprbSourceBranch') or \
     os.environ.get('ghprbTargetBranch') or 'master'
 
 
+def _print(msg):
+    print msg
+    sys.stdout.flush()
+
+
 def get_nodes(ver="7", arch="x86_64", count=4):
     get_nodes_url = "%s/Node/get?key=%s&ver=%s&arch=%s&count=%s" % (
         url_base, api, ver, arch, count)
@@ -36,7 +41,7 @@ def get_nodes(ver="7", arch="x86_64", count=4):
     with open('env.properties', 'a') as f:
         f.write('DUFFY_SSID=%s' % data['ssid'])
         f.close()
-    sys.stdout.write(resp)
+    _print(resp)
     return data['hosts']
 
 
@@ -142,10 +147,10 @@ def test_if_openshift_builds_are_running(host):
     while retries < 100 and success is False:
         if retries > 0:
             time.sleep(60)
-        sys.stdout.write("Retries: %d/100" % retries)
+        _print("Retries: %d/100" % retries)
         try:
             output = subprocess.check_output(_cmd, shell=True)
-            sys.stdout.write(output)
+            _print(output)
             lines = output.splitlines()
             pods = set([line.split()[0] for line in lines[1:]])
             success = pods == set(
@@ -158,13 +163,13 @@ def test_if_openshift_builds_are_running(host):
         retries += 1
     if success is False:
         raise Exception("Openshift builds not running.")
-    sys.stdout.write("Openshift builds running successfully.")
+    _print("Openshift builds running successfully.")
 
 
 def test_if_openshift_builds_persist(host):
-    sys.stdout.write("=" * 30)
-    sys.stdout.write("Test if openshift builds persist after reprovision")
-    sys.stdout.write("=" * 30)
+    _print("=" * 30)
+    _print("Test if openshift builds persist after reprovision")
+    _print("=" * 30)
     cmd = (
         "oc login https://openshift:8443 --insecure-skip-tls-verify=true "
         "-u test-admin -p test > /dev/null && "
@@ -177,14 +182,14 @@ def test_if_openshift_builds_persist(host):
         "'{cmd}'"
     ).format(user='root', cmd=cmd, host=host)
     output = subprocess.check_output(_cmd, shell=True)
-    sys.stdout.write(output)
+    _print(output)
     lines = output.splitlines()
     pods = set([line.split()[0] for line in lines[1:]])
     success = pods == set(
         ['build-1-build', 'delivery-1-build', 'test-1-build'])
     if success is False:
         raise Exception("Openshift builds did not persist after re provision.")
-    sys.stdout.write("Openshift builds persited after re provision.")
+    _print("Openshift builds persited after re provision.")
 
 
 def run():
