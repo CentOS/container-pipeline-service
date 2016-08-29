@@ -21,6 +21,11 @@ ver = "7"
 arch = "x86_64"
 count = 4
 
+repo_url = os.environ.get('ghprbAuthorRepoGitUrl') or \
+    os.environ.get('GIT_URL')
+repo_branch = os.environ.get('ghprbSourceBranch') or \
+    os.environ.get('ghprbTargetBranch') or 'master'
+
 
 def get_nodes(ver="7", arch="x86_64", count=4):
     get_nodes_url = "%s/Node/get?key=%s&ver=%s&arch=%s&count=%s" % (
@@ -70,19 +75,23 @@ openshift
 
 [all:vars]
 public_registry= {jenkins_slave_host}
-jenkins_private_key_file = jenkins.key
-jenkins_public_key_file = jenkins.key.pub
-cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 copy_ssl_certs=true
 openshift_startup_delay=150
 beanstalk_server=openshift
 test=true
+cccp_source_repo={repo_url}
+cccp_source_branch={repo_branch}
+jenkins_public_key_file = jenkins.key.pub
 
 [jenkins_master:vars]
+jenkins_private_key_file = jenkins.key
+cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 oc_slave={jenkins_slave_host}""").format(
         jenkins_master_host=jenkins_master_host,
         jenkins_slave_host=jenkins_slave_host,
-        openshift_host=openshift_host)
+        openshift_host=openshift_host,
+        repo_url=repo_url,
+        repo_branch=repo_branch)
 
     with open('hosts', 'w') as f:
         f.write(ansible_inventory)
@@ -97,7 +106,7 @@ def setup_controller(controller):
 
     run_cmd(
         "yum install -y git epel-release && "
-        "yum install -y ansible1.9 python2-jenkins-job-builder",
+        "yum install -y ansible python2-jenkins-job-builder",
         host=controller)
 
     run_cmd(
