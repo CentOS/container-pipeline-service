@@ -16,4 +16,4 @@
       name: mail-server
       state: started
       image: mail-server
-      restart_policy: always
+      restart_policy: unless-stopped
