@@ -24,26 +24,26 @@
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/beanstalk_worker/node.kubeconfig}
 
 - name: Get openshift build scripts
-  get_url:
-    url: "{{ item }}"
+  copy:
+    src: "{{ item }}"
     dest: /opt/cccp-service/beanstalk_worker
     mode: u+x
   with_items:
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/beanstalkc.py
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_build.py
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/DependencyChecker.py
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_test.py
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_dispatcher.py
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_delivery.py
+    - ../beanstalk_worker/beanstalkc.py
+    - ../beanstalk_worker/worker_start_build.py
+    - ../beanstalk_worker/DependencyChecker.py
+    - ../beanstalk_worker/worker_start_test.py
+    - ../beanstalk_worker/worker_dispatcher.py
+    - ../beanstalk_worker/worker_start_delivery.py
   when: not vagrant
 
 - name: Get service files for workers
-  get_url:
-    url: "{{ item.src }}"
+  copy:
+    src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items:
-    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-build-worker.service", dest: /etc/systemd/system/cccp-build-worker.service}
-    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
-    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-delivery-worker.service", dest: /etc/systemd/system/cccp-delivery-worker.service}
-    - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-dispatcher-worker.service", dest: /etc/systemd/system/cccp-dispatcher-worker.service}
+    - {src: "../beanstalk_worker/cccp-build-worker.service", dest: /etc/systemd/system/cccp-build-worker.service}
+    - {src: "../beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
+    - {src: "../beanstalk_worker/cccp-delivery-worker.service", dest: /etc/systemd/system/cccp-delivery-worker.service}
+    - {src: "../beanstalk_worker/cccp-dispatcher-worker.service", dest: /etc/systemd/system/cccp-dispatcher-worker.service}
 
