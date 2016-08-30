@@ -1,8 +1,8 @@
 ---
-- name: Install Docker registry
-  yum: name=docker-registry state=present
+- name: Install Docker distribution
+  yum: name=docker-distribution state=present
   sudo: yes
 
-- name: Enable and run Docker registry
-  service: name=docker-registry enabled=yes state=started
+- name: Enable and run Docker Distribution
+  service: name=docker-distribution enabled=yes state=started
   sudo: yes
