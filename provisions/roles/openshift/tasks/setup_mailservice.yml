@@ -1,10 +1,14 @@
 ---
 - name: Stop Mail Service
-  docker:
-      name: mail-server
-      image: mail-server
-      state: absent
+  shell: docker rm -f mail-server
+  register: result
+  until: result['rc'] == 0 or result['stderr'].find('No such container') >= 0
+  retries: 10
+  delay: 10
   ignore_errors: true
+
+- name: Print result
+  debug: msg="Result= {{ result }}"
 
 - name: Build mail server image
   shell: docker build -t mail-server -f ./Dockerfile.mailserv .
