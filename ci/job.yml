@@ -1,5 +1,5 @@
 - builder:
-    name: centos-cccp-ansible-ci-builders
+    name: centos-container-pipeline-service-ci-builders
     builders:
         - shell:
             !include-raw './setup_env.sh'
@@ -9,7 +9,7 @@
             !include-raw './cccp_ci.py'
 
 - builder:
-    name: centos-cccp-ansible-ci-cleanup-builders
+    name: centos-container-pipeline-service-ci-cleanup-builders
     builders:
         - python:
             !include-raw './cccp_ci_cleanup.py'
@@ -45,7 +45,7 @@
     name: custom-scm-git
     scm:
         - git:
-            url: https://github.com/rtnpro/container-pipeline-service.git
+            url: https://github.com/CentOS/container-pipeline-service.git
             git-tool: ci-git
             wipe-workspace: false
             skip-tag: true
@@ -57,17 +57,17 @@
                 - "${sha1}"
 
 - job:
-    name: 'centos-cccp-ansible-ci-pr'
+    name: 'centos-container-pipeline-service-ci-pr'
     node: container
     ci_project: container
     properties:
         - github:
-            url: https://github.com/rtnpro/container-pipeline-service/
+            url: https://github.com/CentOS/container-pipeline-service/
     builders:
-        - centos-cccp-ansible-ci-builders
+        - centos-container-pipeline-service-ci-builders
     publishers:
         - trigger-parameterized-builds:
-            - project: 'centos-cccp-ansible-ci-cleanup'
+            - project: 'centos-container-pipeline-service-ci-cleanup'
               property-file: 'env.properties'
               condition: 'ALWAYS'
     scm:
@@ -76,27 +76,27 @@
         - custom-trigger
 
 - job:
-    name: 'centos-cccp-ansible-ci-master'
+    name: 'centos-container-pipeline-service-ci-master'
     node: container
     primary-view: container
     builders:
-        - centos-cccp-ansible-ci-builders
+        - centos-container-pipeline-service-ci-builders
     publishers:
         - trigger-parameterized-builds:
-            - project: 'centos-cccp-ansible-ci-cleanup'
+            - project: 'centos-container-pipeline-service-ci-cleanup'
               property-file: 'env.properties'
               condition: 'ALWAYS'
     scm:
         - git:
-            url: https://github.com/rtnpro/container-pipeline-service
+            url: https://github.com/CentOS/container-pipeline-service
             skip-tag: true
             branch: master
     triggers:
         - pollscm: "0 0 * * * *"
 
 - job:
-    name: 'centos-cccp-ansible-ci-cleanup'
+    name: 'centos-container-pipeline-service-ci-cleanup'
     node: container
     ci_project: container
     builders:
-        - centos-cccp-ansible-ci-cleanup-builders
+        - centos-container-pipeline-service-ci-cleanup-builders

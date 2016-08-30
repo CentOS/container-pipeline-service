@@ -116,12 +116,12 @@ def setup_controller(controller):
 
     run_cmd(
         "scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r "
-        "./ root@%s:/root/centos-cccp-ansible" % controller)
+        "./ root@%s:/root/container-pipeline-service" % controller)
 
 
 def provision(controller):
     run_cmd(
-        "cd /root/centos-cccp-ansible && "
+        "cd /root/container-pipeline-service && "
         "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts -u root "
         "--private-key=/root/.ssh/id_rsa provisions/vagrant.yml",
         host=controller)
