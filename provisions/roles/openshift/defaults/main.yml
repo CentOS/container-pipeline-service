@@ -1,5 +1,5 @@
 ---
-origin_image_name: openshift/origin:v1.1.3
+origin_image_name: openshift/origin:v1.2.1
 origin_dir: /var/lib/origin
 
 openshift_volumes_dir: /var/lib/origin/openshift.local.volumes

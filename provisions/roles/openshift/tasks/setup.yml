@@ -2,7 +2,7 @@
 - name: Setup openshift registry
   command: "{{item}}"
   with_items:
-    - oadm registry --create --credentials={{ openshift_dir }}/openshift-registry.kubeconfig
+    - oadm registry -n default --config={{ openshift_dir }}/admin.kubeconfig
     - oadm policy add-scc-to-group anyuid system:authenticated
   environment:
     KUBECONFIG: "{{ kubeconfig }}"
