@@ -1,0 +1,51 @@
+
+- trigger:
+    name: githubprb
+    triggers:
+      - github-pull-request:
+          admin-list:
+              - rtnpro
+              - kbsingh
+              - bamachrn
+              - mohammedzee1000
+          cron: '* * * * *'
+          github-hooks: false
+          permit-all: false
+          trigger-phrase: '.*test.*'
+          allow-whitelist-orgs-as-admins: true
+
+- scm:
+    name: git-scm
+    scm:
+        - git:
+            url: "{git_url}"
+            skip-tag: True
+            git-tool: ci-git
+            branches:
+                - 'master'
+
+- job:
+    name: cccp-container-index
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    wrappers:
+        - ansicolor
+    scm:
+        - git-scm:
+            git_url: https://github.com/CentOS/container-index.git
+    builders:
+        - shell: |
+            # copied from the devtools repo
+            set +e
+            export CICO_API_KEY=$(cat ~/duffy.key )
+            read CICO_hostname CICO_ssid <<< $(cico node get -f value -c ip_address -c comment)
+            sshopts="-t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
+            ssh_cmd="ssh $sshopts $CICO_hostname"
+            $ssh_cmd yum -y install rsync git PyYAML
+            rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
+            $ssh_cmd git clone https://github.com/CentOS/container-pipeline-service.git 
+            $ssh_cmd /usr/bin/python container-pipeline-service/testindex/__init__.py  -c payload/index.yml
+            rtn_code=$?
+            cico node done $CICO_ssid
+            exit $rtn_code
