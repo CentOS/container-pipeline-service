@@ -13,44 +13,44 @@ from NutsAndBolts import StaticHandler, Logger
 class ValidateEntry:
     """This class runs tests on a single entry"""
 
-    def __init__(self, tid, appid, jobid, giturl, gitpath, gitbranch, notifyemail, targetfile):
+    def __init__(self, appid, jobid, giturl, git_path, gitbranch, notifyemail, targetfile):
 
-        if not gitpath.startswith("/"):
-            gitpath = "/" + gitpath
+        if not git_path.startswith("/"):
+            git_path = "/" + git_path
 
-        if not gitpath.endswith("/"):
-            gitpath += "/"
+        if not git_path.endswith("/"):
+            git_path += "/"
 
-        fnm = str(tid) + "_" + appid + "_" + jobid
-        self._gitReposlocation = Globals.repoDirectory
+        fnm = appid + "_" + jobid
+        self._git_repos_location = Globals.repo_directory
 
-        self._testLogFile = Globals.testsDirectory + "/" + fnm + ".log"
-        self._logger = Logger(self._testLogFile)
+        self._test_og_File = Globals.tests_directory + "/" + fnm + ".log"
+        self._logger = Logger(self._test_og_File)
 
-        self._id = tid
-        self._appId = appid
-        self._jobId = jobid
-        self._gitURL = giturl
-        self._gitPath = gitpath
-        self._gitBranch = gitbranch
-        self._notifyEmail = notifyemail
-        self._targetfile = targetfile
+        self._app_id = appid
+        self._job_id = jobid
+        self._git_url = giturl
+        self._git_path = git_path
+        self._git_branch = gitbranch
+        self._notify_email = notifyemail
+        self._target_file = targetfile
 
         t = ""
 
         # The repos will be cloned into this location
-        t = self._gitURL.split(":")[1]
+        if ":" in self._git_url:
+            t = self._git_url.split(":")[1]
         if t.startswith("//"):
             t = t[2:]
 
-        self._gitCloneLocation = self._gitReposlocation + "/" + t
+        self._git_clone_location = self._git_repos_location + "/" + t
 
         # The location in the git repo against which the tests are to be run
-        self._cccp_test_dir = self._gitCloneLocation + self._gitPath
+        self._cccp_test_dir = self._git_clone_location + self._git_path
 
-        self._testData = {
-            "clone-path": self._gitCloneLocation,
-            "git-path": self._gitPath,
+        self._test_data = {
+            "clone-path": self._git_clone_location,
+            "git-path": self._git_path,
             "tests": {
                 "clone": False,
                 "cccpexists": False,
@@ -68,7 +68,7 @@ class ValidateEntry:
     def write_info(self, msg):
         """Allows outsiders to write to this Entries test.info file."""
 
-        with open(self._testLogFile, "a") as infofile:
+        with open(self._test_og_File, "a") as infofile:
             infofile.write("\n" + msg + "\n")
 
         return
@@ -76,14 +76,14 @@ class ValidateEntry:
     def _init_entries(self):
         """Write the initial entries into this tests log file."""
 
-        info = str.format("ID : {0}\nAPP ID : {1}\nJOB ID : {2}\n", self._id, self._appId, self._jobId)
+        info = str.format("APP ID : {0}\nJOB ID : {1}\n", self._app_id, self._job_id)
         print info
-        info += "GIT : " + self._gitURL + "\n"
+        info += "GIT : " + self._git_url + "\n"
 
         info += "######################################################################################################"
         info += "\n"
 
-        with open(self._testLogFile, "w") as infofile:
+        with open(self._test_og_File, "w") as infofile:
             infofile.write(info)
 
         return
@@ -93,7 +93,7 @@ class ValidateEntry:
 
         currdir = os.getcwd()
 
-        os.chdir(self._gitCloneLocation)
+        os.chdir(self._git_clone_location)
         cmd = "git branch -r | grep -v '\->' | while read remote; do git branch --track \"${remote#origin/}\"" \
               " \"$remote\"; done"
 
@@ -109,7 +109,7 @@ class ValidateEntry:
         subprocess.call(cmd)
 
         # Checkout required branch
-        cmd = ["git", "checkout", "origin/" + self._gitBranch]
+        cmd = ["git", "checkout", "origin/" + self._git_branch]
         subprocess.call(cmd)
 
         os.chdir(currdir)
@@ -121,7 +121,7 @@ class ValidateEntry:
 
         success = True
 
-        if os.path.exists(self._gitCloneLocation):
+        if os.path.exists(self._git_clone_location):
 
             self._logger.log(Logger.info, "Git repo already exist, checking for updates...")
             self._update_branch()
@@ -130,11 +130,11 @@ class ValidateEntry:
         else:
 
             self._logger.log(Logger.info, "Attempting to clone repo...")
-            cmd = ["git", "clone", self._gitURL, self._gitCloneLocation]
+            cmd = ["git", "clone", self._git_url, self._git_clone_location]
 
             if StaticHandler.execcmd(cmd):
                 self._logger.log(Logger.success, "Cloning successful.")
-                self._logger.log(Logger.info, "Checking out branch " + self._gitBranch + "...")
+                self._logger.log(Logger.info, "Checking out branch " + self._git_branch + "...")
                 self._update_branch()
 
             else:
@@ -142,7 +142,7 @@ class ValidateEntry:
                 self._logger.log(Logger.error, "Failed to clone repo, skipping...")
                 success = False
 
-        self._testData["tests"]["clone"] = success
+        self._test_data["tests"]["clone"] = success
         return success
 
     def _test_cccp_yaml(self):
@@ -165,7 +165,7 @@ class ValidateEntry:
 
             if os.path.exists(cccpyamlfilepath):
                 pthexists = True
-                self._testData["tests"]["cccpexists"] = True
+                self._test_data["tests"]["cccpexists"] = True
                 break
 
         if not pthexists:
@@ -186,10 +186,10 @@ class ValidateEntry:
 
         if "job-id" in cccpyaml.keys():
 
-            if self._jobId == cccpyaml["job-id"]:
+            if self._job_id == cccpyaml["job-id"]:
 
                 self._logger.log(Logger.success, "Job id matched, moving on...")
-                self._testData["tests"]["jobidmatch"] = True
+                self._test_data["tests"]["jobidmatch"] = True
 
             else:
 
@@ -214,7 +214,7 @@ class ValidateEntry:
             if str(cccpyaml["test-skip"]) == str(True) or str(cccpyaml["test-skip"]) == str("False"):
 
                 self._logger.log(Logger.success, "Test skip is a flag, moving on")
-                self._testData["tests"]["test-skip"] = True
+                self._test_data["tests"]["test-skip"] = True
 
             else:
 
@@ -224,14 +224,14 @@ class ValidateEntry:
         else:
 
             self._logger.log(Logger.success, "Test skip not found, assuming True and moving on...")
-            self._testData["tests"]["test-skip"] = True
+            self._test_data["tests"]["test-skip"] = True
 
         self._logger.log(Logger.info, "Checking for target file")
 
         # * Check for target-file
-        if self._targetfile is not None:
+        if self._target_file is not None:
 
-            targetfilepath = self._cccp_test_dir + self._targetfile
+            targetfilepath = self._cccp_test_dir + self._target_file
 
             if not os.path.exists(targetfilepath):
 
@@ -241,15 +241,15 @@ class ValidateEntry:
             else:
 
                 self._logger.log(Logger.success, "Target file found, moving on")
-                self._testData["tests"]["target-file"] = True
+                self._test_data["tests"]["target-file"] = True
 
         # * Check for Test script
         if "test-script" in cccpyaml.keys():
 
-            testscript = cccpyaml["test-script"]
-            testscriptpath = self._cccp_test_dir + testscript
+            test_script = cccpyaml["test-script"]
+            test_script_path = self._cccp_test_dir + test_script
 
-            if not os.path.exists(testscriptpath):
+            if not os.path.exists(test_script_path):
 
                 self._logger.log(Logger.error, "Could not find test script, skipping")
                 return
@@ -257,12 +257,12 @@ class ValidateEntry:
             else:
 
                 self._logger.log(Logger.success, "Test script found, moving on")
-                self._testData["tests"]["test-script"] = True
+                self._test_data["tests"]["test-script"] = True
 
         else:
 
             self._logger.log(Logger.success, "No test script specified.")
-            self._testData["tests"]["test-script"] = True
+            self._test_data["tests"]["test-script"] = True
 
         # * Check Build script
         self._logger.log(Logger.info, "Checking for build script.")
@@ -278,23 +278,23 @@ class ValidateEntry:
 
             else:
                 self._logger.log(Logger.success, "Found specified build script.")
-                self._testData["tests"]["build-script"] = True
+                self._test_data["tests"]["build-script"] = True
 
         else:
 
             self._logger.log(Logger.success, "No build script specified, moving on")
-            self._testData["tests"]["build-script"] = True
+            self._test_data["tests"]["build-script"] = True
 
         # * Check Local Delivery
 
         # * Set the all pass flag
-        self._testData["tests"]["allpass"] = self._testData["tests"]["cccpexists"] and self._testData["tests"][
-            "clone"] and self._testData["tests"]["jobidmatch"] and \
-                                             (
-                                                 self._testData["tests"]["test-skip"] and
-                                                 self._testData["tests"]["test-script"]
+        self._test_data["tests"]["allpass"] = self._test_data["tests"]["cccpexists"] and self._test_data["tests"][
+            "clone"] and self._test_data["tests"]["jobidmatch"] and \
+                                              (
+                                                  self._test_data["tests"]["test-skip"] and
+                                                  self._test_data["tests"]["test-script"]
                                              ) and \
-                                             self._testData["tests"]["build-script"] and self._testData["tests"]["target-file"]
+                                              self._test_data["tests"]["build-script"] and self._test_data["tests"]["target-file"]
 
         return
 
@@ -308,4 +308,4 @@ class ValidateEntry:
 
         sleep(4)
 
-        return self._testData
+        return self._test_data

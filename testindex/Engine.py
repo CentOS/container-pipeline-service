@@ -2,23 +2,22 @@ from IndexEntriesVerifier import IndexEntriesVerifier
 from IndexVerifier import IndexVerifier
 from NutsAndBolts import Logger
 from NutsAndBolts import StaticHandler
+from Globals import Globals
 
 
 class Engine:
     """The engine, runs the vehicle ;)"""
 
-    def __init__(self, datadumpdirectory=None, indexgit=None, customindexfile=None, skippass2=False,
-                 specificindexentries=None, testindexentries=None, indexgitbranch="master"):
+    def __init__(self, datadumpdirectory=None, indexgit=None, custom_index_file=None, skippass2=False,
+                 indexgitbranch="master"):
         """Initialize the engine, so it knows what to do."""
 
         # Initialze the engine
-        StaticHandler.initialize(datadumpdirectory=datadumpdirectory, indexgit=indexgit, customindexfile=customindexfile
-                                 , indexgitbranch=indexgitbranch)
+        StaticHandler.initialize(data_dump_directory=datadumpdirectory, index_git=indexgit, custom_index_location=custom_index_file
+                                 , index_git_branch=indexgitbranch)
 
-        # Setup engine starte so its behavior is affected when it is started
+        # Setup engine started so its behavior is affected when it is started
         self._skipPass2 = skippass2
-        self._specificIndexEntries = specificindexentries
-        self._testIndexEntries = testindexentries
 
         return
 
@@ -30,7 +29,7 @@ class Engine:
     def _pass2(self):
         """Runs the second pass, and returns its success or failure"""
 
-        return IndexEntriesVerifier(self._specificIndexEntries, self._testIndexEntries).run()
+        return IndexEntriesVerifier().run()
 
     def run(self):
         """Ingition to the engine, this is what does the magic, and returns status of success or failure"""

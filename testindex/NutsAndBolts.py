@@ -37,8 +37,8 @@ class Logger:
 
         elif logtype == Logger.success:
 
-            printmsg = str.format("\n{0}\t{1}\n", "\033[1;32m[SUCCESS]\033[0m", msg)
-            filemsg = str.format("\n{0}\t{1}\n", "SUCCESS", msg)
+            printmsg = str.format("\n{0}\t{1}\n", "\033[1;32m[OK]\033[0m", msg)
+            filemsg = str.format("\n{0}\t{1}\n", "OK", msg)
 
         elif logtype == Logger.error:
 
@@ -55,6 +55,7 @@ class Logger:
 
 
 class StaticHandler:
+
     @staticmethod
     def execcmd(cmd):
         """Executes a cmd list and returns true if cmd executed correctly."""
@@ -71,34 +72,34 @@ class StaticHandler:
         return success
 
     @staticmethod
-    def initialize(datadumpdirectory=None, indexgit=None, customindexfile=None, indexgitbranch="master"):
+    def initialize(data_dump_directory=None, index_git=None, custom_index_location=None, index_git_branch="master"):
         """Initializes some variables, as required, including setting up defaults"""
 
         Logger().log(Logger.info, "Initializing systems...")
 
-        if datadumpdirectory is not None:
+        if data_dump_directory is not None:
 
-            Globals.Globals.setdatadirectory(datadumpdirectory)
+            Globals.Globals.setdatadirectory(data_dump_directory)
 
         else:
 
             Globals.Globals.setdatadirectory("./cccp-index-test")
 
-        if indexgit is not None:
-            Globals.Globals.indexGit = indexgit
-            Globals.Globals.indexgitbranch = indexgitbranch
+        if index_git is not None:
+            Globals.Globals.index_git = index_git
+            Globals.Globals.index_git_branch = index_git_branch
 
-        if customindexfile is not None:
+        if custom_index_location is not None:
 
-            if os.path.exists(customindexfile):
+            if os.path.exists(custom_index_location):
 
-                Globals.Globals.customIndexFile = customindexfile
+                Globals.Globals.custom_index_location = custom_index_location
 
             else:
 
-                Logger().log(Logger.error, "Non existant custom index specified, falling back to index git.")
+                Logger().log(Logger.error, "Non existent custom index specified, falling back to index git.")
 
-        Globals.Globals.oldenviron = dict(os.environ)
+        Globals.Globals.old_environ = dict(os.environ)
 
         os.unsetenv("GIT_ASKPASS")
         os.unsetenv("SSH_ASKPASS")
@@ -111,21 +112,21 @@ class StaticHandler:
     def _setupFS():
         """Sets up the filesystem in the dump directory"""
 
-        if not os.path.exists(Globals.Globals.dataDumpDirectory):
-            os.mkdir(Globals.Globals.dataDumpDirectory)
+        if not os.path.exists(Globals.Globals.data_dump_directory):
+            os.mkdir(Globals.Globals.data_dump_directory)
 
-        if not os.path.exists(Globals.Globals.indexDirectory):
-            os.mkdir(Globals.Globals.indexDirectory)
+        if not os.path.exists(Globals.Globals.index_directory):
+            os.mkdir(Globals.Globals.index_directory)
 
-        if not os.path.exists(Globals.Globals.repoDirectory):
-            os.mkdir(Globals.Globals.repoDirectory)
+        if not os.path.exists(Globals.Globals.repo_directory):
+            os.mkdir(Globals.Globals.repo_directory)
 
-        if not os.path.exists(Globals.Globals.testsDirectory):
-            os.mkdir(Globals.Globals.testsDirectory)
+        if not os.path.exists(Globals.Globals.tests_directory):
+            os.mkdir(Globals.Globals.tests_directory)
 
         else:
 
-            content = glob(Globals.Globals.testsDirectory + "/*")
+            content = glob(Globals.Globals.tests_directory + "/*")
 
             for item in content:
                 
@@ -136,7 +137,7 @@ class StaticHandler:
     @staticmethod
     def cleanup():
 
-        os.environ.update(Globals.Globals.oldenviron)
+        os.environ.update(Globals.Globals.old_environ)
 
         return
 
@@ -166,13 +167,13 @@ class Tracker:
 
         if used:
 
-            with open(Globals.Globals.customindexfileindicator, "w"):
-                os.utime(Globals.Globals.customindexfileindicator, None)
+            with open(Globals.Globals.custom_index_file_indicator, "w"):
+                os.utime(Globals.Globals.custom_index_file_indicator, None)
 
         else:
 
-            if os.path.exists(Globals.Globals.customindexfileindicator):
-                os.remove(Globals.Globals.customindexfileindicator)
+            if os.path.exists(Globals.Globals.custom_index_file_indicator):
+                os.remove(Globals.Globals.custom_index_file_indicator)
 
         return
 
@@ -182,7 +183,7 @@ class Tracker:
 
         used = True
 
-        if not os.path.exists(Globals.Globals.customindexfileindicator):
+        if not os.path.exists(Globals.Globals.custom_index_file_indicator):
             used = False
 
         return used
@@ -191,7 +192,7 @@ class Tracker:
     def setPreviousIndexGit(giturl):
         """Sets the previous index giturl"""
 
-        with open(Globals.Globals.previousIndexGitFile, "w+") as fl:
+        with open(Globals.Globals.previous_index_git_file, "w+") as fl:
             fl.write(giturl)
 
         return
@@ -202,10 +203,10 @@ class Tracker:
 
         previous = ""
 
-        if not os.path.exists(Globals.Globals.previousIndexGitFile):
+        if not os.path.exists(Globals.Globals.previous_index_git_file):
             Tracker.setPreviousIndexGit("__NONE__")
 
-        with open(Globals.Globals.previousIndexGitFile, "r") as fl:
+        with open(Globals.Globals.previous_index_git_file, "r") as fl:
             previous = fl.readline()
 
         return previous
