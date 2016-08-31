@@ -54,3 +54,11 @@
   tags:
     - openshift
     - jenkins/slaves
+
+- name: Setup Scanner 
+  hosts: scanner_worker
+  roles:
+    - scanner
+  tags:
+    - scanner
+    - atomic/scanner

@@ -2,6 +2,7 @@
 jenkins_master
 jenkins_slaves
 openshift
+scanner_worker
 
 [jenkins_master]
 jenkins-master
@@ -11,6 +12,9 @@ jenkins-slave
 
 [openshift]
 openshift
+
+[scanner_worker]
+scanner_worker
 
 [all:vars]
 # update as needed

@@ -1,0 +1,26 @@
+---
+- name: Install Atomic
+  yum: name=atomic state=present
+  sudo: yes
+
+- name: Get Docker installed
+  service: name=docker enabled=yes state=started
+  sudo: yes
+
+- name: Enable Docker registry
+  replace: >
+    dest=/etc/sysconfig/docker
+    regexp="^#?\s*ADD_REGISTRY=.*"
+    replace='ADD_REGISTRY="--add-registry {{ public_registry }}"'
+
+- name: Restart Docker
+  service: name=docker state=restarted enabled=yes
+
+- name: Get scanner image pulled
+  docker_image: 
+    name: pipeline-images/pipeline-scanner
+    tag: latest
+    state: present
+
+- name: Run Atomic install
+  shell: atomic install registry.centos.org/pipeline-images/pipeline-scanner:latest
