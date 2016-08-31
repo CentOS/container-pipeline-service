@@ -16,13 +16,13 @@
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
 
 - name: Get openshift build scripts
-  get_url:
-    url: "{{ item }}"
+  copy:
+    src: "{{ item }}"
     dest: /opt/cccp-service/client
   with_items:
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/build-project.sh
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/send_build_request.py
-    - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/client/beanstalkc.py
+    - ../client/build-project.sh
+    - ../client/send_build_request.py
+    - ../client/beanstalkc.py
   when: not vagrant
 
 - name: Copy openshift template file

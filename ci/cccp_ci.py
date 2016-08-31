@@ -21,6 +21,16 @@ ver = "7"
 arch = "x86_64"
 count = 4
 
+repo_url = os.environ.get('ghprbAuthorRepoGitUrl') or \
+    os.environ.get('GIT_URL')
+repo_branch = os.environ.get('ghprbSourceBranch') or \
+    os.environ.get('ghprbTargetBranch') or 'master'
+
+
+def _print(msg):
+    print msg
+    sys.stdout.flush()
+
 
 def get_nodes(ver="7", arch="x86_64", count=4):
     get_nodes_url = "%s/Node/get?key=%s&ver=%s&arch=%s&count=%s" % (
@@ -31,7 +41,7 @@ def get_nodes(ver="7", arch="x86_64", count=4):
     with open('env.properties', 'a') as f:
         f.write('DUFFY_SSID=%s' % data['ssid'])
         f.close()
-    sys.stdout.write(resp)
+    _print(resp)
     return data['hosts']
 
 
@@ -70,17 +80,23 @@ openshift
 
 [all:vars]
 public_registry= {jenkins_slave_host}
-jenkins_private_key_file = jenkins.key
-jenkins_public_key_file = jenkins.key.pub
-cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 copy_ssl_certs=true
 openshift_startup_delay=150
+beanstalk_server=openshift
+test=true
+cccp_source_repo={repo_url}
+cccp_source_branch={repo_branch}
+jenkins_public_key_file = jenkins.key.pub
 
 [jenkins_master:vars]
+jenkins_private_key_file = jenkins.key
+cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 oc_slave={jenkins_slave_host}""").format(
         jenkins_master_host=jenkins_master_host,
         jenkins_slave_host=jenkins_slave_host,
-        openshift_host=openshift_host)
+        openshift_host=openshift_host,
+        repo_url=repo_url,
+        repo_branch=repo_branch)
 
     with open('hosts', 'w') as f:
         f.write(ansible_inventory)
@@ -95,19 +111,19 @@ def setup_controller(controller):
 
     run_cmd(
         "yum install -y git epel-release && "
-        "yum install -y ansible1.9 python2-jenkins-job-builder",
+        "yum install -y ansible python2-jenkins-job-builder",
         host=controller)
 
     run_cmd(
         "scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r "
-        "./ root@%s:/root/centos-cccp-ansible" % controller)
+        "./ root@%s:/root/container-pipeline-service" % controller)
 
 
 def provision(controller):
     run_cmd(
-        "cd /root/centos-cccp-ansible && "
+        "cd /root/container-pipeline-service && "
         "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts -u root "
-        "--private-key=/root/.ssh/id_rsa vagrant.yml",
+        "--private-key=/root/.ssh/id_rsa provisions/vagrant.yml",
         host=controller)
 
 
@@ -131,26 +147,29 @@ def test_if_openshift_builds_are_running(host):
     while retries < 100 and success is False:
         if retries > 0:
             time.sleep(60)
-        sys.stdout.write("Retries: %d/100" % retries)
+        _print("Retries: %d/100" % retries)
         try:
             output = subprocess.check_output(_cmd, shell=True)
-            sys.stdout.write(output)
+            _print(output)
             lines = output.splitlines()
             pods = set([line.split()[0] for line in lines[1:]])
             success = pods == set(
-                ['build-1-build', 'delivery-1-build', 'test-1-build'])
+                # FIXME: we're ignoring delivery build right now as it will
+                # need the atomic scan host for that.
+                # ['build-1-build', 'delivery-1-build', 'test-1-build'])
+                ['build-1-build', 'test-1-build'])
         except subprocess.CalledProcessError:
             success = False
         retries += 1
     if success is False:
         raise Exception("Openshift builds not running.")
-    sys.stdout.write("Openshift builds running successfully.")
+    _print("Openshift builds running successfully.")
 
 
 def test_if_openshift_builds_persist(host):
-    sys.stdout.write("=" * 30)
-    sys.stdout.write("Test if openshift builds persist after reprovision")
-    sys.stdout.write("=" * 30)
+    _print("=" * 30)
+    _print("Test if openshift builds persist after reprovision")
+    _print("=" * 30)
     cmd = (
         "oc login https://openshift:8443 --insecure-skip-tls-verify=true "
         "-u test-admin -p test > /dev/null && "
@@ -163,14 +182,17 @@ def test_if_openshift_builds_persist(host):
         "'{cmd}'"
     ).format(user='root', cmd=cmd, host=host)
     output = subprocess.check_output(_cmd, shell=True)
-    sys.stdout.write(output)
+    _print(output)
     lines = output.splitlines()
     pods = set([line.split()[0] for line in lines[1:]])
     success = pods == set(
-        ['build-1-build', 'delivery-1-build', 'test-1-build'])
+        # FIXME: we're ignoring delivery build right now as it will
+        # need the atomic scan host for that.
+        # ['build-1-build', 'delivery-1-build', 'test-1-build'])
+        ['build-1-build', 'test-1-build'])
     if success is False:
         raise Exception("Openshift builds did not persist after re provision.")
-    sys.stdout.write("Openshift builds persited after re provision.")
+    _print("Openshift builds persited after re provision.")
 
 
 def run():
