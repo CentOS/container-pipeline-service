@@ -24,3 +24,21 @@
 
 - name: Run Atomic install
   shell: atomic install registry.centos.org/pipeline-images/pipeline-scanner:latest
+
+- name: Get scanner worker scripts
+  get_url:
+    url: "{{ item }}"
+    dest: /opt/cccp-service/beanstalk_worker
+    mode: u+x
+    with_items:
+      - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/beanstalkc.py
+      - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_test.py
+    when: not vagrant
+
+- name: Get service files for workers
+  get_url:
+    url: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    with_items:
+      - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
+
