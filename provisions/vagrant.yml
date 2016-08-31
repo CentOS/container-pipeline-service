@@ -41,7 +41,7 @@
     - jenkins
     - jenkins/master
 
-- name: Setup Scanner 
+- name: Setup Scanner Worker 
   hosts: scanner_worker
   roles:
     - scanner

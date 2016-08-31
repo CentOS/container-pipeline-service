@@ -3,7 +3,7 @@
   yum: name=atomic state=present
   sudo: yes
 
-- name: Get Docker installed
+- name: Start and Enable docker
   service: name=docker enabled=yes state=started
   sudo: yes
 
@@ -16,29 +16,31 @@
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
-- name: Get scanner image pulled
-  docker_image: 
-    name: pipeline-images/pipeline-scanner
-    tag: latest
-    state: present
-
 - name: Run Atomic install
   shell: atomic install registry.centos.org/pipeline-images/pipeline-scanner:latest
 
 - name: Get scanner worker scripts
-  get_url:
-    url: "{{ item }}"
+  copy:
+    src: "{{ item }}"
     dest: /opt/cccp-service/beanstalk_worker
     mode: u+x
-    with_items:
-      - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/beanstalkc.py
-      - https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/beanstalk_worker/worker_start_test.py
-    when: not vagrant
+  with_items:
+    - ../beanstalk_worker/beanstalkc.py
+    - ../beanstalk_worker/worker_start_test.py
+  when: not vagrant
 
 - name: Get service files for workers
-  get_url:
-    url: "{{ item.src }}"
+  copy:
+    src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    with_items:
-      - {src: "https://raw.githubusercontent.com/centos/container-pipeline-service/master/beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
+  with_items:
+      - {src: "../beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
 
+- name: Enable Scanner worker
+  service: name="cccp-test-worker" state=restarted enabled=yes
+
+- name: Add host entry for beanstalkd
+  shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
+
+- name: Add host entry for atomic-scan.vm
+  shell: echo "127.0.0.1 atomic-scan.vm.centos.org" >> /etc/hosts
