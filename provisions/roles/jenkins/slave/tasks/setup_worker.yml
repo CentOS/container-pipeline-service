@@ -32,7 +32,6 @@
     - ../beanstalk_worker/beanstalkc.py
     - ../beanstalk_worker/worker_start_build.py
     - ../beanstalk_worker/DependencyChecker.py
-    - ../beanstalk_worker/worker_start_test.py
     - ../beanstalk_worker/worker_dispatcher.py
     - ../beanstalk_worker/worker_start_delivery.py
   when: not vagrant
@@ -43,7 +42,6 @@
     dest: "{{ item.dest }}"
   with_items:
     - {src: "../beanstalk_worker/cccp-build-worker.service", dest: /etc/systemd/system/cccp-build-worker.service}
-    - {src: "../beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
     - {src: "../beanstalk_worker/cccp-delivery-worker.service", dest: /etc/systemd/system/cccp-delivery-worker.service}
     - {src: "../beanstalk_worker/cccp-dispatcher-worker.service", dest: /etc/systemd/system/cccp-dispatcher-worker.service}
 
@@ -51,7 +49,6 @@
   service: name="{{ item }}" state=restarted enabled=yes
   with_items:
     - cccp-build-worker
-    - cccp-test-worker
     - cccp-delivery-worker
     - cccp-dispatcher-worker
   tags:
