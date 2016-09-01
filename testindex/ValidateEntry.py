@@ -186,7 +186,7 @@ class ValidateEntry:
 
         if "job-id" in cccpyaml.keys():
 
-            if self._jobId == cccpyaml["job-id"]:
+            if self._appId == "pipeline-images" or self._jobId == cccpyaml["job-id"]:
 
                 self._logger.log(Logger.success, "Job id matched, moving on...")
                 self._testData["tests"]["jobidmatch"] = True
