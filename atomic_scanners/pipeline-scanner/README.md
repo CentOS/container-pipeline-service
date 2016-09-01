@@ -1,3 +1,6 @@
+Atomic scanner: pipeline-scanner
+--------------------------------
+
 This is a container image scanner based on `atomic scan`. The goal of the
 scanner is to scan CentOS based Docker images in the CentOS Community Container
 Pipeline and generate relevant results.
@@ -13,7 +16,7 @@ $ docker pull registry.centos.org/pipeline-images/pipeline-scanner
 - Install it using `atomic`:
 
 ```
-    $ atomic install registry.centos.org/pipeline-images/pipeline-scanner
+$ atomic install registry.centos.org/pipeline-images/pipeline-scanner
 ```
 
 - Mount the image's rootfs because by default `atomic scan` would mount it in
