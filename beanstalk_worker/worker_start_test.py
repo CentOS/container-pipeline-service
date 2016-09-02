@@ -70,8 +70,9 @@ def test_job_data(job_data):
     # Receive and send `name_space` key-value as is
     namespace = job_data.get('name_space')
 
-    image_full_name = job_data.get('name').split(":")[0] + ":" + \
-        job_data.get("tag")
+    image_full_name = job_data.get('name')
+    #.split(":")[0] + ":" + \
+    #    job_data.get("tag")
 
     logger.log(level=logging.INFO, msg="Pulling image %s" % image_full_name)
     pull_data = conn.pull(

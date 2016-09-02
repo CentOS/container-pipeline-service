@@ -7,17 +7,29 @@
   service: name=docker enabled=yes state=started
   sudo: yes
 
-- name: Enable Docker registry
+- name: Enable Docker Host socket
+  replace: >
+    dest=/etc/sysconfig/docker
+    regexp="^#?\s*OPTIONS=.*"
+    replace='OPTIONS="--selinux-enabled --log-driver=journald -H tcp://0.0.0.0:4243 -H unix:///var/run/docker.sock"'
+
+- name: Enable Docker Registry
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#?\s*ADD_REGISTRY=.*"
-    replace='ADD_REGISTRY="--add-registry {{ public_registry }}"'
+    replace='ADD_REGISTRY="--add-registry {{ public_registry }} --insecure-registry {{ public_registry }}:5000 "'
 
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
+- name: Wait for Openshift Router to come up
+  pause: seconds=50
+
 - name: Run Atomic install
   shell: atomic install registry.centos.org/pipeline-images/pipeline-scanner:latest
+
+- name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
+  file: dest=/opt/cccp-service/beanstalk_worker state=directory
 
 - name: Get scanner worker scripts
   copy:
