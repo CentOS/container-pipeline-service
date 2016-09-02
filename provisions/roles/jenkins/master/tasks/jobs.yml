@@ -19,3 +19,16 @@
 
 - name: Push job to jenkins
   shell: jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/index.yml
+
+- name: Ensure /opt/container-pipeline-service/jenkinsbuilder dir exists on Jenkins master
+  file: dest=/opt/container-pipeline-service/jenkinsbuilder state=directory
+
+- name: Get openshift build scripts
+  copy:
+    src: "{{ item }}"
+    dest: /opt/container-pipeline-service/jenkinsbuilder
+  with_items:
+    - ../jenkinsbuilder/cccp_index_reader.py
+    - ../jenkinsbuilder/indexdindexymltransform.py
+    - ../jenkinsbuilder/project-defaults.yml
+  when: not vagrant

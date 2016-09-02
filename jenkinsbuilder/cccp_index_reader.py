@@ -39,7 +39,7 @@ def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,depen
 
 def main(indexdlocation):
 
-    yamlfile = "./index.yml"
+    yamlfile = os.path.join(os.path.dirname(indexdlocation),"index.yml")
 
     # Transform indexd to indexyml
     IndexdTransformer(indexdlocation, yamlfile).run()
