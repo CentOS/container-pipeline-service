@@ -1,120 +1,42 @@
-from argparse import ArgumentParser
-from sys import exit
-
 from Engine import Engine
-from NutsAndBolts import Logger
+from argparse import ArgumentParser
 
+def get_parser():
 
-def initparser():
-    """Initializes the parser for parsing arguments."""
-
-    parser = ArgumentParser(description="This script checks for errors in cccp entries.")
-
-    parser.add_argument("-i",
-                        "--indexentry",
-                        help="Checks a specific index entry.",
-                        metavar='ID',
-                        nargs=1,
-                        action="append")
-
-    parser.add_argument("-t",
-                        "--testentry",
-                        help="Checks a test entry, independent of index.",
-                        metavar=('ID', 'APPID', 'JOBID', 'GITURL', 'GITPATH', 'GITBRANCH', 'NOTIFYEMAIL', 'TARGETFILE'),
-                        nargs=8,
-                        action="append")
+    parser = ArgumentParser(description="This scirpt is used to valide the contents on the index.d directory.")
 
     parser.add_argument("-d",
-                        "--datadumpdirectory",
-                        help="Specify your own dump directory for test data such as index, repos and logs",
-                        metavar="DUMPDIRPATH",
+                        "--dump_directory",
+                        help="Specify a custom data dump directory",
+                        metavar='DUMPDIR',
                         nargs=1,
                         action="store")
 
-    parser.add_argument("-g",
-                        "--indexgiturl",
-                        help="Specify the giturl containing your index.yml",
-                        metavar='GITURL',
+    parser.add_argument("-i",
+                        "--indexd_location",
+                        help="Specify location of indexd. Default is ./index.d",
+                        metavar="INDEXD",
                         nargs=1,
                         action="store")
-
-    parser.add_argument("-b",
-                        "--indexgitbranch",
-                        help="Set if you want to the index to be from a branch other than master",
-                        metavar="INDEXGITBRANCH",
-                        nargs=1,
-                        action="store")
-
-    parser.add_argument("-c",
-                        "--customindexfile",
-                        help="Specify a custom index.yml file which is locally available",
-                        metavar='INDEXPATH',
-                        nargs=1,
-                        action="store")
-
-    parser.add_argument("-s", "--skippass2",
-                        help="Set to skip the second pass, which validates the cccp.yml file as well.",
-                        action="store_true")
 
     return parser
 
+if __name__ == '__main__':
 
-def mainfunc():
-    """The entry point. Note, if you want dont want argument parsing, feel free to directly use Engine class"""
+    cmd_args = get_parser().parse_args()
+    indexd_location = "./index.d"
+    data_dump_directory = "./cccp-index-test"
 
-    engine = None
-    skippass2 = False
-    datadumpdirectory = None
-    indexgit = None
-    customindexfile = None
-    indexentries = None
-    testentries = None
-    indexgitbranch = "master"
+    if cmd_args.dump_directory is not None:
+        data_dump_directory = cmd_args.dump_directory[0]
 
-    cmdargs = initparser().parse_args()
+    if cmd_args.indexd_location is not None:
+        indexd_location = cmd_args.indexd_location[0]
 
-    # Set up the parameters to Engine, based on argument parsing.
+    print indexd_location
 
-    if cmdargs.indexgiturl is not None and cmdargs.customindexfile is not None:
-        Logger().log(Logger.error,
-                     "indexgiturl and customindexfile are mutually exclusive. So please specify either one")
-        exit(5)
-
-    if cmdargs.indexgiturl is not None:
-        indexgit = cmdargs.indexgiturl[0]
-
-    if cmdargs.indexgitbranch is not None:
-        indexgitbranch = cmdargs.indexgitbranch[0]
-
-    if cmdargs.customindexfile is not None:
-        customindexfile = cmdargs.customindexfile[0]
-
-    if cmdargs.skippass2 is not None:
-        skippass2 = cmdargs.skippass2
-
-    if cmdargs.datadumpdirectory is not None:
-        datadumpdirectory = cmdargs.datadumpdirectory[0]
-
-    if cmdargs.indexentry is not None:
-
-        indexentries = []
-        for item in cmdargs.indexentry:
-            indexentries.append(int(item[0]))
-
-    if cmdargs.testentry is not None:
-        testentries = cmdargs.testentry
-
-    engine = Engine(datadumpdirectory=datadumpdirectory, indexgit=indexgit, customindexfile=customindexfile,
-                    skippass2=skippass2, specificindexentries=indexentries, testindexentries=testentries,
-                    indexgitbranch=indexgitbranch)
-
-    status = engine.run()
+    e = Engine(indexd_location=indexd_location, data_dump_directory=data_dump_directory)
+    status = e.run()
 
     if not status:
         exit(1)
-
-    return
-
-
-if __name__ == '__main__':
-    mainfunc()
