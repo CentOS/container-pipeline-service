@@ -25,8 +25,15 @@
 - name: Wait for Openshift Router to come up
   pause: seconds=50
 
-- name: Run Atomic install
-  shell: atomic install registry.centos.org/pipeline-images/pipeline-scanner:latest
+- name: Run atomic scanner container
+  docker_container:
+      image: registry.centos.org/pipeline-images/pipeline-scanner:latest
+      name: pipeline-scanner
+      privileged: true
+      volumes:
+        - /etc/atomic.d/:/host/etc/atomic.d/
+      command: sh /install.sh
+      state: started
 
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/beanstalk_worker state=directory
