@@ -5,3 +5,5 @@ test: false
 
 cccp_source_repo: https://github.com/centos/container-pipeline-service
 cccp_source_branch: master
+
+public_registry: registry.centos.org
