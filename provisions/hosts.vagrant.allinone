@@ -2,6 +2,7 @@
 jenkins_master
 jenkins_slaves
 openshift
+scanner_worker
 
 [jenkins_master]
 192.168.100.100     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
@@ -12,6 +13,9 @@ openshift
 [openshift]
 192.168.100.100     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
+[scanner_worker]
+192.168.100.100     ansible_ssh_user=vagrant    ansible_ssh_pass=vagrant
+
 [all:vars]
 cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 vagrant=True
@@ -20,3 +24,4 @@ copy_ssl_certs=True
 oc_slave=192.168.100.100
 jenkins_public_key_file=/tmp/cccp-jenkins.key.pub
 jenkins_private_key_file=/tmp/cccp-jenkins.key
+public_registry=192.168.100.100
