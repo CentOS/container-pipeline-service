@@ -61,13 +61,14 @@ def run_cmd(cmd, user='root', host=None):
 
 
 def generate_ansible_inventory(jenkins_master_host, jenkins_slave_host,
-                               openshift_host):
+                               openshift_host, scanner_host):
 
     ansible_inventory = ("""
 [all:children]
 jenkins_master
 jenkins_slaves
 openshift
+scanner_worker
 
 [jenkins_master]
 {jenkins_master_host}
@@ -77,6 +78,9 @@ openshift
 
 [openshift]
 {openshift_host}
+
+[scanner_worker]
+{scanner_host}
 
 [all:vars]
 public_registry= {jenkins_slave_host}
@@ -96,7 +100,8 @@ oc_slave={jenkins_slave_host}""").format(
         jenkins_slave_host=jenkins_slave_host,
         openshift_host=openshift_host,
         repo_url=repo_url,
-        repo_branch=repo_branch)
+        repo_branch=repo_branch,
+        scanner_host=scanner_host)
 
     with open('hosts', 'w') as f:
         f.write(ansible_inventory)
@@ -196,11 +201,12 @@ def test_if_openshift_builds_persist(host):
 
 
 def run():
-    nodes = get_nodes()
+    nodes = get_nodes(count=5)
 
     jenkins_master_host = nodes[0]
     jenkins_slave_host = nodes[1]
     openshift_host = nodes[2]
+    scanner_host = nodes[3]
     controller = nodes.pop()
 
     nodes_env = (
@@ -208,15 +214,17 @@ def run():
         "JENKINS_SLAVE_HOST=%s\n"
         "OPENSHIFT_HOST=%s\n"
         "CONTROLLER=%s\n"
+        "SCANNER_HOST=%s\n"
     ) % (jenkins_master_host, jenkins_slave_host,
-         openshift_host, controller)
+         openshift_host, controller, scanner_host)
 
     with open('env.properties', 'a') as f:
         f.write(nodes_env)
 
     generate_ansible_inventory(jenkins_master_host,
                                jenkins_slave_host,
-                               openshift_host)
+                               openshift_host,
+                               scanner_host)
 
     run_cmd('iptables -F', host=openshift_host)
 
