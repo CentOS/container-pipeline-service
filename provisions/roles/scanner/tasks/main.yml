@@ -22,9 +22,6 @@
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
-- name: Wait for Openshift Router to come up
-  pause: seconds=50
-
 - name: Run atomic scanner container
   docker_container:
       image: registry.centos.org/pipeline-images/pipeline-scanner:latest
@@ -64,11 +61,11 @@
   tags:
     - test
 
-- name: Enable Scanner worker
-  service: name="cccp-test-worker" state=restarted enabled=yes
-
 - name: Add host entry for beanstalkd
   shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
 
 - name: Add host entry for atomic-scan.vm
   shell: echo "127.0.0.1 atomic-scan.vm.centos.org" >> /etc/hosts
+
+- name: Enable Scanner worker
+  service: name="cccp-test-worker" state=restarted enabled=yes
