@@ -17,7 +17,7 @@ scanner_worker
 192.168.100.100     ansible_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [all:vars]
-cccp_index_repo=https://github.com/bamachrn/cccp-index.git
+cccp_index_repo=https://github.com/rtnpro/container-index.git
 vagrant=True
 beanstalk_server=192.168.100.100
 copy_ssl_certs=True

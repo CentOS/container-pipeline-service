@@ -94,7 +94,7 @@ jenkins_public_key_file = jenkins.key.pub
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key
-cccp_index_repo=https://github.com/bamachrn/cccp-index.git
+cccp_index_repo=https://github.com/rtnpro/container-index.git
 oc_slave={jenkins_slave_host}""").format(
         jenkins_master_host=jenkins_master_host,
         jenkins_slave_host=jenkins_slave_host,
