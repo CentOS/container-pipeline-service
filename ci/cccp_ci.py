@@ -157,12 +157,13 @@ def test_if_openshift_builds_are_running(host):
             output = subprocess.check_output(_cmd, shell=True)
             _print(output)
             lines = output.splitlines()
-            pods = set([line.split()[0] for line in lines[1:]])
-            success = pods == set(
+            pods = set([line.split()[0] for line in lines[1:] if line])
+            success = not set(
                 # FIXME: we're ignoring delivery build right now as it will
                 # need the atomic scan host for that.
                 # ['build-1-build', 'delivery-1-build', 'test-1-build'])
-                ['build-1-build', 'test-1-build'])
+                ['build-1-build', 'test-1-build', 'delivery-1-build']
+            ).difference(pods)
         except subprocess.CalledProcessError:
             success = False
         retries += 1
@@ -190,11 +191,12 @@ def test_if_openshift_builds_persist(host):
     _print(output)
     lines = output.splitlines()
     pods = set([line.split()[0] for line in lines[1:]])
-    success = pods == set(
+    success = set(
         # FIXME: we're ignoring delivery build right now as it will
         # need the atomic scan host for that.
         # ['build-1-build', 'delivery-1-build', 'test-1-build'])
-        ['build-1-build', 'test-1-build'])
+        ['build-1-build', 'test-1-build', 'delivery-1-build']
+    ).difference(pods)
     if success is False:
         raise Exception("Openshift builds did not persist after re provision.")
     _print("Openshift builds persited after re provision.")
