@@ -115,10 +115,12 @@
               - rtnpro
               - kbsingh
               - bamachrn
+              - mohammedzee1000 
             white-list:
               - rtnpro
               - kbsingh
               - bamachrn
+              - mohammedzee1000 
             cron: '* * * * *'
             github-hooks: false
             permit-all: true
