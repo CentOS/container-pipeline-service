@@ -55,6 +55,15 @@
   with_items:
       - {src: "../beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
 
+- name: Skip atomic scan for test environment
+  replace: >
+    dest=/etc/systemd/system/cccp-test-worker.service
+    regexp='worker_start_test.py$'
+    replace='worker_start_test.py ci'
+  when: test
+  tags:
+    - test
+
 - name: Enable Scanner worker
   service: name="cccp-test-worker" state=restarted enabled=yes
 
