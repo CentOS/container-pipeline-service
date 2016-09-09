@@ -214,6 +214,7 @@ while True:
             job_data["action"] = "start_delivery"
             job_data["msg"] = ""
             job_data["logs"] = ""
+            job_data["image"] = job_data["name"]
             bs.use("master_tube")
             jid = bs.put(json.dumps(job_data))
         else:
