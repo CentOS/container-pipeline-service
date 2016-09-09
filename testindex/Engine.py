@@ -48,7 +48,7 @@ class Engine:
                     file_name = item
 
                 target_file = open(GlobalEnvironment.environment.indexd_test_bench + "/" + file_name, "w")
-                target_file.write("Projects:\n")
+                # target_file.write("Projects:\n")
                 target_file.write(open(item, "r").read())
 
     def run(self):

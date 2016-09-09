@@ -249,6 +249,7 @@ class IndexProjectsValidator(Validator):
 
         # * Check test-script
         if "test-script" in cccp_yaml:
+            summary_collector["warnings"].append("Custom test-script has been specified")
             value = str(cccp_yaml["test-script"])
             if not path.exists(value):
                 self._success = False
@@ -256,9 +257,18 @@ class IndexProjectsValidator(Validator):
 
         # * Check build-script
         if "build-script" in cccp_yaml:
+            summary_collector["warnings"].append("Custom build-script has been specified")
             value = str(cccp_yaml["build-script"])
             if not path.exists(value):
                 self._success = False
                 summary_collector["errors"].append("The specified build-script does not exist")
+
+        # * Check delivery-script
+        if "delivery-script" in cccp_yaml:
+            summary_collector["warnings"].append("Custom delivery-script has been specified.")
+            value = str(cccp_yaml["delivery-script"])
+            if not path.exists(value):
+                self._success = False
+                summary_collector["errors"].append("The specified delivery-script does not exist")
 
         chdir(get_back)

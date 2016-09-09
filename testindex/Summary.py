@@ -27,7 +27,8 @@ class Summary:
         if entry_hash not in Summary._summary[file_name]:
             Summary._summary[file_name][entry_hash] = {
                 "entry": str(entry),
-                "errors": []
+                "errors": [],
+                "warnings": []
             }
 
         return Summary._summary[file_name][entry_hash]
@@ -49,11 +50,18 @@ class Summary:
                     valid = False
                     valid_str = "\033[1;31mNO\033[0m"
 
+                if len(entry_info["warnings"]) > 0:
+                    valid_str = "\033[1;33mWARNING\033[0m"
+
                 print "  ** Valid    : " + valid_str
 
                 if not valid:
                     for err in entry_info["errors"]:
                         print "  **E " + err
+
+                if len(entry_info["warnings"]) > 0:
+                    for wrn in entry_info["warnings"]:
+                        print "  **W "  +wrn
 
                 print "\n"
 
