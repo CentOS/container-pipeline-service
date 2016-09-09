@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import yaml
+from shutil import copyfile
 
 def main():
   stream = open("/set_env/cccp.yml",'r')
@@ -14,28 +15,36 @@ def main():
   
   for key, value in cccp_yml.iteritems():
     if(key == "job-id"):
-        job_id = cccp_yml["job-id"]
+      job_id = cccp_yml["job-id"]
 
     if(key == "test-skip"):
-        test_skip = cccp_yml["test-skip"]
+      test_skip = cccp_yml["test-skip"]
     
-    if(key == "desired-tag"):
-        desired_tag = cccp_yml["desired-tag"]
-
     if(key == "build-script"):
-        build_script = cccp_yml["build-script"]
-        os.symlink(os.path.join(curr_dir,build_script),"/usr/bin/build_script")
+      build_script = cccp_yml["build-script"]
+      os.symlink(os.path.join(curr_dir,build_script),"/build_script")
+    else:
+      echo_scripts("/build_script","Build")
     
     if(key == "test-script"):
-        test_script = cccp_yml["test-script"]
-        if(test_skip != True):
-            os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
+      test_script = cccp_yml["test-script"]
+      if(test_skip != True):
+        os.symlink(os.path.join(curr_dir,test_script),"/test_script")
+    else:
+      echo_scripts("/build_script","Test")
     
     if(key == "delivery-script"):
-        delivery_script = cccp_yml["delivery-script"]
-        os.symlink(os.path.join(curr_dir,delivery_script),"/usr/bin/delivery_script")
+      delivery_script = cccp_yml["delivery-script"]
+      os.symlink(os.path.join(curr_dir,delivery_script),"/delivery_script")
+    else:
+      echo_scripts("/build_script","Delivery")
 
   print "==> scripts saved"
+
+def echo_scripts(filepath,phase):
+  fo = open(filepath,"w")
+  fo.write("echo \""+phase+"Script not present\"")
+  fo.close()
 
 if __name__ == '__main__':
   main()
