@@ -133,6 +133,9 @@
             skip-tag: True
             git-tool: ci-git
             branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${ghprbactualcommit}"
     builders:
         - shell: |
             # copied from the devtools repo
