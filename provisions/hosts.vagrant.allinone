@@ -19,7 +19,7 @@ scanner_worker
 [all:vars]
 cccp_index_repo=https://github.com/bamachrn/cccp-index.git
 vagrant=True
-beanstalk_server=openshift
+beanstalk_server=192.168.100.100
 copy_ssl_certs=True
 oc_slave=192.168.100.100
 jenkins_public_key_file=/tmp/cccp-jenkins.key.pub

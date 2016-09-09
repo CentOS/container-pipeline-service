@@ -18,7 +18,7 @@ scanner_worker
 
 [all:vars]
 cccp_index_repo=https://github.com/bamachrn/cccp-index.git
-beanstalk_server=openshift
+beanstalk_server=192.168.100.200
 copy_ssl_certs=True
 oc_slave=192.168.100.200
 vagrant=True
