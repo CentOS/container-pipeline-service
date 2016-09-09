@@ -86,7 +86,7 @@ scanner_worker
 public_registry= {jenkins_slave_host}
 copy_ssl_certs=true
 openshift_startup_delay=150
-beanstalk_server=openshift
+beanstalk_server={jenkins_slave_host}
 test=true
 cccp_source_repo={repo_url}
 cccp_source_branch={repo_branch}
@@ -132,7 +132,7 @@ def provision(controller):
         host=controller)
 
 
-def test_if_openshift_builds_are_running(host):
+def test_if_openshift_builds_are_complete(host):
     print "=" * 30
     print "Test if openshift builds are running"
     print "=" * 30
@@ -157,7 +157,8 @@ def test_if_openshift_builds_are_running(host):
             output = subprocess.check_output(_cmd, shell=True)
             _print(output)
             lines = output.splitlines()
-            pods = set([line.split()[0] for line in lines[1:] if line])
+            pods = set([line.split()[0] for line in lines[1:]
+                        if line and line.split()[2] == 'Completed'])
             success = not set(
                 # FIXME: we're ignoring delivery build right now as it will
                 # need the atomic scan host for that.
@@ -168,8 +169,8 @@ def test_if_openshift_builds_are_running(host):
             success = False
         retries += 1
     if success is False:
-        raise Exception("Openshift builds not running.")
-    _print("Openshift builds running successfully.")
+        raise Exception("Openshift builds did not complete.")
+    _print("Openshift builds completed successfully.")
 
 
 def test_if_openshift_builds_persist(host):
@@ -200,6 +201,19 @@ def test_if_openshift_builds_persist(host):
     if success is False:
         raise Exception("Openshift builds did not persist after re provision.")
     _print("Openshift builds persited after re provision.")
+
+
+def test_if_built_image_can_be_pulled(host, image):
+    cmd = (
+        "docker pull {image}"
+    ).format(image=image)
+    _cmd = (
+        "ssh -t -o UserKnownHostsFile=/dev/null -o "
+        "StrictHostKeyChecking=no {user}@{host} "
+        "'{cmd}'"
+    ).format(user='root', cmd=cmd, host=host)
+    output = subprocess.check_output(_cmd, shell=True)
+    _print(output)
 
 
 def run():
@@ -234,7 +248,11 @@ def run():
 
     provision(controller)
 
-    test_if_openshift_builds_are_running(jenkins_slave_host)
+    test_if_openshift_builds_are_complete(jenkins_slave_host)
+
+    test_if_built_image_can_be_pulled(
+        openshift_host,
+        jenkins_slave_host + ':5000/bamachrn/python:latest')
 
     provision(controller)
 
