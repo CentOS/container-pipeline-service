@@ -2,6 +2,7 @@ FROM centos
 
 RUN yum -y install docker
 RUN yum -y install git
+RUN yum install -y PyYAML libyaml
 
 ADD run.sh /usr/bin/
 ADD cccp_reader.py /
