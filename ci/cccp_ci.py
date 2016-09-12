@@ -149,7 +149,7 @@ def test_if_openshift_builds_are_complete(host):
     ).format(user='root', cmd=cmd, host=host)
     retries = 0
     success = False
-    while retries < 100 and success is False:
+    while retries < 10 and success is False:
         if retries > 0:
             time.sleep(60)
         _print("Retries: %d/100" % retries)
