@@ -86,7 +86,7 @@ scanner_worker
 public_registry= {jenkins_slave_host}
 copy_ssl_certs=true
 openshift_startup_delay=150
-beanstalk_server={jenkins_slave_host}
+beanstalk_server={openshift_host}
 test=true
 cccp_source_repo={repo_url}
 cccp_source_branch={repo_branch}
@@ -244,6 +244,7 @@ def run():
                                scanner_host)
 
     run_cmd('iptables -F', host=openshift_host)
+    run_cmd('iptables -F', host=jenkins_slave_host)
 
     setup_controller(controller)
 
