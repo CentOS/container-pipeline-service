@@ -203,15 +203,16 @@ def test_if_openshift_builds_persist(host):
     _print("Openshift builds persited after re provision.")
 
 
-def test_if_built_image_can_be_pulled(host, image):
+def test_if_built_image_can_be_pulled(host, image, user='root', sudo=False):
+    sudo = 'sudo' if sudo else ''
     cmd = (
-        "docker pull {image}"
-    ).format(image=image)
+        "{sudo} docker pull {image}"
+    ).format(image=image, sudo=sudo)
     _cmd = (
         "ssh -t -o UserKnownHostsFile=/dev/null -o "
         "StrictHostKeyChecking=no {user}@{host} "
         "'{cmd}'"
-    ).format(user='root', cmd=cmd, host=host)
+    ).format(user=user, cmd=cmd, host=host)
     output = subprocess.check_output(_cmd, shell=True)
     _print(output)
 
@@ -252,7 +253,7 @@ def run():
 
     test_if_built_image_can_be_pulled(
         openshift_host,
-        jenkins_slave_host + ':5000/bamachrn/python:latest')
+        jenkins_slave_host + ':5000/bamachrn/python:release')
 
     provision(controller)
 
