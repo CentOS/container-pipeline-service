@@ -61,13 +61,14 @@ def run_cmd(cmd, user='root', host=None):
 
 
 def generate_ansible_inventory(jenkins_master_host, jenkins_slave_host,
-                               openshift_host):
+                               openshift_host, scanner_host):
 
     ansible_inventory = ("""
 [all:children]
 jenkins_master
 jenkins_slaves
 openshift
+scanner_worker
 
 [jenkins_master]
 {jenkins_master_host}
@@ -78,11 +79,14 @@ openshift
 [openshift]
 {openshift_host}
 
+[scanner_worker]
+{scanner_host}
+
 [all:vars]
 public_registry= {jenkins_slave_host}
 copy_ssl_certs=true
 openshift_startup_delay=150
-beanstalk_server=openshift
+beanstalk_server={openshift_host}
 test=true
 cccp_source_repo={repo_url}
 cccp_source_branch={repo_branch}
@@ -90,13 +94,14 @@ jenkins_public_key_file = jenkins.key.pub
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key
-cccp_index_repo=https://github.com/bamachrn/cccp-index.git
+cccp_index_repo=https://github.com/rtnpro/container-index.git
 oc_slave={jenkins_slave_host}""").format(
         jenkins_master_host=jenkins_master_host,
         jenkins_slave_host=jenkins_slave_host,
         openshift_host=openshift_host,
         repo_url=repo_url,
-        repo_branch=repo_branch)
+        repo_branch=repo_branch,
+        scanner_host=scanner_host)
 
     with open('hosts', 'w') as f:
         f.write(ansible_inventory)
@@ -127,7 +132,7 @@ def provision(controller):
         host=controller)
 
 
-def test_if_openshift_builds_are_running(host):
+def test_if_openshift_builds_are_complete(host):
     print "=" * 30
     print "Test if openshift builds are running"
     print "=" * 30
@@ -144,7 +149,7 @@ def test_if_openshift_builds_are_running(host):
     ).format(user='root', cmd=cmd, host=host)
     retries = 0
     success = False
-    while retries < 100 and success is False:
+    while retries < 10 and success is False:
         if retries > 0:
             time.sleep(60)
         _print("Retries: %d/100" % retries)
@@ -152,18 +157,20 @@ def test_if_openshift_builds_are_running(host):
             output = subprocess.check_output(_cmd, shell=True)
             _print(output)
             lines = output.splitlines()
-            pods = set([line.split()[0] for line in lines[1:]])
-            success = pods == set(
+            pods = set([line.split()[0] for line in lines[1:]
+                        if line and line.split()[2] == 'Completed'])
+            success = not set(
                 # FIXME: we're ignoring delivery build right now as it will
                 # need the atomic scan host for that.
                 # ['build-1-build', 'delivery-1-build', 'test-1-build'])
-                ['build-1-build', 'test-1-build'])
+                ['build-1-build', 'test-1-build', 'delivery-1-build']
+            ).difference(pods)
         except subprocess.CalledProcessError:
             success = False
         retries += 1
     if success is False:
-        raise Exception("Openshift builds not running.")
-    _print("Openshift builds running successfully.")
+        raise Exception("Openshift builds did not complete.")
+    _print("Openshift builds completed successfully.")
 
 
 def test_if_openshift_builds_persist(host):
@@ -185,22 +192,38 @@ def test_if_openshift_builds_persist(host):
     _print(output)
     lines = output.splitlines()
     pods = set([line.split()[0] for line in lines[1:]])
-    success = pods == set(
+    success = set(
         # FIXME: we're ignoring delivery build right now as it will
         # need the atomic scan host for that.
         # ['build-1-build', 'delivery-1-build', 'test-1-build'])
-        ['build-1-build', 'test-1-build'])
+        ['build-1-build', 'test-1-build', 'delivery-1-build']
+    ).difference(pods)
     if success is False:
         raise Exception("Openshift builds did not persist after re provision.")
     _print("Openshift builds persited after re provision.")
 
 
+def test_if_built_image_can_be_pulled(host, image, user='root', sudo=False):
+    sudo = 'sudo' if sudo else ''
+    cmd = (
+        "{sudo} docker pull {image}"
+    ).format(image=image, sudo=sudo)
+    _cmd = (
+        "ssh -t -o UserKnownHostsFile=/dev/null -o "
+        "StrictHostKeyChecking=no {user}@{host} "
+        "'{cmd}'"
+    ).format(user=user, cmd=cmd, host=host)
+    output = subprocess.check_output(_cmd, shell=True)
+    _print(output)
+
+
 def run():
-    nodes = get_nodes()
+    nodes = get_nodes(count=5)
 
     jenkins_master_host = nodes[0]
     jenkins_slave_host = nodes[1]
     openshift_host = nodes[2]
+    scanner_host = nodes[3]
     controller = nodes.pop()
 
     nodes_env = (
@@ -208,23 +231,30 @@ def run():
         "JENKINS_SLAVE_HOST=%s\n"
         "OPENSHIFT_HOST=%s\n"
         "CONTROLLER=%s\n"
+        "SCANNER_HOST=%s\n"
     ) % (jenkins_master_host, jenkins_slave_host,
-         openshift_host, controller)
+         openshift_host, controller, scanner_host)
 
     with open('env.properties', 'a') as f:
         f.write(nodes_env)
 
     generate_ansible_inventory(jenkins_master_host,
                                jenkins_slave_host,
-                               openshift_host)
+                               openshift_host,
+                               scanner_host)
 
     run_cmd('iptables -F', host=openshift_host)
+    run_cmd('iptables -F', host=jenkins_slave_host)
 
     setup_controller(controller)
 
     provision(controller)
 
-    test_if_openshift_builds_are_running(jenkins_slave_host)
+    test_if_openshift_builds_are_complete(jenkins_slave_host)
+
+    test_if_built_image_can_be_pulled(
+        openshift_host,
+        jenkins_slave_host + ':5000/bamachrn/python:release')
 
     provision(controller)
 

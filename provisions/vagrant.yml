@@ -23,6 +23,14 @@
   tags:
     - openshift
 
+- name: Setup Scanner Worker
+  hosts: scanner_worker
+  roles:
+    - scanner
+  tags:
+    - scanner
+    - atomic/scanner
+
 - name: Setup jenkins slaves
   hosts: jenkins_slaves
   roles:
@@ -40,11 +48,3 @@
   tags:
     - jenkins
     - jenkins/master
-
-- name: Setup Scanner Worker 
-  hosts: scanner_worker
-  roles:
-    - scanner
-  tags:
-    - scanner
-    - atomic/scanner

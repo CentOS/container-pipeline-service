@@ -208,7 +208,18 @@ while True:
     try:
         job = bs.reserve()
         job_data = json.loads(job.body)
-        test_job_data(job_data)
+        if len(sys.argv) > 1 and sys.argv[1] == "ci":
+            # If working in CI environment, don't run the scanner
+            logger.log(level=logging.INFO, msg="CI check...")
+            job_data["action"] = "start_delivery"
+            job_data["msg"] = ""
+            job_data["logs"] = ""
+            job_data["image"] = job_data["name"]
+            bs.use("master_tube")
+            jid = bs.put(json.dumps(job_data))
+        else:
+            test_job_data(job_data)
+
         job.delete()
     except Exception as e:
         logger.log(level=logging.FATAL, msg=e.message)
