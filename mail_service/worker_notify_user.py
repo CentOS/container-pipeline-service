@@ -10,13 +10,15 @@ import smtplib
 bs = beanstalkc.Connection(host="172.17.0.1")
 bs.watch("notify_user")
 
+
 def send_mail(notify_email, subject, msg, logs):
     if(logs is not None):
         failed_msg_command = "/mail_service/send_failed_mail.sh"
         logfile = open("/tmp/build_log.log","w")
         logfile.write(logs)
         logfile.close()
-        subprocess.call([failed_msg_command,subject,notify_email,msg,"/tmp/build_log.log"])
+        subprocess.call(
+            [failed_msg_command,subject,notify_email,msg,"/tmp/build_log.log"])
     else:
         success_msg_command = "/mail_service/send_success_mail.sh"
         subprocess.call([success_msg_command,subject,notify_email,msg])
@@ -42,7 +44,8 @@ def send_mail(notify_email, subject, msg, logs):
 #   server.quit()
 
 while True:
-    print "listening to notify_user tube"
+    print "Listening to notify_user tube"
+
     job = bs.reserve()
     jobid = job.jid
     job_details = json.loads(job.body)
@@ -50,6 +53,7 @@ while True:
     print "==> Retrieving message details"
     notify_email = job_details['notify_email']
     subject = job_details['subject']
+
     if 'msg' not in job_details :
         msg = None
     else:
@@ -60,7 +64,6 @@ while True:
     else:
         logs = job_details['logs']
 
-    print "==> sending mail to user"
+    print "==> Sending email to user"
     send_mail(notify_email, subject, msg, logs)
-
     job.delete()
