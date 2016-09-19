@@ -27,7 +27,8 @@ logger.addHandler(ch)
 
 config_path = "/".join(sys.argv[0].split("/")[:-1])
 
-DEBUG=1
+DEBUG = 1
+
 
 def debug_log(msg):
     if DEBUG==1:

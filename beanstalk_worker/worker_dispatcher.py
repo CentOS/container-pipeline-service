@@ -19,15 +19,15 @@ while True:
   print "==> Retrieving job action"
   action = job_details['action']
 
-  if action == "start_build" :
+  if action == "start_build":
     bs.use("start_build")
     bs.put(json.dumps(job_details))
     print "==> Job moved to build tube"
-  elif action == "start_scan" :
+  elif action == "start_scan":
     bs.use("start_scan")
     bs.put(json.dumps(job_details))
     print "==>job moved to test tube"
-  elif action == "start_delivery" :
+  elif action == "start_delivery":
     bs.use("start_delivery")
     bs.put(json.dumps(job_details))
     print "==> job moved to delivery tube"

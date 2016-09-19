@@ -48,7 +48,6 @@ NS="--namespace ${NAME}-${TAG}"
 echo "==> login to Openshift server"
 oc login https://openshift:8443 -u test-admin -p test --config=./node.kubeconfig --certificate-authority=./ca.crt
 
-
 echo "==>creating new project or using existing project with same name"
 oc --config=./node.kubeconfig new-project ${NAME}-${TAG} --display-name=${NAME}-${TAG} || oc --config=./node.kubeconfig project ${NAME}-${TAG}
 
@@ -69,9 +68,8 @@ IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | 
 #[ $? -eq 0 ] && echo -e "Build ${BUILD} started.\nYou can watch builds progress at https://${IP}:8443/console/project/${NAME}/browse/builds"
 
 echo "==> Send build configs to build tube"
-python $CWD/send_build_request.py ${NAME} ${TAG} ${NOTIFY_EMAIL} ${DEPENDS_ON}
+python $CWD/send_build_request.py ${NAME} ${TAG} ${REPO_BRANCH} ${REPO_BUILD_PATH} ${TARGET_FILE} ${NOTIFY_EMAIL} ${DEPENDS_ON}
 
 echo "==> Restoring the default template"
 rm -rf $CWD/template.json
 mv $CWD/template.json.bak $CWD/template.json
-

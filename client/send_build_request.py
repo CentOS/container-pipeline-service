@@ -6,11 +6,14 @@ import sys
 
 print "Getting build details from jenkins"
 build_details = {}
-build_details['name'] = sys.argv[1]
-build_details['tag']  = sys.argv[2]
-build_details['notify_email'] = sys.argv[3]
-build_details['depends_on'] = sys.argv[4]
-build_details['action'] = "start_build"
+build_details["action"] = "start_build"
+build_details["name"] = sys.argv[1]
+build_details["tag"] = sys.argv[2]
+build_details["repo_branch"] = sys.argv[3]
+build_details["repo_build_path"] = sys.argv[4]
+build_details["target_file"] = sys.argv[5]
+build_details["notify_email"] = sys.argv[6]
+build_details["depends_on"] = sys.argv[7]
 
 print "Pushing bild details in the tube"
 bs = beanstalkc.Connection(host="openshift")
