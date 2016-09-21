@@ -30,7 +30,7 @@
               - bamachrn
             build-desc-template: "build description"
             trigger-phrase: '#dotests'
-            only-trigger-phrase: true
+            only-trigger-phrase: false
             github-hooks: true
             permit-all: false
             auto-close-on-fail: false
@@ -92,7 +92,9 @@
             skip-tag: true
             branch: master
     triggers:
-        - pollscm: "0 0 * * * *"
+      - pollscm:
+          cron: "0 0 * * *"
+          ignore-post-commit-hooks: True
 
 - job:
     name: 'centos-container-pipeline-service-ci-cleanup'

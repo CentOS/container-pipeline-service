@@ -1,7 +1,12 @@
 - name: Run cccp-index job
-  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build cccp-index --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }}
+  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build cccp-index --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} -f -v
   when: test
   sudo: yes
+  register: result
+
+- name: cccp-index job build output
+  debug: msg="{{ result['stdout'] }}"
+  failed_when: "'Finished: ERROR' in result['stdout']"
 
 - name: Wait for test job to create
   shell:  java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} list-jobs
@@ -13,6 +18,11 @@
   sudo: yes
 
 - name: Run bamachrn-python job
-  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build bamachrn-python --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }}
+  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build bamachrn-python --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} -f -v
   when: test
   sudo: yes
+  register: result
+
+- name: bamachrn-python build output
+  debug: msg="{{ result['stdout'] }}"
+  failed_when: "'Finished: ERROR' in result['stdout']"

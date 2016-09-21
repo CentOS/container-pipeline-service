@@ -22,11 +22,15 @@
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
-- name: Wait for Openshift Router to come up
-  pause: seconds=50
-
-- name: Run Atomic install
-  shell: atomic install registry.centos.org/pipeline-images/pipeline-scanner:latest
+- name: Run atomic scanner container
+  docker_container:
+      image: registry.centos.org/pipeline-images/pipeline-scanner:latest
+      name: pipeline-scanner
+      privileged: true
+      volumes:
+        - /etc/atomic.d/:/host/etc/atomic.d/
+      command: sh /install.sh
+      state: started
 
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/beanstalk_worker state=directory
@@ -48,11 +52,20 @@
   with_items:
       - {src: "../beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
 
-- name: Enable Scanner worker
-  service: name="cccp-test-worker" state=restarted enabled=yes
+- name: Skip atomic scan for test environment
+  replace: >
+    dest=/etc/systemd/system/cccp-test-worker.service
+    regexp='worker_start_test.py$'
+    replace='worker_start_test.py ci'
+  when: test
+  tags:
+    - test
 
 - name: Add host entry for beanstalkd
   shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
 
 - name: Add host entry for atomic-scan.vm
   shell: echo "127.0.0.1 atomic-scan.vm.centos.org" >> /etc/hosts
+
+- name: Enable Scanner worker
+  service: name="cccp-test-worker" state=restarted enabled=yes

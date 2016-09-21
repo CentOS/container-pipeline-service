@@ -97,7 +97,7 @@ while True:
     debug_log("listening to start_build tube")
     job = bs.reserve()
     job_details = json.loads(job.body) 
-    result = start_build(job_details)
+    result = start_delivery(job_details)
     if result == 0:
       debug_log("Delivery is successful deleting the job")
       job.delete()
