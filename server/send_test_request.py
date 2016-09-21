@@ -10,7 +10,7 @@ image_details = {}
 image_details['name_space'] = sys.argv[2]
 image_details['name'] = sys.argv[3]
 image_details['tag']  = sys.argv[4]
-image_details['action'] = "start_test"
+image_details['action'] = "start_scan"
 print "Pushing image details in the tube"
 bs = beanstalkc.Connection(host=beanstalk_host)
 bs.use("master_tube")

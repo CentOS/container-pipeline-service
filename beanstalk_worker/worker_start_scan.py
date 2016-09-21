@@ -54,7 +54,7 @@ def split_logs_to_packages(list_logs):
     return package_list
 
 
-def test_job_data(job_data):
+def scan_job_data(job_data):
     msg = ""
     logs = ""
     json_data = None
@@ -175,7 +175,7 @@ def test_job_data(job_data):
     logger.log(level=logging.INFO, msg="Removing the image %s" % image_full_name)
     conn.remove_image(image=image_full_name, force=True)
 
-    logger.log(level=logging.INFO, msg="Finished test...")
+    logger.log(level=logging.INFO, msg="Finished scan...")
 
     # if msg != "" and logs != "":
     if json_data != None:
@@ -202,7 +202,7 @@ def test_job_data(job_data):
     )
 
 bs = beanstalkc.Connection(host=BEANSTALKD_HOST)
-bs.watch("start_test")
+bs.watch("start_scan")
 
 while True:
     try:
@@ -220,6 +220,7 @@ while True:
         else:
             test_job_data(job_data)
 
+        scan_job_data(job_data)
         job.delete()
     except Exception as e:
         logger.log(level=logging.FATAL, msg=e.message)
