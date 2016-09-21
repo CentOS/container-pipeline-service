@@ -42,7 +42,7 @@
     mode: u+x
   with_items:
     - ../beanstalk_worker/beanstalkc.py
-    - ../beanstalk_worker/worker_start_test.py
+    - ../beanstalk_worker/worker_start_scan.py
   when: not vagrant
 
 - name: Get service files for workers
@@ -50,16 +50,19 @@
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items:
-      - {src: "../beanstalk_worker/cccp-test-worker.service", dest: /etc/systemd/system/cccp-test-worker.service}
+      - {src: "../beanstalk_worker/cccp-scan-worker.service", dest: /etc/systemd/system/cccp-scan-worker.service}
 
-- name: Skip atomic scan for test environment
+- name: Skip atomic scan for scan environment
   replace: >
-    dest=/etc/systemd/system/cccp-test-worker.service
-    regexp='worker_start_test.py$'
-    replace='worker_start_test.py ci'
+    dest=/etc/systemd/system/cccp-scan-worker.service
+    regexp='worker_start_scan.py$'
+    replace='worker_start_scan.py ci'
   when: test
   tags:
-    - test
+    - scan
+
+- name: Enable Scanner worker
+  service: name="cccp-scan-worker" state=restarted enabled=yes
 
 - name: Add host entry for beanstalkd
   shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
@@ -68,4 +71,4 @@
   shell: echo "127.0.0.1 atomic-scan.vm.centos.org" >> /etc/hosts
 
 - name: Enable Scanner worker
-  service: name="cccp-test-worker" state=restarted enabled=yes
+  service: name="cccp-scan-worker" state=restarted enabled=yes
