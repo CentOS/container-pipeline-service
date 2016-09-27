@@ -4,7 +4,7 @@ import yaml
 from shutil import copyfile
 
 def main():
-  stream = open("/set_env/cccp.yml",'r')
+  stream = open("cccp.yml",'r')
   cccp_yml = yaml.load(stream)
   stream.close()
   
