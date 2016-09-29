@@ -41,12 +41,12 @@ _ "Copying index reader to docker file"
 cp /cccp_reader.py .
 
 _ "Put build,test, delivery scripts in proper place"
-python cccp_reader.py
+python cccp_reader.py $TARGET_FILE
 
-_ "Adding index reader to docker file"
-echo "ADD /build_script /usr/bin/" >> $TARGET_FILE
-echo "ADD /test_script /usr/bin/" >> $TARGET_FILE
-echo "ADD /delivery_script /usr/bin/" >> $TARGET_FILE
+#_ "Adding index reader to docker file"
+#echo "ADD /build_script /usr/bin/" >> $TARGET_FILE
+#echo "ADD /test_script /usr/bin/" >> $TARGET_FILE
+#echo "ADD /delivery_script /usr/bin/" >> $TARGET_FILE
 
 _ "Building the image in ${buildpath} with tag ${TAG}"
 docker build --rm --no-cache -t $TAG -f $TARGET_FILE . || jumpto sendstatusmail
