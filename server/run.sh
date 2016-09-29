@@ -40,9 +40,6 @@ fi
 _ "Copying index reader to docker file"
 cp /cccp_reader.py .
 
-_ "Content in current directory"
-ls -la
-
 _ "Put build,test, delivery scripts in proper place"
 python cccp_reader.py
 
