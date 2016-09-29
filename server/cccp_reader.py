@@ -65,9 +65,9 @@ def echo_scripts(filepath,phase):
   fo.write("echo \""+phase+"Script not present\"");
   fo.close();
 
-def add_build_steps(filepath,step)
+def add_build_steps(filepath,step):
   target_file = open(filepath,"a");
-  target_file.write(step)
+  target_file.write(step+"\n")
   target_file.close()
 
 if __name__ == '__main__':
