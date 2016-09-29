@@ -40,8 +40,9 @@
   ignore_errors: yes
 
 - name: Get cccp service code
-  git: repo=https://github.com/CentOS/container-pipeline-service.git
-       dest="{{ ansible_env.HOME }}/cccp-service"
+  copy:
+    src: ../server
+    dest: "{{ ansible_env.HOME }}/cccp-service"
 
 - name: Build cccp build image
   shell: docker build -t cccp-build -f ./Dockerfile.build .

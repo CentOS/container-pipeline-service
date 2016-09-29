@@ -21,23 +21,23 @@ def main():
       test_skip = cccp_yml["test-skip"]
     
     if(key == "build-script"):
-      build_script = cccp_yml["build-script"]
-      os.symlink(os.path.join(curr_dir,build_script),"/build_script")
+      build_script_path = cccp_yml["build-script"]
+      os.symlink(os.path.join(curr_dir,build_script_path),"/usr/bin/build_script")
     else:
-      echo_scripts("/build_script","Build")
+      echo_scripts("/usr/bin/build_script","Build")
     
     if(key == "test-script"):
       test_script = cccp_yml["test-script"]
       if(test_skip != True):
-        os.symlink(os.path.join(curr_dir,test_script),"/test_script")
+        os.symlink(os.path.join(curr_dir,test_script),"/usr/bin/test_script")
     else:
-      echo_scripts("/build_script","Test")
+      echo_scripts("/usr/bin/test_script","Test")
     
     if(key == "delivery-script"):
       delivery_script = cccp_yml["delivery-script"]
-      os.symlink(os.path.join(curr_dir,delivery_script),"/delivery_script")
+      os.symlink(os.path.join(curr_dir,delivery_script),"/usr/bin/delivery_script")
     else:
-      echo_scripts("/build_script","Delivery")
+      echo_scripts("/usr/bin/delivery_script","Delivery")
 
   print "==> scripts saved"
 
