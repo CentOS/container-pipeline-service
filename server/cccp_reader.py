@@ -40,13 +40,13 @@ def main():
       os.symlink(os.path.join(curr_dir,delivery_script),"/delivery_script")
       got_delivery_script=1;
 
-  if(got_build_script == 0)
+  if(got_build_script == 0):
     echo_scripts("/build_script","Build ");
 
-  if(got_test_script == 0)
+  if(got_test_script == 0):
     echo_scripts("/test_scripts","Test ");
 
-  if(got_delivery_script == 0)
+  if(got_delivery_script == 0):
     echo_scripts("/delivery_scripts","Delivery ");
 
 
