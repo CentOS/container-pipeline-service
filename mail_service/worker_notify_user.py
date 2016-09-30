@@ -5,23 +5,46 @@ import json
 import subprocess
 import re
 import time
+import smtplib
 
 bs = beanstalkc.Connection(host="172.17.0.1")
 bs.watch("notify_user")
 
+def send_mail(to_mail, subject, msg, logs)
+    SERVER = "localhost"
+    FROM = "container-build-report@centos.org"
+    TO = [to_mail] # must be a list
+    SUBJECT = subject
+    TEXT = msg+"\n"+logs
+
+    # Prepare actual message
+
+    message = """\
+    From: %s
+    To: %s
+    Subject: %s
+
+    %s
+    """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
+
+    # Send the mail
+    server = smtplib.SMTP(SERVER)
+    server.sendmail(FROM, TO, message)
+    server.quit()
+
 while True:
-  print "listening to notify_user tube"
-  job = bs.reserve()
-  jobid = job.jid
-  job_details = json.loads(job.body) 
-  
-  print "==> Retrieving message details"
-  to_mail = job_details['to_mail']
-  subject = job_details['subject']
-  msg = job_details['msg']
-  
-  print "==> sending mail to user"
-  command = "/mail_service/send_mail.sh"
-  subprocess.call([command,subject,msg,to_mail])
-  
-  job.delete()
+    print "listening to notify_user tube"
+    job = bs.reserve()
+    jobid = job.jid
+    job_details = json.loads(job.body)
+
+    print "==> Retrieving message details"
+    to_mail = job_details['to_mail']
+    subject = job_details['subject']
+    msg = job_details['msg']
+    logs = job_details['logs']
+
+    print "==> sending mail to user"
+    send_mail(to_mail, subject, msg, logs)
+
+    job.delete()
