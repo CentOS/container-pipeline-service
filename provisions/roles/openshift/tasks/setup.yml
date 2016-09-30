@@ -43,6 +43,7 @@
   copy:
     src: ../../../../
     dest: "{{ ansible_env.HOME }}/cccp-service"
+    mode: a+x
 
 - name: Build cccp build image
   shell: docker build -t cccp-build -f ./Dockerfile.build .
