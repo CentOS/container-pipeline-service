@@ -69,7 +69,7 @@
         - trigger-parameterized-builds:
             - project: 'centos-container-pipeline-service-ci-cleanup'
               property-file: 'env.properties'
-              condition: 'ALWAYS'
+              condition: 'UNSTABLE_OR_BETTER'
     scm:
         - custom-scm-git
     triggers:
@@ -85,7 +85,7 @@
         - trigger-parameterized-builds:
             - project: 'centos-container-pipeline-service-ci-cleanup'
               property-file: 'env.properties'
-              condition: 'ALWAYS'
+              condition: 'UNSTABLE_OR_BETTER'
     scm:
         - git:
             url: https://github.com/CentOS/container-pipeline-service
