@@ -9,7 +9,7 @@
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#?\s*ADD_REGISTRY=.*"
-    replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000"'
+    replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
 
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
