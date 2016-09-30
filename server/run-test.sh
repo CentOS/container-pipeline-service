@@ -24,9 +24,9 @@ FULL_TO=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
 _ "Pulling tested image (${FULL_FROM})"
 docker pull ${FULL_FROM} || jumpto sendstatusmail
 
-_ "Checking if test script is getting success"
+#_ "Checking if test script is getting success"
 #if [ `docker run --rm ${FULL_FROM} /bin/bash ls /usr/bin/test_script;echo $?` -eq 0 ]; then
-docker run --rm ${FULL_FROM} --entrypoint /bin/bash /usr/bin/test_script 
+#docker run --rm ${FULL_FROM} --entrypoint /bin/bash /usr/bin/test_script 
 #|| jumpto sendstatusmail
 #fi
 
@@ -49,8 +49,9 @@ docker rmi ${FULL_FROM}
 jumpto end
 
 sendstatusmail:
-_ "Sending mail of failed status to ${NOTIFY_EMAIL}"
-python /tube_request/send_failed_notify_request.py ${BEANSTALK_SERVER} ${NOTIFY_EMAIL}
+  exit 1
+#_ "Sending mail of failed status to ${NOTIFY_EMAIL}"
+#python /tube_request/send_failed_notify_request.py ${BEANSTALK_SERVER} ${NOTIFY_EMAIL}
 #docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
 
 end:
