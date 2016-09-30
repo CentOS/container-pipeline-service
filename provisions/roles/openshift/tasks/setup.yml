@@ -41,7 +41,7 @@
 
 - name: Get cccp service code
   copy:
-    src: ../server
+    src: ../../../../
     dest: "{{ ansible_env.HOME }}/cccp-service"
 
 - name: Build cccp build image
