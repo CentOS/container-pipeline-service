@@ -12,7 +12,9 @@
         - pollscm: "H/10 * * * *" 
     builders:
         - shell: |
+            export DOCKERFILE_DIR=`pwd`
             cd /opt/cccp-service/client/
+            /bin/bash lint-dockerfile.sh {namespace} {rel_path} {target_file} {notify_email} {jobname}
             ./build-project.sh {namespace} {jobname} {git_url} {git_branch} {rel_path} {target_file} {notify_email} {depends_on} {desired_tag}
 
 - job-group:

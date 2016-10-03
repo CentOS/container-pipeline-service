@@ -34,6 +34,7 @@
     - ../beanstalk_worker/DependencyChecker.py
     - ../beanstalk_worker/worker_dispatcher.py
     - ../beanstalk_worker/worker_start_delivery.py
+    - ../beanstalk_worker/worker_dockerfile_lint.py
   when: not vagrant
 
 - name: Get service files for workers
@@ -44,6 +45,7 @@
     - {src: "../beanstalk_worker/cccp-build-worker.service", dest: /etc/systemd/system/cccp-build-worker.service}
     - {src: "../beanstalk_worker/cccp-delivery-worker.service", dest: /etc/systemd/system/cccp-delivery-worker.service}
     - {src: "../beanstalk_worker/cccp-dispatcher-worker.service", dest: /etc/systemd/system/cccp-dispatcher-worker.service}
+    - {src: "../beanstalk_worker/cccp-dockerfile-lint-worker.service", dest: /etc/systemd/system/cccp-dockerfile-lint-worker.service}
 
 - name: Enable and start beanstalk worker services
   service: name="{{ item }}" state=restarted enabled=yes
@@ -51,6 +53,7 @@
     - cccp-build-worker
     - cccp-delivery-worker
     - cccp-dispatcher-worker
+    - cccp-dockerfile-lint-worker
   tags:
       - openshift
       - jenkins/slaves
