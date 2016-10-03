@@ -1,6 +1,6 @@
-from subprocess import check_call, CalledProcessError, STDOUT
 from os import environ, path, mkdir, unsetenv, listdir, unlink, devnull
 from shutil import rmtree
+from subprocess import check_call, CalledProcessError, STDOUT
 
 
 def execute_command(cmd):
@@ -15,6 +15,7 @@ def execute_command(cmd):
 
 class Environment:
     """Handles the bringing up and teardown of the test environment"""
+
     def __init__(self, data_dump_directory="./cccp-index-test"):
 
         if not path.isabs(data_dump_directory):

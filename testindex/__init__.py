@@ -1,9 +1,9 @@
 from Engine import Engine
 from argparse import ArgumentParser
 
-def get_parser():
 
-    parser = ArgumentParser(description="This scirpt is used to valide the contents on the index.d directory.")
+def get_parser():
+    parser = ArgumentParser(description="This script is used to validate the contents on the index.d directory.")
 
     parser.add_argument("-d",
                         "--dump_directory",
@@ -20,6 +20,7 @@ def get_parser():
                         action="store")
 
     return parser
+
 
 if __name__ == '__main__':
 
