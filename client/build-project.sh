@@ -69,7 +69,7 @@ IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | 
 #[ $? -eq 0 ] && echo -e "Build ${BUILD} started.\nYou can watch builds progress at https://${IP}:8443/console/project/${NAME}/browse/builds"
 
 echo "==> Send build configs to build tube"
-python $CWD/send_build_request.py ${NAME} ${TAG} ${DEPENDS_ON}
+python $CWD/send_build_request.py ${NAME} ${TAG} ${NOTIFY_EMAIL} ${DEPENDS_ON}
 
 echo "==> Restoring the default template"
 rm -rf $CWD/template.json

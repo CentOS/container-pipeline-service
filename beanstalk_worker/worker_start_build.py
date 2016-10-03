@@ -56,7 +56,7 @@ def start_build(job_details):
         debug_log(" Retrieving namespace")
         name = job_details['name']
         tag = job_details['tag']
-        depends_on = job_details['depends_on']
+        #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
 
         debug_log("Login to openshift server")
@@ -95,7 +95,7 @@ def start_build(job_details):
 
         is_complete=run_command(status_command)[0].find('Complete')
 
-        //checking logs for the build phase
+        #checking logs for the build phase
         log_command = "oc logs --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
         logs = run_command(log_command)
 
