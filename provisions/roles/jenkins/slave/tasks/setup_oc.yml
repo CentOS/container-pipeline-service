@@ -23,6 +23,8 @@
     - ../client/build-project.sh
     - ../client/send_build_request.py
     - ../client/beanstalkc.py
+    - ../client/lint-dockerfile.sh
+    - ../client/trigger_dockerfile_lint.py
   when: not vagrant
 
 - name: Copy openshift template file
