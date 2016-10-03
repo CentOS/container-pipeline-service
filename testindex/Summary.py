@@ -1,5 +1,7 @@
 import hashlib
+
 from yaml import dump
+
 from NutsAndBolts import GlobalEnvironment
 
 
@@ -61,7 +63,7 @@ class Summary:
 
                 if len(entry_info["warnings"]) > 0:
                     for wrn in entry_info["warnings"]:
-                        print "  **W "  +wrn
+                        print "  **W " + wrn
 
                 print "\n"
 
