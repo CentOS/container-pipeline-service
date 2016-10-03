@@ -29,12 +29,22 @@ config_path = "/".join(sys.argv[0].split("/")[:-1])
 
 DEBUG=1
 
+def notify_build_failure(name_space, notify_email, logs):
+    msg_details = {}
+    msg_details['action'] = 'notify_user'
+    msg_details['subject'] = "Container-build failed"+namespace
+    msg_details['msg'] = "Container build "+ namespace +" failed due to error in build or test steps. Pleae check attached logs"
+    msg_details['logs'] = logs
+    msg_details['to_mail'] = notify_email
+    bs.use('master_tube')
+    bs.put(json.dumps(msg_details))
+
 def debug_log(msg):
     if DEBUG==1:
         logger.log(level=logging.INFO,msg=msg)
 
 def run_command(command):
-    p = Popen(command,bufsize=0,shell=True,stdout=PIPE,stderr=PIPE,stdin=PIPE)
+    p = Popen(command,bufsize=0,shelli = True,stdout = PIPE,stderr = PIPE,stdin = PIPE)
     p.wait()
     out = p.communicate()
     return out
@@ -44,9 +54,11 @@ def start_delivery(job_details):
     try:
         debug_log("Retrieving namespace")
         name_space = job_details['name_space']
+        to_mail = job_details['notify_email']
+
         #tag = job_details['tag']
         #depends_on = job_details['depends_on']
-  
+
         debug_log("Login to openshift server")
         command_login = "oc login https://openshift:8443 -u test-admin -p test --config="+config_path+"/node.kubeconfig --certificate-authority="+config_path+"/ca.crt"
         out = run_command(command_login)
@@ -56,7 +68,7 @@ def start_delivery(job_details):
         command_change_project = "oc project "+name_space+" --config="+config_path+"/node.kubeconfig"
         out = run_command(command_change_project)
         debug_log(out)
-  
+
         debug_log("start the delivery")
         command_start_build = "oc --namespace "+name_space+" start-build delivery --config="+config_path+"/node.kubeconfig"
         out = run_command(command_start_build)
@@ -100,7 +112,7 @@ while True:
     try:
         debug_log("listening to start_build tube")
         job = bs.reserve()
-        job_details = json.loads(job.body) 
+        job_details = json.loads(job.body)
         result = start_delivery(job_details)
         if result == 0:
             debug_log("Delivery is successful deleting the job")
