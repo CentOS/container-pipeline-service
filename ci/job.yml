@@ -24,10 +24,14 @@
               - rtnpro
               - kbsingh
               - bamachrn
+              - dharmit
+              - navidshaikh
             white-list:
               - rtnpro
               - kbsingh
               - bamachrn
+              - dharmit
+              - navidshaikh
             build-desc-template: "build description"
             trigger-phrase: '#dotests'
             only-trigger-phrase: false
@@ -117,16 +121,20 @@
               - rtnpro
               - kbsingh
               - bamachrn
-              - mohammedzee1000 
+              - mohammedzee1000
+              - dharmit
+              - navidshaikh
             white-list:
               - rtnpro
               - kbsingh
               - bamachrn
-              - mohammedzee1000 
+              - mohammedzee1000
+              - dharmit
+              - navidshaikh
             cron: '* * * * *'
             github-hooks: false
             permit-all: true
-          
+
     wrappers:
         - ansicolor
     scm:
