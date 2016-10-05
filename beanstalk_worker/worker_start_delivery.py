@@ -97,6 +97,7 @@ def start_delivery(job_details):
 		//checking logs for the build phase
         log_command = "oc logs --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
         logs = run_command(log_command)
+        logs = logs[0]
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))

@@ -8,7 +8,7 @@ RUN mkdir -p /tube_request/
 
 ADD beanstalkc.py /tube_request/
 
-ADD send_test_request.py /tube_request/
+ADD send_scan_request.py /tube_request/
 
 ADD send_failed_notify_request.py /tube_request/
 
