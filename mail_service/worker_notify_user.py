@@ -60,7 +60,6 @@ while True:
     else:
         logs = job_details['logs']
 
-    if ( logs)
     print "==> sending mail to user"
     send_mail(to_mail, subject, msg, logs)
 
