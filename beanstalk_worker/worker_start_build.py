@@ -43,8 +43,8 @@ def run_command(command):
 def notify_build_failure(namespace, notify_email, logs):
     msg_details = {}
     msg_details['action'] = 'notify_user'
-    msg_details['subject'] = "Container-build failed"+namespace
-    msg_details['msg'] = "Container build for " + namespace + "failed due to error in build or test steps. Pleae check attached logs"
+    msg_details['subject'] = "Container-build failed "+namespace
+    msg_details['msg'] = "Container build for " + namespace + " is failed due to error in build or test steps. Pleae check attached logs"
     msg_details['logs'] = logs
     msg_details['to_mail'] = notify_email
     bs.use('master_tube')

@@ -10,27 +10,36 @@ import smtplib
 bs = beanstalkc.Connection(host="172.17.0.1")
 bs.watch("notify_user")
 
-def send_mail(to_mail, subject, msg, logs)
-    SERVER = "localhost"
-    FROM = "container-build-report@centos.org"
-    TO = [to_mail] # must be a list
-    SUBJECT = subject
-    TEXT = msg+"\n"+logs
+def send_mail(to_mail, subject, msg, logs):
+    if(logs != null):
+        failed_msg_command = "/mail_service/send_failed_mail.sh"
+        logfile = open("/tmp/failed_log.log","w")
+        logfile.write(logs)
+        logfile.close()
+        subprocess.call([failed_msg_command,subject,to_mail,"/tmp/failed_log.log"])
+    else:
+        success_msg_command = "mail_service/send_success_mail.sh"
+        subprocess.call([success_msg_command,subject,to_mail,msg])
+#    SERVER = "localhost"
+#    FROM = "container-build-report@centos.org"
+#    TO = [to_mail] # must be a list
+#    SUBJECT = subject
+#    TEXT = msg+"\n"+logs
 
     # Prepare actual message
 
-    message = """\
-    From: %s
-    To: %s
-    Subject: %s
+#    message = """\
+#    From: %s
+#    To: %s
+#    Subject: %s
 
-    %s
-    """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
+#    %s
+#    """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
 
     # Send the mail
-    server = smtplib.SMTP(SERVER)
-    server.sendmail(FROM, TO, message)
-    server.quit()
+#    server = smtplib.SMTP(SERVER)
+#    server.sendmail(FROM, TO, message)
+#   server.quit()
 
 while True:
     print "listening to notify_user tube"
