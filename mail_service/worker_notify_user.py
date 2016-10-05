@@ -11,14 +11,14 @@ bs = beanstalkc.Connection(host="172.17.0.1")
 bs.watch("notify_user")
 
 def send_mail(to_mail, subject, msg, logs):
-    if(logs != null):
+    if(logs is not None):
         failed_msg_command = "/mail_service/send_failed_mail.sh"
         logfile = open("/tmp/failed_log.log","w")
         logfile.write(logs)
         logfile.close()
         subprocess.call([failed_msg_command,subject,to_mail,"/tmp/failed_log.log"])
     else:
-        success_msg_command = "mail_service/send_success_mail.sh"
+        success_msg_command = "/mail_service/send_success_mail.sh"
         subprocess.call([success_msg_command,subject,to_mail,msg])
 #    SERVER = "localhost"
 #    FROM = "container-build-report@centos.org"
@@ -50,9 +50,17 @@ while True:
     print "==> Retrieving message details"
     to_mail = job_details['to_mail']
     subject = job_details['subject']
-    msg = job_details['msg']
-    logs = job_details['logs']
+    if 'msg' not in job_details :
+        msg = None
+    else:
+        msg = job_details['msg']
 
+    if 'logs' not in job_details :
+        logs = None
+    else:
+        logs = job_details['logs']
+
+    if ( logs)
     print "==> sending mail to user"
     send_mail(to_mail, subject, msg, logs)
 
