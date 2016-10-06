@@ -1,0 +1,16 @@
+FROM registry.centos.org/centos/centos
+MAINTAINER Bamacharan Kundu<bkundu@redhat.com>
+RUN yum update -y && \
+    yum install python -y && \
+    yum clean all
+
+RUN mkdir -p /run_worker
+ADD beanstalkc.py /run_worker
+ADD ca.crt /run_worker
+ADD node.kubeconfig /run_worker
+ADD worker_start_delivery.py /run_worker
+RUN chmod a+x /run_worker/*
+
+WORKDIR /run_worker
+
+CMD ['/run_worker/worker_start_delivey.py']
