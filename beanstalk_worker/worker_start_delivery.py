@@ -32,11 +32,7 @@ DEBUG=1
 def notify_build_failure(name_space, notify_email, logs):
     msg_details = {}
     msg_details['action'] = 'notify_user'
-<<<<<<< 43da7e338eab07ee865b05ba42c6738ea96c5b2c
     msg_details['subject'] = "FAILED: Container-build failed"+namespace
-=======
-    msg_details['subject'] = "Container-build failed"+namespace
->>>>>>> Added failure notification to delivery bit
     msg_details['msg'] = "Container build "+ namespace +" failed due to error in build or test steps. Pleae check attached logs"
     msg_details['logs'] = logs
     msg_details['to_mail'] = notify_email
@@ -48,11 +44,7 @@ def debug_log(msg):
         logger.log(level=logging.INFO,msg=msg)
 
 def run_command(command):
-<<<<<<< 43da7e338eab07ee865b05ba42c6738ea96c5b2c
     p = Popen(command,bufsize=0,shell = True,stdout = PIPE,stderr = PIPE,stdin = PIPE)
-=======
-    p = Popen(command,bufsize=0,shelli = True,stdout = PIPE,stderr = PIPE,stdin = PIPE)
->>>>>>> Added failure notification to delivery bit
     p.wait()
     out = p.communicate()
     return out
