@@ -44,7 +44,7 @@ def debug_log(msg):
         logger.log(level=logging.INFO,msg=msg)
 
 def run_command(command):
-    p = Popen(command,bufsize=0,shelli = True,stdout = PIPE,stderr = PIPE,stdin = PIPE)
+    p = Popen(command,bufsize=0,shell = True,stdout = PIPE,stderr = PIPE,stdin = PIPE)
     p.wait()
     out = p.communicate()
     return out
@@ -95,7 +95,7 @@ def start_delivery(job_details):
 
         is_complete=run_command(status_command)[0].find('Complete')
         #checking logs for the build phase
-        log_command = "oc logs --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
+        log_command = "oc logs --namespace "+name_space+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
         logs = run_command(log_command)
         logs = logs[0]
 
