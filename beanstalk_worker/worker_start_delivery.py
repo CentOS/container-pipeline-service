@@ -95,7 +95,11 @@ def start_delivery(job_details):
 
         is_complete=run_command(status_command)[0].find('Complete')
         #checking logs for the build phase
+<<<<<<< dd68278c2b0de778c873e44ddcc7c0912a6a9863
         log_command = "oc logs --namespace "+name_space+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
+=======
+        log_command = "oc logs --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
+>>>>>>> Added notify_email to delivery tube
         logs = run_command(log_command)
         logs = logs[0]
 
