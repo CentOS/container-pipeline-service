@@ -6,7 +6,6 @@ from subprocess import Popen
 from subprocess import PIPE
 import re
 import time
-from DependencyChecker import DependencyChecker
 import logging
 import sys
 
