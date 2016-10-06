@@ -94,7 +94,7 @@ def start_delivery(job_details):
             time.sleep(30)
 
         is_complete=run_command(status_command)[0].find('Complete')
-		//checking logs for the build phase
+        #checking logs for the build phase
         log_command = "oc logs --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
         logs = run_command(log_command)
         logs = logs[0]
@@ -111,7 +111,7 @@ def start_delivery(job_details):
 
 while True:
     try:
-        debug_log("listening to start_build tube")
+        debug_log("listening to start_delivery tube")
         job = bs.reserve()
         job_details = json.loads(job.body)
         result = start_delivery(job_details)
