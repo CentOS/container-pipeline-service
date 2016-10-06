@@ -69,6 +69,7 @@ def test_job_data(job_data):
 
     # Receive and send `name_space` key-value as is
     namespace = job_data.get('name_space')
+    notify_email = job_data.get('notify_email')
 
     image_full_name = job_data.get('name')
     #.split(":")[0] + ":" + \
@@ -184,7 +185,8 @@ def test_job_data(job_data):
             "msg": "Container image requires update",
             "logs": json.dumps(json_data),
             "action": "start_delivery",
-            "name_space": namespace
+            "name_space": namespace,
+            "notify_email": notify_email
         }
     else:
         d = {
@@ -192,7 +194,8 @@ def test_job_data(job_data):
             "msg": "No updates required",
             "logs": "",
             "action": "start_delivery",
-            "name_space": namespace
+            "name_space": namespace,
+            "notify_email": notify_email
         }
     bs.use("master_tube")
     jid = bs.put(json.dumps(d))
