@@ -1,13 +1,14 @@
-from NutsAndBolts import Environment, GlobalEnvironment
-from sys import exit
-from os import path
 from glob import glob
+from os import path
+
+from sys import exit
+
 import Validators
+from NutsAndBolts import Environment, GlobalEnvironment
 from Summary import Summary
 
 
 class Engine:
-
     def __init__(self, indexd_location="./index.d", data_dump_directory="cccp-index-test"):
 
         self._success = False

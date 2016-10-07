@@ -63,10 +63,19 @@ class IndexFormatValidator(Validator):
                     self._success = False
                     summary_collector["errors"].append("app-id should be same as first part of the file name")
 
+                if "_" in entry["app-id"] or "/" in entry["app-id"] or "." in entry["app-id"]:
+                    self._success = False
+                    summary_collector["errors"].append("app-id cannot contain _, / or . character.")
+
             # Checking job-id field
             if "job-id" not in entry or ("job-id" in entry and entry["job-id"] is None):
                 self._success = False
                 summary_collector["errors"].append("Missing job-id field")
+
+            else:
+                if "_" in entry["job-id"] or "/" in entry["job-id"] or "." in entry["job-id"]:
+                    self._success = False
+                    summary_collector["errors"].append("job-id cannot contain _, / or . character.")
 
             # Check for git-url
             if "git-url" not in entry or ("git-url" in entry and entry["git-url"] is None):
@@ -113,7 +122,8 @@ class IndexProjectsValidator(Validator):
 
         Validator.__init__(self, index_file)
 
-    def _update_git_url(self, git_url, git_branch):
+    @staticmethod
+    def _update_git_url(git_url, git_branch):
 
         clone_path = None
 
@@ -242,7 +252,7 @@ class IndexProjectsValidator(Validator):
 
             try:
                 if value is True or value is False:
-                    h = ""
+                    pass
             except Exception:
                 self._success = False
                 summary_collector["errors"].append("test-skip should either be True or False as it is a flag")
