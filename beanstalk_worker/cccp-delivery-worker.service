@@ -1,5 +1,0 @@
-[Unit]
-Description=cccp-delivery-worker.service
-
-[Service]
-ExecStart=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
