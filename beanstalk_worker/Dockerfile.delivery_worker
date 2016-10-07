@@ -13,4 +13,4 @@ RUN chmod a+x /run_worker/*
 
 WORKDIR /run_worker
 
-CMD ['/run_worker/worker_start_delivey.py']
+CMD ["/run_worker/worker_start_delivey.py"]
