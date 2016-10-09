@@ -25,11 +25,7 @@ docker push ${FULL_TO}
 
 OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
 
-#_ "Send mail to (${NOTIFY_EMAIL}) notify build is completed (${OUTPUT_IMAGE})"
-#echo "Build is successful please pull the image (${OUTPUT_IMAGE})" | mail -r container-build-report@centos.org -s "cccp-build is complete" ${NOTIFY_EMAIL}
-
-#sleep 20
-
+_ "Send success mail for user notify tube"
 python /tube_request/send_notify_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} ${NOTIFY_EMAIL}
 
 _ "Cleaning environment"
