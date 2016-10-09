@@ -11,8 +11,8 @@ notify_email  = sys.argv[3]
 
 msg_details = {}
 msg_details['action'] = "notify_user"
-msg_details['subject'] = "cccp-build is complete"
-msg_details['msg'] = "Build is successful please pull the image ("+output_image+")"
+msg_details['subject'] = "SUCCESS: Your container build request is complete"
+msg_details['msg'] = "Build is successful. You can pull the image ("+output_image+")"
 msg_details['to_mail'] = notify_email
 
 
