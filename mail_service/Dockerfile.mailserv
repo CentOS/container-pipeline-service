@@ -1,7 +1,7 @@
 FROM registry.centos.org/centos/centos:latest
 
-RUN yum -y update &&
-    yum -y install docker &&
+RUN yum -y update && \
+    yum -y install docker && \
     yum -y install wget mailx postfix rsyslog
 
 RUN mkdir -p /mail_service/
