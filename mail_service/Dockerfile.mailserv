@@ -1,18 +1,14 @@
-FROM centos
+FROM registry.centos.org/centos/centos:latest
 
-RUN yum -y update
-
-RUN yum -y install docker
-
-RUN yum -y install wget mailx postfix rsyslog
+RUN yum -y update && \
+    yum -y install docker && \
+    yum -y install wget mailx postfix rsyslog
 
 RUN mkdir -p /mail_service/
 
 ADD send_mail.sh /mail_service/
-
 ADD worker_notify_user.py /mail_service/
 ADD beanstalkc.py /mail_service/
-
 ADD start_mail_server.sh /mail_service/
 
 RUN chmod 777 /mail_service/*

@@ -10,8 +10,8 @@ notify_email  = sys.argv[2]
 
 msg_details = {}
 msg_details['action'] = "notify_user"
-msg_details['subject'] = "Container-build failed"
-msg_details['msg'] = "Container build failed due to error in status of build or test steps"
+msg_details['subject'] = "FAIL: Your container build request has failed"
+msg_details['msg'] = "Build has failed."
 msg_details['to_mail'] = notify_email
 
 
