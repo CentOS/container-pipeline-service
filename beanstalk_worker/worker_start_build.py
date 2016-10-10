@@ -31,7 +31,7 @@ DEBUG=1
 
 def debug_log(msg):
     if DEBUG==1:
-        logger.log(level=logging.INFO,msg=msg)
+        logger.log(level=logging.DEBUG, msg=msg)
 
 def run_command(command):
     p = Popen(command,bufsize=0,shell=True,stdout=PIPE,stderr=PIPE,stdin=PIPE)
@@ -42,7 +42,7 @@ def run_command(command):
 def notify_build_failure(namespace, notify_email, logs):
     msg_details = {}
     msg_details['action'] = 'notify_user'
-    msg_details['subject'] = "Container-build failed "+namespace
+    msg_details['subject'] = "FAILED: Container-build failed "+namespace
     msg_details['msg'] = "Container build for " + namespace + " is failed due to error in build or test steps. Pleae check attached logs"
     msg_details['logs'] = logs
     msg_details['to_mail'] = notify_email

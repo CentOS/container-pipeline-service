@@ -32,7 +32,7 @@ DEBUG=1
 def notify_build_failure(name_space, notify_email, logs):
     msg_details = {}
     msg_details['action'] = 'notify_user'
-    msg_details['subject'] = "Container-build failed"+namespace
+    msg_details['subject'] = "FAILED: Container-build failed"+namespace
     msg_details['msg'] = "Container build "+ namespace +" failed due to error in build or test steps. Pleae check attached logs"
     msg_details['logs'] = logs
     msg_details['to_mail'] = notify_email
@@ -95,11 +95,7 @@ def start_delivery(job_details):
 
         is_complete=run_command(status_command)[0].find('Complete')
         #checking logs for the build phase
-<<<<<<< dd68278c2b0de778c873e44ddcc7c0912a6a9863
         log_command = "oc logs --namespace "+name_space+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
-=======
-        log_command = "oc logs --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
->>>>>>> Added notify_email to delivery tube
         logs = run_command(log_command)
         logs = logs[0]
 
