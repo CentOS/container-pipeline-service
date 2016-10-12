@@ -5,14 +5,14 @@
             !include-raw './setup_env.sh'
         - inject:
             properties-file: env.properties
-        - python:
-            !include-raw './cccp_ci.py'
+        - shell:
+            python ./ci/cccp_ci.py
 
 - builder:
     name: centos-container-pipeline-service-ci-cleanup-builders
     builders:
-        - python:
-            !include-raw './cccp_ci_cleanup.py'
+        - shell:
+            python ./ci/cccp_ci_cleanup.py
 
 # Custom Trigger. Sets up the Github pull request trigger
 # Accepts a parameter {provider}
