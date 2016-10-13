@@ -77,16 +77,16 @@
   docker: 
       name: dispatcher-worker
       state: started
-      image: dispatcher_worker
+      image: dispatcher-worker
 
-- name: Start dispatcher worker
+- name: Start build worker
   docker: 
       name: dispatcher-worker
       state: started
-      image: dispatcher_worker
+      image: build-worker
 
-- name: Start dispatcher worker
+- name: Start delivery worker
   docker: 
       name: dispatcher-worker
       state: started
-      image: dispatcher_worker
+      image: delivery-worker
