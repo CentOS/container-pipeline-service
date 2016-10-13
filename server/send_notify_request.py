@@ -13,7 +13,7 @@ msg_details = {}
 msg_details['action'] = "notify_user"
 msg_details['subject'] = "SUCCESS: Your container build request is complete"
 msg_details['msg'] = "Build is successful. You can pull the image ("+output_image+")"
-msg_details['to_email'] = notify_email
+msg_details['notify_email'] = notify_email
 msg_details['subject'] = "cccp-build is complete"
 msg_details['msg'] = ("Build is successful please "
                       "pull the image (%s) " % output_image)

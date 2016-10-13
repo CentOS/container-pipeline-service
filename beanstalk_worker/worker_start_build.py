@@ -46,7 +46,7 @@ def notify_build_failure(namespace, notify_email, logs):
     msg_details['subject'] = "FAILED: Container-build failed "+namespace
     msg_details['msg'] = "Container build for " + namespace + " is failed due to error in build or test steps. Pleae check attached logs"
     msg_details['logs'] = logs
-    msg_details['to_mail'] = notify_email
+    msg_details['notify_email'] = notify_email
     bs.use('master_tube')
     bs.put(json.dumps(msg_details))
 
