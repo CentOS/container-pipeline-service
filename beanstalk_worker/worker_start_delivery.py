@@ -32,8 +32,8 @@ DEBUG=1
 def notify_build_failure(name_space, notify_email, logs):
     msg_details = {}
     msg_details['action'] = 'notify_user'
-    msg_details['subject'] = "FAILED: Container-build failed"+namespace
-    msg_details['msg'] = "Container build "+ namespace +" failed due to error in build or test steps. Pleae check attached logs"
+    msg_details['subject'] = "FAILED: Container-build failed"+name_space
+    msg_details['msg'] = "Container build "+ name_space +" failed due to error in build or test steps. Pleae check attached logs"
     msg_details['logs'] = logs
     msg_details['to_mail'] = notify_email
     bs.use('master_tube')
@@ -54,7 +54,7 @@ def start_delivery(job_details):
     try:
         debug_log("Retrieving namespace")
         name_space = job_details['name_space']
-        to_mail = job_details['notify_email']
+        notify_email = job_details['notify_email']
 
         #tag = job_details['tag']
         #depends_on = job_details['depends_on']
