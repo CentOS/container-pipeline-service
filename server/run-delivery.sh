@@ -25,7 +25,7 @@ docker push ${FULL_TO}
 
 OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
 
-_ "Send the image details to test_tube for testing"
+_ "Send success mail for user notify tube"
 python /tube_request/send_notify_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} ${NOTIFY_EMAIL}
 
 _ "Cleaning environment"

@@ -9,12 +9,9 @@ def main():
   stream = open("cccp.yml",'r')
   cccp_yml = yaml.load(stream)
   stream.close()
-  
   print "==> Getting current directory"
   curr_dir = os.getcwd()
- 
   print "==> Saving scripts for build process"
- 
   got_build_script = 0;
   got_test_script = 0;
   got_delivery_script = 0;
@@ -25,20 +22,20 @@ def main():
 
     if(key == "test-skip"):
       test_skip = cccp_yml["test-skip"]
-    
+
     if(key == "build-script"):
       build_script_path = cccp_yml["build-script"]
       build_script_path = os.path.join(curr_dir,build_script_path)
       add_build_steps(target_file_path,"RUN ln -s "+build_script_path+" /usr/bin/build_script")
       got_build_script=1;
-    
+
     if(key == "test-script"):
       test_script = cccp_yml["test-script"]
       if(test_skip != True):
         test_script_path = os.path.join(curr_dir,test_script)
         add_build_steps(target_file_path,"RUN ln -s "+test_script_path+" /usr/bin/test_script")
         got_test_script=1;
-    
+
     if(key == "delivery-script"):
       delivery_script = cccp_yml["delivery-script"]
       delivery_script_path = os.path.join(curr_dir,delivery_script)
