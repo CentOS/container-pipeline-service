@@ -231,6 +231,7 @@ while True:
             jid = bs.put(json.dumps(job_data))
         else:
             scan_job_data(job_data)
+
         job.delete()
     except Exception as e:
         logger.log(level=logging.FATAL, msg=e.message)
