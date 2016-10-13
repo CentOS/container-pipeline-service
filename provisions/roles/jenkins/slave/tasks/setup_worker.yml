@@ -6,7 +6,17 @@
   yum: name={{item}} state=installed
   with_items:
     - docker
-    - python-docker-py
+
+- name: Enable Docker registry
+  replace: >
+    dest=/etc/sysconfig/docker
+    regexp="^#?\s*ADD_REGISTRY=.*"
+    replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
+
+- name: Restart Docker
+  service: name=docker state=restarted enabled=yes
+
+
 
 #Push ca cert to slave for worker
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
@@ -29,6 +39,24 @@
     dest: /opt/cccp-service/beanstalk_worker
     mode: u+x
   when: not vagrant
+
+- name: Replace Beanstalk server with its FQDN for dispatcher
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_dispatcher.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
+
+- name: Replace Beanstalk server with its FQDN for dispatcher
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_build.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
+
+- name: Replace Beanstalk server with its FQDN for dispatcher
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
 
 - name: Build dispatcher-worker image
   shell: docker build -t dispatcher-worker -f ./Dockerfile.dispatcher_worker .

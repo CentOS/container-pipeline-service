@@ -36,9 +36,6 @@
 - name: Ensure  build-project.sh is executable
   file: path=/opt/cccp-service/client/build-project.sh mode='u+x'
 
-- name: Add host entry for openshift server
-  shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
-
 - name: Create script for image prune
   template:
     src: imageprune.sh.j2

@@ -82,11 +82,11 @@
 - name: Enable Scanner worker
   service: name="cccp-scan-worker" state=restarted enabled=yes
 
-- name: Add host entry for beanstalkd
-  shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
-
-- name: Add host entry for atomic-scan.vm
-  shell: echo "127.0.0.1 atomic-scan.vm.centos.org" >> /etc/hosts
+- name: Replace Beanstalk server with its FQDN for test worker
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_test.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
 
 - name: Enable Scanner worker
   service: name="cccp-scan-worker" state=restarted enabled=yes
