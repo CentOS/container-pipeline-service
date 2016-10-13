@@ -5,6 +5,7 @@ import docker
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 
@@ -83,7 +84,7 @@ def scan_job_data(job_data):
     if 'error' in pull_data:
         logger.log(level=logging.FATAL, msg="Couldn't pull requested image")
         logger.log(level=logging.FATAL, msg=pull_data)
-        raise
+        return
 
     # logger.log(level=logging.INFO,
     #            msg="Creating container for image %s" % image_full_name)
@@ -96,17 +97,42 @@ def scan_job_data(job_data):
     image_id = atomic_object.get_input_id(image_full_name)
     image_rootfs_path = os.path.join("/", image_id)
 
-    # create a directory /<image_id> where we'll mount image's rootfs
-    os.makedirs(image_rootfs_path)
 
     # configure options before mounting the image rootfs
     logger.log(level=logging.INFO,
                msg="Setting up system to mount image's rootfs")
+
+    # All these values need to be setup before creating the mount directory
+    # to handle exception in os.makedirs operation, since if the directory
+    # exists, we need to unmount it first, rmtree the directory
+    # and re-create new one and finally mount!
     mount_object = mount.Mount()
     mount_object.mountpoint = image_rootfs_path
     mount_object.image = image_id
     # mount the rootfs in read-write mode. else yum will fail
     mount_object.options = ["rw"]
+
+    try:
+        # create a directory /<image_id> where we'll mount image's rootfs
+        os.makedirs(image_rootfs_path)
+    except OSError as error:
+        logger.log(
+            level=logging.WARNING,
+            msg=str(error)
+            )
+        logger.log(
+            level=logging.INFO,
+            msg="Unmounting and removing directory %s" % image_rootfs_path)
+        mount_object.unmount()
+        shutil.rmtree(image_rootfs_path)
+        try:
+            os.makedirs(image_rootfs_path)
+        except OSError as error:
+            logger.log(
+                level=logging.FATAL,
+                msg=str(error)
+                )
+            return
 
     logger.log(level=logging.INFO,
                msg="Mounting rootfs %s on %s" % (image_id, image_rootfs_path))
@@ -132,23 +158,6 @@ def scan_job_data(job_data):
 
     out, err = process.communicate()
 
-    # logger.log(level=logging.INFO,
-    #            msg="Created container with ID: %s" % container.get('Id'))
-
-    # conn.start(container=container.get('Id'))
-
-    # logger.log(level=logging.INFO,
-    #            msg="Started container with ID: %s" % container.get('Id'))
-
-    # time.sleep(10)
-    # logs = conn.logs(container=container.get('Id'))
-
-    # logger.log(level=logging.INFO, msg="Stopping test container")
-    # conn.stop(container=container.get('Id'))
-
-    # logger.log(level=logging.INFO, msg="Removing the test container")
-    # conn.remove_container(container=container.get('Id'), force=True)
-
     if out != "":
         # TODO: hacky and ugly. figure a better way
         output_json_file = os.path.join(
@@ -162,7 +171,7 @@ def scan_job_data(job_data):
         else:
             logger.log(level=logging.FATAL,
                        msg="No scan results found at %s" % output_json_file)
-            raise
+            return
     else:
         logs = ""
 
@@ -221,9 +230,7 @@ while True:
             bs.use("master_tube")
             jid = bs.put(json.dumps(job_data))
         else:
-            test_job_data(job_data)
-
-        scan_job_data(job_data)
+            scan_job_data(job_data)
         job.delete()
     except Exception as e:
         logger.log(level=logging.FATAL, msg=e.message)
