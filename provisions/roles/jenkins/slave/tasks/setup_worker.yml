@@ -6,6 +6,7 @@
   yum: name={{item}} state=installed
   with_items:
     - docker
+    - python-docker-py
 
 - name: Enable Docker registry
   replace: >
@@ -81,12 +82,12 @@
 
 - name: Start build worker
   docker: 
-      name: dispatcher-worker
+      name: build-worker
       state: started
       image: build-worker
 
 - name: Start delivery worker
   docker: 
-      name: dispatcher-worker
+      name: delivery-worker
       state: started
       image: delivery-worker
