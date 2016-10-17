@@ -5,8 +5,6 @@ import json
 import os
 import re
 import time
-from DependencyChecker import DependencyChecker
-
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("master_tube")
