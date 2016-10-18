@@ -85,6 +85,8 @@
         - custom-scm-git
     triggers:
         - custom-trigger
+    wrappers:
+        - workspace-cleanup
 
 - job:
     name: 'centos-container-pipeline-service-ci-master'
@@ -106,6 +108,8 @@
       - pollscm:
           cron: "0 0 * * *"
           ignore-post-commit-hooks: True
+    wrappers:
+        - workspace-cleanup
 
 - job:
     name: 'centos-container-pipeline-service-ci-cleanup'
