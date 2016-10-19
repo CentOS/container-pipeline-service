@@ -4,6 +4,7 @@ import sys
 import yaml
 from shutil import copyfile
 
+
 def main():
   target_file_path = sys.argv[1]
   stream = open("cccp.yml",'r')

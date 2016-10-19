@@ -15,7 +15,10 @@ optional_attrs = ['rundotshargs']
 overwritten_attrs = ['jobname', 'git_url', 'ci_project', 'jobs']
 
 
-def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail,desiredtag):
+def projectify(
+      new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
+      dependson, notifyemail, desiredtag):
+
     new_project[0]['project']['namespace'] = appid
     new_project[0]['project']['jobname'] = jobid
     new_project[0]['project']['ci_project'] = appid
@@ -25,7 +28,7 @@ def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,depen
     new_project[0]['project']['rel_path'] = ('/' + gitpath) \
         if (gitpath and not gitpath.startswith('/')) else '/'
     new_project[0]['project']['jobs'] = ['cccp-rundotsh-job']
-    
+
     if 'rundotshargs' not in new_project[0]:
         new_project[0]['project']['rundotshargs'] = ''
     elif new_project[0]['project']['rundotshargs'] is None:
@@ -37,6 +40,7 @@ def projectify(new_project,appid,jobid,giturl,gitpath,gitbranch,targetfile,depen
     new_project[0]['project']['desired_tag'] = desiredtag
     return new_project
 
+
 def main(indexdlocation):
 
     for yamlfile in glob(indexdlocation + "/*.yml"):
@@ -44,49 +48,59 @@ def main(indexdlocation):
             stream = open(yamlfile, 'r')
             index_yaml = yaml.load(stream)
             stream.close()
-            #print index_yaml['Projects']
-  
+            # print index_yaml['Projects']
+
             for project in index_yaml['Projects']:
-                if(project['git-url'] == None):
+                if(project['git-url'] is None):
                     continue
                 else:
                     try:
-                        t= tempfile.mkdtemp()
+                        t = tempfile.mkdtemp()
                         print "creating: {}".format(t)
                         appid = project['app-id']
                         jobid = project['job-id']
                         giturl = project['git-url']
-                        gitpath = project['git-path'] if (project['git-path'] != None) else ''
+                        gitpath = project['git-path'] \
+                            if (project['git-path'] is not None) else ''
                         gitbranch = project['git-branch']
                         targetfile = project['target-file']
                         dependson = project['depends-on']
                         notifyemail = project['notify-email']
 
                         try:
-                            desiredtag = project['desired-tag'] if (project['desired-tag'] != None) else 'latest'
+                            desiredtag = project['desired-tag'] \
+                                if (project['desired-tag'] is not None) \
+                                else 'latest'
                         except Exception as e:
                             desiredtag = 'latest'
 
-                        #workdir = os.path.join(t, gitpath)
+                        # workdir = os.path.join(t, gitpath)
                         generated_filename = os.path.join(
                             t,
                             'cccp_GENERATED.yaml'
-                        )   
-                        new_proj= [{'project':{}}]
-                
-                        appid = appid.replace('_','-').replace('/','-').replace('.','-')
-                        jobid = jobid.replace('_','-').replace('/','-').replace('.','-')
+                        )
+                        new_proj = [{'project': {}}]
+
+                        appid = appid.replace(
+                                '_', '-').replace('/', '-').replace('.', '-')
+                        jobid = jobid.replace(
+                                '_', '-').replace('/', '-').replace('.', '-')
 
                         # overwrite any attributes we care about see: projectify
                         with open(generated_filename, 'w') as outfile:
-                            yaml.dump(projectify(new_proj,appid,jobid,giturl,gitpath,gitbranch,targetfile,dependson,notifyemail,desiredtag), outfile)
+                            yaml.dump(projectify(
+                                new_proj, appid, jobid, giturl, gitpath,
+                                gitbranch, targetfile, dependson, notifyemail,
+                                desiredtag),
+                                outfile)
 
                         # run jenkins job builder
                         myargs = ['jenkins-jobs',
                                   '--ignore-cache',
-                                   'update',
-                                  ':'.join([jjb_defaults_file, generated_filename])
-                                 ]
+                                  'update',
+                                  ':'.join(
+                                      [jjb_defaults_file, generated_filename])
+                                  ]
                         print myargs
                         proc = subprocess.Popen(myargs,
                                                 stdout=subprocess.PIPE)
@@ -94,7 +108,7 @@ def main(indexdlocation):
 
                     finally:
                         print "Removing {}".format(t)
-                        #shutil.rmtree(t)
+                        # shutil.rmtree(t)
 
 
 if __name__ == '__main__':

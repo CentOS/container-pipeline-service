@@ -12,8 +12,7 @@ msg_details = {}
 msg_details['action'] = "notify_user"
 msg_details['subject'] = "FAIL: Your container build request has failed"
 msg_details['msg'] = "Build has failed."
-msg_details['to_mail'] = notify_email
-
+msg_details['notify_email'] = notify_email
 
 print "Pushing notification details to master_tube"
 bs = beanstalkc.Connection(host=beanstalk_host)
