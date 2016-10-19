@@ -14,6 +14,12 @@
         - python:
             !include-raw './cccp_ci_cleanup.py'
 
+- builder:
+    name: git-fast-forward-branch
+    builders:
+        - shell: |
+            git rebase origin/${ghprbTargetBranch}
+
 # Custom Trigger. Sets up the Github pull request trigger
 # Accepts a parameter {provider}
 - trigger:
@@ -68,6 +74,7 @@
         - github:
             url: https://github.com/CentOS/container-pipeline-service/
     builders:
+        - git-fast-forward-branch
         - centos-container-pipeline-service-ci-builders
     publishers:
         - trigger-parameterized-builds:
@@ -78,6 +85,8 @@
         - custom-scm-git
     triggers:
         - custom-trigger
+    wrappers:
+        - workspace-cleanup
 
 - job:
     name: 'centos-container-pipeline-service-ci-master'
@@ -99,6 +108,8 @@
       - pollscm:
           cron: "0 0 * * *"
           ignore-post-commit-hooks: True
+    wrappers:
+        - workspace-cleanup
 
 - job:
     name: 'centos-container-pipeline-service-ci-cleanup'
@@ -147,6 +158,7 @@
             branches:
                 - "${ghprbactualcommit}"
     builders:
+        - git-fast-forward-branch
         - shell: |
             # copied from the devtools repo
             set +e
