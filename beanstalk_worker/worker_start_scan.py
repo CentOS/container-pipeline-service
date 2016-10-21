@@ -30,7 +30,7 @@ SCANNERS = {
         "registry.centos.org/pipeline-images/pipeline-scanner": [
             "image_scan_results.json"],
         "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-            "RPMVerfiy.json"]}
+            "RPMVerify.json"]}
 
 try:
     # docker client connection to CentOS 7 system
@@ -80,11 +80,9 @@ class ScannerRunner(object):
         """
         json_data = {}
 
-        logger.log(level=logging.INFO, msg="Received job : %s" % job_info)
-
         # If scanner is pipeline-scanner then hand over to specific class,
         # since pipeline-scanner mounts the image first and then executes
-        if scanner == "pipeline-scanner":
+        if scanner == "registry.centos.org/pipeline-images/pipeline-scanner":
             # should receive the JSON data loaded
             status, json_data = self.pipeline_scanner_object.run(image_under_test)
             if not status:
@@ -97,7 +95,7 @@ class ScannerRunner(object):
                     level=logging.INFO,
                     msg="Finished running %s scanner." % scanner
                 )
-        elif scanner == "scanner-rpm-verify":
+        elif scanner == "registry.centos.org/pipeline-images/scanner-rpm-verify":
             # should receive the JSON data loaded
             status, json_data = self.scanner_rpmverify_object.run(image_under_test)
             if not status:
@@ -111,7 +109,7 @@ class ScannerRunner(object):
                     msg="Finished running %s scanner." % scanner)
 
         # if scanner failed to run, this will return {}, do check at receiver end
-        return json.dumps(json_data)
+        return json_data
 
     def run(self):
         """"
@@ -120,33 +118,42 @@ class ScannerRunner(object):
         #FIXME: at the moment this menthod is returning the results of multiple
         scanners in one json and sends over the bus
         """
-        # find image's full name and append the desired tag
+        logger.log(level=logging.INFO, msg="Received job : %s" % job_info)
+
+        # TODO: Figure out why random tag (with date) is coming
+        # image_under_test = ":".join(self.job_info.get("name").split(":")[:-1])
         image_under_test = self.job_info.get("name")
+        logger.log(level=logging.INFO, msg="Image under test:%s" % image_under_test)
 
         # copy the job info into scanners data, as we are going to add logs and msg
         scanners_data = self.job_info
+        scanners_data["msg"] = {}
+        scanners_data["logs"] = {}
 
         # pull the image first, if failed move on to start_delivery
         if not self.pull_image_under_test(image_under_test):
+            logger.log(
+                level=logging.INFO,
+                msg="Image pulled failed, moving job to delivery phase."
+            )
             scanners_data["action"] = "start_delivery"
             return False, scanners_data
-
-        scanners_data["action"] = "report_scan_results"
 
         # run the multiple scanners on image under test
         for scanner in SCANNERS.keys():
             data_temp = self.run_a_scanner(scanner, image_under_test)
-            scanners_data["msg"] = {
-                    data_temp["scanner_name"]: data_temp["msg"]
-                    }
-            scanners_data["logs"] = {
-                    data_temp["scanner_name"]: data_temp["logs"]
-                    }
+            if not data_temp:
+                continue
+            scanners_data["msg"][data_temp["scanner_name"]] = data_temp["msg"]
+            scanners_data["logs"][data_temp["scanner_name"]] = data_temp["logs"]
+
+        scanners_data["action"] = "report_scan_results"
 
         # after all scanners are ran, remove the image
         logger.log(
                 level=logging.INFO,
-                msg="Removing the image %s" % image_under_test)
+                msg="Removing the image: %s" % image_under_test)
+
         conn.remove_image(image=image_under_test, force=True)
 
         # TODO: Check here if at least one scanner ran successfully
@@ -160,17 +167,18 @@ class ScannerRPMVerify(object):
     """
     def __init__(self):
         self.scanner_name = "scanner-rpm-verify"
+        self.full_scanner_name = "registry.centos.org/pipeline-images/scanner-rpm-verify"
         self.atomic_object = Atomic()
 
-    def run_atomic_scanner(self, image_under_test):
+    def run_atomic_scanner(self):
         """
         Run the atomic scan command
         """
         process = subprocess.Popen([
             "atomic",
             "scan",
-            "--scanner=%s" % self.scanner_name,
-            "%s" % image_under_test
+            "--scanner=rpm-verify",
+            "%s" % self.image_id
         ], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
         # returns out, err
@@ -184,14 +192,17 @@ class ScannerRPMVerify(object):
         actual data
         (True/False, json_data)
         """
+        self.image_under_test = image_under_test
+        self.image_id = self.atomic_object.get_input_id(self.image_under_test)
+
         json_data = {}
-        out, err = self.run_atomic_scanner(image_under_test)
+        out, err = self.run_atomic_scanner()
         if out != "":
             output_json_file = os.path.join(
                 out.strip().split()[-1].split('.')[0],
-                self.atomic_object.get_input_id(image_under_test),
+                self.image_id,
                 # TODO: provision parsing multiple output files per scanner
-                SCANNERS[self.scanner_name]["output_filename"][0]
+                SCANNERS[self.full_scanner_name][0]
             )
 
             if os.path.exists(output_json_file):
@@ -220,8 +231,8 @@ class ScannerRPMVerify(object):
         data = {}
         data["scanner_name"] = self.scanner_name
         # TODO: More verifcation and validation on the data
-        data["logs"] = json.dumps(json_data)
         data["msg"] = "RPM verify results."
+        data["logs"] = json_data
         return data
 
 
@@ -231,19 +242,18 @@ class PipelineScanner(object):
     """
     def __init__(self):
         self.scanner_name = "pipeline-scanner"
+        self.full_scanner_name = "registry.centos.org/pipeline-images/pipeline-scanner"
         self.atomic_object = Atomic()
         self.mount_object = mount.Mount()
 
-    def mount_image(self, image_under_test):
+    def mount_image(self):
         """
         Mount image on local file system
         """
         # get the SHA ID of the image.
-        image_id = self.atomic_object.get_input_id(image_under_test)
-        image_rootfs_path = os.path.join("/", image_id)
 
-        self.mount_object.mountpoint = image_rootfs_path
-        self.mount_object.image = image_id
+        self.mount_object.mountpoint = self.image_rootfs_path
+        self.mount_object.image = self.image_id
 
         # mount the rootfs in read-write mode. else yum will fail
         self.mount_object.options = ["rw"]
@@ -254,7 +264,7 @@ class PipelineScanner(object):
 
         # create a directory /<image_id> where we'll mount image's rootfs
         try:
-            os.makedirs(image_rootfs_path)
+            os.makedirs(self.image_rootfs_path)
         except OSError as error:
             logger.log(
                     level=logging.WARNING,
@@ -262,13 +272,19 @@ class PipelineScanner(object):
                     )
             logger.log(
                     level=logging.INFO,
-                    msg="Unmounting and removing directory %s " % image_rootfs_path
+                    msg="Unmounting and removing directory %s " % self.image_rootfs_path
                     )
-            self.mount_object.unmount()
-            shutil.rmtree(image_rootfs_path)
+            try:
+                self.mount_object.unmount()
+                shutil.rmtree(self.image_rootfs_path)
+            except Exception as e:
+                logger.log(
+                    level=logging.WARNING,
+                    msg="Failed to unmount/remove:%s - Error: %s" % (self.image_rootfs_path, str(e))
+                    )
             # retry once more
             try:
-                os.makedirs(image_rootfs_path)
+                os.makedirs(self.image_rootfs_path)
             except OSError as error:
                 logger.log(
                     level=logging.FATAL,
@@ -279,30 +295,30 @@ class PipelineScanner(object):
 
         logger.log(
             level=logging.INFO,
-            msg="Mounting rootfs %s on %s" % (image_id, image_rootfs_path))
+            msg="Mounting rootfs %s on %s" % (self.image_id, self.image_rootfs_path))
         self.mount_object.mount()
         logger.log(level=logging.INFO,
                    msg="Successfully mounted image's rootfs")
 
-        return image_rootfs_path
+        return True
 
-    def unmount_image(self, mount_object):
+    def unmount_image(self):
         """
         Unmount image using the Atomic mount object
         """
         logger.log(
             level=logging.INFO,
-            msg="Unmounting image's rootfs from %s" % mount_object.mountpoint)
+            msg="Unmounting image's rootfs from %s" % self.mount_object.mountpoint)
         # TODO: Error handling and logging
-        mount_object.unmount()
+        self.mount_object.unmount()
 
-    def remove_image(self, image_rootfs_path, image_under_test):
+    def remove_image(self):
         """
         Removes the mounted image rootfs path as well as
         removes the image using docker
         """
         try:
-            shutil.rmtree(image_rootfs_path)
+            shutil.rmtree(self.image_rootfs_path)
         except OSError as error:
             logger.log(
                 level=logging.WARNING,
@@ -310,27 +326,28 @@ class PipelineScanner(object):
                 )
         logger.log(
             level=logging.INFO,
-            msg="Removing the image %s" % image_under_test)
-        conn.remove_image(image=image_under_test, force=True)
+            msg="Removing the image %s" % self.image_under_test)
+        conn.remove_image(image=self.image_under_test, force=True)
 
     def run(self, image_under_test):
         """
         Run the scanner
         """
+        self.image_under_test = image_under_test
+        self.image_id = self.atomic_object.get_input_id(image_under_test)
+        self.image_rootfs_path = os.path.join("/", self.image_id)
+
         json_data = {}
 
-        if not self.mount_image(image_under_test):
+        if not self.mount_image():
             return False, json_data
-
-        image_id = self.atomic_object.get_input_id(image_under_test)
-        image_rootfs_path = os.path.join("/", image_id)
 
         cmd = [
             'atomic',
             'scan',
             "--scanner=%s" % self.scanner_name,
-            "--rootfs=%s" % image_rootfs_path,
-            "%s" % image_id
+            "--rootfs=%s" % self.image_rootfs_path,
+            "%s" % self.image_id
         ]
 
         logger.log(
@@ -351,8 +368,8 @@ class PipelineScanner(object):
             # https://github.com/projectatomic/atomic/issues/577
             output_json_file = os.path.join(
                 out.strip().split()[-1].split('.')[0],
-                "_%s" % image_rootfs_path.split('/')[1],
-                SCANNERS[self.scanner_name]["output_filename"][0]
+                "_%s" % self.image_rootfs_path.split('/')[1],
+                SCANNERS[self.full_scanner_name][0]
             )
             logger.log(
                 level=logging.INFO,
@@ -372,8 +389,7 @@ class PipelineScanner(object):
             )
             return False, json_data
 
-        self.unmount_image(self.mount_object)
-        self.remove_image(image_rootfs_path, image_under_test)
+        self.unmount_image()
         logger.log(
             level=logging.INFO,
             msg="Finished executing scanner: %s" % self.scanner_name)
@@ -386,8 +402,8 @@ class PipelineScanner(object):
         """
         data = {}
         data["scanner_name"] = self.scanner_name
-        if json_data["Package Updates"]:
-            data["logs"] = json.dumps(json_data)
+        if json_data["Scan Results"]["Package Updates"]:
+            data["logs"] = json_data
             data["msg"] = "Container image requires update."
         else:
             data["logs"] = {}
@@ -418,4 +434,4 @@ while True:
             )
         job.delete()
     except Exception as e:
-        logger.log(level=logging.FATAL, msg=e.message)
+        logger.log(level=logging.FATAL, msg=str(e))
