@@ -276,11 +276,18 @@ class PipelineScanner(object):
                     )
             try:
                 self.mount_object.unmount()
-                shutil.rmtree(self.image_rootfs_path)
             except Exception as e:
                 logger.log(
                     level=logging.WARNING,
-                    msg="Failed to unmount/remove:%s - Error: %s" % (self.image_rootfs_path, str(e))
+                    msg="Failed to unmount path= %s - Error: %s" % (self.image_rootfs_path, str(e))
+                    )
+            else:
+                try:
+                    shutil.rmtree(self.image_rootfs_path)
+                except Exception as e:
+                    logger.log(
+                        level=logging.WARNING,
+                        msg="Failed to remove= %s - Error: %s" % (self.image_rootfs_path, str(e))
                     )
             # retry once more
             try:
@@ -390,6 +397,7 @@ class PipelineScanner(object):
             return False, json_data
 
         self.unmount_image()
+        shutil.rmtree(self.image_rootfs_path, ignore_errors=True)
         logger.log(
             level=logging.INFO,
             msg="Finished executing scanner: %s" % self.scanner_name)
@@ -421,13 +429,17 @@ while True:
         job_info = json.loads(job.body)
         scan_runner_obj = ScannerRunner(job_info)
         status, scanners_data = scan_runner_obj.run()
+        # This field is needed for email worker to hint that this is scan
+        # result email and need to move to next phase of delivery
+        scanners_data["scan_results"] = True
         if not status:
             logger.log(
                 level=logging.CRITICAL,
-                msg="Failed to pull the image under test for scanning, moving on!"
+                msg="Failed to run scanners on image under test, moving on!"
             )
         bs.use("master_tube")
         job_id = bs.put(json.dumps(scanners_data))
+
         logger.log(
             level=logging.INFO,
             msg="Job moved from scan phase, id: %s" % job_id
