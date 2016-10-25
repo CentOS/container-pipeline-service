@@ -8,6 +8,7 @@ class TestOpenshift(BaseTestCase):
     node = 'openshift'
 
     def test_00_openshift_builds_are_complete(self):
+        self.provision()
         print "=" * 30
         print "Test if openshift builds are running"
         print "=" * 30
@@ -40,8 +41,7 @@ class TestOpenshift(BaseTestCase):
             except Exception:
                 success = False
             retries += 1
-        if success is False:
-            raise Exception("Openshift builds did not complete.")
+        self.assertTrue(success)
         _print("Openshift builds completed successfully.")
 
     def test_01_openshift_builds_persist_after_provision(self):

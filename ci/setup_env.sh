@@ -7,3 +7,5 @@ echo "API=$(cat ~/duffy.key)" >> env.properties
 
 bash provisions/utils/gencert.sh registry.centos.org || true
 echo -e  'y\n'| ssh-keygen -t rsa -N "" -f provisions/jenkins.key
+
+export PYTHONPATH=$(pwd):$PYTHONPATH

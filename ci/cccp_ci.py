@@ -12,7 +12,7 @@ import json
 import os
 import urllib
 
-from .lib import _print, generate_ansible_inventory, run_cmd, provision
+from ci.lib import _print, run_cmd, provision
 
 url_base = os.environ.get('URL_BASE')
 api = os.environ.get('API')
@@ -39,6 +39,53 @@ def get_nodes(ver="7", arch="x86_64", count=4):
     return data['hosts']
 
 
+def generate_ansible_inventory(jenkins_master_host, jenkins_slave_host,
+                               openshift_host, scanner_host):
+
+    ansible_inventory = ("""
+[all:children]
+jenkins_master
+jenkins_slaves
+openshift
+scanner_worker
+
+[jenkins_master]
+{jenkins_master_host}
+
+[jenkins_slaves]
+{jenkins_slave_host}
+
+[openshift]
+{openshift_host}
+
+[scanner_worker]
+{scanner_host}
+
+[all:vars]
+public_registry= {jenkins_slave_host}
+copy_ssl_certs=true
+openshift_startup_delay=150
+beanstalk_server={openshift_host}
+test=true
+cccp_source_repo={repo_url}
+cccp_source_branch={repo_branch}
+jenkins_public_key_file = jenkins.key.pub
+
+[jenkins_master:vars]
+jenkins_private_key_file = jenkins.key
+cccp_index_repo=https://github.com/rtnpro/container-index.git
+oc_slave={jenkins_slave_host}""").format(
+        jenkins_master_host=jenkins_master_host,
+        jenkins_slave_host=jenkins_slave_host,
+        openshift_host=openshift_host,
+        repo_url=repo_url,
+        repo_branch=repo_branch,
+        scanner_host=scanner_host)
+
+    with open('hosts', 'w') as f:
+        f.write(ansible_inventory)
+
+
 def setup_controller(controller):
     # provision controller
     run_cmd(
@@ -57,6 +104,9 @@ def setup_controller(controller):
 
 
 def run():
+    os.environ.pop('CCCP_CI_PROVISIONED', None)
+    os.environ.pop('CCCP_CI_HOSTS', None)
+
     nodes = get_nodes(count=5)
 
     jenkins_master_host = nodes[0]
@@ -77,6 +127,30 @@ def run():
     with open('env.properties', 'a') as f:
         f.write(nodes_env)
 
+    hosts_data = {
+        'openshift': {
+            'host': openshift_host,
+            'remote_user': 'root'
+        },
+        'jenkins_master': {
+            'host': jenkins_master_host,
+            'remote_user': 'root'
+        },
+        'jenkins_slave': {
+            'host': jenkins_slave_host,
+            'remote_user': 'root'
+        },
+        'controller': {
+            'host': controller,
+            'user': 'root',
+            'workdir': '/root/container-pipeline-service',
+            # relative to this workdir
+            'inventory_path': 'hosts'
+        }
+    }
+
+    _print(hosts_data)
+
     generate_ansible_inventory(jenkins_master_host,
                                jenkins_slave_host,
                                openshift_host,
@@ -87,16 +161,17 @@ def run():
 
     setup_controller(controller)
 
-    provision(controller)
+    provision(hosts_data['controller'])
 
+    os.environ['CCCP_CI_PROVISIONED'] = "true"
 
-    test_if_built_image_can_be_pulled(
-        openshift_host,
-        jenkins_slave_host + ':5000/bamachrn/python:release')
+    os.environ['CCCP_CI_HOSTS'] = json.dumps(hosts_data)
 
-    provision(controller)
+    run_cmd('~/venv/bin/nosetests -s ci/tests', stream=True)
 
-    test_if_openshift_builds_persist(jenkins_slave_host)
+    os.environ.pop('CCCP_CI_PROVISIONED', None)
+    os.environ.pop('CCCP_CI_HOSTS', None)
+
 
 if __name__ == '__main__':
     try:

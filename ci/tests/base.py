@@ -1,4 +1,5 @@
-from __future__ import absolute_import
+import os
+import json
 import unittest
 
 from ci.lib import provision, run_cmd
@@ -7,7 +8,7 @@ from ci.lib import provision, run_cmd
 class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.hosts = {
+        self.hosts = json.loads(os.environ.get('CCCP_CI_HOSTS') or "{}") or {
             'openshift': {
                 'host': '192.168.100.201',
                 'private_key': '~/.vagrant.d/insecure_private_key',
