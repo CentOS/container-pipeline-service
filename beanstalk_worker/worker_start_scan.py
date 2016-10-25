@@ -147,7 +147,10 @@ class ScannerRunner(object):
             scanners_data["msg"][data_temp["scanner_name"]] = data_temp["msg"]
             scanners_data["logs"][data_temp["scanner_name"]] = data_temp["logs"]
 
-        scanners_data["action"] = "report_scan_results"
+        scanners_data["action"] = "notify_user"
+        # This field is needed for email worker to hint that this is scan
+        # result email and need to move to next phase of delivery
+        scanners_data["scan_results"] = True
 
         # after all scanners are ran, remove the image
         logger.log(
@@ -429,9 +432,6 @@ while True:
         job_info = json.loads(job.body)
         scan_runner_obj = ScannerRunner(job_info)
         status, scanners_data = scan_runner_obj.run()
-        # This field is needed for email worker to hint that this is scan
-        # result email and need to move to next phase of delivery
-        scanners_data["scan_results"] = True
         if not status:
             logger.log(
                 level=logging.CRITICAL,

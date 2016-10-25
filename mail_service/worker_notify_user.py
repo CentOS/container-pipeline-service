@@ -87,7 +87,7 @@ while True:
     job_id = job.jid
     job_info = json.loads(job.body)
 
-    if "scan" in job_info:
+    if "scan_results" in job_info:
         if job_info["scan_results"]:
             print "==> Received job id= %s for reporting scan results" % job_id
             notify_user_with_scan_results(job_info)
