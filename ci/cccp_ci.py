@@ -9,11 +9,10 @@
 # no real tests for any exceptions. Patches welcome!
 
 import json
-import urllib
-import subprocess
 import os
-import time
-import sys
+import urllib
+
+from .lib import _print, generate_ansible_inventory, run_cmd, provision
 
 url_base = os.environ.get('URL_BASE')
 api = os.environ.get('API')
@@ -25,6 +24,36 @@ repo_url = os.environ.get('ghprbAuthorRepoGitUrl') or \
     os.environ.get('GIT_URL')
 repo_branch = os.environ.get('ghprbSourceBranch') or \
     os.environ.get('ghprbTargetBranch') or 'master'
+
+
+def get_nodes(ver="7", arch="x86_64", count=4):
+    get_nodes_url = "%s/Node/get?key=%s&ver=%s&arch=%s&count=%s" % (
+        url_base, api, ver, arch, count)
+
+    resp = urllib.urlopen(get_nodes_url).read()
+    data = json.loads(resp)
+    with open('env.properties', 'a') as f:
+        f.write('DUFFY_SSID=%s' % data['ssid'])
+        f.close()
+    _print(resp)
+    return data['hosts']
+
+
+def setup_controller(controller):
+    # provision controller
+    run_cmd(
+        "scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
+        "~/.ssh/id_rsa root@%s:/root/.ssh/id_rsa" % controller
+    )
+
+    run_cmd(
+        "yum install -y git epel-release && "
+        "yum install -y ansible python2-jenkins-job-builder",
+        host=controller)
+
+    run_cmd(
+        "scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r "
+        "./ root@%s:/root/container-pipeline-service" % controller)
 
 
 def run():
@@ -60,7 +89,6 @@ def run():
 
     provision(controller)
 
-    test_if_openshift_builds_are_complete(jenkins_slave_host)
 
     test_if_built_image_can_be_pulled(
         openshift_host,
