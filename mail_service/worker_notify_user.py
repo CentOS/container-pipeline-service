@@ -37,20 +37,27 @@ def notify_user_with_scan_results(job_info):
     notify_email = job_info['notify_email']
 
     # find image's full name and append the desired tag
-    image_under_test = job_info.get('name').split(":")[0] + ":" \
-        + job_info.get("tag")
+    image_under_test = job_info.get('name').split(":")[1]
+
     print "==> Image under test is %s" % image_under_test
 
     subject = "Scanning results for image: %s" % image_under_test
+    text = """
+CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
+=======================================================================================
 
-    text = "Scanning results :\n\n"
+Container image scanning results for image=%s built at CCCP.
+
+Following are the atomic scanners ran on built image, displaying the result message and detailed logs.
+
+"""
 
     for scanner in job_info["msg"]:
         text += scanner + ":\n"
         text += job_info["msg"][scanner]
         text += "\n\n"
 
-    text = "Detailed logs per scanner:\n\n"
+    text += "Detailed logs per scanner:\n\n"
     for scanner in job_info["logs"]:
         text += json.dumps(
                 job_info["logs"][scanner],
