@@ -3,6 +3,14 @@
   yum: name=atomic state=present
   sudo: yes
 
+# Patch from https://github.com/projectatomic/atomic/commit/a261270e727353899675a3fde8f9108376bb27cf
+- name: Patch atomic scanner to run on non tty input
+  replace: >
+      dest=/usr/lib/python2.7/site-packages/Atomic/scan.py
+      regexp="'-it'"
+      replace="'-t'"
+  sudo: yes
+
 - name: Start and Enable docker
   service: name=docker enabled=yes state=started
   sudo: yes
