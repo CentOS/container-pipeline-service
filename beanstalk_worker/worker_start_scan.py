@@ -26,7 +26,7 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-SCANNERS = {
+SCANNERS_OUTPUT = {
         "registry.centos.org/pipeline-images/pipeline-scanner": [
             "image_scan_results.json"],
         "registry.centos.org/pipeline-images/scanner-rpm-verify": [
@@ -50,11 +50,12 @@ class ScannerRunner(object):
     def __init__(self, job_info):
         self.job_info = job_info
         self.atomic_object = Atomic()
-        self.pipeline_scanner_object = PipelineScanner()
-        self.scanner_rpmverify_object = ScannerRPMVerify()
-
         # Receive and send `name_space` key-value as is
         self.job_namespace = job_info.get('name_space')
+        self.scanners = {
+            "registry.centos.org/pipeline-images/pipeline-scanner": PipelineScanner,
+            "registry.centos.org/pipeline-images/scanner-rpm-verify": ScannerRPMVerify
+        }
 
     def pull_image_under_test(self, image_under_test):
         """
@@ -79,34 +80,21 @@ class ScannerRunner(object):
         Run the given scanner on image_under_test
         """
         json_data = {}
+        # create object for the respective scanner class
+        scanner_obj = self.scanners.get(scanner)()
+        # should receive the JSON data loaded
+        status, json_data = scanner_obj.run(image_under_test)
 
-        # If scanner is pipeline-scanner then hand over to specific class,
-        # since pipeline-scanner mounts the image first and then executes
-        if scanner == "registry.centos.org/pipeline-images/pipeline-scanner":
-            # should receive the JSON data loaded
-            status, json_data = self.pipeline_scanner_object.run(image_under_test)
-            if not status:
-                logger.log(
-                    level=logging.WARNING,
-                    msg="Failed to run the scanner %s" % scanner
-                )
-            else:
-                logger.log(
-                    level=logging.INFO,
-                    msg="Finished running %s scanner." % scanner
-                )
-        elif scanner == "registry.centos.org/pipeline-images/scanner-rpm-verify":
-            # should receive the JSON data loaded
-            status, json_data = self.scanner_rpmverify_object.run(image_under_test)
-            if not status:
-                logger.log(
-                    level=logging.WARNING,
-                    msg="Failed to run the scanner %s" % scanner
-                )
-            else:
-                logger.log(
-                    level=logging.INFO,
-                    msg="Finished running %s scanner." % scanner)
+        if not status:
+            logger.log(
+                level=logging.WARNING,
+                msg="Failed to run the scanner %s" % scanner
+            )
+        else:
+            logger.log(
+                level=logging.INFO,
+                msg="Finished running %s scanner." % scanner
+            )
 
         # if scanner failed to run, this will return {}, do check at receiver end
         return json_data
@@ -140,7 +128,7 @@ class ScannerRunner(object):
             return False, scanners_data
 
         # run the multiple scanners on image under test
-        for scanner in SCANNERS.keys():
+        for scanner in self.scanners.keys():
             data_temp = self.run_a_scanner(scanner, image_under_test)
             if not data_temp:
                 continue
@@ -205,7 +193,7 @@ class ScannerRPMVerify(object):
                 out.strip().split()[-1].split('.')[0],
                 self.image_id,
                 # TODO: provision parsing multiple output files per scanner
-                SCANNERS[self.full_scanner_name][0]
+                SCANNERS_OUTPUT[self.full_scanner_name][0]
             )
 
             if os.path.exists(output_json_file):
@@ -379,7 +367,7 @@ class PipelineScanner(object):
             output_json_file = os.path.join(
                 out.strip().split()[-1].split('.')[0],
                 "_%s" % self.image_rootfs_path.split('/')[1],
-                SCANNERS[self.full_scanner_name][0]
+                SCANNERS_OUTPUT[self.full_scanner_name][0]
             )
             logger.log(
                 level=logging.INFO,
