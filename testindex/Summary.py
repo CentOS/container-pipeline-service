@@ -5,6 +5,22 @@ from yaml import dump
 from NutsAndBolts import GlobalEnvironment
 
 
+class SummaryCollector:
+    """This class hides away the problem of errors updating information to summary"""
+
+    def __init__(self, file_name, entry):
+
+        self._summary_info = Summary.pakage_private_get_summary_object(file_name, entry)
+
+    def add_error(self, msg):
+
+        self._summary_info["errors"].append(msg)
+
+    def add_warning(self, msg):
+
+        self._summary_info["warnings"].append("msg")
+
+
 class Summary:
     """This class summarizes the tests"""
 
@@ -19,7 +35,7 @@ class Summary:
         return hashlib.sha256(file_name + str(entry)).hexdigest()
 
     @staticmethod
-    def get_summary_collector(file_name, entry):
+    def pakage_private_get_summary_object(file_name, entry):
 
         if file_name not in Summary._summary:
             Summary._summary[file_name] = {}
@@ -48,12 +64,11 @@ class Summary:
                 print "  ** Entry    : " + entry_info["entry"]
                 valid = True
                 valid_str = "\033[1;32mOK\033[0m"
+                if len(entry_info["warnings"]) > 0:
+                    valid_str = "\033[1;33mWARNING\033[0m"
                 if len(entry_info["errors"]) > 0:
                     valid = False
                     valid_str = "\033[1;31mNO\033[0m"
-
-                if len(entry_info["warnings"]) > 0:
-                    valid_str = "\033[1;33mWARNING\033[0m"
 
                 print "  ** Valid    : " + valid_str
 
