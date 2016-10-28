@@ -51,6 +51,8 @@ Container image scanning results for image=%s built at CCCP.
 Following are the atomic scanners ran on built image, displaying the result message and detailed logs.
 
 """
+    # render image_under_test from above text
+    text = text % image_under_test
 
     for scanner in job_info["msg"]:
         text += scanner + ":\n"
