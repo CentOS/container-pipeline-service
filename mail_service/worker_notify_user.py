@@ -36,21 +36,26 @@ def notify_user_with_scan_results(job_info):
     print "==> Retrieving message details.."
     notify_email = job_info['notify_email']
 
-    # find image's full name and append the desired tag
+    # find image's full name, remove the registry name
     image_under_test = job_info.get('name').split(":")[1]
+    # remove the port of registry
+    # TODO: Find a better way to remove regisry and port part
+    image_under_test = image_under_test.replace("5000/", "")
 
     print "==> Image under test is %s" % image_under_test
 
     subject = "Scanning results for image: %s" % image_under_test
     text = """
 CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
-=======================================================================================
+==================================================================
 
 Container image scanning results for image=%s built at CCCP.
 
 Following are the atomic scanners ran on built image, displaying the result message and detailed logs.
 
 """
+    # render image_under_test from above text
+    text = text % image_under_test
 
     for scanner in job_info["msg"]:
         text += scanner + ":\n"
@@ -64,6 +69,9 @@ Following are the atomic scanners ran on built image, displaying the result mess
                 indent=4,
                 sort_keys=True)
         text += "\n\n"
+
+    # escape the \ with \\ for rendering in email
+    text = text.replace("\n", "\\n")
 
     print "==> Sending scan results email to user: %s" % notify_email
     # last parameter (logs) has to None for the sake of
