@@ -5,14 +5,14 @@
             !include-raw './setup_env.sh'
         - inject:
             properties-file: env.properties
-        - python:
-            !include-raw './cccp_ci.py'
+        - shell:
+            python ./ci/cccp_ci.py
 
 - builder:
     name: centos-container-pipeline-service-ci-cleanup-builders
     builders:
-        - python:
-            !include-raw './cccp_ci_cleanup.py'
+        - shell:
+            python ./ci/cccp_ci_cleanup.py
 
 - builder:
     name: git-fast-forward-branch
