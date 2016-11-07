@@ -84,7 +84,7 @@
 
 - name: Replace Beanstalk server with its FQDN for test worker
   replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_start_test.py
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_scan.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
 
