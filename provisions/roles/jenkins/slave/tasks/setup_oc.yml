@@ -25,6 +25,12 @@
     - ../client/beanstalkc.py
   when: not vagrant
 
+- name: Replace Beanstalk server with its FQDN for build request
+  replace: >
+      dest=/opt/cccp-service/client/send_build_request.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
+
 - name: Copy openshift template file
   template:
     src: template.json.j2
