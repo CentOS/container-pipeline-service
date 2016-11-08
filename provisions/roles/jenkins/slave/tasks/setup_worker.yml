@@ -37,7 +37,7 @@
 - name: Get openshift build scripts
   copy:
     src: ../../../../../beanstalk_worker
-    dest: /opt/cccp-service/beanstalk_worker
+    dest: /opt/cccp-service
     mode: u+x
   when: not vagrant
 
@@ -47,13 +47,13 @@
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
 
-- name: Replace Beanstalk server with its FQDN for dispatcher
+- name: Replace Beanstalk server with its FQDN for Build worker
   replace: >
       dest=/opt/cccp-service/beanstalk_worker/worker_start_build.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
 
-- name: Replace Beanstalk server with its FQDN for dispatcher
+- name: Replace Beanstalk server with its FQDN for delivery worker
   replace: >
       dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
       regexp="BEANSTALK_SERVER"
@@ -75,19 +75,19 @@
       chdir: /opt/cccp-service/beanstalk_worker
 
 - name: Start dispatcher worker
-  docker: 
+  docker:
       name: dispatcher-worker
       state: started
       image: dispatcher-worker
 
 - name: Start build worker
-  docker: 
+  docker:
       name: build-worker
       state: started
       image: build-worker
 
 - name: Start delivery worker
-  docker: 
+  docker:
       name: delivery-worker
       state: started
       image: delivery-worker

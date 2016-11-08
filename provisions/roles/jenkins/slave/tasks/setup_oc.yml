@@ -31,6 +31,12 @@
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
 
+- name: Replace Openshift server with its FQDN for build project sh
+  replace: >
+      dest=/opt/cccp-service/client/build_project.sh
+      regexp="OPENSHIFT_SERVER_HOST"
+      replace='{{ groups['openshift'][0] }}'
+
 - name: Copy openshift template file
   template:
     src: template.json.j2
@@ -46,6 +52,6 @@
   template:
     src: imageprune.sh.j2
     dest: /usr/bin/delete_images.sh
- 
+
 - name: Add cron job to cleanup old images
   cron: name="registry cleanup" special_time=daily job="/usr/bin/delete_images.sh"
