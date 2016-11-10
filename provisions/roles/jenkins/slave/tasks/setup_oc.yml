@@ -11,7 +11,7 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
-    - {src: /tmp/oc, dest: /usr/bin/oc}
+    - {src: /tmp/oc, dest: /opt/cccp-service/client/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
 

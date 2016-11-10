@@ -10,6 +10,8 @@ ADD ca.crt /run_worker
 ADD node.kubeconfig /run_worker
 ADD worker_start_build.py /run_worker
 RUN chmod a+x /run_worker/*
+ADD oc /usr/bin
+RUN chmod a+x /usr/bin/oc
 
 WORKDIR /run_worker
 
