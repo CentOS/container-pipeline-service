@@ -95,7 +95,10 @@ def setup_controller(controller):
 
     run_cmd(
         "yum install -y git epel-release && "
-        "yum install -y ansible python2-jenkins-job-builder",
+        "yum install -y python-pip && "
+        "yum install -y gcc libffi-devel python-devel openssl-devel && "
+        "yum install -y python2-jenkins-job-builder && "
+        "pip install ansible==2.1.1",
         host=controller)
 
     run_cmd(
