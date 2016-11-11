@@ -11,7 +11,6 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
-    - {src: /tmp/oc, dest: /opt/cccp-service/client/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
 
@@ -33,7 +32,7 @@
 
 - name: Replace Openshift server with its FQDN for build project sh
   replace: >
-      dest=/opt/cccp-service/client/build_project.sh
+      dest=/opt/cccp-service/client/build-project.sh
       regexp="OPENSHIFT_SERVER_HOST"
       replace='{{ groups['openshift'][0] }}'
 
