@@ -1,14 +1,14 @@
 ---
-- name: Enable Docker registry
+- name: Enable Docker insecure registry
   replace: >
     dest=/etc/sysconfig/docker
-    regexp="^#?\s*INSECURE_REGISTRY=.*"
+    regexp="^#*\s*INSECURE_REGISTRY=.*"
     replace='INSECURE_REGISTRY="--insecure-registry 172.30.0.0/16 --insecure-registry {{ public_registry }}:5000"'
 
 - name: Enable Docker registry
   replace: >
     dest=/etc/sysconfig/docker
-    regexp="^#?\s*ADD_REGISTRY=.*"
+    regexp="^#*\s*ADD_REGISTRY=.*"
     replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
 
 - name: Restart Docker

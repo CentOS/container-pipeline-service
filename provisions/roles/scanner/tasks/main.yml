@@ -18,13 +18,13 @@
 - name: Enable Docker Host socket
   replace: >
     dest=/etc/sysconfig/docker
-    regexp="^#?\s*OPTIONS=.*"
+    regexp="^#*\s*OPTIONS=.*"
     replace='OPTIONS="--selinux-enabled --log-driver=journald -H tcp://0.0.0.0:4243 -H unix:///var/run/docker.sock"'
 
 - name: Enable Docker Registry
   replace: >
     dest=/etc/sysconfig/docker
-    regexp="^#?\s*ADD_REGISTRY=.*"
+    regexp="^#*\s*ADD_REGISTRY=.*"
     replace='ADD_REGISTRY="--add-registry {{ public_registry }} --insecure-registry {{ public_registry }}:5000"'
 
 - name: Restart Docker
