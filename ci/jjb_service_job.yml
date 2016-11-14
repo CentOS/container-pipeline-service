@@ -1,0 +1,22 @@
+- job:
+    name: centos-container-pipeline-service-job
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service
+    triggers:
+        - github
+
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            branches:
+                - master
+    builders:
+        - shell: |
+            jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini update ci/job.yml

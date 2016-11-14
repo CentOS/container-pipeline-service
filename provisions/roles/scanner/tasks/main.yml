@@ -25,15 +25,25 @@
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#?\s*ADD_REGISTRY=.*"
-    replace='ADD_REGISTRY="--add-registry {{ public_registry }} --insecure-registry {{ public_registry }}:5000 "'
+    replace='ADD_REGISTRY="--add-registry {{ public_registry }} --insecure-registry {{ public_registry }}:5000"'
 
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
-- name: Run atomic scanner container
+- name: Install pipeline-scanner container
   docker_container:
       image: registry.centos.org/pipeline-images/pipeline-scanner:latest
       name: pipeline-scanner
+      privileged: true
+      volumes:
+        - /etc/atomic.d/:/host/etc/atomic.d/
+      command: sh /install.sh
+      state: started
+
+- name: Install scanner-rpm-verify container
+  docker_container:
+      image: registry.centos.org/pipeline-images/scanner-rpm-verify:latest
+      name: rpm-verify
       privileged: true
       volumes:
         - /etc/atomic.d/:/host/etc/atomic.d/

@@ -9,11 +9,10 @@
 # no real tests for any exceptions. Patches welcome!
 
 import json
-import urllib
-import subprocess
 import os
-import time
-import sys
+import urllib
+
+from ci.lib import _print, run_cmd, provision
 
 url_base = os.environ.get('URL_BASE')
 api = os.environ.get('API')
@@ -27,11 +26,6 @@ repo_branch = os.environ.get('ghprbSourceBranch') or \
     os.environ.get('ghprbTargetBranch') or 'master'
 
 
-def _print(msg):
-    print msg
-    sys.stdout.flush()
-
-
 def get_nodes(ver="7", arch="x86_64", count=4):
     get_nodes_url = "%s/Node/get?key=%s&ver=%s&arch=%s&count=%s" % (
         url_base, api, ver, arch, count)
@@ -43,45 +37,6 @@ def get_nodes(ver="7", arch="x86_64", count=4):
         f.close()
     _print(resp)
     return data['hosts']
-
-
-def fail_nodes():
-    with open('env.properties') as f:
-        s = f.read()
-
-    ssid = None
-    for line in s.splitlines():
-        key, value = line.split('=')
-        if key == 'DUFFY_SSID':
-            ssid = value
-            break
-
-    fail_nodes_url = "{url_base}/Node/fail?key={key}&ssid={ssid}".format(
-        url_base=url_base, key=api, ssid=ssid)
-    resp = urllib.urlopen(fail_nodes_url).read()
-    _print(resp)
-
-
-def print_nodes():
-    with open('env.properties') as f:
-        s = f.read()
-
-    _print('\n'.join(s.splitlines()[3:]))
-
-
-def run_cmd(cmd, user='root', host=None):
-    if host:
-        _cmd = (
-            "ssh -t -o UserKnownHostsFile=/dev/null -o "
-            "StrictHostKeyChecking=no {user}@{host} '"
-            "{cmd}"
-            "'"
-        ).format(user=user, cmd=cmd, host=host)
-    else:
-        _cmd = cmd
-    ret = subprocess.call(_cmd, shell=True)
-    if ret != 0:
-        raise Exception('Error during running command: %s' % _cmd)
 
 
 def generate_ansible_inventory(jenkins_master_host, jenkins_slave_host,
@@ -140,7 +95,10 @@ def setup_controller(controller):
 
     run_cmd(
         "yum install -y git epel-release && "
-        "yum install -y ansible python2-jenkins-job-builder",
+        "yum install -y python-pip && "
+        "yum install -y gcc libffi-devel python-devel openssl-devel && "
+        "yum install -y python2-jenkins-job-builder && "
+        "pip install ansible==2.1.1",
         host=controller)
 
     run_cmd(
@@ -148,100 +106,10 @@ def setup_controller(controller):
         "./ root@%s:/root/container-pipeline-service" % controller)
 
 
-def provision(controller):
-    run_cmd(
-        "cd /root/container-pipeline-service && "
-        "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts -u root "
-        "--private-key=/root/.ssh/id_rsa provisions/vagrant.yml",
-        host=controller)
-
-
-def test_if_openshift_builds_are_complete(host):
-    print "=" * 30
-    print "Test if openshift builds are running"
-    print "=" * 30
-    cmd = (
-        "oc login https://openshift:8443 --insecure-skip-tls-verify=true "
-        "-u test-admin -p test > /dev/null && "
-        "oc project bamachrn-python > /dev/null && "
-        "oc get pods"
-    )
-    _cmd = (
-        "ssh -t -o UserKnownHostsFile=/dev/null -o "
-        "StrictHostKeyChecking=no {user}@{host} "
-        "'{cmd}'"
-    ).format(user='root', cmd=cmd, host=host)
-    retries = 0
-    success = False
-    while retries < 10 and success is False:
-        if retries > 0:
-            time.sleep(60)
-        _print("Retries: %d/100" % retries)
-        try:
-            output = subprocess.check_output(_cmd, shell=True)
-            _print(output)
-            lines = output.splitlines()
-            pods = set([line.split()[0] for line in lines[1:]
-                        if line and line.split()[2] == 'Completed'])
-            success = not set(
-                # FIXME: we're ignoring delivery build right now as it will
-                # need the atomic scan host for that.
-                # ['build-1-build', 'delivery-1-build', 'test-1-build'])
-                ['build-1-build', 'test-1-build', 'delivery-1-build']
-            ).difference(pods)
-        except subprocess.CalledProcessError:
-            success = False
-        retries += 1
-    if success is False:
-        raise Exception("Openshift builds did not complete.")
-    _print("Openshift builds completed successfully.")
-
-
-def test_if_openshift_builds_persist(host):
-    _print("=" * 30)
-    _print("Test if openshift builds persist after reprovision")
-    _print("=" * 30)
-    cmd = (
-        "oc login https://openshift:8443 --insecure-skip-tls-verify=true "
-        "-u test-admin -p test > /dev/null && "
-        "oc project bamachrn-python > /dev/null && "
-        "oc get pods"
-    )
-    _cmd = (
-        "ssh -t -o UserKnownHostsFile=/dev/null -o "
-        "StrictHostKeyChecking=no {user}@{host} "
-        "'{cmd}'"
-    ).format(user='root', cmd=cmd, host=host)
-    output = subprocess.check_output(_cmd, shell=True)
-    _print(output)
-    lines = output.splitlines()
-    pods = set([line.split()[0] for line in lines[1:]])
-    success = set(
-        # FIXME: we're ignoring delivery build right now as it will
-        # need the atomic scan host for that.
-        # ['build-1-build', 'delivery-1-build', 'test-1-build'])
-        ['build-1-build', 'test-1-build', 'delivery-1-build']
-    ).difference(pods)
-    if success is False:
-        raise Exception("Openshift builds did not persist after re provision.")
-    _print("Openshift builds persited after re provision.")
-
-
-def test_if_built_image_can_be_pulled(host, image, user='root', sudo=False):
-    sudo = 'sudo' if sudo else ''
-    cmd = (
-        "{sudo} docker pull {image}"
-    ).format(image=image, sudo=sudo)
-    _cmd = (
-        "ssh -t -o UserKnownHostsFile=/dev/null -o "
-        "StrictHostKeyChecking=no {user}@{host} "
-        "'{cmd}'"
-    ).format(user=user, cmd=cmd, host=host)
-    output = subprocess.check_output(_cmd, shell=True)
-    _print(output)
-
-
 def run():
+    os.environ.pop('CCCP_CI_PROVISIONED', None)
+    os.environ.pop('CCCP_CI_HOSTS', None)
+
     nodes = get_nodes(count=5)
 
     jenkins_master_host = nodes[0]
@@ -262,6 +130,30 @@ def run():
     with open('env.properties', 'a') as f:
         f.write(nodes_env)
 
+    hosts_data = {
+        'openshift': {
+            'host': openshift_host,
+            'remote_user': 'root'
+        },
+        'jenkins_master': {
+            'host': jenkins_master_host,
+            'remote_user': 'root'
+        },
+        'jenkins_slave': {
+            'host': jenkins_slave_host,
+            'remote_user': 'root'
+        },
+        'controller': {
+            'host': controller,
+            'user': 'root',
+            'workdir': '/root/container-pipeline-service',
+            # relative to this workdir
+            'inventory_path': 'hosts'
+        }
+    }
+
+    _print(hosts_data)
+
     generate_ansible_inventory(jenkins_master_host,
                                jenkins_slave_host,
                                openshift_host,
@@ -272,17 +164,17 @@ def run():
 
     setup_controller(controller)
 
-    provision(controller)
+    provision(hosts_data['controller'])
 
-    test_if_openshift_builds_are_complete(jenkins_slave_host)
+    os.environ['CCCP_CI_PROVISIONED'] = "true"
 
-    test_if_built_image_can_be_pulled(
-        openshift_host,
-        jenkins_slave_host + ':5000/bamachrn/python:release')
+    os.environ['CCCP_CI_HOSTS'] = json.dumps(hosts_data)
 
-    provision(controller)
+    run_cmd('~/venv/bin/nosetests -s ci/tests', stream=True)
 
-    test_if_openshift_builds_persist(jenkins_slave_host)
+    os.environ.pop('CCCP_CI_PROVISIONED', None)
+    os.environ.pop('CCCP_CI_HOSTS', None)
+
 
 if __name__ == '__main__':
     try:

@@ -26,7 +26,7 @@ docker pull ${FULL_FROM} || jumpto sendstatusmail
 
 #_ "Checking if test script is getting success"
 #if [ `docker run --rm ${FULL_FROM} /bin/bash ls /usr/bin/test_script;echo $?` -eq 0 ]; then
-#docker run --rm ${FULL_FROM} --entrypoint /bin/bash /usr/bin/test_script 
+#docker run --rm ${FULL_FROM} --entrypoint /bin/bash /usr/bin/test_script
 #|| jumpto sendstatusmail
 #fi
 
@@ -41,6 +41,7 @@ _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #  docker push "${FULL_TO}" || jumpto sendstatusmail
 #fi
 docker push ${FULL_TO}||jumpto sendstatusmail
+
 python /tube_request/send_scan_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} ${TEST_TAG} ${NOTIFY_EMAIL}
 
 _ "Cleaning environment"

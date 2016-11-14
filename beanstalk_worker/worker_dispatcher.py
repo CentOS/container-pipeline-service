@@ -26,15 +26,19 @@ while True:
   elif action == "start_scan":
     bs.use("start_scan")
     bs.put(json.dumps(job_details))
-    print "==>job moved to test tube"
+    print "==> Job moved to test tube"
   elif action == "start_delivery":
     bs.use("start_delivery")
     bs.put(json.dumps(job_details))
-    print "==> job moved to delivery tube"
+    print "==> Job moved to delivery tube"
   elif action == "notify_user":
     bs.use("notify_user")
     bs.put(json.dumps(job_details))
     print "==> Job moved to notify tube"
+  elif action == "report_scan_results":
+    bs.use("report_scan_results")
+    bs.put(json.dumps(job_details))
+    print "==> Job moved to report scan results tube"
 
   print "==> Deleting job"
   job.delete()
