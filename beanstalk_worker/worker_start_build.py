@@ -54,8 +54,10 @@ def notify_build_failure(namespace, notify_email, logs):
 def start_build(job_details):
     try:
         debug_log(" Retrieving namespace")
-        name = job_details['name']
-        tag = job_details['tag']
+        appid = job_details['appid']
+        jobid = job_details['jobid']
+        desired_tag = job_details['desired_tag']
+        namespace = appid+"-"+jobid+"-"+desired_tag
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
 
@@ -65,12 +67,12 @@ def start_build(job_details):
         debug_log(out)
 
         debug_log(" change project to the desired one")
-        command_change_project = "oc project "+name+"-"+tag+" --config="+config_path+"/node.kubeconfig"
+        command_change_project = "oc project " +namespace+ " --config= "+config_path+" /node.kubeconfig"
         out = run_command(command_change_project)
         debug_log(out)
 
         debug_log("start the build")
-        command_start_build = "oc --namespace "+name+"-"+tag+" start-build build --config="+config_path+"/node.kubeconfig"
+        command_start_build = "oc --namespace "+namespace+" start-build build --config="+config_path+"/node.kubeconfig"
         out = run_command(command_start_build)
         debug_log(out)
 
@@ -83,7 +85,7 @@ def start_build(job_details):
 
         debug_log("build started is "+build_details)
 
-        status_command = "oc get --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig|grep -v STATUS"
+        status_command = "oc get --namespace "+namespace+" build/"+build_details+" --config="+config_path+"/node.kubeconfig|grep -v STATUS"
         is_running = 1
 
         debug_log("Checking the build status")
@@ -96,13 +98,13 @@ def start_build(job_details):
         is_complete=run_command(status_command)[0].find('Complete')
 
         #checking logs for the build phase
-        log_command = "oc logs --namespace "+name+"-"+tag+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
+        log_command = "oc logs --namespace "+namespace+" build/"+build_details+" --config="+config_path+"/node.kubeconfig"
         logs = run_command(log_command)
         logs = logs[0]
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
-            notify_build_failure(name+"-"+tag, notify_email, logs);
+            notify_build_failure(namespace, notify_email, logs);
             debug_log("Build is not successful putting it to failed build tube")
 
         return 0
@@ -116,10 +118,6 @@ while True:
         job = bs.reserve()
         job_details = json.loads(job.body)
         result = start_build(job_details)
-        if result == 0:
-            debug_log("Build is successful deleting the job")
-            job.delete()
-        else:
-            debug_log("Job was not succesfull and returned to tube")
+        job.delete()
     except Exception as e:
         logger.log(level=logging.CRITICAL, msg=e.message)
