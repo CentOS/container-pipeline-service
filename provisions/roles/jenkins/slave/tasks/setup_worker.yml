@@ -17,8 +17,6 @@
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
-
-
 #Push ca cert to slave for worker
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/beanstalk_worker state=directory
@@ -35,7 +33,7 @@
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/beanstalk_worker/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/beanstalk_worker/node.kubeconfig}
 
-- name: Get openshift build scripts
+- name: Get OpenShift build scripts
   copy:
     src: ../../../../../beanstalk_worker
     dest: /opt/cccp-service
