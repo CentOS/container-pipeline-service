@@ -1,5 +1,5 @@
 - job-template:
-    name: '{ci_project}-{jobname}'
+    name: '{appid}-{jobid}-{desired_tag}'
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     node: oc-slave
@@ -9,15 +9,15 @@
             skip-tag: True
             branch: "{git_branch}"
     triggers:
-        - pollscm: "H/10 * * * *" 
+        - pollscm: "H/10 * * * *"
     builders:
         - shell: |
             export DOCKERFILE_DIR=`pwd`
             cd /opt/cccp-service/client/
-            /bin/bash lint-dockerfile.sh {namespace} {rel_path} {target_file} {notify_email} {jobname}
-            ./build-project.sh {namespace} {jobname} {git_url} {git_branch} {rel_path} {target_file} {notify_email} {depends_on} {desired_tag}
+            /bin/bash lint-dockerfile.sh {appid} {rel_path} {target_file} {notify_email} {jobid}
+            ./build-project.sh {appid} {jobid} {git_url} {git_branch} {rel_path} {target_file} {notify_email} {desired_tag} {depends_on}
 
 - job-group:
     name: cccp-rundotsh-job
     jobs:
-        - '{ci_project}-{jobname}'
+        - '{appid}-{jobid}'
