@@ -12,17 +12,15 @@ jjb_defaults_file = 'project-defaults.yml'
 
 required_attrs = ['image_name', 'image_version']
 optional_attrs = ['rundotshargs']
-overwritten_attrs = ['jobname', 'git_url', 'ci_project', 'jobs']
+overwritten_attrs = ['jobid', 'git_url', 'appid', 'jobs']
 
 
 def projectify(
       new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
       dependson, notifyemail, desiredtag):
 
-    new_project[0]['project']['namespace'] = appid
-    new_project[0]['project']['jobname'] = jobid
-    new_project[0]['project']['ci_project'] = appid
-    new_project[0]['project']['name'] = appid
+    new_project[0]['project']['appid'] = appid
+    new_project[0]['project']['jobid'] = jobid
     new_project[0]['project']['git_url'] = giturl
     new_project[0]['project']['git_branch'] = gitbranch
     new_project[0]['project']['rel_path'] = ('/' + gitpath) \
