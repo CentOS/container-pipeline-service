@@ -25,6 +25,12 @@ def get_parser():
                         help="Specify to print failed list",
                         action="store_true")
 
+    parser.add_argument("-c",
+                        "--cleanup",
+                        help="Specify to force cleanup of test bench. If your running multiple times on same system,"
+                             " this is not recommended as it will require downloading of repos again and again",
+                        action="store_true")
+
     return parser
 
 
@@ -33,6 +39,7 @@ if __name__ == '__main__':
     cmd_args = get_parser().parse_args()
     indexd_location = "./index.d"
     data_dump_directory = "./cccp-index-test"
+    clean_up = False
 
     if cmd_args.dump_directory is not None:
         data_dump_directory = cmd_args.dump_directory[0]
@@ -40,9 +47,12 @@ if __name__ == '__main__':
     if cmd_args.indexd_location is not None:
         indexd_location = cmd_args.indexd_location[0]
 
+    if cmd_args.cleanup is not None and cmd_args.cleanup:
+        clean_up = True
+
     print indexd_location
 
-    e = Engine(indexd_location=indexd_location, data_dump_directory=data_dump_directory)
+    e = Engine(indexd_location=indexd_location, data_dump_directory=data_dump_directory, cleanup=clean_up)
     status, failed_list = e.run()
 
     if not status:

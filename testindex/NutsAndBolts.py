@@ -60,9 +60,11 @@ class Environment:
         """Clean up the test bench directory"""
         self._cleanup_content(self.indexd_test_bench)
 
-    def teardown(self):
+    def teardown(self, cleanup_test_bench=False):
         """Tear down the environment"""
         environ.update(self.old_environ)
+        if cleanup_test_bench:
+            self._cleanup_content(self.data_dump_directory)
 
 
 class GlobalEnvironment:

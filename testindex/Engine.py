@@ -9,9 +9,10 @@ from Summary import Summary
 
 
 class Engine:
-    def __init__(self, indexd_location="./index.d", data_dump_directory="cccp-index-test"):
+    def __init__(self, indexd_location="./index.d", data_dump_directory="cccp-index-test", cleanup=False):
 
         self._success = False
+        self._cleanup = cleanup
 
         print "\nSetting up environment...\n"
         GlobalEnvironment.environment = Environment(data_dump_directory)
@@ -86,7 +87,7 @@ class Engine:
 
         Summary.print_summary()
 
-        GlobalEnvironment.environment.teardown()
+        GlobalEnvironment.environment.teardown(self._cleanup)
 
         if False in successlist:
             return False, failed_list
