@@ -34,7 +34,7 @@
       "value": "{{ public_registry }}:5000"
     },
     {
-      "name": "TARGET_NAMESPACE",
+      "name": "APPID",
       "description": "A namespace in the target registry where to push the final image",
       "value": "cccp"
     },
@@ -44,7 +44,7 @@
       "value": ""
     },
     {
-      "name": "TAG",
+      "name": "JOBID",
       "description": "Tag for the resulting image",
       "value": "cccp-python",
       "required": true
@@ -90,9 +90,9 @@
       "kind": "ImageStream",
       "apiVersion": "v1",
       "metadata": {
-        "name": "${TAG}",
+        "name": "${JOBID}",
         "annotations": {
-          "description": "Keeps track of changes in the image ${TAG}"
+          "description": "Keeps track of changes in the image ${JOBID}"
         }
       }
     },
@@ -100,10 +100,10 @@
       "kind": "BuildConfig",
       "apiVersion": "v1",
       "metadata": {
-          "name": "build" 
+          "name": "build"
       },
       "spec": {
-        "triggers": [ 
+        "triggers": [
           {
             "type": "Generic",
             "generic": {
@@ -111,13 +111,13 @@
             }
           }
         ],
-        "source": { 
+        "source": {
           "type": "Git",
           "git": {
             "uri": "${SOURCE_REPOSITORY_URL}"
           }
         },
-        "strategy": { 
+        "strategy": {
           "type": "Custom",
           "customStrategy": {
             "exposeDockerSocket": true,
@@ -127,8 +127,12 @@
             },
             "env": [
               {
+                "name": "JOBID",
+                "value": "${JOBID}
+              },
+              {
                 "name": "TAG",
-                "value": "${TAG}:test"
+                "value": "test"
               },
               {
                 "name": "SOURCE_REPOSITORY_URL",
@@ -158,10 +162,10 @@
             ]
           }
         },
-        "output": { 
-          "to": {
-            "kind": "ImageStreamTag",
-            "name": "${TAG}:test"
+        "output": {
+            "to": {
+                "kind": "ImageStreamTag",
+                "name": "${JOBID}:test"
           }
         }
       }
@@ -170,10 +174,10 @@
       "kind": "BuildConfig",
       "apiVersion": "v1",
       "metadata": {
-          "name": "test" 
+          "name": "test"
       },
       "spec": {
-        "triggers": [ 
+        "triggers": [
           {
             "type": "Generic",
             "generic": {
@@ -185,12 +189,12 @@
             "imageChange": {
               "from": {
                 "kind": "ImageStreamTag",
-                "name": "${TAG}:test"
+                "name": "${JOBID}:test"
               }
             }
           }
         ],
-        "strategy": { 
+        "strategy": {
           "type": "Custom",
           "customStrategy": {
             "exposeDockerSocket": true,
@@ -200,12 +204,13 @@
             },
             "env": [
               {
-                "name": "FROM",
-                "value": "${TAG}:test"
+                "name"
+                : "FROM",
+                "value": "${JOBID}:test"
               },
               {
                 "name": "TO",
-                "value": "${TAG}:${TEST_TAG}"
+                "value": "${JOBID}:${TEST_TAG}"
               },
               {
                 "name": "REPO_TEST_PATH",
@@ -224,16 +229,20 @@
                 "value": "${TARGET_REGISTRY}"
               },
               {
-                "name":"TARGET_NAMESPACE",
-                "value":"${TARGET_NAMESPACE}"
+                "name":"APPID",
+                "value":"${APPID}"
               },
               {
-                "name":"TAG",
-                "value":"${TAG}"
+                "name":"JOBID",
+                "value":"${JOBID}"
               },
               {
                 "name":"TEST_TAG",
                 "value":"${TEST_TAG}"
+              },
+              {
+                "name":"DESIRED_TAG",
+                "value":"${DESIRED_TAG}"
               },
               {
                 "name": "BEANSTALK_SERVER",
@@ -242,10 +251,10 @@
             ]
           }
         },
-        "output": { 
+        "output": {
           "to": {
             "kind": "ImageStreamTag",
-            "name": "${TAG}:${TEST_TAG}"
+            "name":"${JOBID}:${TEST_TAG}"
           }
         }
       }
@@ -254,10 +263,10 @@
       "kind": "BuildConfig",
       "apiVersion": "v1",
       "metadata": {
-          "name": "delivery" 
+          "name": "delivery"
       },
       "spec": {
-        "triggers": [ 
+        "triggers": [
           {
             "type": "Generic",
               "generic": {
@@ -265,7 +274,7 @@
             }
           }
         ],
-        "strategy": { 
+        "strategy": {
           "type": "Custom",
           "customStrategy": {
             "exposeDockerSocket": true,
@@ -276,19 +285,19 @@
             "env": [
               {
                 "name": "FROM",
-                "value": "${TAG}:${TEST_TAG}"
+                "value": "${JOBID}:${TEST_TAG}"
               },
               {
                 "name": "TO",
-                "value": "${TAG}:${DESIRED_TAG}"
+                "value": "${JOBID}:${DESIRED_TAG}"
               },
               {
                 "name": "TARGET_REGISTRY",
                 "value": "${TARGET_REGISTRY}"
               },
               {
-                "name": "TARGET_NAMESPACE",
-                "value": "${TARGET_NAMESPACE}"
+                "name": "APPID",
+                "value": "${APPID}"
               },
               {
                 "name": "BEANSTALK_SERVER",
@@ -301,10 +310,10 @@
             ]
           }
         },
-        "output": { 
+        "output": {
           "to": {
             "kind": "ImageStreamTag",
-            "name": "${TAG}:rc"
+            "name": "${JOBID}:rc"
           }
         }
       }
