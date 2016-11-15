@@ -11,7 +11,6 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
-    - {src: /tmp/oc, dest: /usr/bin/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
 
@@ -27,7 +26,19 @@
     - ../client/trigger_dockerfile_lint.py
   when: not vagrant
 
-- name: Copy openshift template file
+- name: Replace Beanstalk server with its FQDN for build request
+  replace: >
+      dest=/opt/cccp-service/client/send_build_request.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
+
+- name: Replace OpenShift server with its FQDN for build project sh
+  replace: >
+      dest=/opt/cccp-service/client/build-project.sh
+      regexp="OPENSHIFT_SERVER_HOST"
+      replace='{{ groups['openshift'][0] }}'
+
+- name: Copy OpenShift template file
   template:
     src: template.json.j2
     dest: /opt/cccp-service/client/template.json
@@ -38,13 +49,10 @@
 - name: Ensure  build-project.sh is executable
   file: path=/opt/cccp-service/client/build-project.sh mode='u+x'
 
-- name: Add host entry for openshift server
-  shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'` openshift >> /etc/hosts
-
 - name: Create script for image prune
   template:
     src: imageprune.sh.j2
     dest: /usr/bin/delete_images.sh
- 
+
 - name: Add cron job to cleanup old images
   cron: name="registry cleanup" special_time=daily job="/usr/bin/delete_images.sh"

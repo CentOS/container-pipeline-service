@@ -46,7 +46,8 @@ DESIRED_TAG=$9
 CWD=`dirname $0`
 NS="--namespace ${NAME}-${TAG}"
 echo "==> login to Openshift server"
-oc login https://openshift:8443 -u test-admin -p test --config=./node.kubeconfig --certificate-authority=./ca.crt
+OPENSHIFT_SERVER_IP=`ping OPENSHIFT_SERVER_HOST -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
+oc login https://${OPENSHIFT_SERVER_IP}:8443 -u test-admin -p test --config=./node.kubeconfig --certificate-authority=./ca.crt
 
 echo "==>creating new project or using existing project with same name"
 oc --config=./node.kubeconfig new-project ${NAME}-${TAG} --display-name=${NAME}-${TAG} || oc --config=./node.kubeconfig project ${NAME}-${TAG}

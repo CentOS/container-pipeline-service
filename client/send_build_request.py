@@ -16,7 +16,7 @@ build_details["notify_email"] = sys.argv[6]
 build_details["depends_on"] = sys.argv[7]
 
 print "Pushing bild details in the tube"
-bs = beanstalkc.Connection(host="openshift")
+bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.use("master_tube")
 bs.put(json.dumps(build_details))
 print "build details is pushed to master tube"

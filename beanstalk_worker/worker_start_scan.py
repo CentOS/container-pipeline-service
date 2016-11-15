@@ -11,9 +11,9 @@ import sys
 
 from Atomic import Atomic, mount
 
-DOCKER_HOST = "atomic-scan.vm.centos.org"
+DOCKER_HOST = "127.0.0.1"
 DOCKER_PORT = "4243"
-BEANSTALKD_HOST = "openshift"
+BEANSTALKD_HOST = "BEANSTALK_SERVER"
 
 logger = logging.getLogger("container-pipeline")
 logger.setLevel(logging.DEBUG)

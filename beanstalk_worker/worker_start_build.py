@@ -10,7 +10,7 @@ import logging
 import sys
 
 
-bs = beanstalkc.Connection(host="openshift")
+bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_build")
 bs.use("failed_build")
 
