@@ -48,8 +48,8 @@ python cccp_reader.py $TARGET_FILE
 #echo "ADD /test_script /usr/bin/" >> $TARGET_FILE
 #echo "ADD /delivery_script /usr/bin/" >> $TARGET_FILE
 
-_ "Building the image in ${buildpath} with tag ${TAG}"
-docker build --rm --no-cache -t $TAG -f $TARGET_FILE . || jumpto sendstatusmail
+_ "Building the image in ${buildpath} with tag ${JOBID}:${TAG}"
+docker build --rm --no-cache -t $JOBID:$TAG -f $TARGET_FILE . || jumpto sendstatusmail
 
 #_ "Checking local files form container"
 #ls -a /set_env/
@@ -75,7 +75,7 @@ if [ -n "${TO}" ] || [ -s "/root/.dockercfg" ]; then
 fi
 
 _ "Cleaning environment"
-docker rmi ${TAG}
+docker rmi ${JOBID}:${TAG}
 jumpto end
 
 sendstatusmail:

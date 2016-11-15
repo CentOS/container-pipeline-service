@@ -18,7 +18,7 @@ fi
 
 FULL_FROM=${OUTPUT_REGISTRY}/`python -c 'import json, os; print json.loads(os.environ["BUILD"])["metadata"]["namespace"]'`/${FROM}
 #FULL_TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
-FULL_TO=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
+FULL_TO=${TARGET_REGISTRY}/${APPID}/${TO}
 
 
 _ "Pulling tested image (${FULL_FROM})"
@@ -33,8 +33,8 @@ docker pull ${FULL_FROM} || jumpto sendstatusmail
 _ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
 
-NS=${TARGET_NAMESPACE}-${TAG}
-OUTPUT_IMAGE=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
+NS=${APPID}-${JOBID}-${DESIRED_TAG}
+OUTPUT_IMAGE=${TARGET_REGISTRY}/${APPID}/${TO}
 
 _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #if [ -n "${FULL_TO}" ] || [ -s "/root/.dockercfg" ]; then

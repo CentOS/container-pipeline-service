@@ -9,8 +9,8 @@ if [ "${TARGET_REGISTRY}" == "" ];then
     TARGET_REGISTRY=${OUTPUT_REGISTRY}
 fi
 
-FULL_FROM=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${FROM}
-FULL_TO=${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${TO}
+FULL_FROM=${TARGET_REGISTRY}/${APPID}/${FROM}
+FULL_TO=${TARGET_REGISTRY}/${APPID}/${TO}
 
 _ "Pulling RC image (${FROM})"
 docker pull ${FULL_FROM}
@@ -23,7 +23,7 @@ docker tag ${FULL_FROM} ${FULL_TO}
 _ "Pushing final image (${FULL_TO})"
 docker push ${FULL_TO}
 
-OUTPUT_IMAGE=registry.centos.org/${TARGET_NAMESPACE}/${TO}
+OUTPUT_IMAGE=registry.centos.org/${APPID}/${TO}
 
 _ "Send success mail for user notify tube"
 python /tube_request/send_notify_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} ${NOTIFY_EMAIL}
