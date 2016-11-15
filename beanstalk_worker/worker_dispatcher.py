@@ -39,6 +39,10 @@ while True:
     bs.use("report_scan_results")
     bs.put(json.dumps(job_details))
     print "==> Job moved to report scan results tube"
+  elif action == "start_linter":
+    bs.use("start_linter")
+    bs.put(json.dumps(job_details))
+    print "==> Job moved to linter tube"
 
   print "==> Deleting job"
   job.delete()

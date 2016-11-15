@@ -1,5 +1,7 @@
 # CentOS Community Container Pipeline
 
+[![Build Status](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/badge/icon)](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/)
+
 CentOS Community Container Pipeline(cccp) is a process, to provide any opensource developer, a platform for containerising their application(s). This process builds the application(s) from any arbitary git repository/repositories, package the built application along with its runtime in a container image, tests the image with help of test script and delivers to a publicly available registry. A user can anytime pull the tested image from that registry.
 
 ## User Story
