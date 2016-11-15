@@ -11,6 +11,7 @@
 import json
 import os
 import urllib
+import sys
 
 from ci.lib import _print, run_cmd, provision
 
@@ -37,6 +38,30 @@ def get_nodes(ver="7", arch="x86_64", count=4):
         f.close()
     _print(resp)
     return data['hosts']
+
+
+def fail_nodes():
+    with open('env.properties') as f:
+        s = f.read()
+
+    ssid = None
+    for line in s.splitlines():
+        key, value = line.split('=')
+        if key == 'DUFFY_SSID':
+            ssid = value
+            break
+
+    fail_nodes_url = "{url_base}/Node/fail?key={key}&ssid={ssid}".format(
+        url_base=url_base, key=api, ssid=ssid)
+    resp = urllib.urlopen(fail_nodes_url).read()
+    _print(resp)
+
+
+def print_nodes():
+    with open('env.properties') as f:
+        s = f.read()
+
+    _print('\n'.join(s.splitlines()[3:]))
 
 
 def generate_ansible_inventory(jenkins_master_host, jenkins_slave_host,

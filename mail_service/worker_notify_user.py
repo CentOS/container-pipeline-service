@@ -3,9 +3,6 @@
 import beanstalkc
 import json
 import subprocess
-import re
-import time
-import smtplib
 
 bs = beanstalkc.Connection(host="172.17.0.1")
 bs.watch("notify_user")
@@ -95,6 +92,46 @@ Following are the atomic scanners ran on built image, displaying the result mess
     print "==> Put job for delivery on master tube with id = %s" % job_id
 
 
+def notify_user_with_linter_results(job_info):
+    """
+    Fetches the results of linter from job_info and composes the the message
+    body to be sent to the user.
+    """
+    print "==> Retrieving message details.."
+    notify_email = job_info['notify_email']
+    project = job_info["namespace"] + "/" + job_info["job_name"]
+
+    subject = "Dockerfile linter results for project: %s" % project
+    if "logs" not in job_info:
+        # Linter failed for some reason which should be in "msg" key
+        text = "Failed to scan the Dockerfile for project %s \n" % project
+        text += "Reason for failure: %s\n" % job_info["msg"]
+
+        print "==> Sending linter failure results email to user: %s" \
+            % notify_email
+        # Setting last parameter to anything but None should trigger failure
+        # email
+        send_mail(notify_email, subject, text, logs=job_info.get("msg"))
+    else:
+        text = """
+CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
+=======================================================================================
+
+Dockerfile linter results for project=%s.
+
+""" % project
+
+        text += "Detailed linter logs:\n\n"
+        text += job_info["logs"] + "\n\n"
+
+        text = text.replace("\n", "\\n")
+
+        print "==> Sending linter results email to user: %s" % notify_email
+        # last parameter (logs) has to None for the sake of
+        # condition put in send_mail function
+        send_mail(notify_email, subject, text, None)
+
+
 while True:
     print "Listening to notify_user tube"
 
@@ -106,6 +143,14 @@ while True:
         if job_info["scan_results"]:
             print "==> Received job id= %s for reporting scan results" % job_id
             notify_user_with_scan_results(job_info)
+            job.delete()
+            continue
+
+    if "linter_results" in job_info:
+        if job_info["linter_results"]:
+            print "==> Received job id= %s for reporting linter results" \
+                % job_id
+            notify_user_with_linter_results(job_info)
             job.delete()
             continue
 
@@ -125,4 +170,5 @@ while True:
 
     print "==> Sending email to user"
     send_mail(notify_email, subject, msg, logs)
+
     job.delete()

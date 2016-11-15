@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 
-logger = logging.getLogger("container-pipeline")
+logger = logging.getLogger("cccp-linter")
 logger.setLevel(logging.DEBUG)
 
 ch = logging.StreamHandler(sys.stdout)
@@ -28,7 +28,7 @@ def write_dockerfile(dockerfile):
     else:
         os.makedirs("/tmp/scan")
 
-    with open("/tmp/scan/dockerfile", "w") as f:
+    with open("/tmp/scan/Dockerfile", "w") as f:
         f.write(dockerfile)
 
 
@@ -36,12 +36,10 @@ def lint_job_data(job_data):
     logger.log(level=logging.INFO, msg="Received job data from tube")
     logger.log(level=logging.INFO, msg="Job data: %s" % job_data)
 
-    namespace = job_data.get('name_space')
-
     dockerfile = job_data.get("dockerfile")
 
     logger.log(level=logging.INFO,
-               msg="Writing Dockerfile to /tmp/scan/dockerfile")
+               msg="Writing Dockerfile to /tmp/scan/Dockerfile")
     write_dockerfile(dockerfile)
 
     logger.log(level=logging.INFO, msg="Running Dockerfile Lint check")
@@ -54,13 +52,29 @@ def lint_job_data(job_data):
          "registry.centos.org/pipeline-images/dockerfile-lint"],
         stdout=subprocess.PIPE
     ).communicate()
-    logger.log(level=logging.INFO, msg="Dockerfile Lint check done")
 
-    response = {
-        "logs": out,
-        "action": "notify_user",
-        "namespace": namespace
-    }
+    if err is None:
+        logger.log(level=logging.INFO, msg="Dockerfile Lint check done")
+        response = {
+            "logs": out,
+            "linter_results": True,
+            "action": "notify_user",
+            "namespace": job_data.get('namespace'),
+            "notify_email": job_data.get("notify_email"),
+            "job_name": job_data.get("job_name"),
+            "msg": None
+        }
+
+    else:
+        logger.log(level=logging.ERROR, msg="Dockerfile Lint check failed")
+        response = {
+            "linter_results": True,
+            "action": "notify_user",
+            "namespace": job_data.get('namespace'),
+            "notify_email": job_data.get("notify_email"),
+            "job_name": job_data.get("job_name"),
+            "msg": err
+        }
 
     bs.use("master_tube")
     jid = bs.put(json.dumps(response))
@@ -71,7 +85,7 @@ def lint_job_data(job_data):
 
 
 bs = beanstalkc.Connection(host="openshift")
-bs.watch("start_lint")
+bs.watch("start_linter")
 
 while True:
     try:
