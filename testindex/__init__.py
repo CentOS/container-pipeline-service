@@ -1,5 +1,6 @@
-from Engine import Engine
 from argparse import ArgumentParser
+
+from Engine import Engine
 
 
 def get_parser():
@@ -19,6 +20,11 @@ def get_parser():
                         nargs=1,
                         action="store")
 
+    parser.add_argument("-l",
+                        "--list_failed",
+                        help="Specify to print failed list",
+                        action="store_true")
+
     return parser
 
 
@@ -37,7 +43,9 @@ if __name__ == '__main__':
     print indexd_location
 
     e = Engine(indexd_location=indexd_location, data_dump_directory=data_dump_directory)
-    status = e.run()
+    status, failed_list = e.run()
 
     if not status:
+        if cmd_args.list_failed is not None and cmd_args.list_failed:
+            print failed_list
         exit(1)

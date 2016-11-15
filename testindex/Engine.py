@@ -20,7 +20,8 @@ class Engine:
 
         self._prepare_index_test_bench(indexd_location)
 
-    def _prepare_index_test_bench(self, indexd_location):
+    @staticmethod
+    def _prepare_index_test_bench(indexd_location):
         """Copies the indexd files into testbench so we can modify if needed without affecting originals"""
 
         if not path.exists(indexd_location):
@@ -55,28 +56,39 @@ class Engine:
     def run(self):
 
         successlist = []
+        failed_list = dict()
 
-        for fl in glob(GlobalEnvironment.environment.indexd_test_bench + "/*.yml"):
+        for index_path in glob(GlobalEnvironment.environment.indexd_test_bench + "/*.yml"):
             print "\nChecking the format"
+            index_file = path.basename(index_path)
 
-            if Validators.IndexFormatValidator(fl).run():
+            if index_file not in failed_list:
+                failed_list[index_path] = []
+
+            status1, failed_list1 = Validators.IndexFormatValidator(index_path).run()
+
+            if status1:
                 print "\nIndex format validated, moving to next step"
                 print "Checking for correctness of provided values"
 
-                if Validators.IndexProjectsValidator(fl).run():
+                status2, failed_list2 = Validators.IndexProjectsValidator(index_path).run()
+
+                if status2:
                     successlist.append(True)
 
                 else:
                     successlist.append(False)
+                    failed_list[index_file] = failed_list2
 
             else:
                 successlist.append(False)
+                failed_list[index_file] = failed_list1
 
         Summary.print_summary()
 
-        if False in successlist:
-            return False
-
         GlobalEnvironment.environment.teardown()
 
-        return True
+        if False in successlist:
+            return False, failed_list
+
+        return True, None

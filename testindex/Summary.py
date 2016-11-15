@@ -17,8 +17,7 @@ class SummaryCollector:
         self._summary_info["errors"].append(msg)
 
     def add_warning(self, msg):
-
-        self._summary_info["warnings"].append("msg")
+        self._summary_info["warnings"].append(msg)
 
 
 class Summary:
