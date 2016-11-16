@@ -1,10 +1,10 @@
 type: scanner
 scanner_name: pipeline-scanner
 image_name: registry.centos.org/pipeline-images/pipeline-scanner
-default_scan: redhat-release
+default_scan: yum-update
 scans: [
-  { name: redhat-release,
+  { name: yum-update,
     args: ['python', 'scanner.py', 'release'],
-    description: "Find Red Hat release"
+    description: "Checks and reports required package updates for container image."
   }
 ]
