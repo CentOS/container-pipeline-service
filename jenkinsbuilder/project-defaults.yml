@@ -20,4 +20,4 @@
 - job-group:
     name: cccp-rundotsh-job
     jobs:
-        - '{appid}-{jobid}'
+        - '{appid}-{jobid}-{desired_tag}'
