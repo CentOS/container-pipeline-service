@@ -21,6 +21,7 @@ def projectify(
 
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
+    new_project[0]['project']['name'] = appid
     new_project[0]['project']['git_url'] = giturl
     new_project[0]['project']['git_branch'] = gitbranch
     new_project[0]['project']['rel_path'] = ('/' + gitpath) \
