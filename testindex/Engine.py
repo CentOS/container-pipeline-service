@@ -56,40 +56,39 @@ class Engine:
 
     def run(self):
 
-        successlist = []
-        failed_list = dict()
+        flags_list = []
+        status_list = dict()
+
+        print "Processing the data, please wait a while...\n"
 
         for index_path in glob(GlobalEnvironment.environment.indexd_test_bench + "/*.yml"):
-            print "\nChecking the format"
             index_file = path.basename(index_path)
 
-            if index_file not in failed_list:
-                failed_list[index_path] = []
-
-            status1, failed_list1 = Validators.IndexFormatValidator(index_path).run()
+            status1, status_sublist1 = Validators.IndexFormatValidator(index_path).run()
 
             if status1:
-                print "\nIndex format validated, moving to next step"
-                print "Checking for correctness of provided values"
 
-                status2, failed_list2 = Validators.IndexProjectsValidator(index_path).run()
+                status2, status_sublist2 = Validators.IndexProjectsValidator(index_path).run()
 
                 if status2:
-                    successlist.append(True)
+                    flags_list.append(True)
 
                 else:
-                    successlist.append(False)
-                    failed_list[index_file] = failed_list2
+                    flags_list.append(False)
+
+                status_list[index_file] = status_sublist2
 
             else:
-                successlist.append(False)
-                failed_list[index_file] = failed_list1
+                flags_list.append(False)
+
+            if index_file not in status_list:
+                status_list[index_file] = status_sublist1
 
         Summary.print_summary()
 
         GlobalEnvironment.environment.teardown(self._cleanup)
 
-        if False in successlist:
-            return False, failed_list
+        if False in flags_list:
+            return False, status_list
 
         return True, None

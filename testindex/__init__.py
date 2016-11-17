@@ -2,6 +2,8 @@ from argparse import ArgumentParser
 
 from Engine import Engine
 
+from pprint import PrettyPrinter
+
 
 def get_parser():
     parser = ArgumentParser(description="This script is used to validate the contents on the index.d directory.")
@@ -53,9 +55,9 @@ if __name__ == '__main__':
     print indexd_location
 
     e = Engine(indexd_location=indexd_location, data_dump_directory=data_dump_directory, cleanup=clean_up)
-    status, failed_list = e.run()
+    status, status_list = e.run()
 
     if not status:
         if cmd_args.list_failed is not None and cmd_args.list_failed:
-            print failed_list
+            PrettyPrinter(indent=4).pprint(status_list)
         exit(1)

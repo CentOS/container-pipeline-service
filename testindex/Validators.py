@@ -32,12 +32,21 @@ class IndexValidator(Validator):
         self._file_name = path.basename(index_file)
         self._index_file = index_file
         self._yaml = self._load_yaml(self._index_file)["Projects"]
-        self._failed_list = list()
+        self._status_list = {
+            "fail": [],
+            "success": []
+        }
 
     def _mark_entry_invalid(self, entry):
         self._success = False
-        if entry not in self._failed_list:
-            self._failed_list.append(entry)
+        if entry in self._status_list["success"]:
+            self._status_list["success"].remove(entry)
+        if entry not in self._status_list["fail"]:
+            self._status_list["fail"].append(entry)
+
+    def _mark_entry_valid(self, entry):
+        if entry not in self._status_list["success"]:
+            self._status_list["success"].append(entry)
 
     def run(self):
         """Runs the IndexValidator, returning True or False based on success or failure"""
@@ -58,6 +67,7 @@ class IndexFormatValidator(IndexValidator):
         for entry in self._yaml:
 
             self._summary_collector = SummaryCollector(self._file_name, entry)
+            self._mark_entry_valid(entry)
 
             # Check if id field exists
             if "id" not in entry or ("id" in entry and entry["id"] is None):
@@ -132,7 +142,7 @@ class IndexFormatValidator(IndexValidator):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing depends-on")
 
-        return self._success, self._failed_list
+        return self._success, self._status_list
 
 
 class IndexProjectsValidator(IndexValidator):
@@ -195,6 +205,7 @@ class IndexProjectsValidator(IndexValidator):
         container_names = {}
 
         for entry in self._yaml:
+            self._mark_entry_valid(entry)
             self._summary_collector = SummaryCollector(self._file_name, entry)
 
             clone_path = self._update_git_url(entry["git-url"], entry["git-branch"])
@@ -250,7 +261,7 @@ class IndexProjectsValidator(IndexValidator):
             # * Validate the cccp yaml file
             self._cccp_yaml_check(git_path, cccp_yml_path, entry)
 
-        return self._success, self._failed_list
+        return self._success, self._status_list
 
     def _cccp_yaml_check(self, git_path, cccp_yaml_path, entry):
         """Validates the cccp yaml file"""
