@@ -6,7 +6,7 @@ import os
 import sys
 
 if __name__ == "__main__":
-    bs = beanstalkc.Connection(host="openshift")
+    bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
     bs.use("master_tube")
 
     namespace = sys.argv[1]
