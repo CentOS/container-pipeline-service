@@ -44,7 +44,7 @@ TEST_TAG=`date +"%Y%m%d%H%M%S"`
 
 
 CWD=`dirname $0`
-PN="${APPID}-${JOBID}-${DESIRED-TAG}"
+PN="${APPID}-${JOBID}-${DESIRED_TAG}"
 NS="--namespace ${PN}"
 
 echo "==> login to Openshift server"

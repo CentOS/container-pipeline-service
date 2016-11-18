@@ -61,7 +61,7 @@ TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["o
 
 #TO=${DOCKER_REGISTRY_SERVICE_HOST}:${DOCKER_REGISTRY_SERVICE_PORT}/$TAG
 
-docker tag ${TAG} ${TO}
+docker tag ${JOBID}:${TAG} ${TO}
 
 _ "Pushing the image to registry (${TO})"
 

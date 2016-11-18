@@ -20,7 +20,7 @@
     src: "{{ item }}"
     dest: /opt/cccp-service/client
   with_items:
-    - ../client/build-project.sh
+    - ../client/build_project.sh
     - ../client/send_build_request.py
     - ../client/beanstalkc.py
     - ../client/lint-dockerfile.sh
@@ -33,9 +33,15 @@
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
 
+- name: Replace Beanstalk server with its FQDN for dockerfile lint trigger
+  replace: >
+      dest=/opt/cccp-service/client/trigger_dockerfile_lint.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
+
 - name: Replace OpenShift server with its FQDN for build project sh
   replace: >
-      dest=/opt/cccp-service/client/build-project.sh
+      dest=/opt/cccp-service/client/build_project.sh
       regexp="OPENSHIFT_SERVER_HOST"
       replace='{{ groups['openshift'][0] }}'
 
@@ -47,8 +53,8 @@
 - name: Ensure jenkins is owner of /opt/cccp-service/client dir in slave
   file: path=/opt/cccp-service/client owner=jenkins group=jenkins recurse=yes
 
-- name: Ensure  build-project.sh is executable
-  file: path=/opt/cccp-service/client/build-project.sh mode='u+x'
+- name: Ensure  build_project.sh is executable
+  file: path=/opt/cccp-service/client/build_project.sh mode='u+x'
 
 - name: Create script for image prune
   template:
