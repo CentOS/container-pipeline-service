@@ -4,8 +4,9 @@ from os import path
 from sys import exit
 
 import Validators
-from NutsAndBolts import Environment, GlobalEnvironment
+from NutsAndBolts import Environment, GlobalEnvironment, StatusIterator
 from Summary import Summary
+from yaml import dump
 
 
 class Engine:
@@ -57,7 +58,7 @@ class Engine:
     def run(self):
 
         flags_list = []
-        status_list = dict()
+        status_list = list()
 
         print "Processing the data, please wait a while...\n"
 
@@ -76,19 +77,24 @@ class Engine:
                 else:
                     flags_list.append(False)
 
-                status_list[index_file] = status_sublist2
+                with open(GlobalEnvironment.environment.generator_dir + "/" + index_file, "w+") as the_file:
+                    dump(status_sublist2, the_file)
+                status_list.append(index_file)
 
             else:
                 flags_list.append(False)
 
             if index_file not in status_list:
-                status_list[index_file] = status_sublist1
+                status_list.append(index_file)
+                with open(GlobalEnvironment.environment.generator_dir + "/" + index_file, "w+") as the_file:
+                    dump(status_sublist1, the_file)
 
         Summary.print_summary()
 
         GlobalEnvironment.environment.teardown(self._cleanup)
+        status = StatusIterator()
 
         if False in flags_list:
-            return False, status_list
+            return False, status
 
-        return True, None
+        return True, status

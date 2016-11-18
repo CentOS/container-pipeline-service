@@ -23,7 +23,7 @@ def get_parser():
                         action="store")
 
     parser.add_argument("-l",
-                        "--list_failed",
+                        "--list",
                         help="Specify to print failed list",
                         action="store_true")
 
@@ -57,7 +57,9 @@ if __name__ == '__main__':
     e = Engine(indexd_location=indexd_location, data_dump_directory=data_dump_directory, cleanup=clean_up)
     status, status_list = e.run()
 
+    if cmd_args.list is not None and cmd_args.list:
+        for item in status_list:
+            print item
+
     if not status:
-        if cmd_args.list_failed is not None and cmd_args.list_failed:
-            PrettyPrinter(indent=4).pprint(status_list)
         exit(1)

@@ -1,6 +1,8 @@
-from os import environ, path, mkdir, unsetenv, listdir, unlink, devnull
+from os import environ, path, mkdir, unsetenv, listdir, unlink, devnull, getenv
 from shutil import rmtree
 from subprocess import check_call, CalledProcessError, STDOUT
+from glob import glob
+from yaml import load
 
 
 def execute_command(cmd):
@@ -24,6 +26,7 @@ class Environment:
         self.data_dump_directory = data_dump_directory
         self.indexd_test_bench = data_dump_directory + "/index_d"
         self.repo_dump = data_dump_directory + "/repos"
+        self.generator_dir = getenv("HOME") + "/generator_ref"
 
         self.old_environ = dict(environ)
 
@@ -35,6 +38,9 @@ class Environment:
 
         if not path.exists(self.repo_dump):
             mkdir(self.repo_dump)
+
+        if not path.exists(self.generator_dir):
+            mkdir(self.generator_dir)
 
         unsetenv("GIT_ASKPASS")
         unsetenv("SSH_ASKPASS")
@@ -69,3 +75,31 @@ class Environment:
 
 class GlobalEnvironment:
     environment = None
+
+
+class StatusIterator:
+
+    def __init__(self):
+        self._current = -1
+        self._src = glob(GlobalEnvironment.environment.generator_dir + "/*.yml")
+        self._src_count = len(self._src)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self
+
+    def next(self):
+        self._current += 1
+
+        if self._current >= self._src_count:
+            raise StopIteration
+
+        with open(self._src[self._current]) as current_file:
+            current_file_content = load(current_file)
+
+        return {
+            "namespace": self._src[self._current],
+            "list": current_file_content
+        }
