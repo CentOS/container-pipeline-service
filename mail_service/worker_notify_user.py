@@ -41,7 +41,10 @@ def notify_user_with_scan_results(job_info):
 
     print "==> Image under test is %s" % image_under_test
 
-    subject = "Scanning results for image: %s" % image_under_test
+    if job_info.get("weekly"):
+        subject = "Weekly scanning results for image: %s" % image_under_test
+    else:
+        subject = "Scanning results for image: %s" % image_under_test
     text = """
 CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
 ==================================================================
@@ -74,6 +77,11 @@ Following are the atomic scanners ran on built image, displaying the result mess
     # last parameter (logs) has to None for the sake of
     # condition put in send_mail function
     send_mail(notify_email, subject, text, None)
+
+    # if weekly scan is being executed, we do not want trigger delivery phase
+    if job_info.get("weekly"):
+        print "Weekly scan completed; moving to next job."
+        return
 
     # We notified user, lets put the job on delivery tube
     # all other details about job stays same

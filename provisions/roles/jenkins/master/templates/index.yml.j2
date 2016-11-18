@@ -17,3 +17,20 @@
             cd /opt/cccp-service/jenkinsbuilder
             python cccp_index_reader.py $CWD/index.d
 
+- job:
+    name: 'weekly-image-scan'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: master
+    scm:
+        - git:
+            url: "{{ cccp_index_repo }}"
+            skip-tag: True
+    triggers:
+        - timed: "59 23 * * 6"
+    builders:
+        - shell: |
+            export CWD=`pwd`
+            cd /opt/cccp-service/jenkinsbuilder
+            python weekly-scan.py $CWD/index.d
+

@@ -30,4 +30,18 @@
   with_items:
     - ../jenkinsbuilder/cccp_index_reader.py
     - ../jenkinsbuilder/project-defaults.yml
+    - ../jenkinsbuilder/weekly-scan.py
+    - ../beanstalk_worker/beanstalkc.py
   when: not vagrant
+
+- name: Replace Jenkins master with its FQDN for Weekly Scan job
+  replace: >
+      dest=/opt/cccp-service/jenkinsbuilder/weekly-scan.py
+      regexp="JENKINS_SLAVE"
+      replace='{{ groups['jenkins_slaves'][0] }}'
+
+- name: Replace Beanstalk server with its FQDN for weekly scan job
+  replace: >
+      dest=/opt/cccp-service/jenkinsbuilder/weekly-scan.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
