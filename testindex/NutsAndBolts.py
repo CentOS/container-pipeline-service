@@ -42,6 +42,12 @@ class Environment:
         if not path.exists(self.generator_dir):
             mkdir(self.generator_dir)
 
+        if path.exists(self.generator_dir):
+            self._cleanup_content(self.generator_dir)
+
+        if not path.exists(self.generator_dir):
+            mkdir(self.generator_dir)
+
         unsetenv("GIT_ASKPASS")
         unsetenv("SSH_ASKPASS")
 
