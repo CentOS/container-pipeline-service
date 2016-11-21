@@ -52,11 +52,29 @@
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
 
+- name: Get OpenShift server ip
+  shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
+  register: openshift_server_ip
+
+- debug: var=openshift_server_ip
+
+- name: Replace OpenShift server with its IP for Build worker
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_build.py
+      regexp="OPENSHIFT_SERVER_IP"
+      replace='{{ openshift_server_ip.stdout }}'
+
 - name: Replace Beanstalk server with its FQDN for delivery worker
   replace: >
       dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
+
+- name: Replace OpenShift server with its IP for Delivery worker
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
+      regexp="OPENSHIFT_SERVER_IP"
+      replace='{{ openshift_server_ip.stdout }}'
 
 - name: Build dispatcher-worker image
   shell: docker build -t dispatcher-worker -f ./Dockerfile.dispatcher_worker .

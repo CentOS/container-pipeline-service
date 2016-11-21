@@ -1,5 +1,5 @@
 ---
-origin_image_name: openshift/origin:v1.2.1
+origin_image_name: openshift/origin:v1.3.1
 origin_dir: /var/lib/origin
 
 openshift_volumes_dir: /var/lib/origin/openshift.local.volumes
@@ -23,6 +23,6 @@ openshift_volumes:
 openshift_dir: /var/lib/origin/openshift.local.config/master
 kubeconfig: /var/lib/origin/openshift.local.config/master/admin.kubeconfig
 
-ose_tag: ose-v1.2.0-1
+ose_tag: ose-v1.3.0-1
 
 openshift_startup_delay: 75
