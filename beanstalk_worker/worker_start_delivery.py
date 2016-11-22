@@ -8,7 +8,7 @@ import re
 import time
 import logging
 import sys
-
+import os
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_delivery")
@@ -25,7 +25,7 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-config_path = "/".join(sys.argv[0].split("/")[:-1])
+config_path = os.path.dirname(os.path.realpath(__file__));
 
 DEBUG = 1
 
@@ -82,7 +82,7 @@ def start_delivery(job_details):
         out = run_command(command_start_build)
         debug_log(out)
 
-        build_details = out[0].rstrip()
+        build_details = out[0].split("\"")[1].rstrip()
         debug_log(build_details)
 
         if build_details == "":
