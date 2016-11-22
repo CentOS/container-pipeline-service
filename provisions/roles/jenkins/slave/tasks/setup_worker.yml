@@ -108,3 +108,18 @@
       name: delivery-worker
       state: started
       image: delivery-worker
+
+- name: Copy Dockerfile linter worker
+  copy:
+      src: ../../beanstalk_worker/cccp-dockerfile-lint-worker.service
+      dest: /etc/systemd/system/cccp-dockerfile-lint-worker.service
+  when: not vagrant
+
+- name: Replace Beanstalk server with its FQDN for Dockerfile lint worker
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_dockerfile_lint.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
+
+- name: Enable and start Dockerfile linter worker
+  service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted

@@ -84,7 +84,7 @@ def lint_job_data(job_data):
     )
 
 
-bs = beanstalkc.Connection(host="openshift")
+bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_linter")
 
 while True:
