@@ -8,7 +8,7 @@ import re
 import time
 import logging
 import sys
-
+import os
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_build")
@@ -25,7 +25,7 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-config_path = "/".join(sys.argv[0].split("/")[:-1])
+config_path = os.path.dirname(os.path.realpath(__file__));
 
 DEBUG = 1
 
@@ -73,7 +73,7 @@ def start_build(job_details):
 
         debug_log(" change project to the desired one")
         command_change_project = "oc project " + namespace + \
-            " --config= " + config_path + " /node.kubeconfig"
+            " --config=" + config_path + "/node.kubeconfig"
         out = run_command(command_change_project)
         debug_log(out)
 
@@ -83,7 +83,7 @@ def start_build(job_details):
         out = run_command(command_start_build)
         debug_log(out)
 
-        build_details = out[0].rstrip()
+        build_details = out[0].split("\"")[1].rstrip()
         debug_log(build_details)
 
         if build_details == "":
