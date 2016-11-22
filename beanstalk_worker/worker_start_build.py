@@ -25,7 +25,8 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-config_path = os.path.dirname(os.path.realpath(__file__));
+config_path = os.path.dirname(os.path.realpath(__file__))
+kubeconfig = " --config=" + os.path.join(config_path, "node.kubeconfig")
 
 DEBUG = 1
 
@@ -36,12 +37,15 @@ def debug_log(msg):
 
 
 def run_command(command):
-    p = Popen(command, bufsize=0, shell=True,
+    try:
+        p = Popen(command, bufsize=0, shell=True,
               stdout=PIPE, stderr=PIPE, stdin=PIPE)
-    p.wait()
-    out = p.communicate()
-    return out
-
+        p.wait()
+        out = p.communicate()
+        return out
+    except Exception as e:
+        logger.log(level=logging.CRITICAL, msg=e.message)
+        return e.message
 
 def notify_build_failure(namespace, notify_email, logs):
     msg_details = {}
@@ -66,24 +70,23 @@ def start_build(job_details):
         notify_email = job_details['notify_email']
 
         debug_log("Login to OpenShift server")
-        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test --config=" + \
-            config_path + "/node.kubeconfig --certificate-authority=" + config_path + "/ca.crt"
+        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
+            kubeconfig + " --certificate-authority=" + config_path + "/ca.crt"
         out = run_command(command_login)
         debug_log(out)
 
         debug_log(" change project to the desired one")
-        command_change_project = "oc project " + namespace + \
-            " --config=" + config_path + "/node.kubeconfig"
+        command_change_project = "oc project " + namespace + kubeconfig
         out = run_command(command_change_project)
         debug_log(out)
 
         debug_log("start the build")
         command_start_build = "oc --namespace " + namespace + \
-            " start-build build --config=" + config_path + "/node.kubeconfig"
+            " start-build build" + kubeconfig
         out = run_command(command_start_build)
         debug_log(out)
 
-        build_details = out[0].split("\"")[1].rstrip()
+        build_details = out[0].split('"')[1].rstrip()
         debug_log(build_details)
 
         if build_details == "":
@@ -94,7 +97,7 @@ def start_build(job_details):
         debug_log("build started is " + build_details)
 
         status_command = "oc get --namespace " + namespace + " build/" + \
-            build_details + " --config=" + config_path + "/node.kubeconfig|grep -v STATUS"
+            build_details + kubeconfig + "|grep -v STATUS"
         is_running = 1
 
         debug_log("Checking the build status")
@@ -108,7 +111,7 @@ def start_build(job_details):
 
         # checking logs for the build phase
         log_command = "oc logs --namespace " + namespace + " build/" + \
-            build_details + " --config=" + config_path + "/node.kubeconfig"
+            build_details + kubeconfig
         logs = run_command(log_command)
         logs = logs[0]
 
