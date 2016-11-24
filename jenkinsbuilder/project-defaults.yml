@@ -9,6 +9,9 @@
             skip-tag: True
             branch: "{git_branch}"
     triggers:
+        - reverse:
+            jobs: "{depends_on}"
+            result: 'success'
         - pollscm: "H/10 * * * *"
     builders:
         - shell: |

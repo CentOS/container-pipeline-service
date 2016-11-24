@@ -84,6 +84,8 @@ def main(indexdlocation):
                                 '_', '-').replace('/', '-').replace('.', '-')
                         jobid = jobid.replace(
                                 '_', '-').replace('/', '-').replace('.', '-')
+                        dependson = dependson.replace(':', '-').replace('/', '-')
+                        dependson = dependson[1:-1]
 
                         # overwrite any attributes we care about see: projectify
                         with open(generated_filename, 'w') as outfile:
