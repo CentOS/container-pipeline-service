@@ -6,9 +6,11 @@
     scm:
         - git:
             url: "{{ cccp_index_repo }}"
+            branches:
+                - "origin/master"
             skip-tag: True
     triggers:
-        - pollscm: "H/10 * * * *" 
+        - pollscm: "H/10 * * * *"
     builders:
         - shell: |
             CWD=`pwd`

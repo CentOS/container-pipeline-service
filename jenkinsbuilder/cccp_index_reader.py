@@ -16,8 +16,8 @@ overwritten_attrs = ['jobid', 'git_url', 'appid', 'jobs']
 
 
 def projectify(
-      new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
-      dependson, notifyemail, desiredtag):
+        new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
+        dependson, notifyemail, desiredtag):
 
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
@@ -81,13 +81,16 @@ def main(indexdlocation):
                         new_proj = [{'project': {}}]
 
                         appid = appid.replace(
-                                '_', '-').replace('/', '-').replace('.', '-')
+                            '_', '-').replace('/', '-').replace('.', '-')
                         jobid = jobid.replace(
-                                '_', '-').replace('/', '-').replace('.', '-')
-                        dependson = dependson.replace(':', '-').replace('/', '-')
-                        dependson = dependson[1:-1]
+                            '_', '-').replace('/', '-').replace('.', '-')
+                        if dependson != None:
+                            dependson = ','.join(dependson)
+                            dependson = dependson.replace(
+                                ':', '-').replace('/', '-')
 
-                        # overwrite any attributes we care about see: projectify
+                        # overwrite any attributes we care about see:
+                        # projectify
                         with open(generated_filename, 'w') as outfile:
                             yaml.dump(projectify(
                                 new_proj, appid, jobid, giturl, gitpath,
