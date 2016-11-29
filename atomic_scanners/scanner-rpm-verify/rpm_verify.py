@@ -11,6 +11,11 @@ from subprocess import Popen, PIPE
 INDIR = "/scanin"
 OUTDIR = "/scanout"
 
+# Filter filepaths starting with following directories listing,
+# since these paths are expected to be modified and should not take into account
+FILTER_DIRS = [
+    "/var", "/run", "/media", "/mnt", "/tmp", "/proc", "/sys", "/boot"]
+
 
 class RPMVerify(object):
     """
@@ -91,6 +96,13 @@ class RPMVerify(object):
         else:
             return out.split("\n")[0]
 
+    def filter_expected_dirs_modifications(self, filepath):
+        """
+        This method filters the expected modifications to directories like
+        /var,/run,/media,/mnt,/tmp
+        """
+        return filepath.startswith(tuple(FILTER_DIRS))
+
     def process_cmd_output_data(self, data):
         """
         Process the command output data
@@ -111,7 +123,12 @@ class RPMVerify(object):
             if match.groups()[1] == 'c':
                 continue
 
-            filepath = match.groups()[2]
+            filepath = match.groups()[2].strip()
+
+            # filter the expected directories
+            if self.filter_expected_dirs_modifications(filepath):
+                continue
+
             rpm = self.source_rpm_of_file(filepath)
             rpm_meta = self.get_meta_of_rpm(rpm)
             # do not include the config files in the result
@@ -159,8 +176,8 @@ class Scanner(object):
         """
         Returns the containers / images to be processed
         """
-        # atomic scan will mount container's image onto a rootfs and expose rootfs to
-        # scanner under the /scanin directory
+        # atomic scan will mount container's image onto
+        # a rootfs and expose rootfs to scanner under the /scanin directory
         return [_dir for _dir in os.listdir(INDIR) if
                 os.path.isdir(os.path.join(INDIR, _dir))
                 ]
