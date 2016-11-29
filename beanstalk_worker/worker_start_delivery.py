@@ -70,8 +70,7 @@ def start_delivery(job_details):
         #depends_on = job_details['depends_on']
 
         debug_log("Login to OpenShift server")
-        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test --config=" + \
-            kubeconfig + " --certificate-authority=" + config_path + "/ca.crt"
+        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test --config="+config_path+"/node.kubeconfig --certificate-authority="+config_path+"/ca.crt"
         out = run_command(command_login)
         debug_log(out)
 
@@ -89,9 +88,8 @@ def start_delivery(job_details):
         build_details = out[0].split('"')[1].rstrip()
         debug_log(build_details)
 
-        if build_details == "":
-            logger.log(level=logging.CRITICAL,
-                       msg="build could not be started as OpenShift is not reachable")
+        if build_details=="":
+            logger.log(level=logging.CRITICAL, msg="build could not be started as OpenShift is not reachable")
             return 1
 
         debug_log("Delivery started is " + build_details)
