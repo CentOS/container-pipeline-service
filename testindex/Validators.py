@@ -281,7 +281,7 @@ class IndexProjectsValidator(IndexValidator):
             value = cccp_yaml["test-skip"]
 
             try:
-                if value is not None and (value is True or value is False):
+                if value and (value is True or value is False):
                     pass
                 if value is None:
                     self._summary_collector.add_warning("Optional test-skip is set None, which means its value will be"
@@ -293,8 +293,8 @@ class IndexProjectsValidator(IndexValidator):
         # * Check test-script
         if "test-script" in cccp_yaml:
             self._summary_collector.add_warning("Custom test-script has been specified")
-            value = str(cccp_yaml["test-script"])
-            if value is not None and not path.exists(value):
+            value = cccp_yaml["test-script"]
+            if value and not path.exists(str(value)):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("The specified test-script does not exist")
             if value is None:
@@ -304,8 +304,8 @@ class IndexProjectsValidator(IndexValidator):
         # * Check build-script
         if "build-script" in cccp_yaml:
             self._summary_collector.add_warning("Custom build-script has been specified")
-            value = str(cccp_yaml["build-script"])
-            if value is not None and not path.exists(value):
+            value = cccp_yaml["build-script"]
+            if value and not path.exists(str(value)):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("The specified build-script does not exist")
             if value is None:
@@ -315,8 +315,8 @@ class IndexProjectsValidator(IndexValidator):
         # * Check delivery-script
         if "delivery-script" in cccp_yaml:
             self._summary_collector.add_warning("Custom delivery-script has been specified.")
-            value = str(cccp_yaml["delivery-script"])
-            if value is not None and not path.exists(value):
+            value = cccp_yaml["delivery-script"]
+            if value and not path.exists(str(value)):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("The specified delivery-script does not exist")
             if value is None:
