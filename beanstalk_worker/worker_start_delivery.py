@@ -34,7 +34,7 @@ DEBUG = 1
 def notify_build_failure(name_space, notify_email, logs):
     msg_details = {}
     msg_details['action'] = 'notify_user'
-    msg_details['subject'] = "FAILED: Container-build failed" + name_space
+    msg_details['subject'] = "FAILED: Container-build failed " + name_space
     msg_details['msg'] = "Container build " + name_space + \
         " failed due to error in build or test steps. Pleae check attached logs"
     msg_details['logs'] = logs
