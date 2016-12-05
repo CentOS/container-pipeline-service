@@ -41,7 +41,7 @@ _ "Copying index reader to docker file"
 cp /cccp_reader.py .
 
 _ "Put build,test, delivery scripts in proper place"
-python cccp_reader.py $TARGET_FILE
+#python cccp_reader.py $TARGET_FILE
 
 #_ "Adding index reader to docker file"
 #echo "ADD /build_script /usr/bin/" >> $TARGET_FILE

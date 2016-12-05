@@ -7,8 +7,12 @@
         - git:
             url: "{git_url}"
             skip-tag: True
-            branch: "{git_branch}"
+            branches:
+                - "{git_branch}"
     triggers:
+        - reverse:
+            jobs: "{depends_on}"
+            result: 'success'
         - pollscm: "H/10 * * * *"
     builders:
         - shell: |

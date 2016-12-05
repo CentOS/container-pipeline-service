@@ -51,7 +51,7 @@ def debug_log(msg):
 def run_command(command):
     try:
         p = Popen(command, bufsize=0, shell=True,
-              stdout=PIPE, stderr=PIPE, stdin=PIPE)
+                  stdout=PIPE, stderr=PIPE, stdin=PIPE)
         p.wait()
         out = p.communicate()
         return out
@@ -70,7 +70,7 @@ def start_delivery(job_details):
         #depends_on = job_details['depends_on']
 
         debug_log("Login to OpenShift server")
-        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test --config=" + \
+        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
             kubeconfig + " --certificate-authority=" + config_path + "/ca.crt"
         out = run_command(command_login)
         debug_log(out)
