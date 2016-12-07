@@ -15,7 +15,12 @@ upstream registry {
 server {
     listen      80;
     server_name registry.centos.org;
-    rewrite ^ https://registry.centos.org$request_uri? permanent;
+    location /.well-known/ {
+        proxy_pass      http://cephas.centos.org/.well-known/ ; 
+    }
+    location / {
+        rewrite        ^ https://registry.centos.org$request_uri? permanent;
+   }
 }
 
 
