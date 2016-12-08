@@ -5,22 +5,20 @@ from yaml import dump
 from NutsAndBolts import GlobalEnvironment
 
 
-class SummaryCollector:
+class SummaryCollector(object):
     """This class hides away the problem of errors updating information to summary"""
 
     def __init__(self, file_name, entry):
-
         self._summary_info = Summary.pakage_private_get_summary_object(file_name, entry)
 
     def add_error(self, msg):
-
         self._summary_info["errors"].append(msg)
 
     def add_warning(self, msg):
         self._summary_info["warnings"].append(msg)
 
 
-class Summary:
+class Summary(object):
     """This class summarizes the tests"""
 
     _summary = {}

@@ -2,12 +2,12 @@ from os import path, getcwd, chdir, system
 
 from yaml import load
 
+from DependencyValidation import ContainerDependencyGraph
 from NutsAndBolts import GlobalEnvironment, execute_command
 from Summary import SummaryCollector
 
 
-class Validator:
-
+class Validator(object):
     def __init__(self):
         self._success = True
         self._summary_collector = None
@@ -153,7 +153,7 @@ class IndexProjectsValidator(IndexValidator):
         IndexValidator.__init__(self, index_file)
 
     @staticmethod
-    def _update_git_url(git_url, git_branch):
+    def update_git_url(git_url, git_branch):
 
         clone_path = None
 
@@ -208,7 +208,7 @@ class IndexProjectsValidator(IndexValidator):
             self._mark_entry_valid(entry)
             self._summary_collector = SummaryCollector(self._file_name, entry)
 
-            clone_path = self._update_git_url(entry["git-url"], entry["git-branch"])
+            clone_path = self.update_git_url(entry["git-url"], entry["git-branch"])
 
             if clone_path is None:
                 self._mark_entry_invalid(entry)
@@ -324,3 +324,110 @@ class IndexProjectsValidator(IndexValidator):
                                                     " ignored")
 
         chdir(get_back)
+
+
+class DependencyValidator(object):
+    """Does the container dependency validation."""
+
+    dependency_graph = ContainerDependencyGraph()
+
+    @staticmethod
+    def is_dependency_acyclic():
+        """Check is the dependency graph is acyclic."""
+        return DependencyValidator.dependency_graph.has_no_cycles()
+
+
+class DependencyValidationUpdater(IndexValidator):
+    """This script reads the index file and updates the dependency graph, created nodes and edges, for containers and
+    dependencies respectively."""
+
+    def __init__(self, index_file):
+        """Initialize the validator"""
+
+        IndexValidator.__init__(self, index_file)
+
+    def run(self):
+        """Run the validator the read the index and update the dependency graph"""
+
+        for entry in self._yaml:
+            # Form the container name from index yaml
+            primary_container_name = entry["app-id"] + "/" + entry["job-id"] + ":" + entry["desired-tag"]
+            # Add the container to dependency graph (if it does not already exist)
+            DependencyValidator.dependency_graph.add_container(primary_container_name, from_index=True)
+            # Check if entry has any dependencies to account for
+            if entry["depends-on"]:
+                if not isinstance(entry["depends-on"], list):
+                    value = [entry["depends-on"]]
+                else:
+                    value = entry["depends-on"]
+                for item in value:
+                    if ":" not in item:
+                        item += ":latest"
+                    # Add the dependent container to dependency graph, if it does not already exist
+                    DependencyValidator.dependency_graph.add_container(str(item), from_index=True)
+                    # Ensure that the dependency from current depends-on container and the current container is
+                    #  established
+                    DependencyValidator.dependency_graph.add_dependency(str(item), primary_container_name)
+                    clone_path = None
+            # Work out the path to targetfile
+            git_branch = entry["git-branch"]
+            target_file_dir = entry["git-url"]
+            git_path = entry["git-path"]
+            if ":" in target_file_dir:
+                # If the git-url containers :, then we dont need the protocol part, so just get the uri
+                target_file_dir = target_file_dir.split(":")[1]
+            # The final git-path would be path where all repos are dumped + the git-url part + git-path
+            # Example : repo_dump = /mydir, git-url = https://github.com/user/repo, git-path= /mydir
+            # then final path = /mydir/github.com/user/repo/mydir
+            target_file_dir = GlobalEnvironment.environment.repo_dump + "/" + target_file_dir
+            target_file = target_file_dir + "/" + git_path + "/" + entry["target-file"]
+            get_back = getcwd()
+            chdir(target_file_dir)
+            # Checkout required branch
+            cmd = ["git", "checkout", "origin/" + git_branch]
+            execute_command(cmd)
+            chdir(get_back)
+            base_image = None
+            try:
+                with open(target_file, "r") as f:
+                    for line in f:
+                        l = line.strip()
+                        if l.startswith("FROM"):
+                            base_image = l.split()[1]
+                            break
+            except Exception as e:
+                print e
+            if base_image:
+                DependencyValidator.dependency_graph.add_container(container_name=base_image,
+                                                                   from_targetfile=True)
+                DependencyValidator.dependency_graph.add_dependency(base_image, primary_container_name)
+        return True
+
+
+class LightWeightValidator(IndexValidator):
+    """Light weight validator does minimum validation, and focuses mostly on building dependency graph"""
+
+    def __init__(self, index_file):
+        IndexValidator.__init__(self, index_file)
+
+    def run(self):
+        for entry in self._yaml:
+            self._summary_collector = SummaryCollector(self._file_name, entry)
+            if "git-url" not in entry or "git-branch" not in entry or "git-path" not in entry or "target-file" not in \
+                    entry:
+                self._summary_collector.add_error("Missing git-url, git-path, git-branch or target-file")
+                self._success = False
+                continue
+            clone_location = IndexProjectsValidator.update_git_url(entry["git-url"], entry["git-branch"])
+            if not clone_location:
+                self._summary_collector.add_error("Unable to clone specified git-url or find specified git-branch")
+                self._success = False
+                continue
+            validation_path = clone_location + "/" + entry["git-path"] + "/" + entry["target-file"]
+            if not path.exists(validation_path):
+                self._summary_collector.add_error("Invalid git-path or target-file specified")
+                self._success = False
+
+        if self._success:
+            DependencyValidationUpdater(index_file=self._index_file).run()
+        return self._success

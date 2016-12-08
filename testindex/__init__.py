@@ -2,8 +2,6 @@ from argparse import ArgumentParser
 
 from Engine import Engine
 
-from pprint import PrettyPrinter
-
 
 def get_parser():
     parser = ArgumentParser(description="This script is used to validate the contents on the index.d directory.")
@@ -52,10 +50,8 @@ if __name__ == '__main__':
     if cmd_args.cleanup is not None and cmd_args.cleanup:
         clean_up = True
 
-    print indexd_location
-
-    e = Engine(indexd_location=indexd_location, data_dump_directory=data_dump_directory, cleanup=clean_up)
-    status, status_list = e.run()
+    e = Engine(index_location=indexd_location, dump_location=data_dump_directory, cleanup=clean_up)
+    status, status_list, dependency_graph = e.run()
 
     if cmd_args.list is not None and cmd_args.list:
         for item in status_list:
