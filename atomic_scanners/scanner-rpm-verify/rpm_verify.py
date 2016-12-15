@@ -123,6 +123,10 @@ class RPMVerify(object):
             if match.groups()[1] == 'c':
                 continue
 
+            # filter the documentation files
+            if match.groups()[1] == 'd':
+                continue
+
             filepath = match.groups()[2].strip()
 
             # filter the expected directories
