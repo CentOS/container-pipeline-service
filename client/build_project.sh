@@ -30,7 +30,7 @@ TARGET_FILE=$6
 NOTIFY_EMAIL=$7
 DESIRED_TAG=$8
 DEPENDS_ON=$9
-TEST_TAG=`date +"%Y%m%d%H%M%S"`
+TEST_TAG=`date | md5sum | base64 | head -c 14 ; echo`
 
 [ "${APPID}" == "" ] || [ "${APPID}" == "-h" ] || [ "${APPID}" == "--help" ] && usage
 [ "${JOBID}" == "" ] && usage
