@@ -1,7 +1,7 @@
+from glob import glob
 from os import environ, path, mkdir, unsetenv, listdir, unlink, devnull, getenv
 from shutil import rmtree
 from subprocess import check_call, CalledProcessError, STDOUT
-from glob import glob
 from yaml import load
 
 
@@ -15,7 +15,7 @@ def execute_command(cmd):
         return False
 
 
-class Environment:
+class Environment(object):
     """Handles the bringing up and teardown of the test environment"""
 
     def __init__(self, data_dump_directory="./cccp-index-test"):
@@ -84,7 +84,6 @@ class GlobalEnvironment:
 
 
 class StatusIterator:
-
     def __init__(self):
         self._current = -1
         self._src = glob(GlobalEnvironment.environment.generator_dir + "/*.yml")
@@ -95,6 +94,9 @@ class StatusIterator:
 
     def __next__(self):
         return self
+
+    def reset(self):
+        self._current = -1
 
     def next(self):
         self._current += 1
