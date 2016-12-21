@@ -1,16 +1,12 @@
 FROM centos
 
-RUN yum -y install docker
-RUN yum -y install git
-RUN yum install -y PyYAML libyaml
+RUN yum -y install docker git PyYAML libyaml
 
 ADD run.sh /usr/bin/
 ADD cccp_reader.py /
 
 RUN mkdir -p /tube_request/
 
-ADD beanstalkc.py /tube_request/
-
-ADD send_failed_notify_request.py /tube_request/
+ADD beanstalkc.py send_failed_notify_request.py /tube_request/
 
 CMD run.sh
