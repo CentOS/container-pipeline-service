@@ -53,14 +53,15 @@ for f in files:
         desired_tag = entry["desired-tag"]
         email = entry["notify-email"]
 
-        entry_short_name = app_id + "/" + job_id
+        entry_short_name = str(app_id) + "/" + str(job_id)
 
         # Scan an image only if it exists in the catalog!
         if entry_short_name in json_catalog:
             data = {
                 "action": "start_scan",
                 "tag": desired_tag,
-                "name_space": app_id + "-" + job_id + "-" + desired_tag,
+                "name_space": str(app_id) + "-" + str(job_id) + "-" +
+                str(desired_tag),
                 "name": "%s:5000/%s/%s:%s" %
                 (registry, app_id, job_id, desired_tag),
                 "notify_email": email,
