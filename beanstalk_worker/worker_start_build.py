@@ -128,9 +128,14 @@ def start_build(job_details):
 while True:
     try:
         debug_log("listening to start_build tube")
-        job = bs.reserve()
-        job_details = json.loads(job.body)
-        result = start_build(job_details)
-        job.delete()
+        if bs.stats_tube('start_build')['current-jobs-ready'] >= 1 :
+            job = bs.reserve()
+            job_details = json.loads(job.body)
+            result = start_build(job_details)
+            job.delete()
+        else:
+            time.sleep(30)
+            debug_log("No job found to process looping again")
+            continue
     except Exception as e:
         logger.log(level=logging.CRITICAL, msg=e.message)
