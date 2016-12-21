@@ -31,6 +31,7 @@ NOTIFY_EMAIL=$7
 DESIRED_TAG=$8
 DEPENDS_ON=$9
 TEST_TAG=`date | md5sum | base64 | head -c 14 ; echo`
+NFS_SHARE="/srv/logs"
 
 [ "${APPID}" == "" ] || [ "${APPID}" == "-h" ] || [ "${APPID}" == "--help" ] && usage
 [ "${JOBID}" == "" ] && usage
@@ -46,6 +47,10 @@ TEST_TAG=`date | md5sum | base64 | head -c 14 ; echo`
 CWD=`dirname $0`
 PN="${APPID}-${JOBID}-${DESIRED_TAG}"
 NS="--namespace ${PN}"
+
+LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
+echo "==> Creating logs directory ${LOGS_DIR}"
+mkdir -p ${LOGS_DIR}
 
 echo "==> login to Openshift server"
 OPENSHIFT_SERVER_IP=`ping OPENSHIFT_SERVER_HOST -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
