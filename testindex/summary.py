@@ -1,15 +1,15 @@
 import hashlib
+from datetime import datetime
 
 from yaml import dump
-
-from NutsAndBolts import GlobalEnvironment
 
 
 class SummaryCollector(object):
     """This class hides away the problem of errors updating information to summary"""
 
-    def __init__(self, file_name, entry):
-        self._summary_info = Summary.pakage_private_get_summary_object(file_name, entry)
+    def __init__(self, context, file_name, entry):
+        self._context = context
+        self._summary_info = self._context.summary.get_summary_object(file_name, entry)
 
     def add_error(self, msg):
         self._summary_info["errors"].append(msg)
@@ -21,9 +21,10 @@ class SummaryCollector(object):
 class Summary(object):
     """This class summarizes the tests"""
 
-    _summary = {}
-
-    def __init__(self):
+    def __init__(self, summary_dump):
+        self.global_errors = []
+        self._summary = {}
+        self._summary_dump = summary_dump
         pass
 
     @staticmethod
@@ -31,29 +32,35 @@ class Summary(object):
 
         return hashlib.sha256(file_name + str(entry)).hexdigest()
 
-    @staticmethod
-    def pakage_private_get_summary_object(file_name, entry):
+    def get_summary_object(self, file_name, entry):
 
-        if file_name not in Summary._summary:
-            Summary._summary[file_name] = {}
+        if file_name not in self._summary:
+            self._summary[file_name] = {}
 
         entry_hash = Summary._get_entry_hash(file_name, entry)
 
-        if entry_hash not in Summary._summary[file_name]:
-            Summary._summary[file_name][entry_hash] = {
+        if entry_hash not in self._summary[file_name]:
+            self._summary[file_name][entry_hash] = {
                 "entry": str(entry),
                 "errors": [],
                 "warnings": []
             }
 
-        return Summary._summary[file_name][entry_hash]
+        return self._summary[file_name][entry_hash]
 
-    @staticmethod
-    def print_summary():
+    def print_summary(self):
 
         print "\n####################### SUMMARY ##################\n"
 
-        for file_name, entries in Summary._summary.iteritems():
+        print "\nGLOBAL ERRORS:\n"
+        if len(self.global_errors) == 0:
+            print "NONE\n"
+        else:
+            for err in self.global_errors:
+                print "**E " + err
+            print
+
+        for file_name, entries in self._summary.iteritems():
             print " * File Name : " + file_name + "\n"
 
             for entry_id, entry_info in entries.iteritems():
@@ -79,5 +86,6 @@ class Summary(object):
 
                 print "\n"
 
-            with open(GlobalEnvironment.environment.data_dump_directory + "/" + "summary.log", "w") as summary_file:
-                dump(Summary._summary, summary_file, default_flow_style=False)
+            with open(self._summary_dump, "w") \
+                    as summary_file:
+                dump(self._summary, summary_file, default_flow_style=False)

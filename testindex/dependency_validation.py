@@ -2,7 +2,7 @@ import networkx as nx
 
 
 class ContainerDependencyGraph(object):
-    """This class encapsulates a networkx Directed Graph which is used to maintain
+    """This class encapsulates a python-networkx Directed Graph which is used to maintain
     a dependency graph of containers"""
 
     def __init__(self):
@@ -37,29 +37,29 @@ class ContainerDependencyGraph(object):
                     break
         return node
 
-    def add_container(self, container_name, from_index=False, from_targetfile=False):
+    def add_container(self, container_name, from_index=False, from_target_file=False):
         """Checks if a node exists for container_name, and adds it if it does not exist
         container_name: Name of the container
         from_index: set to true, if the container was found in the container index
-        from_targetfile: set to true, if container was found in target-file
+        from_target_file: set to true, if container was found in target-file
         """
         # Check if node already exists for container_name
         node = self.get_container_node(container_name=container_name)
         if not node:
             # If not, add a new node for the container_name
             self._dependency_graph.add_node(self._node_number, name=container_name, from_index=from_index,
-                                            from_targetfile=from_targetfile)
+                                            from_target_file=from_target_file)
             self._node_number += 1
         else:
-            # Otherwise update the attributes of node to indicate from_index and from_targetfile
+            # Otherwise update the attributes of node to indicate from_index and from_target_file
             fi = node[1]["from_index"]
-            ftb = node[1]["from_targetfile"]
+            ftb = node[1]["from_target_file"]
             # If from_index is false and we it is now being set to true
             if not fi and from_index:
                 node[1]["from_index"] = True
-            # If from_targetfile is false and is now being set to true
-            if not ftb and from_targetfile:
-                node[1]["from_targetfile"] = True
+            # If from_target_file is false and is now being set to true
+            if not ftb and from_target_file:
+                node[1]["from_target_file"] = True
 
     def add_dependency(self, from_container, to_container):
         """Add a dependency between the containers as a directed edge from one container to the other."""
@@ -152,3 +152,14 @@ class ContainerDependencyGraph(object):
         except Exception:
             pass
         return cycles
+
+
+class DependencyValidator(object):
+    """Does the container dependency validation."""
+
+    def __init__(self):
+        self.dependency_graph = ContainerDependencyGraph()
+
+    def is_dependency_acyclic(self):
+        """Check is the dependency graph is acyclic."""
+        return self.dependency_graph.has_no_cycles()
