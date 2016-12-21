@@ -2,14 +2,10 @@ FROM centos
 
 RUN yum -y install docker
 
-RUN yum -y install wget mailx postfix
-
 ADD run-delivery.sh /usr/bin/
 
 RUN mkdir -p /tube_request/
 
-ADD beanstalkc.py /tube_request/
-
-ADD send_notify_request.py /tube_request/
+ADD beanstalkc.py send_notify_request.py /tube_request/
 
 CMD run-delivery.sh
