@@ -1,0 +1,33 @@
+Projects:
+  - id: 1
+    app-id: test1
+    job-id: project1
+    git-url: https://github.com/mohammedzee1000/container-pipeline-service-indexci-testprojects
+    git-path: projects/dependency_validation/basic_dependency_projects/project1
+    git-branch: master
+    target-file: Dockerfile
+    desired-tag: latest
+    notify-email: mohammed.zee1000@gmail.com
+    depends-on: null
+
+  - id: 2
+    app-id: test1
+    job-id: project2
+    git-url: https://github.com/mohammedzee1000/container-pipeline-service-indexci-testprojects
+    git-path: projects/dependency_validation/basic_dependency_projects/project2
+    git-branch: master
+    target-file: Dockerfile
+    desired-tag: latest
+    notify-email: mohammed.zee1000@gmail.com
+    depends-on: test1/project1:latest
+
+  - id: 3
+    app-id: test1
+    job-id: project3
+    git-url: https://github.com/mohammedzee1000/container-pipeline-service-indexci-testprojects
+    git-path: projects/dependency_validation/basic_dependency_projects/project3
+    git-branch: master
+    target-file: Dockerfile
+    desired-tag: latest
+    notify-email: mohammed.zee1000@gmail.com
+    depends-on: test1/project2:latest
