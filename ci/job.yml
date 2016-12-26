@@ -5,7 +5,8 @@
             !include-raw './setup_env.sh'
         - inject:
             properties-file: env.properties
-        - shell:
+        - shell: |
+            export PYTHONPATH=${PYTHONPATH:-"$(pwd):$PYTHONPATH"}
             python ./ci/cccp_ci.py
 
 - builder:
