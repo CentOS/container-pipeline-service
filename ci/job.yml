@@ -32,12 +32,14 @@
               - bamachrn
               - dharmit
               - navidshaikh
+              - mohammedzee1000
             white-list:
               - rtnpro
               - kbsingh
               - bamachrn
               - dharmit
               - navidshaikh
+              - mohammedzee1000
             build-desc-template: "build description"
             trigger-phrase: '#dotests'
             only-trigger-phrase: false
