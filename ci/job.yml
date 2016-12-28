@@ -6,7 +6,6 @@
         - inject:
             properties-file: env.properties
         - shell: |
-            export PYTHONPATH=${PYTHONPATH:-"$(pwd):$PYTHONPATH"}
             python ./ci/cccp_ci.py
 
 - builder:
