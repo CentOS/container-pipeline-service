@@ -162,4 +162,5 @@
     builders:
         - git-fast-forward-branch
         - shell: |
-            sh ./ci/cccp_ci_container_index.sh
+            git clone https://github.com/CentOS/container-pipeline-service
+            sh ./container-pipeline-service/ci/cccp_ci_container_index.sh
