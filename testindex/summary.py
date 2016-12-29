@@ -25,7 +25,6 @@ class Summary(object):
         self.global_errors = []
         self._summary = {}
         self._summary_dump = summary_dump
-        pass
 
     @staticmethod
     def _get_entry_hash(file_name, entry):
@@ -54,11 +53,11 @@ class Summary(object):
 
         print "\nGLOBAL ERRORS:\n"
         if len(self.global_errors) == 0:
-            print "NONE\n"
+            print "NONE"
         else:
             for err in self.global_errors:
                 print "**E " + err
-            print
+        print
 
         for file_name, entries in self._summary.iteritems():
             print " * File Name : " + file_name + "\n"

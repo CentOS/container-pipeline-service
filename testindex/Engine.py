@@ -9,17 +9,17 @@ from nuts_and_bolts import Context, StatusIterator
 
 
 class Engine:
-    def __init__(self, index_path="./index_path.d", cleanup=False, silent=False):
+    def __init__(self, index_path="./index_path.d", cleanup=False, verbose=True):
         """Initializes the Engine"""
 
         self._success = False
         self._cleanup = cleanup
-        if not silent:
+        if verbose:
             print "\nSetting up environment...\n"
         self._context = Context()
-        self._context.environment.silent = silent
+        self._context.environment.verbose = verbose
 
-        if not self._context.environment.silent:
+        if self._context.environment.verbose:
             print "\nChecking index  directory\n"
 
         self._prepare_index_test_bench(index_path)
@@ -28,21 +28,21 @@ class Engine:
         """Copies the index files into test bench so we can modify if needed without affecting originals"""
 
         if not path.exists(index_path):
-            if not self._context.environment.silent:
+            if self._context.environment.verbose:
                 print ("\nInvalid index path specified.\n")
             exit(1)
 
         if not path.isdir(index_path):
-            if not self._context.environment.silent:
+            if self._context.environment.verbose:
                 print "\nThe path specified must be a directory\n"
             exit(1)
 
-        if not self._context.environment.silent:
+        if self._context.environment.verbose:
             print "\nPreparing the test bench from the index files\n"
         potential_files = glob(index_path + "/*.yml")
 
         if len(potential_files) == 0 or (len(potential_files) == 1 and "index_template.yml" in potential_files):
-            if not self._context.environment.environment.silent:
+            if self._context.environment.environment.verbose:
                 print "\nThe index.d format directory does not contain potential index files, exiting...\n"
             exit(1)
 
@@ -63,7 +63,7 @@ class Engine:
         flags_list = []
         status_list = list()
 
-        if not self._context.environment.silent:
+        if self._context.environment.verbose:
             print "Processing the data, please wait a while...\n"
 
         for index_path in glob(self._context.environment.test_index + "/*.yml"):
@@ -94,7 +94,7 @@ class Engine:
                 with open(self._context.environment.generator_dir + "/" + index_file, "w+") as the_file:
                     dump(status_sublist1, the_file)
 
-        if not self._context.environment.silent:
+        if self._context.environment.verbose:
             self._context.summary.print_summary()
 
         self._context.environment.teardown(self._cleanup)
@@ -106,11 +106,11 @@ class Engine:
         dep_status = self._context.dependency_validator.is_dependency_acyclic()
         dep_graph = self._context.dependency_validator.dependency_graph
 
-        if not self._context.environment.silent:
+        if self._context.environment.verbose:
             print str.format("Dependency Graph : \n\nContainers: \n{}\n\nDependencies : \n{}\n",
                              dep_graph.get_internal_graph().nodes(data=True), dep_graph.get_internal_graph().edges())
 
-        if not dep_status and not self._context.environment.silent:
+        if not dep_status and self._context.environment.verbose:
             print "DEPENDENCY ERROR : "
             print str.format("The dependencies among the containers is found to be cyclic, please resolve the same\n"
                              "Cycles Found : \n{}", dep_graph.get_cycles())
@@ -122,7 +122,7 @@ class Engine:
 
         success_list = []
         success = True
-        if not self._context.environment.silent:
+        if self._context.environment.verbose:
             print "Processing the data, please wait a while...\n"
         for index_path in glob(self._context.environment.indexd_test_bench + "/*.yml"):
             success_list.append(validators.LightWeightValidator(self._context, index_path).run())

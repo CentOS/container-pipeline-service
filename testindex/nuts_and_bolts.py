@@ -43,36 +43,19 @@ class Environment(object):
         self.repo_dump = dump_location + "/repositories"
         generator_location = dump_location + "_generator_ref/"
         self.generator_dir = generator_location + time_stamp
-        self.silent = False
+        self.verbose = False
 
         self.old_environ = dict(environ)
 
-        if not path.exists(self.dump_directory):
-            mkdir(self.dump_directory)
-
-        if not path.exists(self.index_test_bench):
-            mkdir(self.index_test_bench)
-
-        if not path.exists(self.index_dir):
-            mkdir(self.index_dir)
-
-        if not path.exists(self.test_index):
-            mkdir(self.test_index)
-
-        if not path.exists(self.repo_dump):
-            mkdir(self.repo_dump)
-
-        if not path.exists(generator_location):
-            mkdir(generator_location)
-
-        if not path.exists(self.generator_dir):
-            mkdir(self.generator_dir)
-
-        if path.exists(self.generator_dir):
-            self._cleanup_content(self.generator_dir)
-
-        if not path.exists(self.generator_dir):
-            mkdir(self.generator_dir)
+        # Create all test bench directory structure
+        for item in [self.dump_directory, self.index_test_bench, self.index_dir, self.test_index, self.repo_dump,
+                     generator_location, self.generator_dir]:
+            try:
+                if not path.exists(item):
+                    mkdir(item)
+            except Exception as ex:
+                print "Failed to create test bench file structure : " + str(ex)
+                exit(1)
 
         unsetenv("GIT_ASKPASS")
         unsetenv("SSH_ASKPASS")
