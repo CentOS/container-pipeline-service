@@ -29,7 +29,7 @@ config_path = os.path.dirname(os.path.realpath(__file__))
 kubeconfig = " --config=" + os.path.join(config_path, "node.kubeconfig")
 
 DEBUG = 1
-
+DELAY = 30
 
 def debug_log(msg):
     if DEBUG == 1:
@@ -105,7 +105,7 @@ def start_build(job_details):
             status = run_command(status_command)[0].rstrip()
             is_running = re.search("New|Pending|Running", status)
             debug_log("current status: " + status)
-            time.sleep(30)
+            time.sleep(DELAY)
 
         is_complete = run_command(status_command)[0].find('Complete')
 
@@ -128,9 +128,15 @@ def start_build(job_details):
 while True:
     try:
         debug_log("listening to start_build tube")
-        job = bs.reserve()
-        job_details = json.loads(job.body)
-        result = start_build(job_details)
-        job.delete()
+        current_jobs_in_tube = int(dict(item.split(":") for item in bs.stats_tube('start_build').split('\n')[1:-1])['current-jobs-ready'])
+        if current_jobs_in_tube > 0 :
+            job = bs.reserve()
+            job_details = json.loads(job.body)
+            result = start_build(job_details)
+            job.delete()
+        else:
+            debug_log("No job found to process looping again")
+            time.sleep(DELAY)
     except Exception as e:
         logger.log(level=logging.CRITICAL, msg=e.message)
+        time.sleep(DELAY)
