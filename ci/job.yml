@@ -162,5 +162,5 @@
     builders:
         - git-fast-forward-branch
         - shell: |
-                curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/cccp_ci_container_index.sh > cccp_ci_container_index.sh
+            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/cccp_ci_container_index.sh > cccp_ci_container_index.sh
             sh ./cccp_ci_container_index.sh
