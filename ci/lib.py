@@ -42,6 +42,8 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
         err = p.stderr.read()
     else:
         out, err = p.communicate()
+    _print("=" * 30 + "ERROR" + "=" * 30)
+    _print([err, p.returncode])
     if p.returncode is not None and p.returncode != 0:
         raise Exception(err)
     return out
