@@ -195,7 +195,7 @@ def run():
 
     os.environ['CCCP_CI_HOSTS'] = json.dumps(hosts_data)
 
-    run_cmd('~/venv/bin/nosetests -s ci/tests', stream=True)
+    run_cmd('~/venv/bin/nosetests ci/tests', stream=True)
 
     os.environ.pop('CCCP_CI_PROVISIONED', None)
     os.environ.pop('CCCP_CI_HOSTS', None)
