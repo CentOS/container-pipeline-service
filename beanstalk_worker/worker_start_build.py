@@ -112,13 +112,19 @@ def start_build(job_details):
         # checking logs for the build phase
         log_command = "oc logs --namespace " + namespace + " build/" + \
             build_details + kubeconfig
-        logs = run_command(log_command)
-        logs = logs[0]
+        try:
+            logs = run_command(log_command)
+            logs = logs[0]
+        except Exception as e:
+            logger.log(level=logging.CRITICAL, msg=e.message)
+            logs = "Could not retrieve build logs"
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
             notify_build_failure(namespace, notify_email, logs)
             debug_log("Build is not successful putting it to failed build tube")
+        else:
+            debug_log("Build is successfull going for next job")
 
         return 0
     except Exception as e:
