@@ -41,7 +41,7 @@ def run_command(command):
         p = Popen(command, bufsize=0, shell=True,
               stdout=PIPE, stderr=PIPE, stdin=PIPE)
         p.wait()
-        out = p.communicate()
+        out,err = p.communicate()
         return out
     except Exception as e:
         logger.log(level=logging.CRITICAL, msg=e.message)
@@ -86,7 +86,7 @@ def start_build(job_details):
         out = run_command(command_start_build)
         debug_log(out)
 
-        build_details = out[0].split('"')[1].rstrip()
+        build_details = out.split('"')[1].rstrip()
         debug_log(build_details)
 
         if build_details == "":
@@ -102,23 +102,28 @@ def start_build(job_details):
 
         debug_log("Checking the build status")
         while is_running >= 0:
-            status = run_command(status_command)[0].rstrip()
+            status = run_command(status_command).rstrip()
             is_running = re.search("New|Pending|Running", status)
             debug_log("current status: " + status)
             time.sleep(DELAY)
 
-        is_complete = run_command(status_command)[0].find('Complete')
+        is_complete = run_command(status_command).find('Complete')
 
         # checking logs for the build phase
         log_command = "oc logs --namespace " + namespace + " build/" + \
             build_details + kubeconfig
-        logs = run_command(log_command)
-        logs = logs[0]
+        try:
+            logs = run_command(log_command)
+        except Exception as e:
+            logger.log(level=logging.CRITICAL, msg=e.message)
+            logs = "Could not retrieve build logs"
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
             notify_build_failure(namespace, notify_email, logs)
             debug_log("Build is not successful putting it to failed build tube")
+        else:
+            debug_log("Build is successfull going for next job")
 
         return 0
     except Exception as e:
