@@ -34,14 +34,13 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
+    out = ""
     if stream:
-        out = ""
         for line in iter(p.stdout.readline, ''):
             _print(line.strip())
             out += line
-        err = p.stderr.read()
-    else:
-        out, err = p.communicate()
+    _out, err = p.communicate()
+    out += _out or ""
     _print("=" * 30 + "ERROR" + "=" * 30)
     _print([err, p.returncode])
     if p.returncode is not None and p.returncode != 0:
