@@ -42,7 +42,8 @@ if __name__ == '__main__':
     status_data = {
         "status": status,
         "dependency_graph": {
-            "internal_graph": dependency_graph.get_internal_graph().nodes(data=True),
+            "nodes": dependency_graph.get_internal_graph().nodes(data=True),
+            "edges": dependency_graph.get_internal_graph().edges(),
             "processing_order": dependency_graph.get_processing_order()
         }
     }
