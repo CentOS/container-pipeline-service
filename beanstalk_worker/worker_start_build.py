@@ -37,6 +37,7 @@ def debug_log(msg):
 
 
 def run_command(command):
+    debug_log("Running command: "+command)
     try:
         p = Popen(command, bufsize=0, shell=True,
               stdout=PIPE, stderr=PIPE, stdin=PIPE)
@@ -47,12 +48,18 @@ def run_command(command):
         logger.log(level=logging.CRITICAL, msg=e.message)
         return e.message
 
-def notify_build_failure(namespace, notify_email, logs):
+def notify_build_failure(namespace, notify_email, log_command):
     msg_details = {}
     msg_details['action'] = 'notify_user'
     msg_details['subject'] = "FAILED: Container-build failed " + namespace
     msg_details['msg'] = "Container build for " + namespace + \
         " is failed due to error in build or test steps. Pleae check attached logs"
+    try:
+        logs = run_command(log_command)
+    except Exception as e:
+        logger.log(level=logging.CRITICAL, msg=e.message)
+        logs = "Could not retrieve build logs"
+
     msg_details['logs'] = logs
     msg_details['notify_email'] = notify_email
     bs.use('master_tube')
@@ -112,15 +119,10 @@ def start_build(job_details):
         # checking logs for the build phase
         log_command = "oc logs --namespace " + namespace + " build/" + \
             build_details + kubeconfig
-        try:
-            logs = run_command(log_command)
-        except Exception as e:
-            logger.log(level=logging.CRITICAL, msg=e.message)
-            logs = "Could not retrieve build logs"
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
-            notify_build_failure(namespace, notify_email, logs)
+            notify_build_failure(namespace, notify_email, log_command)
             debug_log("Build is not successful putting it to failed build tube")
         else:
             debug_log("Build is successfull going for next job")
