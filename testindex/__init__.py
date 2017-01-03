@@ -23,6 +23,13 @@ def get_parser():
     )
 
     parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Verbose mode prints more output of the tests",
+        action="store_true"
+    )
+
+    parser.add_argument(
         "-c",
         "--cleanup",
         help="Specify to force cleanup of test bench. If your running multiple times on same system,"
@@ -37,16 +44,20 @@ if __name__ == '__main__':
 
     cmd_args = get_parser().parse_args()
     clean_up = False
+    verbose = False
 
     index = cmd_args.index
 
-    if cmd_args.cleanup is not None and cmd_args.cleanup:
+    if cmd_args.cleanup:
         clean_up = True
 
-    e = Engine(index_path=index, cleanup=clean_up)
+    if cmd_args.verbose:
+        verbose = True
+
+    e = Engine(index_path=index, cleanup=clean_up, verbose=verbose)
     status, status_list, dependency_graph = e.run()
 
-    if cmd_args.list is not None and cmd_args.list:
+    if cmd_args.list:
         for item in status_list:
             print item
 
