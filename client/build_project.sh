@@ -30,7 +30,7 @@ TARGET_FILE=$6
 NOTIFY_EMAIL=$7
 DESIRED_TAG=$8
 DEPENDS_ON=$9
-TEST_TAG=`date | md5sum | base64 | head -c 14 ; echo`
+TEST_TAG=`date | md5sum | base64 | head -c 14`
 NFS_SHARE="/srv/logs"
 
 [ "${APPID}" == "" ] || [ "${APPID}" == "-h" ] || [ "${APPID}" == "--help" ] && usage
@@ -51,6 +51,9 @@ NS="--namespace ${PN}"
 LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
 echo "==> Creating logs directory ${LOGS_DIR}"
 mkdir -p ${LOGS_DIR}
+
+TEMP_LOGS_DIR="/tmp/${TEST_TAG}"
+echo "==> Creating temporary logs directory per build ${TEMP_LOGS_DIR}"
 
 echo "==> login to Openshift server"
 OPENSHIFT_SERVER_IP=`ping OPENSHIFT_SERVER_HOST -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
