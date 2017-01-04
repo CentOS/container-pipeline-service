@@ -15,6 +15,14 @@ def _print(msg):
 
 
 def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
+    _print('=' * 30 + 'RUN COMMAND' + "=" * 30)
+    _print({
+        'cmd': cmd,
+        'user': user,
+        'host': host,
+        'private_key': private_key,
+        'stream': stream
+    })
     if host:
         private_key_args = ''
         if private_key:
@@ -41,9 +49,9 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
             out += line
     _out, err = p.communicate()
     out += _out or ""
-    _print("=" * 30 + "ERROR" + "=" * 30)
-    _print([err, p.returncode])
     if p.returncode is not None and p.returncode != 0:
+        _print("=" * 30 + "ERROR" + "=" * 30)
+        _print(err)
         raise Exception(err)
     return out
 
