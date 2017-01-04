@@ -39,12 +39,20 @@ if __name__ == '__main__':
 
     e = Engine(index_path=index, cleanup=clean_up, verbose=verbose)
     status, status_list, dependency_graph = e.run()
+    if dependency_graph:
+        nodes = dependency_graph.get_internal_graph().nodes(data=True)
+        edges = dependency_graph.get_internal_graph().edges()
+        processing_order = dependency_graph.get_processing_order()
+    else:
+        nodes = None
+        edges = None
+        processing_order = None
     status_data = {
         "status": status,
         "dependency_graph": {
-            "nodes": dependency_graph.get_internal_graph().nodes(data=True),
-            "edges": dependency_graph.get_internal_graph().edges(),
-            "processing_order": dependency_graph.get_processing_order()
+            "nodes": nodes,
+            "edges": edges,
+            "processing_order": processing_order
         }
     }
 
