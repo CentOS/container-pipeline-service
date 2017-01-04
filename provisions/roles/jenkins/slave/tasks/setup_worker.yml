@@ -101,6 +101,8 @@
       state: started
       image: build-worker
       restart_policy: always
+      volumes:
+        /srv/logs:/srv/logs:rw
 
 - name: Start delivery worker
   docker:
