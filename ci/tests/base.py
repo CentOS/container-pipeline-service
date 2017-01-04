@@ -66,5 +66,5 @@ class BaseTestCase(unittest.TestCase):
         host_info = self.hosts.get(self.node)
         return run_cmd(cmd, user=user or host_info['remote_user'],
                        host=host or host_info['host'],
-                       private_key=host_info['private_key'],
+                       private_key=host_info.get('private_key'),
                        stream=stream)
