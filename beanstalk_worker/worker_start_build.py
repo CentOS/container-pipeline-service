@@ -66,6 +66,19 @@ def notify_build_failure(namespace, notify_email, log_command):
     bs.put(json.dumps(msg_details))
 
 
+def write_logs(logs, destination):
+    """"
+    Write logs in given destination
+    """
+    try:
+        with open(destination, "w") as fin:
+            fin.write(logs)
+    except IOError as e:
+        logger.log(level=logging.CRITICAL,
+                   msg="Failed writing logs to %s" % destination)
+        logger.log(level=logging.CRITICAL, msg=str(e))
+
+
 def start_build(job_details):
     try:
         debug_log(" Retrieving namespace")
@@ -75,6 +88,9 @@ def start_build(job_details):
         namespace = appid + "-" + jobid + "-" + desired_tag
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
+        # This will be a mounted directory
+        build_logs = os.path.join(
+                job_details["temp_logs_directory"], "build_logs.log")
 
         debug_log("Login to OpenShift server")
         command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
@@ -114,11 +130,18 @@ def start_build(job_details):
             debug_log("current status: " + status)
             time.sleep(DELAY)
 
-        is_complete = run_command(status_command).find('Complete')
-
         # checking logs for the build phase
         log_command = "oc logs --namespace " + namespace + " build/" + \
             build_details + kubeconfig
+        try:
+            logs = run_command(log_command)
+        except Exception as e:
+            logger.log(level=logging.CRITICAL, msg=e.message)
+            logs = "Could not retrieve build logs"
+        else:
+            write_logs(logs, build_logs)
+
+        is_complete = run_command(status_command).find('Complete')
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
