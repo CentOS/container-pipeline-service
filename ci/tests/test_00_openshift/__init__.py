@@ -50,19 +50,16 @@ class TestOpenshift(BaseTestCase):
         _print("Test if openshift builds persist after reprovision")
         _print("=" * 30)
         cmd = (
-            "oc login https://localhost:8443 --insecure-skip-tls-verify=true "
+            "oc login https://%s:8443 --insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
             "oc project bamachrn-python-release > /dev/null && "
             "oc get pods"
-        )
+        ) % (self.hosts["openshift"]["host"])
         output = self.run_cmd(cmd)
         _print(output)
         lines = output.splitlines()
         pods = set([line.split()[0] for line in lines[1:]])
         success = set(
-            # FIXME: we're ignoring delivery build right now as it will
-            # need the atomic scan host for that.
-            # ['build-1-build', 'delivery-1-build', 'test-1-build'])
             ['build-1-build', 'test-1-build', 'delivery-1-build']
         ).difference(pods)
         self.assertFalse(success)
