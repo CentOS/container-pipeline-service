@@ -16,7 +16,7 @@ class TestOpenshift(BaseTestCase):
             "oc login https://{openshift}:8443 "
             "--insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
-            "oc project bamachrn-python > /dev/null && "
+            "oc project bamachrn-python-release > /dev/null && "
             "oc get pods"
         ).format(openshift=self.hosts[self.node]['host'])
         self.run_cmd(cmd)
@@ -50,9 +50,9 @@ class TestOpenshift(BaseTestCase):
         _print("Test if openshift builds persist after reprovision")
         _print("=" * 30)
         cmd = (
-            "oc login https://openshift:8443 --insecure-skip-tls-verify=true "
+            "oc login https://localhost:8443 --insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
-            "oc project bamachrn-python > /dev/null && "
+            "oc project bamachrn-python-release > /dev/null && "
             "oc get pods"
         )
         output = self.run_cmd(cmd)
