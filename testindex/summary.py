@@ -47,6 +47,11 @@ class Summary(object):
 
         return self._summary[file_name][entry_hash]
 
+    def log_summary(self):
+
+        with open(self._summary_dump, "w") as summary_file:
+            dump(self._summary, summary_file, default_flow_style=False)
+
     def print_summary(self):
 
         print "\n####################### SUMMARY ##################\n"
@@ -84,7 +89,3 @@ class Summary(object):
                         print "  **W " + wrn
 
                 print "\n"
-
-            with open(self._summary_dump, "w") \
-                    as summary_file:
-                dump(self._summary, summary_file, default_flow_style=False)
