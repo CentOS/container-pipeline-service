@@ -44,3 +44,4 @@
   when: test
   tags:
     - test
+    - ci-build-test-project

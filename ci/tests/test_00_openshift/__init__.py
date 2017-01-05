@@ -45,7 +45,8 @@ class TestOpenshift(BaseTestCase):
         _print("Openshift builds completed successfully.")
 
     def test_01_openshift_builds_persist_after_provision(self):
-        self.provision(force=True)
+        self.provision(force=True,
+                       extra_args='--skip-tags=ci-build-test-project')
         _print("=" * 30)
         _print("Test if openshift builds persist after reprovision")
         _print("=" * 30)

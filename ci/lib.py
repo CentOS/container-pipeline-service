@@ -62,7 +62,7 @@ class ProvisionHandler(object):
         self._provisioned = True if os.environ.get(
             'CCCP_CI_PROVISIONED', None) == 'true' else False
 
-    def run(self, controller, force=False):
+    def run(self, controller, force=False, extra_args=""):
         if not force and self._provisioned:
             return
 
@@ -83,9 +83,11 @@ class ProvisionHandler(object):
         cmd = (
             "cd {workdir} && "
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
-            "-u {user} -s {private_key_args} provisions/vagrant.yml"
+            "-u {user} -s {private_key_args} {extra_args} "
+            "provisions/vagrant.yml"
         ).format(workdir=workdir, inventory=inventory, user=user,
-                 private_key_args=private_key_args)
+                 private_key_args=private_key_args,
+                 extra_args=extra_args)
         _print('Provisioning command: %s' % cmd)
         run_cmd(cmd, host=host, stream=True)
         self._provisioned = True

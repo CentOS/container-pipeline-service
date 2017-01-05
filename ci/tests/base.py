@@ -35,7 +35,7 @@ class BaseTestCase(unittest.TestCase):
             }
         }
 
-    def provision(self, force=False):
+    def provision(self, force=False, extra_args=""):
         """
         Provision CCCP nodes.
 
@@ -44,8 +44,9 @@ class BaseTestCase(unittest.TestCase):
 
         Args:
             force (bool): Provision forcefully.
+            extra_args (str): Extra cmd line args for running ansible playbook
         """
-        provision(self.hosts['controller'], force=force)
+        provision(self.hosts['controller'], force=force, extra_args=extra_args)
 
     def run_cmd(self, cmd, user=None, host=None, stream=False):
         """
