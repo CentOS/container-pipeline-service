@@ -16,7 +16,6 @@ build_details["target_file"] = sys.argv[6]
 build_details["notify_email"] = sys.argv[7]
 build_details["depends_on"] = sys.argv[8]
 build_details["logs_dir"] = sys.argv[9]
-build_details["temp_logs_dir"] = sys.argv[10]
 
 print "Pushing bild details in the tube"
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")

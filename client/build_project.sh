@@ -52,9 +52,6 @@ LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
 echo "==> Creating logs directory ${LOGS_DIR}"
 mkdir -p ${LOGS_DIR}
 
-TEMP_LOGS_DIR="/tmp/${TEST_TAG}"
-echo "==> Creating temporary logs directory per build ${TEMP_LOGS_DIR}"
-
 echo "==> login to Openshift server"
 OPENSHIFT_SERVER_IP=`ping OPENSHIFT_SERVER_HOST -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
 _oc login https://${OPENSHIFT_SERVER_IP}:8443 -u test-admin -p test --certificate-authority=./ca.crt
@@ -87,7 +84,7 @@ IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | 
 #[ $? -eq 0 ] && echo -e "Build ${BUILD} started.\nYou can watch builds progress at https://${IP}:8443/console/project/${NAME}/browse/builds"
 
 echo "==> Send build configs to build tube"
-python $CWD/send_build_request.py ${APPID} ${JOBID} ${DESIRED_TAG} ${REPO_BRANCH} ${REPO_BUILD_PATH} ${TARGET_FILE} ${NOTIFY_EMAIL} ${DEPENDS_ON} ${LOGS_DIR} ${TEMP_LOGS_DIR}
+python $CWD/send_build_request.py ${APPID} ${JOBID} ${DESIRED_TAG} ${REPO_BRANCH} ${REPO_BUILD_PATH} ${TARGET_FILE} ${NOTIFY_EMAIL} ${DEPENDS_ON} ${LOGS_DIR}
 
 echo "==> Restoring the default template"
 rm -rf $CWD/template.json

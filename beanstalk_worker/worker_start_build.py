@@ -70,6 +70,10 @@ def write_logs(logs, destination):
     """"
     Write logs in given destination
     """
+    # to take care if the logs directory is not created
+    if not os.path.exists(os.path.dirname(destination)):
+        os.makedirs(os.path.dirname(destination))
+
     try:
         with open(destination, "w") as fin:
             fin.write(logs)
@@ -89,7 +93,7 @@ def start_build(job_details):
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
         # This will be a mounted directory
-        build_logs = os.path.join(
+        build_logs_file = os.path.join(
                 job_details["temp_logs_directory"], "build_logs.log")
 
         debug_log("Login to OpenShift server")
@@ -139,7 +143,9 @@ def start_build(job_details):
             logger.log(level=logging.CRITICAL, msg=e.message)
             logs = "Could not retrieve build logs"
         else:
-            write_logs(logs, build_logs)
+            logger.log(level=logging.INFO,
+                       msg="Writing build logs to")
+            write_logs(logs, build_logs_file)
 
         is_complete = run_command(status_command).find('Complete')
 
