@@ -15,6 +15,14 @@ def _print(msg):
 
 
 def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
+    _print('=' * 30 + 'RUN COMMAND' + "=" * 30)
+    _print({
+        'cmd': cmd,
+        'user': user,
+        'host': host,
+        'private_key': private_key,
+        'stream': stream
+    })
     if host:
         private_key_args = ''
         if private_key:
@@ -41,9 +49,9 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
             out += line
     _out, err = p.communicate()
     out += _out or ""
-    _print("=" * 30 + "ERROR" + "=" * 30)
-    _print([err, p.returncode])
     if p.returncode is not None and p.returncode != 0:
+        _print("=" * 30 + "ERROR" + "=" * 30)
+        _print(err)
         raise Exception(err)
     return out
 
@@ -54,7 +62,7 @@ class ProvisionHandler(object):
         self._provisioned = True if os.environ.get(
             'CCCP_CI_PROVISIONED', None) == 'true' else False
 
-    def run(self, controller, force=False):
+    def run(self, controller, force=False, extra_args=""):
         if not force and self._provisioned:
             return
 
@@ -75,9 +83,11 @@ class ProvisionHandler(object):
         cmd = (
             "cd {workdir} && "
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
-            "-u {user} -s {private_key_args} provisions/vagrant.yml"
+            "-u {user} -s {private_key_args} {extra_args} "
+            "provisions/vagrant.yml"
         ).format(workdir=workdir, inventory=inventory, user=user,
-                 private_key_args=private_key_args)
+                 private_key_args=private_key_args,
+                 extra_args=extra_args)
         _print('Provisioning command: %s' % cmd)
         run_cmd(cmd, host=host, stream=True)
         self._provisioned = True

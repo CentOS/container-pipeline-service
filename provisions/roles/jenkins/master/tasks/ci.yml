@@ -17,8 +17,8 @@
   when: test
   sudo: yes
 
-- name: Run bamachrn-python job
-  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build bamachrn-python --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} -f -v
+- name: Run bamachrn-python-release job
+  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build bamachrn-python-release --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} -f -v
   when: test
   sudo: yes
   register: result

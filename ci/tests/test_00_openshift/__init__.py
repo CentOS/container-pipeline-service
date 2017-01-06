@@ -16,7 +16,7 @@ class TestOpenshift(BaseTestCase):
             "oc login https://{openshift}:8443 "
             "--insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
-            "oc project bamachrn-python > /dev/null && "
+            "oc project bamachrn-python-release > /dev/null && "
             "oc get pods"
         ).format(openshift=self.hosts[self.node]['host'])
         self.run_cmd(cmd)
@@ -45,24 +45,22 @@ class TestOpenshift(BaseTestCase):
         _print("Openshift builds completed successfully.")
 
     def test_01_openshift_builds_persist_after_provision(self):
-        self.provision(force=True)
+        self.provision(force=True,
+                       extra_args='--skip-tags=ci-build-test-project')
         _print("=" * 30)
         _print("Test if openshift builds persist after reprovision")
         _print("=" * 30)
         cmd = (
-            "oc login https://openshift:8443 --insecure-skip-tls-verify=true "
+            "oc login https://%s:8443 --insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
-            "oc project bamachrn-python > /dev/null && "
+            "oc project bamachrn-python-release > /dev/null && "
             "oc get pods"
-        )
+        ) % (self.hosts["openshift"]["host"])
         output = self.run_cmd(cmd)
         _print(output)
         lines = output.splitlines()
         pods = set([line.split()[0] for line in lines[1:]])
         success = set(
-            # FIXME: we're ignoring delivery build right now as it will
-            # need the atomic scan host for that.
-            # ['build-1-build', 'delivery-1-build', 'test-1-build'])
             ['build-1-build', 'test-1-build', 'delivery-1-build']
         ).difference(pods)
         self.assertFalse(success)
