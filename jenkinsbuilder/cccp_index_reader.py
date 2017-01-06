@@ -84,8 +84,11 @@ def main(indexdlocation):
                             '_', '-').replace('/', '-').replace('.', '-')
                         jobid = jobid.replace(
                             '_', '-').replace('/', '-').replace('.', '-')
-                        if dependson != None:
-                            dependson = ','.join(dependson)
+                        if dependson is not None:
+                            if isinstance(dependson, list):
+                                dependson = ','.join(dependson)
+                            else:
+                                dependson = str(dependson)
                             dependson = dependson.replace(
                                 ':', '-').replace('/', '-')
 
