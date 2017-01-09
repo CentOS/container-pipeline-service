@@ -49,7 +49,7 @@ def notify_user_with_scan_results(job_info):
 CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
 ==================================================================
 
-Container image scanning results for image=%s built at CCCP.
+Container image scanning results for image=%s built at CentOS community container pipeline service.
 
 Following are the atomic scanners ran on built image, displaying the result message and detailed logs.
 
@@ -64,10 +64,7 @@ Following are the atomic scanners ran on built image, displaying the result mess
 
     text += "Detailed logs per scanner:\n\n"
     for scanner in job_info["logs"]:
-        text += json.dumps(
-                job_info["logs"][scanner],
-                indent=4,
-                sort_keys=True)
+        text += job_info["logs"][scanner]
         text += "\n\n"
 
     # escape the \ with \\ for rendering in email

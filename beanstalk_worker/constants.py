@@ -7,7 +7,7 @@ SCANNERS_OUTPUT = {
             "RPMVerify.json"]
 }
 
-SCANNER_LOGS_NFS = {
+SCANNERS_RESULTFILE = {
         "registry.centos.org/pipeline-images/pipeline-scanner": [
             "pipeline_scanner_results.json"],
         "registry.centos.org/pipeline-images/misc-package-updates": [
@@ -15,4 +15,3 @@ SCANNER_LOGS_NFS = {
         "registry.centos.org/pipeline-images/scanner-rpm-verify": [
             "RPMVerify_scanner_results.json"]
 }
-

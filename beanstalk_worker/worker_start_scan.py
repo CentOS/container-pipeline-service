@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import beanstalkc
+import constants
 import docker
 import json
 import logging
@@ -101,6 +102,28 @@ class ScannerRunner(object):
         # if scanner failed to run, this will return {}, do check at receiver end
         return json_data
 
+    def export_scanner_logs(self, scanner, data):
+        """
+        Export scanner logs in given directory
+        """
+        logs_file_path = os.path.join(
+                self.job_info["logs_dir"],
+                self.job_info["test_tag"],
+                constants.SCANNERS_RESULTFILE[scanner])
+        try:
+            fin = open(logs_file_path, "w")
+        except IOError as e:
+            logger.log(
+                level=logging.CRITICAL,
+                msg="Failed to write scanner=%s logs on NFS share." % scanner)
+            logger.log(
+                level=logging.CRITICAL,
+                msg=str(e))
+        else:
+            json.dump(data, fin)
+        finally:
+            return logs_file_path
+
     def run(self):
         """"
         Runs the listed atomic scanners on image under test
@@ -115,7 +138,8 @@ class ScannerRunner(object):
         image_under_test = self.job_info.get("name")
         logger.log(level=logging.INFO, msg="Image under test:%s" % image_under_test)
 
-        # copy the job info into scanners data, as we are going to add logs and msg
+        # copy the job info into scanners data,
+        # as we are going to add logs and msg
         scanners_data = self.job_info
         scanners_data["msg"] = {}
         scanners_data["logs"] = {}
@@ -132,10 +156,16 @@ class ScannerRunner(object):
         # run the multiple scanners on image under test
         for scanner in self.scanners.keys():
             data_temp = self.run_a_scanner(scanner, image_under_test)
+
             if not data_temp:
                 continue
+
+            # TODO: what to do if the logs writing failed, check status here
+            logs_filepath = self.export_scanner_logs(scanner, data_temp)
+            # keep the message
             scanners_data["msg"][data_temp["scanner_name"]] = data_temp["msg"]
-            scanners_data["logs"][data_temp["scanner_name"]] = data_temp["logs"]
+            # pass the logs filepath via beanstalk tube
+            scanners_data["logs"][data_temp["scanner_name"]] = logs_filepath
 
         scanners_data["action"] = "notify_user"
         # This field is needed for email worker to hint that this is scan
