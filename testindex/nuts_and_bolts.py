@@ -106,6 +106,11 @@ class Context(object):
         self.environment = Environment()
         self.summary = Summary(self.environment.summary_location)
         self.dependency_validator = DependencyValidator()
+        self.ci_exceptions = {
+            "app_id_filename_match": {
+                "app_id_only": "pipeline_images"
+            }
+        }
 
 
 class StatusIterator(object):

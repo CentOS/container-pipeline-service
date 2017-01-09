@@ -82,6 +82,19 @@ class IndexValidator(Validator):
         if entry not in self._status_list["success"]:
             self._status_list["success"].append(entry)
 
+    def _check_ci_exception(self, entry, check, search_filter, cccp_yml=None):
+        """Checks if an exception criteria is met and returns true or false as needed"""
+        exception_check = False
+        if "check" == "app_id_filename_match":
+            if search_filter == "app_id_only":
+                if entry["app-id"] in self._context.ci_exceptions[check][search_filter]:
+                    exception_check = True
+
+        if exception_check:
+            self._summary_collector.add_warning("{0} skipped due to exception list filer {1}".format(check,
+                                                                                                     search_filter))
+        return exception_check
+
     def run(self):
         """Runs the IndexValidator, returning True or False based on success or failure"""
         raise NotImplementedError("Implement this method.")
@@ -127,8 +140,9 @@ class IndexFormatValidator(IndexValidator):
 
             else:
                 if entry["app-id"] != self._file_name.split(".")[0]:
-                    self._mark_entry_invalid(entry)
-                    self._summary_collector.add_error("app-id should be same as first part of the file name")
+                    if self._check_ci_exception(entry, "app_id_filename_match", "app_id_only"):
+                        self._mark_entry_invalid(entry)
+                        self._summary_collector.add_error("app-id should be same as first part of the file name")
 
                 if "_" in entry["app-id"] or "/" in entry["app-id"] or "." in entry["app-id"]:
                     self._mark_entry_invalid(entry)
