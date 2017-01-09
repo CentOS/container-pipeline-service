@@ -55,6 +55,10 @@ class ScannerRunner(object):
             ScannerRPMVerify,
             "registry.centos.org/pipeline-images/misc-package-updates":
             MiscPackageUpdates
+            "registry.centos.org/pipeline-images/pipeline-scanner": PipelineScanner,
+            "registry.centos.org/pipeline-images/scanner-rpm-verify": ScannerRPMVerify,
+            "registry.centos.org/pipeline-images/misc-package-updates": MiscPackageUpdates,
+            "registry.centos.org/pipeline-images/container-capabilities-scanner": ContainerCapabilities
         }
 
     def pull_image_under_test(self, image_under_test):
@@ -502,6 +506,60 @@ class MiscPackageUpdates(Scanner):
         data["logs"] = logs
 
         return data
+
+
+class ContainerCapabilities(Scanner):
+    def __init__(self):
+        self.scanner_name = "container-capabilities-scanner"
+        self.full_scanner_name = \
+            "registry.centos.org/pipeline-images/container-capabilities-scanner"
+        self.scan_types = ["check-capabilities"]
+
+    def run(self, image_under_test):
+        # initializing a blank list that will contain results from all the
+        # scan types of this scanner
+        logs = []
+        super(ContainerCapabilities, self).__init__(
+            image_under_test=image_under_test,
+            scanner_name=self.scanner_name,
+            full_scanner_name=self.full_scanner_name,
+            to_process_output=False
+        )
+
+        os.environ["IMAGE_NAME"] = self.image_under_test
+
+        # Jfor _ in self.scan_types:
+        scan_cmd = [
+            "atomic",
+            "scan",
+            "--scanner={}".format(self.scanner_name),
+            "--scan_type={}".format(self.scan_types[0]),
+            "{}".format(image_under_test)
+        ]
+
+        scan_results = super(ContainerCapabilities, self).run(scan_cmd)
+
+        if scan_results[0] != True:
+            return False, None
+
+        logs.append(scan_results[1])
+
+        return True, self.process_output(logs)
+
+    def process_output(self, logs):
+        """
+        Processing data for this scanner is unlike other scanners because, for
+        this scanner we need to send logs of three different scan types of same
+        atomic scanner unlike other atomic scanners which have only one, and
+        hence treated as default, scan type
+        """
+        data = {}
+        data["scanner_name"] = self.scanner_name
+        data["msg"] = "Results for miscellaneous package manager updates"
+        data["logs"] = logs
+
+        return data
+
 
 bs = beanstalkc.Connection(host=BEANSTALKD_HOST)
 bs.watch("start_scan")
