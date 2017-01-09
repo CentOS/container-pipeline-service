@@ -94,7 +94,9 @@ def start_build(job_details):
         notify_email = job_details['notify_email']
         # This will be a mounted directory
         build_logs_file = os.path.join(
-                job_details["temp_logs_directory"], "build_logs.log")
+                job_details["logs_dir"],
+                "build_logs.log"
+                )
 
         debug_log("Login to OpenShift server")
         command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
@@ -144,7 +146,7 @@ def start_build(job_details):
             logs = "Could not retrieve build logs"
         else:
             logger.log(level=logging.INFO,
-                       msg="Writing build logs to")
+                       msg="Writing build logs to NFS share..")
             write_logs(logs, build_logs_file)
 
         is_complete = run_command(status_command).find('Complete')
