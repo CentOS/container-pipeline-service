@@ -17,9 +17,10 @@
     builders:
         - shell: |
             export DOCKERFILE_DIR=`pwd`
+            TEST_TAG=`date | md5sum | base64 | head -c 14`
             cd /opt/cccp-service/client/
-            /bin/bash lint-dockerfile.sh {appid} {rel_path} {target_file} {notify_email} {jobid}
-            ./build_project.sh {appid} {jobid} {git_url} {git_branch} {rel_path} {target_file} {notify_email} {desired_tag} {depends_on}
+            /bin/bash lint-dockerfile.sh {appid} {rel_path} {target_file} {notify_email} {jobid} ${TEST_TAG}
+            ./build_project.sh {appid} {jobid} {git_url} {git_branch} {rel_path} {target_file} {notify_email} {desired_tag} {depends_on} ${TEST_TAG}
 
 - job-group:
     name: cccp-rundotsh-job

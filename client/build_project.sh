@@ -30,7 +30,7 @@ TARGET_FILE=$6
 NOTIFY_EMAIL=$7
 DESIRED_TAG=$8
 DEPENDS_ON=$9
-TEST_TAG=`date | md5sum | base64 | head -c 14`
+TEST_TAG=$10
 NFS_SHARE="/srv/logs"
 
 [ "${APPID}" == "" ] || [ "${APPID}" == "-h" ] || [ "${APPID}" == "--help" ] && usage
