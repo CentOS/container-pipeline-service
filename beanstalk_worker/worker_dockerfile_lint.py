@@ -6,6 +6,7 @@ import logging
 import os
 import subprocess
 import sys
+import constants
 
 logger = logging.getLogger("cccp-linter")
 logger.setLevel(logging.DEBUG)
@@ -21,7 +22,9 @@ logger.addHandler(ch)
 
 def write_dockerfile(dockerfile):
     if os.path.isdir("/tmp/scan"):
-        logger.log(level=logging.INFO, msg="/tmp/scan directory already exists")
+        logger.log(
+            level=logging.INFO,
+            msg="/tmp/scan directory already exists")
     elif os.path.isfile("/tmp/scan"):
         os.remove("/tmp/scan")
         os.makedirs("/tmp/scan")
@@ -30,6 +33,37 @@ def write_dockerfile(dockerfile):
 
     with open("/tmp/scan/Dockerfile", "w") as f:
         f.write(dockerfile)
+
+
+def export_linter_logs(logs_dir, data):
+    """
+    Export linter logs in given directory
+    """
+    logs_file_path = os.path.join(
+            logs_dir,
+            constants.LINTER_RESULTFILE
+            )
+    logger.log(
+            level=logging.INFO,
+            msg="Linter log file: %s" % logs_file_path
+            )
+    try:
+        fin = open(logs_file_path, "w")
+    except IOError as e:
+        logger.log(
+            level=logging.CRITICAL,
+            msg="Failed to write linter logs on NFS share.")
+        logger.log(
+            level=logging.CRITICAL,
+            msg=str(e))
+    else:
+        fin.write(data)
+        logger.log(
+            level=logging.INFO,
+            msg="Wrote linter logs to log file: %s" % logs_file_path
+            )
+    finally:
+        return logs_file_path
 
 
 def lint_job_data(job_data):
@@ -64,6 +98,10 @@ def lint_job_data(job_data):
             "job_name": job_data.get("job_name"),
             "msg": None
         }
+
+        logs_file_path = export_linter_logs(job_data["logs_dir"], out)
+        # TODO: replace the absolute path with logs URL on build.registry.centos.org
+        out += "\n\nHosted linter results : %s\n" % logs_file_path
 
     else:
         logger.log(level=logging.ERROR, msg="Dockerfile Lint check failed")

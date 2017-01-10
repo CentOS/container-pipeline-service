@@ -15,3 +15,5 @@ SCANNERS_RESULTFILE = {
         "registry.centos.org/pipeline-images/scanner-rpm-verify": [
             "RPMVerify_scanner_results.json"]
 }
+
+LINTER_RESULTFILE = "linter_results.log"

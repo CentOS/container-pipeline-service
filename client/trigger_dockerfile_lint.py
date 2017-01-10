@@ -14,6 +14,7 @@ if __name__ == "__main__":
     filename = sys.argv[3]
     notify_email = sys.argv[4]
     job_name = sys.argv[5]
+    logs_dir = sys.argv[6]
 
     # having '/' in a value used in os.path.join generates unexpected paths
     if git_path.startswith("/"):
@@ -49,6 +50,8 @@ if __name__ == "__main__":
         lint_job_data["job_name"] = job_name
         lint_job_data["dockerfile"] = dockerfile
         lint_job_data["notify_email"] = notify_email
+        lint_job_data["logs_dir"] = logs_dir
         lint_job_data["action"] = "start_linter"
+
 
         bs.put(json.dumps(lint_job_data))
