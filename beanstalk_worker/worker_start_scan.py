@@ -23,7 +23,8 @@ logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler(sys.stdout)
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+formatter = logging.Formatter(
+    '[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s','%m-%d %H:%M:%S'
 )
 ch.setFormatter(formatter)
 logger.addHandler(ch)
@@ -108,8 +109,11 @@ class ScannerRunner(object):
         """
         logs_file_path = os.path.join(
                 self.job_info["logs_dir"],
-                self.job_info["test_tag"],
                 constants.SCANNERS_RESULTFILE[scanner])
+        logger.log(
+                level=logging.INFO,
+                msg="Scanner=%s result log file:%s" % (scanner, logs_file_path)
+                )
         try:
             fin = open(logs_file_path, "w")
         except IOError as e:
@@ -120,7 +124,11 @@ class ScannerRunner(object):
                 level=logging.CRITICAL,
                 msg=str(e))
         else:
-            json.dump(data, fin)
+            json.dump(data, fin, indent=4, sort_keys=True)
+            logger.log(
+                level=logging.INFO,
+                msg="Wrote the scanner logs to log file: %s" % logs_file_path
+                )
         finally:
             return logs_file_path
 
