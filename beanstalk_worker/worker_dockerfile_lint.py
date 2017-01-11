@@ -7,6 +7,8 @@ import os
 import subprocess
 import sys
 
+from constants import LINTER_IMAGE
+
 logger = logging.getLogger("cccp-linter")
 logger.setLevel(logging.DEBUG)
 
@@ -44,12 +46,14 @@ def lint_job_data(job_data):
 
     logger.log(level=logging.INFO, msg="Running Dockerfile Lint check")
     out, err = subprocess.Popen(
-        ["docker",
-         "run",
-         "--rm",
-         "-v",
-         "/tmp/scan:/root/scan:Z",
-         "registry.centos.org/pipeline-images/dockerfile-lint"],
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            "/tmp/scan:/root/scan:Z",
+            LINTER_IMAGE
+        ],
         stdout=subprocess.PIPE
     ).communicate()
 

@@ -6,3 +6,5 @@ SCANNERS_OUTPUT = {
         "registry.centos.org/pipeline-images/scanner-rpm-verify": [
             "RPMVerify.json"]
 }
+
+LINTER_IMAGE = "registry.centos.org/pipeline-images/dockerfile-lint"
