@@ -30,8 +30,8 @@ TARGET_FILE=$6
 NOTIFY_EMAIL=$7
 DESIRED_TAG=$8
 DEPENDS_ON=$9
-TEST_TAG=$10
-NFS_SHARE="/srv/logs"
+TEST_TAG=${10}
+LOGS_DIR="/srv/logs/$TEST_TAG"
 
 [ "${APPID}" == "" ] || [ "${APPID}" == "-h" ] || [ "${APPID}" == "--help" ] && usage
 [ "${JOBID}" == "" ] && usage
@@ -47,10 +47,6 @@ NFS_SHARE="/srv/logs"
 CWD=`dirname $0`
 PN="${APPID}-${JOBID}-${DESIRED_TAG}"
 NS="--namespace ${PN}"
-
-LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
-echo "==> Creating logs directory ${LOGS_DIR}"
-mkdir -p ${LOGS_DIR}
 
 echo "==> login to Openshift server"
 OPENSHIFT_SERVER_IP=`ping OPENSHIFT_SERVER_HOST -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
