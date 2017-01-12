@@ -88,7 +88,12 @@ def lint_job_data(job_data):
     ).communicate()
 
     if err is None:
-        logger.log(level=logging.INFO, msg="Dockerfile Lint check done")
+        logger.log(
+                level=logging.INFO,
+                msg="Dockerfile Lint check done. Exporting logs.")
+        logs_file_path = export_linter_logs(job_data["logs_dir"], out)
+        # TODO: replace the absolute path with logs URL on build.registry.centos.org
+        out += "\n\nHosted linter results : %s\n" % logs_file_path
         response = {
             "logs": out,
             "linter_results": True,
@@ -99,9 +104,6 @@ def lint_job_data(job_data):
             "msg": None
         }
 
-        logs_file_path = export_linter_logs(job_data["logs_dir"], out)
-        # TODO: replace the absolute path with logs URL on build.registry.centos.org
-        out += "\n\nHosted linter results : %s\n" % logs_file_path
 
     else:
         logger.log(level=logging.ERROR, msg="Dockerfile Lint check failed")
