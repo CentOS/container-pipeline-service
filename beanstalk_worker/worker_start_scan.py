@@ -108,7 +108,7 @@ class ScannerRunner(object):
         """
         logs_file_path = os.path.join(
                 self.job_info["logs_dir"],
-                constants.SCANNERS_RESULTFILE[scanner])
+                constants.SCANNERS_RESULTFILE[scanner][0])
         logger.log(
                 level=logging.INFO,
                 msg="Scanner=%s result log file:%s" % (scanner, logs_file_path)
@@ -242,7 +242,7 @@ class ScannerRPMVerify(object):
                     level=logging.FATAL,
                     msg="No scan results found at %s" % output_json_file)
                 # FIXME: handle what happens in this case
-                return False, json_data
+                return False, self.process_output(json_data)
         else:
             # TODO: do not exit here if one of the scanner failed to run,
             # others might run
@@ -250,7 +250,7 @@ class ScannerRPMVerify(object):
                 level=logging.FATAL,
                 msg="Error running the scanner %s. Error: %s" % (self.scanner_name, err)
             )
-            return False, json_data
+            return False, self.process_output(json_data)
 
         return True, self.process_output(json_data)
 
@@ -516,6 +516,9 @@ while True:
                 level=logging.CRITICAL,
                 msg="Failed to run scanners on image under test, moving on!"
             )
+    except Exception as e:
+        logger.log(level=logging.FATAL, msg=str(e))
+    finally:
         bs.use("master_tube")
         job_id = bs.put(json.dumps(scanners_data))
 
@@ -524,5 +527,3 @@ while True:
             msg="Job moved from scan phase, id: %s" % job_id
             )
         job.delete()
-    except Exception as e:
-        logger.log(level=logging.FATAL, msg=str(e))
