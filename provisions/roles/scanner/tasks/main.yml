@@ -27,6 +27,11 @@
     regexp="^#*\s*ADD_REGISTRY=.*"
     replace='ADD_REGISTRY="--add-registry {{ public_registry }} --insecure-registry {{ public_registry }}:5000"'
 
+- name: Set SELinux to permissive
+  selinux:
+      policy: targeted
+      state: permissive
+
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
@@ -50,6 +55,16 @@
       command: sh /install.sh
       state: started
 
+- name: Install misc-package-updates container
+  docker_container:
+      image: registry.centos.org/pipeline-images/misc-package-updates:latest
+      name: misc-package-updates
+      privileged: true
+      volumes:
+        - /etc/atomic.d/:/host/etc/atomic.d/
+      command: sh /install.sh
+      state: started
+
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/beanstalk_worker state=directory
 
@@ -61,6 +76,8 @@
   with_items:
     - ../beanstalk_worker/beanstalkc.py
     - ../beanstalk_worker/worker_start_scan.py
+    - ../beanstalk_worker/constants.py
+    - ../beanstalk_worker/scanner.py
   when: not vagrant
 
 - name: Get service files for workers
