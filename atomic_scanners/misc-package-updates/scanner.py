@@ -29,7 +29,7 @@ client = docker.Client(base_url="unix:///var/run/docker.sock")
 cli_arg = sys.argv[1]
 
 # image UUID
-UUID = client.inspect_image(IMAGE_NAME)["Id"]
+UUID = client.inspect_image(IMAGE_NAME)["Id"].split(':')[-1]
 
 
 def binary_does_not_exist(response):
