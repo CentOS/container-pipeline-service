@@ -4,6 +4,7 @@ from yaml import load
 
 from nuts_and_bolts import execute_command
 from summary import SummaryCollector
+import re
 
 
 class Validator(object):
@@ -183,6 +184,16 @@ class IndexFormatValidator(IndexValidator):
             if "depends-on" not in entry:
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing depends-on")
+            elif entry["depends-on"]:
+                depends_on = entry["depends-on"]
+                if not isinstance(depends_on, list):
+                    depends_on = [depends_on]
+                matcher = re.compile("^[0-9a-zA-Z_-]+[/]{1}[0-9a-zA-Z_-]+[:]{1}[0-9a-zA-Z_-]+")
+                for item in depends_on:
+                    if not matcher.search(str(item)):
+                        self._mark_entry_invalid(entry)
+                        self._summary_collector.add_error("Depends on entry pattern mismatch found {0} must be"
+                                                          " <string>/<string>:<string>, ".format(str(item)))
 
         return self._success, self._status_list
 
