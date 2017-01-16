@@ -127,3 +127,10 @@
 - name: Enable and start Dockerfile linter worker
   service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
   when: not vagrant
+
+- name: Cron job to update dockerfile-lint image
+  cron:
+      name: Cron job to update dockerfile-lint image
+      special_time: daily
+      job: "docker pull registry.centos.org/pipeline-images/dockerfile-lint"
+      state: present
