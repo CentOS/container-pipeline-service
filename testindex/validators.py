@@ -4,6 +4,7 @@ from yaml import load
 
 from nuts_and_bolts import execute_command
 from summary import SummaryCollector
+import re
 
 
 class Validator(object):
@@ -127,8 +128,7 @@ class IndexFormatValidator(IndexValidator):
 
             else:
                 if entry["app-id"] != self._file_name.split(".")[0]:
-                    self._mark_entry_invalid(entry)
-                    self._summary_collector.add_error("app-id should be same as first part of the file name")
+                        self._summary_collector.add_warning("app-id should be same as first part of the file name")
 
                 if "_" in entry["app-id"] or "/" in entry["app-id"] or "." in entry["app-id"]:
                     self._mark_entry_invalid(entry)
@@ -184,6 +184,17 @@ class IndexFormatValidator(IndexValidator):
             if "depends-on" not in entry:
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing depends-on")
+            elif entry["depends-on"]:
+                depends_on = entry["depends-on"]
+                if not isinstance(depends_on, list):
+                    depends_on = [depends_on]
+                matcher = re.compile("^(([0-9a-zA-Z_-]+[.]{1})*([0-9a-zA-Z_-]+){1}[/]{1})?[0-9a-zA-Z_-]+[/]{1}"
+                                     "[0-9a-zA-Z_-]+[:]{1}[0-9a-zA-Z_-]+$")
+                for item in depends_on:
+                    if not matcher.search(str(item)):
+                        self._mark_entry_invalid(entry)
+                        self._summary_collector.add_error("Depends on entry pattern mismatch found {0} must be"
+                                                          " <string>/<string>:<string>, ".format(str(item)))
 
         return self._success, self._status_list
 
@@ -336,7 +347,7 @@ class IndexProjectsValidator(IndexValidator):
                 if value is None:
                     self._summary_collector.add_warning("Optional test-skip is set None, which means its value will be"
                                                         " ignored")
-            except Exception:
+            except Exception as ex:
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("test-skip should either be True or False as it is a flag")
 
