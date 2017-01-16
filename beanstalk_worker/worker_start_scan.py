@@ -169,10 +169,16 @@ class ScannerRunner(object):
 
             # TODO: what to do if the logs writing failed, check status here
             logs_filepath = self.export_scanner_logs(scanner, data_temp)
+
+            logs_URL = logs.filepath.replace(
+                    constants.LOGS_DIR,
+                    constants.LOGS_URL_BASE
+                    )
+
             # keep the message
             scanners_data["msg"][data_temp["scanner_name"]] = data_temp["msg"]
             # pass the logs filepath via beanstalk tube
-            scanners_data["logs"][data_temp["scanner_name"]] = logs_filepath
+            scanners_data["logs"][data_temp["scanner_name"]] = logs_URL
 
         scanners_data["action"] = "notify_user"
         # This field is needed for email worker to hint that this is scan

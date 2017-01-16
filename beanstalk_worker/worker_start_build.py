@@ -66,7 +66,7 @@ def notify_build_failure(namespace, notify_email, log_command):
     bs.put(json.dumps(msg_details))
 
 
-def write_logs(logs, destination):
+def export_build_logs(logs, destination):
     """"
     Write logs in given destination
     """
@@ -147,7 +147,7 @@ def start_build(job_details):
         else:
             logger.log(level=logging.INFO,
                        msg="Writing build logs to NFS share..")
-            write_logs(logs, build_logs_file)
+            export_build_logs(logs, build_logs_file)
 
         is_complete = run_command(status_command).find('Complete')
 
