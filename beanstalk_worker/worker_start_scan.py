@@ -170,7 +170,7 @@ class ScannerRunner(object):
             # TODO: what to do if the logs writing failed, check status here
             logs_filepath = self.export_scanner_logs(scanner, data_temp)
 
-            logs_URL = logs.filepath.replace(
+            logs_URL = logs_filepath.replace(
                     constants.LOGS_DIR,
                     constants.LOGS_URL_BASE
                     )
