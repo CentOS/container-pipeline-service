@@ -22,6 +22,8 @@ def send_mail(notify_email, subject, msg, logs):
              "/tmp/build_log.log"])
     else:
         success_msg_command = "/mail_service/send_success_mail.sh"
+        # escape the \ with \\ for rendering in email
+        msg = msg.replace("\n", "\\n")
         subprocess.call([success_msg_command, subject, notify_email, msg])
 
 
@@ -66,9 +68,6 @@ Following are the atomic scanners ran on built image, displaying the result mess
     for scanner in job_info["logs"]:
         text += job_info["logs"][scanner]
         text += "\n\n"
-
-    # escape the \ with \\ for rendering in email
-    text = text.replace("\n", "\\n")
 
     print "==> Sending scan results email to user: %s" % notify_email
     # last parameter (logs) has to None for the sake of
@@ -128,8 +127,6 @@ Dockerfile linter results for project=%s.
 
         text += "Detailed linter logs:\n\n"
         text += job_info["logs"] + "\n\n"
-
-        text = text.replace("\n", "\\n")
 
         print "==> Sending linter results email to user: %s" % notify_email
         # last parameter (logs) has to None for the sake of
