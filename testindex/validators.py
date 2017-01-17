@@ -189,7 +189,7 @@ class IndexFormatValidator(IndexValidator):
                 if not isinstance(depends_on, list):
                     depends_on = [depends_on]
                 matcher = re.compile("^(([0-9a-zA-Z_-]+[.]{1})*([0-9a-zA-Z_-]+){1}[/]{1})?[0-9a-zA-Z_-]+[/]{1}"
-                                     "[0-9a-zA-Z_-]+[:]{1}[0-9a-zA-Z_-]+$")
+                                     "[0-9a-zA-Z_-]+[:]{1}([0-9a-zA-Z_-]+\.?)+$")
                 for item in depends_on:
                     if not matcher.search(str(item)):
                         self._mark_entry_invalid(entry)
