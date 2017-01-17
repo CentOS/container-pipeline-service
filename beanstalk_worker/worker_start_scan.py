@@ -522,12 +522,14 @@ while True:
                 level=logging.CRITICAL,
                 msg="Failed to run scanners on image under test, moving on!"
             )
-    except Exception as e:
-        logger.log(level=logging.FATAL, msg=str(e))
-    finally:
         bs.use("master_tube")
         job_id = bs.put(json.dumps(scanners_data))
-
+    except Exception as e:
+        logger.log(level=logging.FATAL, msg=str(e))
+        job_info["action"] = "start_delivery"
+        bs.use("master_tube")
+        job_id = bs.put(json.dumps(job_info))
+    finally:
         logger.log(
             level=logging.INFO,
             msg="Job moved from scan phase, id: %s" % job_id
