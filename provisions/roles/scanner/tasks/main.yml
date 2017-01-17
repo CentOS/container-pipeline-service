@@ -3,6 +3,11 @@
   yum: name=atomic state=present
   sudo: yes
 
+# Fix for issue:  https://github.com/projectatomic/atomic/issues/804
+- name: Install python-dateutil
+  yum: name=python-dateutil state=present
+  sudo: yes
+
 # Patch from https://github.com/projectatomic/atomic/commit/a261270e727353899675a3fde8f9108376bb27cf
 - name: Patch atomic scanner to run on non tty input
   replace: >
