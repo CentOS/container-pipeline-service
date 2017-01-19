@@ -24,7 +24,8 @@ def write_dockerfile(dockerfile):
     if os.path.isdir("/tmp/scan"):
         logger.log(
             level=logging.INFO,
-            msg="/tmp/scan directory already exists")
+            msg="/tmp/scan directory already exists"
+        )
     elif os.path.isfile("/tmp/scan"):
         os.remove("/tmp/scan")
         os.makedirs("/tmp/scan")
@@ -52,7 +53,8 @@ def export_linter_logs(logs_dir, data):
     except IOError as e:
         logger.log(
             level=logging.CRITICAL,
-            msg="Failed to write linter logs on NFS share.")
+            msg="Failed to write linter logs on NFS share."
+        )
         logger.log(
             level=logging.CRITICAL,
             msg=str(e))
@@ -89,8 +91,9 @@ def lint_job_data(job_data):
 
     if err is None:
         logger.log(
-                level=logging.INFO,
-                msg="Dockerfile Lint check done. Exporting logs.")
+            level=logging.INFO,
+            msg="Dockerfile Lint check done. Exporting logs."
+        )
         logs_file_path = export_linter_logs(job_data["logs_dir"], out)
         logs_URL = logs_file_path.replace(
                 constants.LOGS_DIR,
@@ -106,7 +109,6 @@ def lint_job_data(job_data):
             "job_name": job_data.get("job_name"),
             "msg": None
         }
-
 
     else:
         logger.log(level=logging.ERROR, msg="Dockerfile Lint check failed")

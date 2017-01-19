@@ -16,7 +16,8 @@ msg_details = {}
 msg_details['action'] = "notify_user"
 msg_details['subject'] = "SUCCESS: Your container build request is complete"
 msg_details['msg'] = """
-Build is successful. You can pull the image (%s)"
+Build is successful. You can pull the image (%s)
+
 Build logs: %s
 """ % (output_image, BUILD_LOGS_URL)
 msg_details['notify_email'] = notify_email
