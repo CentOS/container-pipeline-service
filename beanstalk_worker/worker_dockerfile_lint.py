@@ -92,7 +92,6 @@ def lint_job_data(job_data):
                 level=logging.INFO,
                 msg="Dockerfile Lint check done. Exporting logs.")
         logs_file_path = export_linter_logs(job_data["logs_dir"], out)
-        # TODO: replace the absolute path with logs URL on build.registry.centos.org
         logs_URL = logs_file_path.replace(
                 constants.LOGS_DIR,
                 constants.LOGS_URL_BASE

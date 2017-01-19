@@ -9,7 +9,7 @@ beanstalk_host = sys.argv[1]
 output_image = sys.argv[2]
 notify_email = sys.argv[3]
 TEST_TAG = sys.argv[4]
-BUILD_LOGS_URL = "https://build.registry.centos.org/" + \
+BUILD_LOGS_URL = "https://registry.centos.org/pipeline-logs/" + \
         TEST_TAG + "/build_logs.log"
 
 msg_details = {}
