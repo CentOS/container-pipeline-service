@@ -102,7 +102,7 @@
       image: build-worker
       restart_policy: always
       volumes:
-        /srv/logs:/srv/logs:rw
+        /srv/pipeline-logs:/srv/pipeline-logs:rw
 
 - name: Start delivery worker
   docker:

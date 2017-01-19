@@ -18,7 +18,7 @@
         - shell: |
             export DOCKERFILE_DIR=`pwd`
             TEST_TAG=`date | md5sum | base64 | head -c 14`
-            LOGS_DIR=/srv/logs/$TEST_TAG
+            LOGS_DIR=/srv/pipeline-logs/$TEST_TAG
             echo "Creating logs directory $LOGS_DIR"
             mkdir $LOGS_DIR
             cd /opt/cccp-service/client/

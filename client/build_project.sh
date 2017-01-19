@@ -31,7 +31,7 @@ NOTIFY_EMAIL=$7
 DESIRED_TAG=$8
 DEPENDS_ON=$9
 TEST_TAG=${10}
-LOGS_DIR="/srv/logs/$TEST_TAG"
+LOGS_DIR="/srv/pipeline-logs/$TEST_TAG"
 
 [ "${APPID}" == "" ] || [ "${APPID}" == "-h" ] || [ "${APPID}" == "--help" ] && usage
 [ "${JOBID}" == "" ] && usage

@@ -18,5 +18,5 @@ SCANNERS_RESULTFILE = {
 
 LINTER_RESULTFILE = "linter_results.log"
 
-LOGS_URL_BASE= "https://build.registry.centos.org/"
-LOGS_DIR = "/srv/logs/"
+LOGS_URL_BASE= "https://registry.centos.org/pipeline-logs/"
+LOGS_DIR = "/srv/pipeline-logs/"

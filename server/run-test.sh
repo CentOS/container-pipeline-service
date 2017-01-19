@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-NFS_SHARE="/srv/logs"
+NFS_SHARE="/srv/pipeline-logs"
 LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
 
 function _() {
