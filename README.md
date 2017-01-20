@@ -29,7 +29,7 @@ We want to provide a single input interface to the system (pipeline index) and d
 5. Failure UI
     * Probably part of Input Interface, presenting logs from failed builds
 6. Scan
-    * Scan uses atomic scan technology, using which atomic scanners are used to scan the images for various checks such as is the image upto date and what packages(from rpm packages, to npm packages and so on) are setup in the container and so on.
+    * Scan uses [atomic scan] (https://github.com/projectatomic/atomic) tooling, multiple atomic scanners are run on built images and different checks are done, checking if image has outdated RPM, npm, pip packages and if image has tampered files present, etc.
 
 ## Setting a development environment
 
