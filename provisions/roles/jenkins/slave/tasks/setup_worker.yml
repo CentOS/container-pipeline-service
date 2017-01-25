@@ -1,7 +1,4 @@
 ---
-- name: Enable epel repo
-  yum: name=epel-release state=installed
-
 - name: Install docker py
   yum: name={{item}} state=installed
   with_items:

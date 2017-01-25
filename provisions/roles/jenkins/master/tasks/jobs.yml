@@ -1,12 +1,22 @@
 ---
 - name: Ensure EPEL is installed
   yum: name=epel-release state=present
+  when: enable_epel
 
 - name: Ensure JJB is installed
   yum: name={{ item }} state=present
   with_items:
     - python-setuptools
-    - python2-jenkins-job-builder
+    - python-virtualenv
+
+- name: Create virtualenv
+  shell: "virtualenv {{ ansible_env.HOME }}/venv"
+
+- name: Install jenkins-job-builder in venv
+  shell: "{{ ansible_env.HOME }}/venv/bin/pip install jenkins-job-builder"
+
+- name: Link jjb binary to /usr/bin
+  file: src="{{ ansible_env.HOME }}/venv/bin/jenkins-job" dest=/usr/bin/jenkins-job state=link
 
 - name: Ensure JJB conf dir exists
   file: dest=/etc/jenkins_jobs state=directory
@@ -18,7 +28,7 @@
   template: src=index.yml.j2  dest={{ ansible_env.HOME }}/index.yml
 
 - name: Push job to jenkins
-  shell: jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/index.yml
+  shell: "jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/index.yml"
 
 - name: Ensure /opt/cccp-service/jenkinsbuilder dir exists on Jenkins master
   file: dest=/opt/cccp-service/jenkinsbuilder state=directory

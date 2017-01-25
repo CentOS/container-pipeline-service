@@ -1,6 +1,7 @@
 ---
 - name: Enable epel repo
   yum: name=epel-release state=installed
+  when: enable_epel
 
 - name: Install docker
   yum: name={{item}} state=installed

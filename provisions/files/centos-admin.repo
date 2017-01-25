@@ -1,0 +1,6 @@
+[centos-admin]
+name=CentOS Infra Admin repository
+baseurl=http://admin-repo.centos.org/admin/$releasever/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-Infra

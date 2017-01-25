@@ -95,6 +95,7 @@ test=true
 cccp_source_repo={repo_url}
 cccp_source_branch={repo_branch}
 jenkins_public_key_file = jenkins.key.pub
+enable_epel = false
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key

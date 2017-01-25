@@ -2,6 +2,7 @@
   - name: Enable epel repo
     sudo: yes
     yum: name=epel-release state=present
+    when: enable_epel
 
   - name: Install nginx
     sudo: yes
