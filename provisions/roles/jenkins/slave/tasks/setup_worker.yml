@@ -1,7 +1,14 @@
 ---
 - name: Enable epel repo
-  yum: name=epel-release state=installed
-
+  copy:
+    src: ../../../../templates/epel.repo
+    dest: /etc/yum.repos.d/epel.repo
+    mode: 0644
+  copy:
+    src: ../../../../epel-gpg.key
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+    mode: 0644
+    
 - name: Install docker py
   yum: name={{item}} state=installed
   with_items:
