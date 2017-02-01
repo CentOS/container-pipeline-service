@@ -115,6 +115,7 @@ class ScannerRunner(object):
                 )
         try:
             fin = open(logs_file_path, "w")
+            json.dump(data, fin, indent=4, sort_keys=True)
         except IOError as e:
             logger.log(
                 level=logging.CRITICAL,
@@ -123,7 +124,6 @@ class ScannerRunner(object):
                 level=logging.CRITICAL,
                 msg=str(e))
         else:
-            json.dump(data, fin, indent=4, sort_keys=True)
             logger.log(
                 level=logging.INFO,
                 msg="Wrote the scanner logs to log file: %s" % logs_file_path

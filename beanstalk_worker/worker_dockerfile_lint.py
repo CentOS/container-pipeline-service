@@ -50,6 +50,7 @@ def export_linter_logs(logs_dir, data):
             )
     try:
         fin = open(logs_file_path, "w")
+        fin.write(data)
     except IOError as e:
         logger.log(
             level=logging.CRITICAL,
@@ -59,7 +60,6 @@ def export_linter_logs(logs_dir, data):
             level=logging.CRITICAL,
             msg=str(e))
     else:
-        fin.write(data)
         logger.log(
             level=logging.INFO,
             msg="Wrote linter logs to log file: %s" % logs_file_path
