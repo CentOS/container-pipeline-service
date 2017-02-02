@@ -13,6 +13,7 @@
   with_items:
    - java-1.7.0-openjdk
    - git
+   - PyYAML
   tags:
   - jenkins
   - jenkins/master
