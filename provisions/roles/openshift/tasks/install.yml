@@ -3,7 +3,7 @@
   yum: name=epel-release state=installed
   when: enable_epel
 
-- name: Install docker
+- name: Install packages on openshift node
   yum: name={{item}} state=installed
   with_items:
     - docker

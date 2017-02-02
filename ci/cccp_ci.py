@@ -88,14 +88,14 @@ scanner_worker
 
 [all:vars]
 public_registry= {jenkins_slave_host}
-copy_ssl_certs=true
+copy_ssl_certs=True
 openshift_startup_delay=150
 beanstalk_server={openshift_host}
-test=true
+test=True
 cccp_source_repo={repo_url}
 cccp_source_branch={repo_branch}
 jenkins_public_key_file = jenkins.key.pub
-enable_epel = false
+enable_epel=False
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key
