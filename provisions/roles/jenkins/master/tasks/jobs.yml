@@ -16,7 +16,7 @@
   shell: "{{ ansible_env.HOME }}/venv/bin/pip install jenkins-job-builder"
 
 - name: Link jjb binary to /usr/bin
-  file: src="{{ ansible_env.HOME }}/venv/bin/jenkins-job" dest=/usr/bin/jenkins-job state=link
+  file: src="{{ ansible_env.HOME }}/venv/bin/jenkins-jobs" dest=/usr/bin/jenkins-jobs state=link
 
 - name: Ensure JJB conf dir exists
   file: dest=/etc/jenkins_jobs state=directory
