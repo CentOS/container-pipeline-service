@@ -120,11 +120,12 @@ def setup_controller(controller):
     )
 
     run_cmd(
-        "yum install -y git epel-release && "
-        "yum install -y python-pip && "
+        "yum install -y git && "
+        "yum install -y python-virtualenv && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
-        "yum install -y python2-jenkins-job-builder && "
-        "pip install ansible==2.1.1",
+        "virtualenv venv && "
+        "$HOME/venv/bin/pip install ansible==2.1.1 && "
+        "ln -s $HOME/venv/bin/ansible-playbook /usr/bin/ansible-playbook",
         host=controller)
 
     run_cmd(
