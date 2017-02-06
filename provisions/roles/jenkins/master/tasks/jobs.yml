@@ -10,13 +10,13 @@
     - python-virtualenv
 
 - name: Create virtualenv
-  shell: "virtualenv {{ ansible_env.HOME }}/venv"
+  shell: "virtualenv /opt/cccp-service/venv"
 
 - name: Install jenkins-job-builder in venv
-  shell: "{{ ansible_env.HOME }}/venv/bin/pip install jenkins-job-builder"
+  shell: "/opt/cccp-service/venv/bin/pip install jenkins-job-builder"
 
 - name: Link jjb binary to /usr/bin
-  file: src="{{ ansible_env.HOME }}/venv/bin/jenkins-jobs" dest=/usr/bin/jenkins-jobs state=link
+  file: src="/opt/cccp-service/venv/bin/jenkins-jobs" dest=/usr/bin/jenkins-jobs state=link mode=a+x
 
 - name: Ensure JJB conf dir exists
   file: dest=/etc/jenkins_jobs state=directory
