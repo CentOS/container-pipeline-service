@@ -108,10 +108,6 @@ def lint_job_data(job_data):
             "msg": err
         }
 
-    bs.use("master_tube")
-    jid = bs.put(json.dumps(response))
-    logger.info("Put job on 'master_tube' tube with id: %d" % jid)
-
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_linter")
