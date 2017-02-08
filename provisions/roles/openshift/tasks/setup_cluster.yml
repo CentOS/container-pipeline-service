@@ -1,0 +1,4 @@
+---
+- name: Bring up openshift cluster
+  shell: oc cluster up
+  ignore_errors: True
