@@ -1,8 +1,9 @@
 # CentOS Community Container Pipeline
 
-[![Build Status](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/badge/icon)](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/)
+| Last PR Build | [![Build Status](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/badge/icon)](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/) |
+|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
-CentOS Community Container Pipeline(cccp) is a process, to provide any opensource developer, a platform for containerising their application(s). This process builds the application(s) from any arbitary git repository/repositories, package the built application along with its runtime in a container image, tests the image with help of test script and delivers to a publicly available registry. A user can anytime pull the tested image from that registry.
+CentOS Community Container Pipeline(cccp) is a service, to provide any Open Source developer(s), a platform for containerising their application(s). This process builds the application(s) from any arbitary git repository/repositories, package the built application along with its runtime in a container image, tests the image with help of test script and delivers to a publicly available registry. A user can anytime pull the tested image from that registry.
 
 ## User Story
 
@@ -16,7 +17,7 @@ We want to provide a single input interface to the system (pipeline index) and d
 
 1. Input Interface
     * A web UI/cli which allows user to provide at least name of the project and repo URL.
-    * This project tracks [cccp-index.yml](https://github.com/CentOS/container-index/blob/master/index.yml) as input to the build system.
+    * This project tracks [Container Index](https://github.com/CentOS/container-index/blob/master/index.d) as input to the build system.
 2. OpenShift
     * **Build** - Can be Atomic Reactor, result: image tagged as :test pushed
     * **Test** - Can be a script connecting to Jenkins, result: image tagged as :rc pushed
@@ -27,6 +28,8 @@ We want to provide a single input interface to the system (pipeline index) and d
     * Pulp or a registry provided by OpenShift, deployed at https://registry.centos.org/
 5. Failure UI
     * Probably part of Input Interface, presenting logs from failed builds
+6. Scan
+    * Scan uses [atomic scan] (https://github.com/projectatomic/atomic) tooling, multiple atomic scanners are run on built images and different checks are done, checking if image has outdated RPM, npm, pip packages and if image has tampered files present, etc.
 
 ## Setting a development environment
 
