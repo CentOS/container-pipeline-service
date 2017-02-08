@@ -93,9 +93,10 @@ class Engine:
                 status_list.append(index_file)
                 with open(self._context.environment.generator_dir + "/" + index_file, "w+") as the_file:
                     dump(status_sublist1, the_file)
-
         if self._context.environment.verbose:
             self._context.summary.print_summary()
+
+        self._context.summary.log_summary()
 
         self._context.environment.teardown(self._cleanup)
         status = StatusIterator(self._context.environment.generator_dir)
