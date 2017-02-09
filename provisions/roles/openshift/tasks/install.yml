@@ -1,14 +1,19 @@
 ---
 - name: Enable epel repo
   yum: name=epel-release state=installed
+  when: enable_epel
 
-- name: Install docker
+- name: Install packages on openshift node
   yum: name={{item}} state=installed
   with_items:
     - docker
     - git
     - python-docker-py
     - beanstalkd
+    - centos-release-openshift-origin.noarch
+
+- name: Install openshift origin client packages
+  yum: name=origin-clients state=installed
 
 - name: Start Docker service
   service: name=docker state=started enabled=yes

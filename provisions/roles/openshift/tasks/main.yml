@@ -3,6 +3,8 @@
 
 - include: config.yml
 
+- include: setup_cluster.yml
+
 - include: setup.yml
 
 - include: fetch.yml

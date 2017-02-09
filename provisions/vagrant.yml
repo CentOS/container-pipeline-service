@@ -5,6 +5,9 @@
     - name: Disable requiretty in sudoers
       lineinfile:  dest=/etc/sudoers state=absent regexp="^Defaults    requiretty.*"
       sudo: yes
+    - name: Enable centos admin repo when EPEL is disabled
+      copy: src=centos-admin.repo dest=/etc/yum.repos.d/centos-admin.repo
+      when: not enable_epel
   tags:
     - jenkins
     - openshift

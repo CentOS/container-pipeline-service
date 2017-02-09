@@ -1,7 +1,4 @@
 ---
-- name: Enable epel repo
-  yum: name=epel-release state=installed
-
 - name: Install docker py
   yum: name={{item}} state=installed
   with_items:
@@ -29,7 +26,6 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
-    - {src: /tmp/oc, dest: /opt/cccp-service/beanstalk_worker/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/beanstalk_worker/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/beanstalk_worker/node.kubeconfig}
 
@@ -75,6 +71,9 @@
       dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
       regexp="OPENSHIFT_SERVER_IP"
       replace='{{ openshift_server_ip.stdout }}'
+
+- name: Copy oc binary to worker build dir
+  shell: cp /usr/bin/oc /opt/cccp-service/beanstalk_worker
 
 - name: Build dispatcher-worker image
   shell: docker build -t dispatcher-worker -f ./Dockerfile.dispatcher_worker .
