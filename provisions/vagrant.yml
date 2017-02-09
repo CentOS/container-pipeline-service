@@ -51,3 +51,10 @@
   tags:
     - jenkins
     - jenkins/master
+
+- name: Setup NFS for CI
+  hosts: all
+  roles:
+    -  ci_nfs/tasks
+  tags:
+    - ci_nfs
