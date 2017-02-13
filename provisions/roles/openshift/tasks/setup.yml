@@ -17,7 +17,7 @@
 
 - name: Get cccp service code
   copy:
-    src: ../../../../
+    src: "{{ role_path }}/../../../"
     dest: "{{ ansible_env.HOME }}/cccp-service"
     mode: a+x
 
