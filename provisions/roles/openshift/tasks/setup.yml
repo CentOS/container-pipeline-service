@@ -16,10 +16,12 @@
   ignore_errors: yes
 
 - name: Get cccp service code
-  copy:
+  synchronize:
     src: "{{ role_path }}/../../../"
     dest: "{{ ansible_env.HOME }}/cccp-service"
-    mode: a+x
+    mode: push
+    rsync_opts:
+      - "{{ rsync_ssh_opts }}"
 
 - name: Build cccp build image
   shell: docker build -t cccp-build -f ./Dockerfile.build .
