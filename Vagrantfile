@@ -72,7 +72,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     master.vm.hostname = "cccp"
     master.vm.network :private_network, ip: "192.168.100.100"
     master.vm.network :forwarded_port, guest: 8443, host: 8443
-    config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
+    config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service; setenforce 0"
+    config.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
     master.vm.provision "ansible" do |ansible|
       ansible.limit = 'all'
       ansible.sudo = true
@@ -105,6 +106,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       if n == 1
         node.vm.synced_folder "./", "/home/vagrant/cccp-service", type: "rsync"
       end
+      node.vm.provision "shell", inline: "setenforce 0"
       # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
     end
   end
