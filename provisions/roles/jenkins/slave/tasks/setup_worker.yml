@@ -72,9 +72,6 @@
       regexp="OPENSHIFT_SERVER_IP"
       replace='{{ openshift_server_ip.stdout }}'
 
-- name: Copy oc binary to worker build dir
-  shell: cp /usr/bin/oc /opt/cccp-service/beanstalk_worker
-
 - name: Build dispatcher-worker image
   shell: docker build -t dispatcher-worker -f ./Dockerfile.dispatcher_worker .
   args:
