@@ -93,18 +93,21 @@
       name: dispatcher-worker
       state: started
       image: dispatcher-worker
+      restart_policy: always
 
 - name: Start build worker
   docker:
       name: build-worker
       state: started
       image: build-worker
+      restart_policy: always
 
 - name: Start delivery worker
   docker:
       name: delivery-worker
       state: started
       image: delivery-worker
+      restart_policy: always
 
 - name: Copy Dockerfile linter worker
   copy:
