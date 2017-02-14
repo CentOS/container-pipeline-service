@@ -25,3 +25,4 @@ vagrant=True
 jenkins_public_key_file=/tmp/cccp-jenkins.key.pub
 jenkins_private_key_file=/tmp/cccp-jenkins.key
 public_registry=192.168.100.200
+test=True
