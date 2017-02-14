@@ -1,4 +1,4 @@
 ---
 - name: Bring up openshift cluster
-  shell: oc cluster up --host-data-dir=/opt/openshift --use-existing-config
+  shell: oc cluster up
   ignore_errors: True
