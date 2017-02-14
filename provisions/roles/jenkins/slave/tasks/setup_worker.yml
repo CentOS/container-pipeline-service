@@ -119,6 +119,8 @@
       dest=/opt/cccp-service/beanstalk_worker/worker_dockerfile_lint.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
+  when: not vagrant
 
 - name: Enable and start Dockerfile linter worker
   service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
+  when: not vagrant
