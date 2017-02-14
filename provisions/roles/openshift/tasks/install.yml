@@ -6,10 +6,14 @@
 - name: Install packages on openshift node
   yum: name={{item}} state=installed
   with_items:
-    - docker
     - git
-    - python-docker-py
     - beanstalkd
+
+- name: Install latest docker and docker py packages
+  yum: name={{ item }} state=latest
+  with_items:
+      - docker
+      - python-docker-py
 
 - name: Start Docker service
   service: name=docker state=started enabled=yes

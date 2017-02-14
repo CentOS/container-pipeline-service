@@ -1,6 +1,6 @@
 ---
-- name: Install docker py
-  yum: name={{item}} state=installed
+- name: Install latest docker and docker py
+  yum: name={{item}} state=latest
   with_items:
     - docker
     - python-docker-py
