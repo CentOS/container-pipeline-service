@@ -10,10 +10,6 @@
     - git
     - python-docker-py
     - beanstalkd
-    - centos-release-openshift-origin.noarch
-
-- name: Install openshift origin client packages
-  yum: name=origin-clients state=installed
 
 - name: Start Docker service
   service: name=docker state=started enabled=yes

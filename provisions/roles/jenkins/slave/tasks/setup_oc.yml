@@ -3,12 +3,6 @@
 - name: Ensure /opt/cccp-service/client dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/client state=directory
 
-- name: Install centos-release-openshift-origin.noarch
-  yum: name=centos-release-openshift-origin.noarch state=installed
-
-- name: Install openshift origin clients
-  yum: name=origin-clients state=installed
-
 - name: Push oc files to Jenkins slaves
   synchronize:
     mode: push
@@ -17,6 +11,7 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
+    - {src: /tmp/oc, dest: /usr/bin/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
 

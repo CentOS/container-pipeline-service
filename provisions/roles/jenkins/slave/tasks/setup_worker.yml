@@ -26,6 +26,7 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
+    - {src: /tmp/oc, dest: /opt/cccp-service/beanstalk_worker/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/beanstalk_worker/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/beanstalk_worker/node.kubeconfig}
 
