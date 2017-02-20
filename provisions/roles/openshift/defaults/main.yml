@@ -1,5 +1,5 @@
 ---
-origin_image_name: registry.centos.org/openshift/origin:v1.2.1
+origin_image_name: docker.io/openshift/origin:v1.2.1
 origin_dir: /var/lib/origin
 
 openshift_volumes_dir: /var/lib/origin/openshift.local.volumes
