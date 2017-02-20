@@ -22,10 +22,21 @@
   command: chcon -Rt svirt_sandbox_file_t {{ item }}
   with_items: "{{ openshift_shared_dirs }}"
 
+- name: Pull openshift images
+  docker_image:
+      name: "{{ item }}"
+      tag: "{{ origin_image_tag }}"
+  with_items:
+      - "{{ origin_image_registry }}/{{ origin_image_name }}"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-haproxy-router"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-deployer"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-docker-registry"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-sti-builder"
+
 - name: Run openshift docker image
   docker:
     name: origin
-    image: "{{ origin_image_name }}"
+    image: "{{ origin_image_registry }}/{{ origin_image_name }}:{{ origin_image_tag }}"
     privileged: yes
     pid: host
     net: host
