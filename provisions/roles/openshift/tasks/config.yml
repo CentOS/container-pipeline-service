@@ -9,8 +9,56 @@
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#*\s*ADD_REGISTRY=.*"
-    replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
+    replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000"'
 
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
+- name: Create openshift shared dirs
+  file: name={{item}} state=directory
+  with_items: "{{ openshift_shared_dirs }}"
+
+- name: Set SELinux context for openshift shared dirs
+  command: chcon -Rt svirt_sandbox_file_t {{ item }}
+  with_items: "{{ openshift_shared_dirs }}"
+
+- name: Pull openshift images
+  docker_image:
+      name: "{{ item }}"
+      tag: "{{ origin_image_tag }}"
+  with_items:
+      - "{{ origin_image_registry }}/{{ origin_image_name }}"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-haproxy-router"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-deployer"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-docker-registry"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-sti-builder"
+
+- name: Run openshift docker image
+  docker:
+    name: origin
+    image: "{{ origin_image_registry }}/{{ origin_image_name }}:{{ origin_image_tag }}"
+    privileged: yes
+    pid: host
+    net: host
+    volumes: "{{ openshift_volumes }}"
+    command: start --master=https://"{{ansible_default_ipv4.address}}":8443 --etcd-dir="{{openshift_etcd_dir}}" --cors-allowed-origins=.*
+    restart_policy: always
+  retries: 2
+
+- name: Wait for Openshift to come up
+  pause: seconds={{ openshift_startup_delay }}
+
+- name: Copy Openshift binaries
+  command: docker cp origin:/usr/bin/openshift {{item}}
+  with_items:
+    - /usr/bin/oc
+    - /usr/bin/oadm
+
+- name: Ensure openshift binaries are executable
+  file: dest="{{ item }}" mode="a+x"
+  with_items:
+    - /usr/bin/oc
+    - /usr/bin/oadm
+
+- name: Set perms for kubeconfig
+  file: dest={{kubeconfig}} mode="go+r"

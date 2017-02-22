@@ -1,6 +1,6 @@
 ---
-- name: Install docker py
-  yum: name={{item}} state=installed
+- name: Install latest docker and docker py
+  yum: name={{item}} state=latest
   with_items:
     - docker
     - python-docker-py
@@ -26,6 +26,7 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
+    - {src: /tmp/oc, dest: /opt/cccp-service/beanstalk_worker/oc}
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/beanstalk_worker/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/beanstalk_worker/node.kubeconfig}
 
@@ -72,9 +73,6 @@
       regexp="OPENSHIFT_SERVER_IP"
       replace='{{ openshift_server_ip.stdout }}'
 
-- name: Copy oc binary to worker build dir
-  shell: cp /usr/bin/oc /opt/cccp-service/beanstalk_worker
-
 - name: Build dispatcher-worker image
   shell: docker build -t dispatcher-worker -f ./Dockerfile.dispatcher_worker .
   args:
@@ -95,18 +93,21 @@
       name: dispatcher-worker
       state: started
       image: dispatcher-worker
+      restart_policy: always
 
 - name: Start build worker
   docker:
       name: build-worker
       state: started
       image: build-worker
+      restart_policy: always
 
 - name: Start delivery worker
   docker:
       name: delivery-worker
       state: started
       image: delivery-worker
+      restart_policy: always
 
 - name: Copy Dockerfile linter worker
   copy:
@@ -119,6 +120,8 @@
       dest=/opt/cccp-service/beanstalk_worker/worker_dockerfile_lint.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
+  when: not vagrant
 
 - name: Enable and start Dockerfile linter worker
   service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
+  when: not vagrant

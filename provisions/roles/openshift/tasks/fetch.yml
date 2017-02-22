@@ -7,5 +7,6 @@
     rsync_opts:
       - "{{ rsync_ssh_opts }}"
   with_items:
+    - {src: /usr/bin/oc, dest: /tmp/oc}
     - {src: /var/lib/origin/openshift.local.config/master/ca.crt, dest: /tmp/oc_ca.crt}
     - {src: /var/lib/origin/openshift.local.config/master/admin.kubeconfig,dest: /tmp/oc_node.kubeconfig}

@@ -188,6 +188,7 @@ def run():
 
     run_cmd('iptables -F', host=openshift_host)
     run_cmd('iptables -F', host=jenkins_slave_host)
+    run_cmd('setenforce 0', host=openshift_host)
 
     setup_controller(controller)
 

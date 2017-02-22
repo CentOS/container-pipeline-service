@@ -1,4 +1,28 @@
 ---
+- name: Setup openshift registry
+  command: "{{item}}"
+  with_items:
+    - oadm registry -n default --config={{ openshift_dir }}/admin.kubeconfig
+    - oadm policy add-scc-to-group anyuid system:authenticated
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  ignore_errors: yes
+
+- name: Wait for Openshift Registry to come up
+  pause: seconds={{ openshift_startup_delay }}
+
+- name: Setup openshift router
+  shell: "{{ item }}"
+  with_items:
+    - oc get scc privileged -o json | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f -
+    - oadm router --create --credentials={{ openshift_dir }}/openshift-router.kubeconfig --service-account=router
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  ignore_errors: yes
+
+- name: Wait for Openshift Router to come up
+  pause: seconds={{ openshift_startup_delay }}
+
 - name: Create test user 
   command: "{{ item }}"
   with_items:
@@ -16,10 +40,12 @@
   ignore_errors: yes
 
 - name: Get cccp service code
-  copy:
-    src: ../../../../
+  synchronize:
+    src: "{{ role_path }}/../../../"
     dest: "{{ ansible_env.HOME }}/cccp-service"
-    mode: a+x
+    mode: push
+    rsync_opts:
+      - "{{ rsync_ssh_opts }}"
 
 - name: Build cccp build image
   shell: docker build -t cccp-build -f ./Dockerfile.build .
