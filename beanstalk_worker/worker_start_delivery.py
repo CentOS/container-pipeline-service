@@ -11,26 +11,18 @@ import time
 import logging
 import sys
 import os
+import config
+
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_delivery")
 bs.use("delivery_failed")
 
-logger = logging.getLogger("pipeline-delivery-worker")
-logger.setLevel(logging.DEBUG)
-
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+config.load_logger()
+logger = logging.getLogger("delivery-worker")
 
 config_path = os.path.dirname(os.path.realpath(__file__))
 kubeconfig = " --config=" + os.path.join(config_path, "node.kubeconfig")
-
-DEBUG = 1
 
 
 def notify_build_failure(name_space, notify_email, logs):
@@ -45,11 +37,6 @@ def notify_build_failure(name_space, notify_email, logs):
     bs.put(json.dumps(msg_details))
 
 
-def debug_log(msg):
-    if DEBUG == 1:
-        logger.log(level=logging.INFO, msg=msg)
-
-
 def run_command(command):
     try:
         p = Popen(command, bufsize=0, shell=True,
@@ -58,58 +45,57 @@ def run_command(command):
         out = p.communicate()
         return out
     except Exception as e:
-        logger.log(level=logging.CRITICAL, msg=e.message)
+        logger.critical(e.message, extra={'locals': locals()}, extra_info=True)
         return e.message
 
 
 def start_delivery(job_details):
     try:
-        debug_log("Retrieving namespace")
+        logger.debug("Retrieving namespace")
         name_space = job_details['name_space']
         oc_name = hashlib.sha224(name_space).hexdigest()
-        debug_log("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
+        logger.debug("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
                   .format(name_space, oc_name))
         notify_email = job_details['notify_email']
 
         #tag = job_details['tag']
         #depends_on = job_details['depends_on']
 
-        debug_log("Login to OpenShift server")
+        logger.debug("Login to OpenShift server")
         command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
             kubeconfig + " --certificate-authority=" + config_path + "/ca.crt"
         out = run_command(command_login)
-        debug_log(out)
+        logger.debug(out)
 
-        debug_log(" change project to the desired one")
+        logger.debug(" change project to the desired one")
         command_change_project = "oc project " + oc_name + kubeconfig
         out = run_command(command_change_project)
-        debug_log(out)
+        logger.debug(out)
 
-        debug_log("start the delivery")
+        logger.debug("start the delivery")
         command_start_build = "oc --namespace " + oc_name + \
             " start-build delivery" + kubeconfig
         out = run_command(command_start_build)
-        debug_log(out)
+        logger.debug(out)
 
         build_details = out[0].split('"')[-1].rstrip()
-        debug_log(build_details)
+        logger.debug(build_details)
 
         if build_details == "":
-            logger.log(level=logging.CRITICAL,
-                       msg="build could not be started as OpenShift is not reachable")
+            logger.critical("build could not be started as OpenShift is not reachable")
             return 1
 
-        debug_log("Delivery started is " + build_details)
+        logger.debug("Delivery started is " + build_details)
 
         status_command = "oc get --namespace " + oc_name + " build/" + \
             build_details + kubeconfig + "|grep -v STATUS"
         is_running = 1
 
-        debug_log("Checking the delivery status")
+        logger.debug("Checking the delivery status")
         while is_running >= 0:
             status = run_command(status_command)[0].rstrip()
             is_running = re.search("New|Pending|Running", status)
-            debug_log("current status: " + status)
+            logger.debug("current status: " + status)
             time.sleep(30)
 
         is_complete = run_command(status_command)[0].find('Complete')
@@ -122,24 +108,29 @@ def start_delivery(job_details):
         if is_complete < 0:
             bs.put(json.dumps(job_details))
             notify_build_failure(name_space, notify_email, logs)
-            debug_log(
+            logger.debug(
                 "Delivery is not successful putting it to failed build tube")
 
         return 0
     except Exception as e:
-        logger.log(level=logging.CRITICAL, msg=e.message)
+        logger.critical(e.message, exc_info=True, extra={'locals': locals()})
         return 1
 
-while True:
-    try:
-        debug_log("listening to start_delivery tube")
-        job = bs.reserve()
-        job_details = json.loads(job.body)
-        result = start_delivery(job_details)
-        if result == 0:
-            debug_log("Delivery is successful deleting the job")
-            job.delete()
-        else:
-            debug_log("Job was not succesfull and returned to tube")
-    except Exception as e:
-        logger.log(level=logging.CRITICAL, msg=e.message)
+
+def main():
+    while True:
+        try:
+            logger.debug("listening to start_delivery tube")
+            job = bs.reserve()
+            job_details = json.loads(job.body)
+            result = start_delivery(job_details)
+            if result == 0:
+                logger.debug("Delivery is successful deleting the job")
+                job.delete()
+            else:
+                logger.debug("Job was not succesfull and returned to tube")
+        except Exception as e:
+            logger.critical(e.message, extra={'locals': locals()}, exc_info=True)
+
+if __name__ == '__main__':
+    main()

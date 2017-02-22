@@ -5,7 +5,7 @@ RUN yum update -y && \
     yum clean all
 
 RUN mkdir -p /run_worker
-ADD beanstalkc.py ca.crt node.kubeconfig worker_start_build.py /run_worker/
+ADD beanstalkc.py ca.crt node.kubeconfig worker_start_build.py config.py /run_worker/
 ADD oc /usr/bin/
 RUN chmod a+x /usr/bin/oc /run_worker/*
 
