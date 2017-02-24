@@ -86,7 +86,7 @@ def start_delivery(job_details):
         out = run_command(command_start_build)
         debug_log(out)
 
-        build_details = out[0].split('"')[1].rstrip()
+        build_details = out[0].split('"')[-1].rstrip()
         debug_log(build_details)
 
         if build_details == "":
