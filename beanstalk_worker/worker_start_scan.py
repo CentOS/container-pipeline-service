@@ -487,5 +487,11 @@ while True:
             msg="Job moved from scan phase, id: %s" % job_id
             )
         job.delete()
+    except beanstalkc.CommandFailed as e:
+        logger.log(
+            level=logging.ERROR,
+            msg="Failed to put scanner data on beanstalkd tube; deleting job"
+        )
+        job.delete()
     except Exception as e:
         logger.log(level=logging.FATAL, msg=str(e))
