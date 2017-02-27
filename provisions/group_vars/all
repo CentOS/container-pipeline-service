@@ -9,5 +9,3 @@ cccp_source_branch: master
 public_registry: registry.centos.org
 
 enable_epel: true
-
-test_nfs_share: 172.29.32.44:/nfsshare

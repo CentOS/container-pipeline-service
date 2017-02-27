@@ -12,6 +12,20 @@
     - jenkins
     - openshift
 
+- name: Configure NFS server on scanner node for CI
+  hosts: scanner_worker
+  roles:
+    - ci_nfs/server
+  tags:
+    - ci_nfs/server
+
+- name: Configure NFS clients on all nodes for CI
+  hosts: all
+  roles:
+    - ci_nfs/clients
+  tags:
+    - ci_nfs/clients
+
 - name: Configure Jenkins nodes
   hosts: all
   roles:
@@ -51,10 +65,3 @@
   tags:
     - jenkins
     - jenkins/master
-
-- name: Setup NFS for CI
-  hosts: all
-  roles:
-    -  ci_nfs/tasks
-  tags:
-    - ci_nfs

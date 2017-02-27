@@ -1,23 +1,22 @@
 ---
 - name: Install nfs-utils for NFS sharing
+  when: test
+  sudo: yes
   yum: name=nfs-utils state=present
-  when: test
-
-- name: Install nfs-util-lib for NFS sharing
-  yum: name=nfs-utils-lib state=present
-  when: test
 
 - name: Create NFS mount directory
+  when: test
+  sudo: yes
   file:
     path: /srv/pipeline-logs
     state: directory
     mode: 0777
-  when: test
 
 - name: Mount NFS share on the node
+  when: test
+  sudo: yes
   mount:
     name: /srv/pipeline-logs
-    src: {{ test_nfs_share }}
+    src: "{{ test_nfs_share }}"
     fstype: nfs
     state: mounted
-  when: test

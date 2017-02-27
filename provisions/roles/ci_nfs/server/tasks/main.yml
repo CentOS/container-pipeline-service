@@ -1,0 +1,25 @@
+---
+- name: Install nfs-utils for NFS sharing
+  when: test
+  sudo: yes
+  yum: name=nfs-utils state=present
+
+- name: Create NFS mount directory
+  when: test
+  sudo: yes
+  file:
+    path: /nfsshare
+    state: directory
+    mode: 0777
+
+- name: Add entry in /etc/exports to configure NFS mount
+  when: test
+  sudo: yes
+  lineinfile:
+    destfile: /etc/exports
+    line: "/nfsshare *(rw,sync,no_root_squash)"
+
+- name: Start and Enable NFS service
+  when: test
+  service: name=nfs enabled=yes state=started
+  sudo: yes
