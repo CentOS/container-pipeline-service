@@ -116,10 +116,3 @@
 
 - name: Enable Scanner worker
   service: name="cccp-scan-worker" state=restarted enabled=yes
-
-- name: Create logs directory (dummy for NFS)
-  when: test
-  file:
-    path: /srv/pipeline-logs
-    state: directory
-    mode: 0777

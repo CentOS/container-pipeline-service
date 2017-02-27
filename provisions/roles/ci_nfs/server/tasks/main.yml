@@ -17,9 +17,9 @@
   sudo: yes
   lineinfile:
     destfile: /etc/exports
-    line: "/nfsshare *(rw,sync,no_root_squash)"
+    line: "/nfsshare (rw,sync,no_root_squash)"
 
 - name: Start and Enable NFS service
   when: test
-  service: name=nfs enabled=yes state=started
+  service: name=nfs-server enabled=yes state=started
   sudo: yes
