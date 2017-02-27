@@ -9,6 +9,9 @@ import sys
 import yaml
 
 
+# Logs base URL
+LOGS_DIR_BASE = "/srv/pipeline-logs/"
+
 # connect to beanstalkd tube
 bs = beanstalkc.Connection("BEANSTALK_SERVER")
 bs.use("master_tube")
@@ -55,6 +58,19 @@ for f in files:
 
         entry_short_name = str(app_id) + "/" + str(job_id)
 
+        # TEST_TAG generation, unique per project
+        task = subprocess.Popen(
+            "date | md5sum | base64 | head -c 14",
+            shell=True,
+            stdout=subprocess.PIPE)
+        TEST_TAG = task.stdout.read()
+
+        LOGS_DIR = os.path.join(LOGS_DIR_BASE, TEST_TAG)
+
+        # Create the logs directory
+        if not os.path.exists(LOGS_DIR):
+            os.makedirs(LOGS_DIR)
+
         # Scan an image only if it exists in the catalog!
         if entry_short_name in json_catalog:
             data = {
@@ -65,7 +81,8 @@ for f in files:
                 "name": "%s:5000/%s/%s:%s" %
                 (registry, app_id, job_id, desired_tag),
                 "notify_email": email,
-                "weekly": True
+                "weekly": True,
+                "logs_dir": LOGS_DIR
             }
 
             job = bs.put(json.dumps(data))

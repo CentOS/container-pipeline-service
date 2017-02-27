@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import beanstalkc
+import constants
 import docker
 import json
 import logging
@@ -22,7 +23,7 @@ logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler(sys.stdout)
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    '[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s', '%m-%d %H:%M:%S'
 )
 ch.setFormatter(formatter)
 logger.addHandler(ch)
@@ -101,6 +102,35 @@ class ScannerRunner(object):
         # if scanner failed to run, this will return {}, do check at receiver end
         return json_data
 
+    def export_scanner_logs(self, scanner, data):
+        """
+        Export scanner logs in given directory
+        """
+        logs_file_path = os.path.join(
+                self.job_info["logs_dir"],
+                constants.SCANNERS_RESULTFILE[scanner][0])
+        logger.log(
+                level=logging.INFO,
+                msg="Scanner=%s result log file:%s" % (scanner, logs_file_path)
+                )
+        try:
+            fin = open(logs_file_path, "w")
+            json.dump(data, fin, indent=4, sort_keys=True)
+        except IOError as e:
+            logger.log(
+                level=logging.CRITICAL,
+                msg="Failed to write scanner=%s logs on NFS share." % scanner)
+            logger.log(
+                level=logging.CRITICAL,
+                msg=str(e))
+        else:
+            logger.log(
+                level=logging.INFO,
+                msg="Wrote the scanner logs to log file: %s" % logs_file_path
+                )
+        finally:
+            return logs_file_path
+
     def run(self):
         """"
         Runs the listed atomic scanners on image under test
@@ -115,7 +145,8 @@ class ScannerRunner(object):
         image_under_test = self.job_info.get("name")
         logger.log(level=logging.INFO, msg="Image under test:%s" % image_under_test)
 
-        # copy the job info into scanners data, as we are going to add logs and msg
+        # copy the job info into scanners data,
+        # as we are going to add logs and msg
         scanners_data = self.job_info
         scanners_data["msg"] = {}
         scanners_data["logs"] = {}
@@ -132,10 +163,22 @@ class ScannerRunner(object):
         # run the multiple scanners on image under test
         for scanner in self.scanners.keys():
             data_temp = self.run_a_scanner(scanner, image_under_test)
+
             if not data_temp:
                 continue
+
+            # TODO: what to do if the logs writing failed, check status here
+            logs_filepath = self.export_scanner_logs(scanner, data_temp)
+
+            logs_URL = logs_filepath.replace(
+                    constants.LOGS_DIR,
+                    constants.LOGS_URL_BASE
+                    )
+
+            # keep the message
             scanners_data["msg"][data_temp["scanner_name"]] = data_temp["msg"]
-            scanners_data["logs"][data_temp["scanner_name"]] = data_temp["logs"]
+            # pass the logs filepath via beanstalk tube
+            scanners_data["logs"][data_temp["scanner_name"]] = logs_URL
 
         scanners_data["action"] = "notify_user"
         # This field is needed for email worker to hint that this is scan
@@ -205,7 +248,7 @@ class ScannerRPMVerify(object):
                     level=logging.FATAL,
                     msg="No scan results found at %s" % output_json_file)
                 # FIXME: handle what happens in this case
-                return False, json_data
+                return False, self.process_output(json_data)
         else:
             # TODO: do not exit here if one of the scanner failed to run,
             # others might run
@@ -213,7 +256,7 @@ class ScannerRPMVerify(object):
                 level=logging.FATAL,
                 msg="Error running the scanner %s. Error: %s" % (self.scanner_name, err)
             )
-            return False, json_data
+            return False, self.process_output(json_data)
 
         return True, self.process_output(json_data)
 
@@ -481,11 +524,14 @@ while True:
             )
         bs.use("master_tube")
         job_id = bs.put(json.dumps(scanners_data))
-
+    except Exception as e:
+        logger.log(level=logging.FATAL, msg=str(e))
+        job_info["action"] = "start_delivery"
+        bs.use("master_tube")
+        job_id = bs.put(json.dumps(job_info))
+    finally:
         logger.log(
             level=logging.INFO,
             msg="Job moved from scan phase, id: %s" % job_id
             )
         job.delete()
-    except Exception as e:
-        logger.log(level=logging.FATAL, msg=str(e))

@@ -1,5 +1,8 @@
 #!/usr/bin/bash
 
+NFS_SHARE="/srv/pipeline-logs"
+LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
+
 function _() {
     echo "==> $@"
 }
@@ -42,7 +45,7 @@ _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #fi
 docker push ${FULL_TO}||jumpto sendstatusmail
 
-python /tube_request/send_scan_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} ${TEST_TAG} ${NOTIFY_EMAIL}
+python /tube_request/send_scan_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} ${TEST_TAG} ${NOTIFY_EMAIL} ${LOGS_DIR}
 
 _ "Cleaning environment"
 docker rmi ${FULL_FROM}

@@ -30,7 +30,8 @@ TARGET_FILE=$6
 NOTIFY_EMAIL=$7
 DESIRED_TAG=$8
 DEPENDS_ON=$9
-TEST_TAG=`date +"%Y%m%d%H%M%S"`
+TEST_TAG=${10}
+LOGS_DIR="/srv/pipeline-logs/$TEST_TAG"
 
 [ "${APPID}" == "" ] || [ "${APPID}" == "-h" ] || [ "${APPID}" == "--help" ] && usage
 [ "${JOBID}" == "" ] && usage
@@ -79,7 +80,7 @@ IP=$(ip -f inet addr show eth1 2> /dev/null | grep 'inet' | awk '{ print $2}' | 
 #[ $? -eq 0 ] && echo -e "Build ${BUILD} started.\nYou can watch builds progress at https://${IP}:8443/console/project/${NAME}/browse/builds"
 
 echo "==> Send build configs to build tube"
-python $CWD/send_build_request.py ${APPID} ${JOBID} ${DESIRED_TAG} ${REPO_BRANCH} ${REPO_BUILD_PATH} ${TARGET_FILE} ${NOTIFY_EMAIL} ${DEPENDS_ON}
+python $CWD/send_build_request.py ${APPID} ${JOBID} ${DESIRED_TAG} ${REPO_BRANCH} ${REPO_BUILD_PATH} ${TARGET_FILE} ${NOTIFY_EMAIL} ${DEPENDS_ON} ${LOGS_DIR}
 
 echo "==> Restoring the default template"
 rm -rf $CWD/template.json
