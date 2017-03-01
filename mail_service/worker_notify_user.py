@@ -7,24 +7,18 @@ import subprocess
 bs = beanstalkc.Connection(host="172.17.0.1")
 bs.watch("notify_user")
 
+LOGS_DIR = "/srv/pipeline-logs/"
+LOGS_URL_BASE = "https://registry.centos.org/pipeline-logs/"
 
-def send_mail(notify_email, subject, msg, logs):
-    if(logs is not None):
-        failed_msg_command = "/mail_service/send_failed_mail.sh"
-        logfile = open("/tmp/build_logs.txt", "w")
-        logfile.write(logs)
-        logfile.close()
-        subprocess.call(
-            [failed_msg_command,
-             subject,
-             notify_email,
-             msg,
-             "/tmp/build_logs.txt"])
-    else:
-        success_msg_command = "/mail_service/send_success_mail.sh"
-        # escape the \ with \\ for rendering in email
-        msg = msg.replace("\n", "\\n")
-        subprocess.call([success_msg_command, subject, notify_email, msg])
+
+def send_mail(notify_email, subject, msg):
+    """
+    Sends user success build notification
+    """
+    success_msg_command = "/mail_service/send_success_mail.sh"
+    # escape the \ with \\ for rendering in email
+    msg = msg.replace("\n", "\\n")
+    subprocess.call([success_msg_command, subject, notify_email, msg])
 
 
 def notify_user_with_scan_results(job_info):
@@ -72,7 +66,7 @@ Following are the atomic scanners ran on built image, displaying the result mess
     print "==> Sending scan results email to user: %s" % notify_email
     # last parameter (logs) has to None for the sake of
     # condition put in send_mail function
-    send_mail(notify_email, subject, text, None)
+    send_mail(notify_email, subject, text)
 
     # if weekly scan is being executed, we do not want trigger delivery phase
     if job_info.get("weekly"):
@@ -115,7 +109,7 @@ def notify_user_with_linter_results(job_info):
             % notify_email
         # Setting last parameter to anything but None should trigger failure
         # email
-        send_mail(notify_email, subject, text, logs=job_info.get("msg"))
+        send_mail(notify_email, subject, text)
     else:
         text = """
 CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
@@ -131,7 +125,7 @@ Dockerfile linter results for project=%s.
         print "==> Sending linter results email to user: %s" % notify_email
         # last parameter (logs) has to None for the sake of
         # condition put in send_mail function
-        send_mail(notify_email, subject, text, None)
+        send_mail(notify_email, subject, text)
 
 
 while True:
@@ -156,6 +150,25 @@ while True:
             job.delete()
             continue
 
+    if "build_failed" in job_info:
+        if job_info["build_failed"]:
+            print "==> Build with id= %s failed, sending failure email." \
+                % job_id
+
+            logs_url = job_info["build_logs_file"].replace(
+                LOGS_DIR, LOGS_URL_BASE)
+
+            subject = "FAILED: Container build failed " + job_info["namespace"]
+            msg = """
+Container build for %s is failed due to error in build or test
+steps. Pleae check logs below.
+
+Build logs: %s""" % (job_info["namespace"], logs_url)
+
+            send_mail(job_info["notify_email"], subject, msg)
+            job.delete()
+            continue
+
     print "==> Retrieving message details"
     notify_email = job_info['notify_email']
     subject = job_info['subject']
@@ -165,12 +178,7 @@ while True:
     else:
         msg = job_info['msg']
 
-    if 'logs' not in job_info:
-        logs = None
-    else:
-        logs = job_info['logs']
-
     print "==> Sending email to user"
-    send_mail(notify_email, subject, msg, logs)
+    send_mail(notify_email, subject, msg)
 
     job.delete()
