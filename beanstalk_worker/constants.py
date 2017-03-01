@@ -16,7 +16,7 @@ SCANNERS_RESULTFILE = {
             "RPMVerify_scanner_results.json"]
 }
 
-LINTER_RESULTFILE = "linter_results.log"
+LINTER_RESULTFILE = "linter_results.txt"
 
 LOGS_URL_BASE= "https://registry.centos.org/pipeline-logs/"
 LOGS_DIR = "/srv/pipeline-logs/"
