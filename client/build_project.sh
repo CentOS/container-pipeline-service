@@ -46,8 +46,8 @@ LOGS_DIR="/srv/pipeline-logs/$TEST_TAG"
 
 
 CWD=`dirname $0`
-echo "${APPID}-${JOBID}-${DESIRED_TAG}" > ${TMP_FILE}
-PN="`sed -e "s/\./-/g" ${TMP_FILE}`"
+printf "${APPID}${JOBID}${DESIRED_TAG}" | base64
+PN="`printf "${APPID}${JOBID}${DESIRED_TAG}" | base64`"
 NS="--namespace ${PN}"
 
 echo "==> login to Openshift server"

@@ -9,6 +9,7 @@ import time
 import logging
 import sys
 import os
+import base64
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_build")
@@ -89,8 +90,7 @@ def start_build(job_details):
         appid = job_details['appid']
         jobid = job_details['jobid']
         desired_tag = job_details['desired_tag']
-        namespace = appid + "-" + jobid + "-" + desired_tag
-        namespace = namespace.replace(".", "-")
+        namespace = base64.b64encode(str(appid) + str(jobid) + str(desired_tag))
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
         # This will be a mounted directory

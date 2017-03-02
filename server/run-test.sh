@@ -2,7 +2,6 @@
 
 NFS_SHARE="/srv/pipeline-logs"
 LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
-TMP_FILE="./tmp_file"
 
 function _() {
     echo "==> $@"
@@ -36,9 +35,8 @@ docker pull ${FULL_FROM} || jumpto sendstatusmail
 
 _ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
-
-echo "${APPID}-${JOBID}-${DESIRED_TAG}" > ${TMP_FILE}
-NS="`sed -e "s/\./-/g" ${TMP_FILE}`"
+printf "${APPID}${JOBID}${DESIRED_TAG}" | base64
+NS="`printf "${APPID}${JOBID}${DESIRED_TAG}" | base64`"
 OUTPUT_IMAGE=${TARGET_REGISTRY}/${APPID}/${TO}
 
 _ "Pushing the image to registry (${OUTPUT_IMAGE})"
