@@ -9,7 +9,7 @@ RUN yum update -y && \
 RUN mkdir -p /run_worker
 
 ADD beanstalkc.py ca.crt node.kubeconfig worker_start_build.py \
- worker_start_delivery.py worker_dispatcher.py /run_worker/
+ worker_start_delivery.py worker_dispatcher.py config.py /run_worker/
 ADD oc /usr/bin/
 
 RUN chmod a+x /usr/bin/oc /run_worker/*
