@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
 ADMIN="--config=/var/lib/origin/openshift.local.config/master/admin.kubeconfig"
+TMP_FILE="./tmp_file"
 
 
 function usage() {
@@ -45,7 +46,8 @@ LOGS_DIR="/srv/pipeline-logs/$TEST_TAG"
 
 
 CWD=`dirname $0`
-PN="${APPID}-${JOBID}-${DESIRED_TAG}"
+echo "${APPID}-${JOBID}-${DESIRED_TAG}" > ${TMP_FILE}
+PN="`sed -e "s/\./-/g" ${TMP_FILE}`"
 NS="--namespace ${PN}"
 
 echo "==> login to Openshift server"

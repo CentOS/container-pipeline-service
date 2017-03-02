@@ -90,6 +90,7 @@ def start_build(job_details):
         jobid = job_details['jobid']
         desired_tag = job_details['desired_tag']
         namespace = appid + "-" + jobid + "-" + desired_tag
+        namespace = namespace.replace(".", "-")
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
         # This will be a mounted directory
