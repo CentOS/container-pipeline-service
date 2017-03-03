@@ -35,8 +35,7 @@ docker pull ${FULL_FROM} || jumpto sendstatusmail
 
 _ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
-printf "${APPID}${JOBID}${DESIRED_TAG}" | base64
-NS="`printf "${APPID}${JOBID}${DESIRED_TAG}" | base64`"
+NS=`python -c "import binascii;print binascii.hexlify('${APPID}${JOBID}${DESIRED_TAG}')"`
 OUTPUT_IMAGE=${TARGET_REGISTRY}/${APPID}/${TO}
 
 _ "Pushing the image to registry (${OUTPUT_IMAGE})"

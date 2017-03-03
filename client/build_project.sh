@@ -46,8 +46,7 @@ LOGS_DIR="/srv/pipeline-logs/$TEST_TAG"
 
 
 CWD=`dirname $0`
-printf "${APPID}${JOBID}${DESIRED_TAG}" | base64
-PN="`printf "${APPID}${JOBID}${DESIRED_TAG}" | base64`"
+PN=`python -c "import binascii;print binascii.hexlify('${APPID}${JOBID}${DESIRED_TAG}')"`
 NS="--namespace ${PN}"
 
 echo "==> login to Openshift server"

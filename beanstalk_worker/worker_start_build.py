@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import beanstalkc
+import binascii
 import json
 from subprocess import Popen
 from subprocess import PIPE
@@ -9,7 +10,6 @@ import time
 import logging
 import sys
 import os
-import base64
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_build")
@@ -90,7 +90,10 @@ def start_build(job_details):
         appid = job_details['appid']
         jobid = job_details['jobid']
         desired_tag = job_details['desired_tag']
-        namespace = base64.b64encode(str(appid) + str(jobid) + str(desired_tag))
+        pre_namespace = str(appid) + str(jobid) + str(desired_tag)
+        namespace = binascii.hexlify(pre_namespace)
+        debug_log("Openshift project namespace hexlified from {0} to {1} can be hash can be reproduced with xxd tool"
+                  .format(pre_namespace, namespace))
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
         # This will be a mounted directory

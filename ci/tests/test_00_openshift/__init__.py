@@ -16,7 +16,7 @@ class TestOpenshift(BaseTestCase):
             "oc login https://{openshift}:8443 "
             "--insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
-            "oc project YmFtYWNocm5weXRob25yZWxlYXNl > /dev/null && "
+            "oc project 62616d616368726e707974686f6e72656c65617365 > /dev/null && "
             "oc get pods"
         ).format(openshift=self.hosts[self.node]['host'])
         self.run_cmd(cmd)
@@ -53,7 +53,7 @@ class TestOpenshift(BaseTestCase):
         cmd = (
             "oc login https://%s:8443 --insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
-            "oc project YmFtYWNocm5weXRob25yZWxlYXNl > /dev/null && "
+            "oc project 62616d616368726e707974686f6e72656c65617365 > /dev/null && "
             "oc get pods"
         ) % (self.hosts["openshift"]["host"])
         output = self.run_cmd(cmd)
