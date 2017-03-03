@@ -15,7 +15,7 @@ def send_mail(notify_email, subject, msg):
     """
     Sends user success build notification
     """
-    success_msg_command = "/mail_service/send_success_mail.sh"
+    success_msg_command = "/mail_service/send_mail.sh"
     # escape the \ with \\ for rendering in email
     msg = msg.replace("\n", "\\n")
     subprocess.call([success_msg_command, subject, notify_email, msg])
