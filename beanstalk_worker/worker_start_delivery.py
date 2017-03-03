@@ -52,7 +52,7 @@ def run_command(command):
     try:
         p = Popen(command, bufsize=0, shell=True,
                   stdout=PIPE, stderr=PIPE, stdin=PIPE)
-        p.wait()
+        #p.wait()
         out = p.communicate()
         return out
     except Exception as e:
