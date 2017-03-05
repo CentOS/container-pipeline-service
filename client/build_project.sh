@@ -1,7 +1,6 @@
 #!/usr/bin/bash
 
 ADMIN="--config=/var/lib/origin/openshift.local.config/master/admin.kubeconfig"
-TMP_FILE="./tmp_file"
 
 
 function usage() {
@@ -46,7 +45,7 @@ LOGS_DIR="/srv/pipeline-logs/$TEST_TAG"
 
 
 CWD=`dirname $0`
-PN=`python -c "import binascii;print binascii.hexlify('${APPID}${JOBID}${DESIRED_TAG}')"`
+PN=`python -c "from binascii hexlify;print hexlify('${APPID}-${JOBID}-${DESIRED_TAG}')"`
 NS="--namespace ${PN}"
 
 echo "==> login to Openshift server"
