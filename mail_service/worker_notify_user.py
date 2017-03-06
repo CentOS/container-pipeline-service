@@ -11,7 +11,7 @@ bs.watch("notify_user")
 def send_mail(notify_email, subject, msg, logs):
     if(logs is not None):
         failed_msg_command = "/mail_service/send_failed_mail.sh"
-        logfile = open("/tmp/build_log.log", "w")
+        logfile = open("/tmp/build_logs.txt", "w")
         logfile.write(logs)
         logfile.close()
         subprocess.call(
@@ -19,7 +19,7 @@ def send_mail(notify_email, subject, msg, logs):
              subject,
              notify_email,
              msg,
-             "/tmp/build_log.log"])
+             "/tmp/build_logs.txt"])
     else:
         success_msg_command = "/mail_service/send_success_mail.sh"
         # escape the \ with \\ for rendering in email

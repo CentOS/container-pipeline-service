@@ -10,7 +10,7 @@ output_image = sys.argv[2]
 notify_email = sys.argv[3]
 TEST_TAG = sys.argv[4]
 BUILD_LOGS_URL = "https://registry.centos.org/pipeline-logs/" + \
-        TEST_TAG + "/build_logs.log"
+        TEST_TAG + "/build_logs.txt"
 
 msg_details = {}
 msg_details['action'] = "notify_user"

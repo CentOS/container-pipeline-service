@@ -95,7 +95,7 @@ def start_build(job_details):
         # This will be a mounted directory
         build_logs_file = os.path.join(
                 job_details["logs_dir"],
-                "build_logs.log"
+                "build_logs.txt"
                 )
 
         debug_log("Login to OpenShift server")
