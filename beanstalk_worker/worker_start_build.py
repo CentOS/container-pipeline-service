@@ -92,7 +92,7 @@ def start_build(job_details):
         desired_tag = job_details['desired_tag']
         pre_namespace = str(appid) + "-" + str(jobid) + "-" + str(desired_tag)
         namespace = hexlify(pre_namespace)
-        debug_log("Openshift project namespace hexlified from {0} to {1} can be hash can be reproduced with xxd tool"
+        debug_log("Openshift project namespace hexlified from {0} to {1}, hash can be reproduced with xxd tool"
                   .format(pre_namespace, namespace))
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
