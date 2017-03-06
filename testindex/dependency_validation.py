@@ -93,6 +93,24 @@ class ContainerDependencyGraph(object):
         """Get the internal networkx graph"""
         return self._dependency_graph
 
+    def dependency_exists(self, from_container, to_container):
+        """Checks if a dependency exists from a container, to a container."""
+        # Get the nodes for the containers specified
+        from_node = self.get_container_node(container_name=from_container)
+        to_node = self.get_container_node(container_name=to_container)
+        # Check if nodes are available for both the containers, if not then, they should have been added already
+        if from_node and to_node:
+            # Extract he numbers which uniquely identify the node, so that an edge can be formed between them,
+            # if not already present
+            f = from_node[0]
+            t = to_node[0]
+            # Get the edges from the graph and check is an edge exist for the pair. If not, then no dependency
+            edges = self._dependency_graph.edges()
+            if (f, t) in edges:
+                return True
+        else:
+            return False
+
     @staticmethod
     def _resolve_dependencies(dependencymap):
         """
