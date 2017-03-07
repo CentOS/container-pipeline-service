@@ -1,6 +1,7 @@
-FROM centos
+FROM registry.centos.org/centos/centos
+MAINTAINER CentOS Container Pipeline Service <container-group@centos.org>
 
-RUN yum -y install docker
+RUN yum -y install docker; yum clean all
 
 ADD run-delivery.sh /usr/bin/
 
