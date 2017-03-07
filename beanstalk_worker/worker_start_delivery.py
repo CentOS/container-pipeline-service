@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import beanstalkc
+from binascii import hexlify
 import json
 from subprocess import Popen
 from subprocess import PIPE
@@ -64,6 +65,7 @@ def start_delivery(job_details):
     try:
         debug_log("Retrieving namespace")
         name_space = job_details['name_space']
+        oc_name = hexlify(name_space)
         notify_email = job_details['notify_email']
 
         #tag = job_details['tag']
@@ -76,12 +78,12 @@ def start_delivery(job_details):
         debug_log(out)
 
         debug_log(" change project to the desired one")
-        command_change_project = "oc project " + name_space + kubeconfig
+        command_change_project = "oc project " + oc_name + kubeconfig
         out = run_command(command_change_project)
         debug_log(out)
 
         debug_log("start the delivery")
-        command_start_build = "oc --namespace " + name_space + \
+        command_start_build = "oc --namespace " + oc_name + \
             " start-build delivery" + kubeconfig
         out = run_command(command_start_build)
         debug_log(out)
@@ -96,7 +98,7 @@ def start_delivery(job_details):
 
         debug_log("Delivery started is " + build_details)
 
-        status_command = "oc get --namespace " + name_space + " build/" + \
+        status_command = "oc get --namespace " + oc_name + " build/" + \
             build_details + kubeconfig + "|grep -v STATUS"
         is_running = 1
 
@@ -109,7 +111,7 @@ def start_delivery(job_details):
 
         is_complete = run_command(status_command)[0].find('Complete')
         # checking logs for the build phase
-        log_command = "oc logs --namespace " + name_space + " build/" + \
+        log_command = "oc logs --namespace " + oc_name + " build/" + \
             build_details + kubeconfig
         logs = run_command(log_command)
         logs = logs[0]

@@ -90,10 +90,10 @@ def start_build(job_details):
         appid = job_details['appid']
         jobid = job_details['jobid']
         desired_tag = job_details['desired_tag']
-        pre_namespace = str(appid) + "-" + str(jobid) + "-" + str(desired_tag)
-        namespace = hexlify(pre_namespace)
+        namespace = str(appid) + "-" + str(jobid) + "-" + str(desired_tag)
+        oc_name = hexlify(namespace)
         debug_log("Openshift project namespace hexlified from {0} to {1}, hash can be reproduced with xxd tool"
-                  .format(pre_namespace, namespace))
+                  .format(namespace, oc_name))
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
         # This will be a mounted directory
@@ -114,7 +114,7 @@ def start_build(job_details):
         debug_log(out)
 
         debug_log("start the build")
-        command_start_build = "oc --namespace " + namespace + \
+        command_start_build = "oc --namespace " + oc_name + \
             " start-build build" + kubeconfig
         out = run_command(command_start_build)
         debug_log(out)
@@ -129,7 +129,7 @@ def start_build(job_details):
 
         debug_log("build started is " + build_details)
 
-        status_command = "oc get --namespace " + namespace + " build/" + \
+        status_command = "oc get --namespace " + oc_name + " build/" + \
             build_details + kubeconfig + "|grep -v STATUS"
         is_running = 1
 
@@ -141,7 +141,7 @@ def start_build(job_details):
             time.sleep(DELAY)
 
         # checking logs for the build phase
-        log_command = "oc logs --namespace " + namespace + " build/" + \
+        log_command = "oc logs --namespace " + oc_name + " build/" + \
             build_details + kubeconfig
         try:
             logs = run_command(log_command)
