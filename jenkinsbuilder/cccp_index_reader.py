@@ -24,8 +24,10 @@ def projectify(
     new_project[0]['project']['name'] = appid
     new_project[0]['project']['git_url'] = giturl
     new_project[0]['project']['git_branch'] = gitbranch
-    new_project[0]['project']['rel_path'] = ('/' + gitpath) \
-        if (gitpath and not gitpath.startswith('/')) else '/'
+    rel_path = "/"
+    if gitpath and gitpath != "/":
+            rel_path = gitpath if gitpath.startswith("/") else (rel_path + gitpath)
+    new_project[0]['project']['rel_path'] = rel_path
     new_project[0]['project']['jobs'] = ['cccp-rundotsh-job']
 
     if 'rundotshargs' not in new_project[0]:
