@@ -35,7 +35,7 @@ docker pull ${FULL_FROM} || jumpto sendstatusmail
 
 _ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
-NS="{APPID}-${JOBID}-${DESIRED_TAG}"
+NS="${APPID}-${JOBID}-${DESIRED_TAG}"
 OUTPUT_IMAGE=${TARGET_REGISTRY}/${APPID}/${TO}
 
 _ "Pushing the image to registry (${OUTPUT_IMAGE})"
