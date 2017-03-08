@@ -6,7 +6,7 @@ RUN yum -y update && \
 
 RUN mkdir -p /mail_service/
 
-ADD send_success_mail.sh worker_notify_user.py \
+ADD send_mail.sh worker_notify_user.py \
     beanstalkc.py start_mail_server.sh /mail_service/
 
 RUN chmod 777 /mail_service/*
