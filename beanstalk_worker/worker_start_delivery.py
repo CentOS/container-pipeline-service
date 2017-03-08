@@ -2,6 +2,7 @@
 
 import beanstalkc
 from binascii import hexlify
+import hashlib
 import json
 from subprocess import Popen
 from subprocess import PIPE
@@ -65,7 +66,7 @@ def start_delivery(job_details):
     try:
         debug_log("Retrieving namespace")
         name_space = job_details['name_space']
-        oc_name = hexlify(name_space)
+        oc_name = hashlib.sha224(name_space).hexdigest()
         notify_email = job_details['notify_email']
 
         #tag = job_details['tag']
