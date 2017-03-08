@@ -1,5 +1,4 @@
 import hashlib
-from datetime import datetime
 
 from yaml import dump
 
@@ -28,11 +27,21 @@ class Summary(object):
 
     @staticmethod
     def _get_entry_hash(file_name, entry):
-
+        """
+        Calculates hash to uniquely identify entry
+        Keyword arguments:
+            file_name -- The name of the index file from which the entry was retrieved
+            entry -- The entry whos hash you wish to calculate
+        """
         return hashlib.sha256(file_name + str(entry)).hexdigest()
 
     def get_summary_object(self, file_name, entry):
-
+        """
+        Get the dict object for the summary information
+        Keyword arguments:
+            file_name -- The name of the index file from which the entry was retrieved
+            entry -- The entry whos hash you wish to calculate
+        """
         if file_name not in self._summary:
             self._summary[file_name] = {}
 
@@ -47,13 +56,8 @@ class Summary(object):
 
         return self._summary[file_name][entry_hash]
 
-    def log_summary(self):
-
-        with open(self._summary_dump, "w") as summary_file:
-            dump(self._summary, summary_file, default_flow_style=False)
-
     def print_summary(self):
-
+        """Prints the summary onto stdout"""
         print "\n####################### SUMMARY ##################\n"
 
         print "\nGLOBAL ERRORS:\n"
@@ -89,3 +93,7 @@ class Summary(object):
                         print "  **W " + wrn
 
                 print "\n"
+
+            with open(self._summary_dump, "w") \
+                    as summary_file:
+                dump(self._summary, summary_file, default_flow_style=False)

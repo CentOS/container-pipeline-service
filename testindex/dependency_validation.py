@@ -13,8 +13,20 @@ class ContainerDependencyGraph(object):
         self._dependency_graph = nx.DiGraph()
         self._node_number = 1
 
+    @classmethod
+    def from_yaml_file(cls, yaml_path):
+        obj = cls()
+        obj._dependency_graph = nx.read_yaml(yaml_path)
+        return obj
+
     def get_container_node(self, container_id=None, container_name=None):
-        """Gets the node, identified by container_name from the graph, if it exists."""
+        """
+        Gets the node, identified by container_name from the graph, if it exists.
+        If not found or none of ther  keys are provided, it returns None
+        Keyword arguments:
+            container_id -- The numerical id of container node in graph, mutually exclusive with container name
+            container_name -- The full name of the container to match with
+        """
         node = None
         # Get the nodes from the networkx graph to iterate through
         nodes = self._dependency_graph.nodes(data=True)
@@ -62,7 +74,12 @@ class ContainerDependencyGraph(object):
                 node[1]["from_target_file"] = True
 
     def add_dependency(self, from_container, to_container):
-        """Add a dependency between the containers as a directed edge from one container to the other."""
+        """
+        Add a dependency between the containers as a directed edge from one container to the other.
+        Keyword arguments:
+            from_container -- The container on which the dependency is on
+            to_container -- The container which has the dependency on from_container
+        """
         # Get the nodes for the containers specified
         from_node = self.get_container_node(container_name=from_container)
         to_node = self.get_container_node(container_name=to_container)
@@ -120,6 +137,8 @@ class ContainerDependencyGraph(object):
         The function returns a list of sets, such that, elements
         of the set can be processed in parallel, but each set, must
         be processed, after its preceeding set.
+        Keyword arguments:
+            dependencymap -- The map of the dependencies, with the value as list of items which the key depends on
         """
         d = dict((k, set(dependencymap[k])) for k in dependencymap)
         r = []
@@ -170,6 +189,65 @@ class ContainerDependencyGraph(object):
         except Exception:
             pass
         return cycles
+
+    def set_node_data(self, data_dict, container_id=None, container_name=None):
+        """
+        Set the attributes of a container node
+        Keyword arguments:
+            data_dict -- The dict of key values where the keys are the attribute names
+            container_id -- The numerical id of container node, mutually exclusive to container_name
+            container_name -- The full name of the container to identify node with
+        """
+        node = self.get_container_node(container_id=container_id, container_name=container_name)
+        if node is not None:
+            for k, v in data_dict:
+                node[1][k] = v
+
+    def get_node_data(self, data_keys, container_id=None, container_name=None):
+        """
+        Get attributes of a container node as a dict
+        Keyword arguments:
+            data_keys -- The list of keys to identify the attributes you wish to retrieve
+            container_id -- The numerical id of container node, mutually exclusive to container_name
+            container_name -- he full name of the container to identify node with
+        """
+        node = self.get_container_node(container_id=container_id, container_name=container_name)
+        data_dict = {}
+        if node:
+            data_dict["node_number"] = str(node[0])
+            for k, v in node[1].iteritems():
+                if k in data_keys:
+                    data_dict[k] = v
+        return data_dict
+
+    def print_node_info(self, node_keys=None):
+        """
+        Prints the information about the node on stdout
+        Keyword arguments:
+            node_keys -- A list of attribute names you want to print
+        """
+        nodes = self._dependency_graph.nodes(data=True)
+        for node in nodes:
+            node_number = str(node[0])
+            node_info = {}
+            for k, v in node[1].iteritems():
+                if not node_keys or (node_keys and k in node_keys):
+                    node_info[k] = v
+            print(
+                "Node number : {0} Node Info : {1}".format(
+                    node_number, node_info
+                )
+            )
+
+    def print_edge_info(self):
+        """Print the graph edges onto the stdout"""
+        edges = self._dependency_graph.edges()
+        for edge in edges:
+            print("Node {0} is a dependency for Node {1}".format(str(edge[0]), str(edge[1])))
+
+    def to_yaml_file(self, file_path):
+        """Write graph into yaml file"""
+        nx.write_yaml(self._dependency_graph, file_path)
 
 
 class DependencyValidator(object):

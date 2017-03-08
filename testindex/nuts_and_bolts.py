@@ -11,7 +11,11 @@ from summary import Summary
 
 
 def execute_command(cmd):
-    """Execute a specified command"""
+    """
+    Execute a specified command, returns true on success and false on failure
+    Keyword arguments:
+        cmd -- The command to execute
+    """
     try:
         fnull = open(devnull, "w")
         check_call(cmd, stdout=fnull, stderr=STDOUT)
@@ -20,10 +24,43 @@ def execute_command(cmd):
         return False
 
 
+def _print(context, msg):
+    """
+    Prints the message onto the screen if verbose is true in the context
+    Keyword arguments:
+        context -- The context object
+        msg -- What to print
+    """
+    if context.environment.verbose:
+        print(msg)
+
+def calculate_repo_path(git_url, git_path=None, context=None, repo_dump=None):
+    """
+    Calculate the repo path and git path, and return the same.
+    Keyword arguments:
+        git_url -- The git url of the repository
+        git_path -- The provided git path for purpose of calculating target path. If none, then only repo path will be
+        returned.
+        context -- The context object from which the extract repo dump. Mutually exclusive for repo_dump
+        repo_dump -- The path where the repositories are going to be cloned.
+    """
+    # The final git-path would be path where all repos are dumped + the git-url part + git-path
+    # Example : repo_dump = /mydir, git-url = https://github.com/user/repo, git-path= /mydir
+    # then final path = /mydir/github.com/user/repo/mydir
+    new_git_url = git_url
+    rd = context.environment.repo_dump if context else repo_dump
+    if ":" in new_git_url:
+        new_git_url = new_git_url.split(":")[1]
+    repo_path = "{0}/{1}".format(rd, new_git_url)
+    target_path = "{0}/{1}".format(repo_path, git_path) if git_path else None
+    return repo_path, target_path
+
+
 class Environment(object):
     """Handles the bringing up and teardown of the test environment"""
 
     def __init__(self):
+        """Initialize the environment"""
 
         home = getenv("HOME")
         if home:
@@ -62,7 +99,12 @@ class Environment(object):
 
     @staticmethod
     def _cleanup_content(folder, del_sub_dirs=True):
-        """Wipes a directoy clean without deleting the directory"""
+        """
+        Wipes a directoy clean without deleting the directory
+        Keyword arguments:
+            folder -- The folder which needs to be cleaned up.
+            del_sub_dirs -- If true then sub directories will be removed
+        """
         for current_file in listdir(folder):
 
             file_path = path.join(folder, current_file)
@@ -78,7 +120,11 @@ class Environment(object):
                 print e
 
     def cleanup_index_testbench(self, full=False):
-        """Clean up the test bench directory"""
+        """
+        Clean up the test bench directory, removing old stuff or complete test bench if full is set
+        Keyword arguments:
+            full -- If true then entire test bench is cleaned up instead of just old stuff.
+        """
         if full:
             self._cleanup_content(self.index_test_bench)
         else:
@@ -93,7 +139,11 @@ class Environment(object):
                     rmtree(removable)
 
     def teardown(self, cleanup_test_bench=False):
-        """Tear down the environment"""
+        """
+        Tear down the environment
+        Keyword arguments:
+            cleanup_test_bench -- If true, the test bench is cleaned up of all content
+        """
         environ.update(self.old_environ)
         if cleanup_test_bench:
             self._cleanup_content(self.dump_directory)
@@ -102,6 +152,7 @@ class Environment(object):
 
 
 class Context(object):
+    """The object of the context class is passed around between the classes."""
     def __init__(self):
         self.environment = Environment()
         self.summary = Summary(self.environment.summary_location)
@@ -110,6 +161,11 @@ class Context(object):
 
 class StatusIterator(object):
     def __init__(self, generator_ref_dir):
+        """
+        Initialize the status iterator
+        Keyword arguments:
+            generator_ref_dir -- The path of from where the status generator will refer for its information
+        """
         self._current = -1
         self._src = glob(generator_ref_dir + "/*.yml")
         self._src_count = len(self._src)
