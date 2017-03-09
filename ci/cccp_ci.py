@@ -116,6 +116,7 @@ oc_slave={jenkins_slave_host}""").format(
     with open('hosts', 'w') as f:
         f.write(ansible_inventory)
 
+    print test_nfs_share
 
 def setup_controller(controller):
     # provision controller
