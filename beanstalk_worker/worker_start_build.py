@@ -2,6 +2,7 @@
 
 import beanstalkc
 from binascii import hexlify
+import hashlib
 import json
 from subprocess import Popen
 from subprocess import PIPE
@@ -91,8 +92,8 @@ def start_build(job_details):
         jobid = job_details['jobid']
         desired_tag = job_details['desired_tag']
         namespace = str(appid) + "-" + str(jobid) + "-" + str(desired_tag)
-        oc_name = hexlify(namespace)
-        debug_log("Openshift project namespace hexlified from {0} to {1}, hash can be reproduced with xxd tool"
+        oc_name = hashlib.sha224(namespace).hexdigest()
+        debug_log("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
                   .format(namespace, oc_name))
         #depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']

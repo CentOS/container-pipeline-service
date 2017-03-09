@@ -2,6 +2,7 @@
 
 import beanstalkc
 from binascii import hexlify
+import hashlib
 import json
 from subprocess import Popen
 from subprocess import PIPE
@@ -65,7 +66,9 @@ def start_delivery(job_details):
     try:
         debug_log("Retrieving namespace")
         name_space = job_details['name_space']
-        oc_name = hexlify(name_space)
+        oc_name = hashlib.sha224(name_space).hexdigest()
+        debug_log("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
+                  .format(name_space, oc_name))
         notify_email = job_details['notify_email']
 
         #tag = job_details['tag']
