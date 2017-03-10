@@ -124,7 +124,7 @@ def setup_controller(controller):
         "yum install -y python-virtualenv && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
         "virtualenv venv && "
-        "$HOME/venv/bin/pip install ansible==2.1.1 && "
+        "$HOME/venv/bin/pip install ansible==2.2.1 && "
         "ln -s $HOME/venv/bin/ansible-playbook /usr/bin/ansible-playbook",
         host=controller)
 
