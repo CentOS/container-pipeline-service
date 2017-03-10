@@ -1,6 +1,8 @@
-FROM centos
+FROM registry.centos.org/centos/centos
 
-RUN yum -y install docker git PyYAML libyaml
+MAINTAINER CentOS Container Pipeline Service <container-group@centos.org>
+
+RUN yum -y install docker git PyYAML libyaml; yum clean all
 
 ADD run.sh /usr/bin/
 ADD cccp_reader.py /
