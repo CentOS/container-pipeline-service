@@ -16,6 +16,10 @@
       replace="'-t'"
   sudo: yes
 
+- name: Install docker
+  yum: name=docker state=present
+  sudo: yes
+
 - name: Start and Enable docker
   service: name=docker enabled=yes state=started
   sudo: yes
