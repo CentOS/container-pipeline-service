@@ -151,9 +151,14 @@ class IndexFormatValidator(IndexValidator):
                     self._summary_collector.add_error("job-id cannot contain _, / or . character.")
 
             # Check for git-url
-            if "git-url" not in entry or ("git-url" in entry and entry["git-url"] is None):
+            if "git-url" not in entry or ("git-url" in entry and not entry["git-url"]):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing git-url")
+            else:
+                if entry["git-url"].endswith(".git"):
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("Git url must not end with .git as its used in places other that"
+                                                      " git clone")
 
             # Checking git-path
             if "git-path" not in entry or ("git-path" in entry and entry["git-path"] is None):

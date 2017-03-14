@@ -53,3 +53,8 @@ class MalformedIndexTester(IndexCIBase):
         self.assertFalse(self._run_index_ci("Test if index ci fails if index has missing depends-on",
                                             self._test_index_location + "test_09")[0])
         print("VERIFIED")
+
+    def test_10_fails_git_url_endswith_dotgit(self):
+        self.assertFalse(self._run_index_ci("Test if index ci fails if git url ends with .git",
+                                            self._test_index_location + "test_10")[0])
+        print("VERIFIED")
