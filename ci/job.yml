@@ -11,8 +11,8 @@
 - builder:
     name: centos-container-pipeline-service-ci-cleanup-builders
     builders:
-        - shell:
-            python ./ci/cccp_ci_cleanup.py
+        - python:
+            !include-raw: ./cccp_ci_cleanup.py
 
 - builder:
     name: git-fast-forward-branch
