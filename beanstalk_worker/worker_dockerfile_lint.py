@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import subprocess
-import sys
 import constants
 
 import config
@@ -27,18 +26,10 @@ def write_dockerfile(dockerfile):
         f.write(dockerfile)
 
 
-def export_linter_logs(logs_dir, data):
+def export_linter_logs(logs_file_path, data):
     """
     Export linter logs in given directory
     """
-    logs_file_path = os.path.join(
-            logs_dir,
-            constants.LINTER_RESULTFILE
-            )
-    logger.log(
-            level=logging.INFO,
-            msg="Linter log file: %s" % logs_file_path
-            )
     try:
         fin = open(logs_file_path, "w")
         fin.write(data)
@@ -55,11 +46,37 @@ def export_linter_logs(logs_dir, data):
             level=logging.INFO,
             msg="Wrote linter logs to log file: %s" % logs_file_path
             )
+
+
+def export_linter_status(status, status_file_path):
+    """
+    Export status of linter execution for build in process
+    """
+    try:
+        fin = open(status_file_path, "w")
+        json.dump(fin, status)
+    except IOError as e:
+        logger.log(
+            level=logging.CRITICAL,
+            msg="Failed to write linter status on NFS share."
+        )
+        logger.log(
+            level=logging.CRITICAL,
+            msg=str(e)
+        )
+    else:
+        logger.log(
+            level=logging.INFO,
+            msg="Wrote linter status to file: %s" % status_file_path
+            )
     finally:
-        return logs_file_path
+        return status_file_path
 
 
 def lint_job_data(job_data):
+    """
+    Function to orchestrate Dockerfile linter execution
+    """
     logger.info("Received job data from tube")
     logger.info("Job data: %s" % job_data)
 
@@ -81,12 +98,26 @@ def lint_job_data(job_data):
 
     if err is None:
         logger.info("Dockerfile Lint check done. Exporting logs.")
-        logs_file_path = export_linter_logs(job_data["logs_dir"], out)
+        # logs file for linter
+        logs_file_path = os.path.join(
+                constants.LOGS_DIR,
+                constants.LINTER_RESULTFILE
+                )
+
+        # logs URL for linter results
         logs_URL = logs_file_path.replace(
                 constants.LOGS_DIR,
                 constants.LOGS_URL_BASE
                 )
+        # linter execution status file path
+        status_file_path = os.path.join(
+                constants.LOGS_DIR,
+                constants.LINTER_STATUS_FILE
+                )
+
         out += "\n\nHosted linter results : %s\n" % logs_URL
+        export_linter_logs(logs_file_path, out)
+
         response = {
             "logs": out,
             "linter_results": True,
@@ -94,20 +125,27 @@ def lint_job_data(job_data):
             "namespace": job_data.get('namespace'),
             "notify_email": job_data.get("notify_email"),
             "job_name": job_data.get("job_name"),
-            "msg": None
+            "msg": None,
+            "linter_results_path": logs_file_path,
+            "logs_URL": logs_URL,
+            "linter_execution_status": status_file_path
         }
 
     else:
         logger.error("Dockerfile Lint check failed", extra={'locals': locals()})
         response = {
-            "linter_results": True,
+            "linter_results": False,
             "action": "notify_user",
             "namespace": job_data.get('namespace'),
             "notify_email": job_data.get("notify_email"),
             "job_name": job_data.get("job_name"),
-            "msg": err
+            "msg": err,
+            "linter_execution_status": status_file_path
         }
 
+    # now export the status about linter execution in logs dir of the job
+    # this response will be read after job builds and sending email to user
+    export_linter_status(response, status_file_path)
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
 bs.watch("start_linter")
