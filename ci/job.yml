@@ -53,6 +53,37 @@
             error-status: "centos-ci test errored"
             build-desc-template: ''
 
+- trigger:
+    name: debug-trigger
+    triggers:
+        - github-pull-request:
+            admin-list:
+              - rtnpro
+              - kbsingh
+              - bamachrn
+              - dharmit
+              - navidshaikh
+              - mohammedzee1000
+            white-list:
+              - rtnpro
+              - kbsingh
+              - bamachrn
+              - dharmit
+              - navidshaikh
+              - mohammedzee1000
+            build-desc-template: "build description"
+            trigger-phrase: '#dotests-debug'
+            only-trigger-phrase: true
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci tests"
+            started-status: "centos-ci test started"
+            success-status: "centos-ci test succeeded"
+            failure-status: "centos-ci test failed"
+            error-status: "centos-ci test errored"
+            build-desc-template: ''
+
 - scm:
     name: custom-scm-git
     scm:
@@ -82,11 +113,35 @@
         - trigger-parameterized-builds:
             - project: 'centos-container-pipeline-service-ci-cleanup'
               property-file: 'env.properties'
-              condition: 'UNSTABLE_OR_BETTER'
+              condition: 'ALWAYS'
     scm:
         - custom-scm-git
     triggers:
         - custom-trigger
+    wrappers:
+        - workspace-cleanup
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-debug'
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service/
+    builders:
+        - git-fast-forward-branch
+        - shell: |
+            echo "CI_DEBUG=true" >> env.properties
+        - centos-container-pipeline-service-ci-builders
+    publishers:
+        - trigger-parameterized-builds:
+            - project: 'centos-container-pipeline-service-ci-cleanup'
+              property-file: 'env.properties'
+              condition: 'ALWAYS'
+    scm:
+        - custom-scm-git
+    triggers:
+        - debug-trigger
     wrappers:
         - workspace-cleanup
 
@@ -100,7 +155,7 @@
         - trigger-parameterized-builds:
             - project: 'centos-container-pipeline-service-ci-cleanup'
               property-file: 'env.properties'
-              condition: 'UNSTABLE_OR_BETTER'
+              condition: 'ALWAYS'
     scm:
         - git:
             url: https://github.com/CentOS/container-pipeline-service
