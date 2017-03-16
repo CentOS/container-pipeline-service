@@ -50,20 +50,13 @@ def run_command(command):
         logger.log(level=logging.CRITICAL, msg=e.message)
         return e.message
 
-def notify_build_failure(namespace, notify_email, log_command):
+def notify_build_failure(namespace, notify_email, build_logs_file):
     msg_details = {}
     msg_details['action'] = 'notify_user'
-    msg_details['subject'] = "FAILED: Container-build failed " + namespace
-    msg_details['msg'] = "Container build for " + namespace + \
-        " is failed due to error in build or test steps. Pleae check attached logs"
-    try:
-        logs = run_command(log_command)
-    except Exception as e:
-        logger.log(level=logging.CRITICAL, msg=e.message)
-        logs = "Could not retrieve build logs"
-
-    msg_details['logs'] = logs
+    msg_details['namespace'] = namespace
+    msg_details['build_failed'] = True
     msg_details['notify_email'] = notify_email
+    msg_details['build_logs_file'] = build_logs_file
     bs.use('master_tube')
     bs.put(json.dumps(msg_details))
 
@@ -148,17 +141,20 @@ def start_build(job_details):
             logs = run_command(log_command)
         except Exception as e:
             logger.log(level=logging.CRITICAL, msg=e.message)
-            logs = "Could not retrieve build logs"
+            logs = "Could not retrieve build logs."
+            logger.log(level=logging.CRITICAL, msg=logs)
         else:
             logger.log(level=logging.INFO,
                        msg="Writing build logs to NFS share..")
+        finally:
+            # Export logs on disk in either case
             export_build_logs(logs, build_logs_file)
 
         is_complete = run_command(status_command).find('Complete')
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
-            notify_build_failure(namespace, notify_email, log_command)
+            notify_build_failure(namespace, notify_email, build_logs_file)
             debug_log("Build is not successful putting it to failed build tube")
         else:
             debug_log("Build is successfull going for next job")
