@@ -1,7 +1,11 @@
+import os
 import json
 import rpmUtils.arch
 import yum
+import fedmsg
 from distutils.version import LooseVersion
+
+import config
 
 
 class YumRepoUpdateCheck(yum.YumBase):
@@ -122,17 +126,24 @@ class YumRepoUpdateCheck(yum.YumBase):
         return (added, modified, removed)
 
 
-def main():
-    baseurls = [
-        'http://mirror.centos.org/centos/7.3.1611/os/x86_64/',
-        'http://mirror.centos.org/centos/7.3.1611/updates/x86_64/'
-    ]
-    yruc = YumRepoUpdateCheck('upstream', baseurls, 'x86_64')
+def process_upstream(name, upstream):
+    """
+    Check an upstream for updates.
+
+    Args:
+        name (str): Upstream name
+        upstream (dict): Upstream details
+    """
+    yruc = YumRepoUpdateCheck('upstream', upstream['baseurls'],
+                              upstream['arch'])
     yruc.setup_repos()
+    initial = False
+    filename = os.path.join(config.datadir, 'repodata_%s.json' % name)
     try:
-        with open('repodata.json') as f:
+        with open(filename) as f:
             opkgs = json.load(f)
     except:
+        initial = True
         opkgs = []
     npkgs = [pkg.pkgtup for pkg in yruc.iter_newest_packages()]
     added, modified, removed = yruc.compare(opkgs, npkgs)
@@ -140,8 +151,72 @@ def main():
     print 'Added: {}, Modified: {}, Removed: {}'.format(
         len(added), len(modified), len(removed))
 
-    with open('repodata.json', 'w') as f:
+    with open(filename, 'w') as f:
         json.dump(npkgs, f, indent=2)
+
+    # fedmsg name, modname
+    modname = 'container_pipeline'
+
+    if not initial:
+        for old, new in modified:
+            fedmsg.publish(
+                topic='package.modified',
+                modname=modname,
+                msg={
+                    "upstream": upstream,
+                    "package": {
+                        "name": new[0],
+                        "arch": new[1],
+                        "epoch": new[2],
+                        "version": new[3],
+                        "release": new[4]
+                    },
+                    "old_package": {
+                        "name": old[0],
+                        "arch": old[1],
+                        "epoch": old[2],
+                        "version": old[3],
+                        "release": old[4]
+                    }
+                }
+            )
+
+        for _, new in added:
+            fedmsg.publish(
+                topic='package.added',
+                modname=modname,
+                msg={
+                    "upstream": upstream,
+                    "package": {
+                        "name": new[0],
+                        "arch": new[1],
+                        "epoch": new[2],
+                        "version": new[3],
+                        "release": new[4]
+                    }
+                }
+            )
+
+        for old, _ in removed:
+            fedmsg.publish(
+                topic='package.removed',
+                modname=modname,
+                msg={
+                    "upstream": upstream,
+                    "package": {
+                        "name": old[0],
+                        "arch": old[1],
+                        "epoch": old[2],
+                        "version": old[3],
+                        "release": old[4]
+                    }
+                }
+            )
+
+
+def main():
+    for name, upstream in config.upstreams.items():
+        process_upstream(name, upstream)
 
 
 if __name__ == '__main__':
