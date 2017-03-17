@@ -222,9 +222,12 @@ class IndexProjectsValidator(IndexValidator):
         # If the path doesnt already exist, attempt to clone repo
         if not path.exists(clone_to):
             cmd = ["git", "clone", git_url, clone_to]
-
             if not execute_command(cmd):
-                return None
+                if not git_url.endswith(".git"):
+                    git_url += ".git"
+                cmd = ["git", "clone", git_url, clone_to]
+                if not execute_command(cmd):
+                    return None
 
         # Update repo
         get_back = getcwd()
