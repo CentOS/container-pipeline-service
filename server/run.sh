@@ -16,14 +16,14 @@ _ "Cloning the source repository..."
 git clone $SOURCE_REPOSITORY_URL||jumpto sendstatusmail
 
 
-dirname=${SOURCE_REPOSITORY_URL##*/}
-if [[ "$dirname" == *.git ]]
+source_dirname=${SOURCE_REPOSITORY_URL##*/}
+if [[ "$source_dirname" == *.git ]]
 then
-    dirname=${dirname%????}
+    source_dirname=${source_dirname%????}
 fi
 
-_ "Entering directory ${dirname##*/}"
-cd ${dirname##*/}
+_ "Entering directory ${source_dirname##*/}"
+cd ${source_dirname##*/}
 
 _ "Changing repo branch ${REPO_BRANCH}"
 git checkout $REPO_BRANCH||jumpto sendstatusmail
