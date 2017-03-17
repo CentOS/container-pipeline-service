@@ -1,10 +1,14 @@
 - builder:
-    name: centos-container-pipeline-service-ci-builders
+    name: centos-container-pipeline-service-ci-builder-setup-env
     builders:
         - shell: |
             sh ./ci/setup_env.sh
         - inject:
             properties-file: env.properties
+
+- builder:
+    name: centos-container-pipeline-service-ci-builder-tests
+    builders:
         - shell: |
             python ./ci/cccp_ci.py
 
@@ -108,7 +112,8 @@
             url: https://github.com/CentOS/container-pipeline-service/
     builders:
         - git-fast-forward-branch
-        - centos-container-pipeline-service-ci-builders
+        - centos-container-pipeline-service-ci-builder-setup-env
+        - centos-container-pipeline-service-ci-builder-tests
     publishers:
         - trigger-parameterized-builds:
             - project: 'centos-container-pipeline-service-ci-cleanup'
@@ -130,9 +135,10 @@
             url: https://github.com/CentOS/container-pipeline-service/
     builders:
         - git-fast-forward-branch
+        - centos-container-pipeline-service-ci-builder-setup-env
         - shell: |
             echo "CI_DEBUG=true" >> env.properties
-        - centos-container-pipeline-service-ci-builders
+        - centos-container-pipeline-service-ci-builder-tests
     publishers:
         - trigger-parameterized-builds:
             - project: 'centos-container-pipeline-service-ci-cleanup'
@@ -150,7 +156,8 @@
     node: container
     primary-view: container
     builders:
-        - centos-container-pipeline-service-ci-builders
+        - centos-container-pipeline-service-ci-builder-setup-env
+        - centos-container-pipeline-service-ci-builder-tests
     publishers:
         - trigger-parameterized-builds:
             - project: 'centos-container-pipeline-service-ci-cleanup'
