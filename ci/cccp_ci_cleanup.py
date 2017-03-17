@@ -13,13 +13,17 @@ print (DUFFY_SSID, URL_BASE)
 
 
 def fail_nodes():
+    _print("Failing nodes")
     fail_nodes_url = "{url_base}/Node/fail?key={key}&ssid={ssid}".format(
         url_base=URL_BASE, key=API, ssid=DUFFY_SSID)
     resp = urllib.urlopen(fail_nodes_url).read()
+    with open(os.path.expanduser('~/failed_ssids.txt', 'a')) as f:
+        f.writelines([DUFFY_SSID])
     _print(resp)
 
 
 def clean_nodes():
+    _print("Cleaning nodes")
     done_nodes_url = "%s/Node/done?key=%s&ssid=%s" % (
         URL_BASE, API, DUFFY_SSID)
     resp = urllib.urlopen(done_nodes_url).read()

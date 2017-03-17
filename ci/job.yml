@@ -183,6 +183,14 @@
         - centos-container-pipeline-service-ci-cleanup-builders
 
 - job:
+    name: 'centos-container-pipeline-service-ci-return-failed-nodes'
+    node: container
+    ci_project: container
+    builders:
+        - shell:
+            !include-raw: ./return_failed_nodes.sh
+
+- job:
     name: centos-container-pipeline-service-container-index
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
