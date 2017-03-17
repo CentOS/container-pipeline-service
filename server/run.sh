@@ -17,6 +17,11 @@ git clone $SOURCE_REPOSITORY_URL||jumpto sendstatusmail
 
 
 dirname=${SOURCE_REPOSITORY_URL##*/}
+if [[ "$dirname" == *.git ]]
+then
+    dirname=${dirname%????}
+fi
+
 _ "Entering directory ${dirname##*/}"
 cd ${dirname##*/}
 
