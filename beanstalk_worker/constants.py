@@ -20,5 +20,7 @@ LINTER_RESULTFILE = "linter_results.txt"
 
 LINTER_STATUS_FILE = "linter_status.json"
 
+SCANNERS_STATUS_FILE = "scanners_status.json"
+
 LOGS_URL_BASE = "https://registry.centos.org/pipeline-logs/"
 LOGS_DIR = "/srv/pipeline-logs/"
