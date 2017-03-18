@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import beanstalkc
-from binascii import hexlify
 import hashlib
 import json
 from subprocess import Popen
@@ -9,7 +8,6 @@ from subprocess import PIPE
 import re
 import time
 import logging
-import sys
 import os
 import config
 
@@ -29,22 +27,23 @@ DELAY = 30
 
 
 def run_command(command):
-    logger.debug("Running command: "+command)
+    logger.debug("Running command: " + command)
     try:
         p = Popen(command, bufsize=0, shell=True,
-              stdout=PIPE, stderr=PIPE, stdin=PIPE)
-        #p.wait()
-        out,err = p.communicate()
+                  stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        # p.wait()
+        out, err = p.communicate()
         return out
     except Exception as e:
         logger.critical(e.message, extra={'locals': locals()}, exc_info=True)
         return e.message
 
+
 def notify_build_failure(namespace, notify_email, build_logs_file):
     msg_details = {}
     msg_details['action'] = 'notify_user'
     msg_details['namespace'] = namespace
-    msg_details['build_failed'] = True
+    msg_details['build_status'] = False
     msg_details['notify_email'] = notify_email
     msg_details['build_logs_file'] = build_logs_file
     bs.use('master_tube')
@@ -77,15 +76,15 @@ def start_build(job_details):
         namespace = str(appid) + "-" + str(jobid) + "-" + str(desired_tag)
         oc_name = hashlib.sha224(namespace).hexdigest()
         logger.debug("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
-            "be reproduced with sha224 tool"
-                  .format(namespace, oc_name))
-        #depends_on = job_details['depends_on']
+                     "be reproduced with sha224 tool"
+                     .format(namespace, oc_name))
+        # depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
         # This will be a mounted directory
         build_logs_file = os.path.join(
-                job_details["logs_dir"],
-                "build_logs.txt"
-                )
+            job_details["logs_dir"],
+            "build_logs.txt"
+        )
 
         logger.debug("Login to OpenShift server")
         command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
@@ -146,7 +145,8 @@ def start_build(job_details):
         if is_complete < 0:
             bs.put(json.dumps(job_details))
             notify_build_failure(namespace, notify_email, build_logs_file)
-            logger.debug("Build is not successful putting it to failed build tube")
+            logger.debug(
+                "Build is not successful putting it to failed build tube")
         else:
             logger.debug("Build is successfull going for next job")
 
@@ -162,20 +162,21 @@ def main():
             logger.debug("listening to start_build tube")
             current_jobs_in_tube = bs.stats_tube(
                 'start_build')['current-jobs-ready']
-            got_job=False
-            if current_jobs_in_tube > 0 :
+            got_job = False
+            if current_jobs_in_tube > 0:
                 job = bs.reserve()
-                got_job=True
+                got_job = True
                 job_details = json.loads(job.body)
                 result = start_build(job_details)
             else:
                 logger.debug("No job found to process looping again")
                 time.sleep(DELAY)
         except Exception as e:
-            logger.critical(e.message, extra={'locals': locals()}, exc_info=True)
+            logger.critical(e.message, extra={
+                            'locals': locals()}, exc_info=True)
             time.sleep(DELAY)
         finally:
-            if got_job :
+            if got_job:
                 job.delete()
                 logger.debug("Deleting the job after build worker loop")
 

@@ -128,7 +128,6 @@ def lint_job_data(job_data):
             "msg": None,
             "linter_results_path": logs_file_path,
             "logs_URL": logs_URL,
-            "linter_execution_status": status_file_path
         }
 
     else:
@@ -140,7 +139,6 @@ def lint_job_data(job_data):
             "notify_email": job_data.get("notify_email"),
             "job_name": job_data.get("job_name"),
             "msg": err,
-            "linter_execution_status": status_file_path
         }
 
     # now export the status about linter execution in logs dir of the job

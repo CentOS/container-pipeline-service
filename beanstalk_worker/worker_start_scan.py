@@ -212,15 +212,6 @@ class ScannerRunner(object):
         # TODO: Check here if at least one scanner ran successfully
         logger.info("Finished executing all scanners.")
 
-        # scanners_execution status
-        status_file_path = os.path.join(
-            constants.LOGS_DIR,
-            constants.SCANNERS_STATUS_FILE
-        )
-
-        # put the status of execution per scanner
-        scanners_data["status"] = status_file_path
-
         # We export the scanners_status on NFS
         self.export_scanners_status(scanners_data, status)
 
@@ -538,11 +529,15 @@ while True:
                 level=logging.INFO,
                 msg=str(scanners_data)
             )
+        # if weekly scan, push the job for notification
+        if job_info.get("weekly"):
+            bs.use("master_tube")
+            bs.put(json.dumps(job_info))
     except Exception as e:
         logger.fatal(str(e), exc_info=True)
         job_info["action"] = "start_delivery"
         bs.use("master_tube")
-        job_id = bs.put(json.dumps(job_info))
+        bs.put(json.dumps(job_info))
     finally:
-        logger.info("Job moved from scan phase, id: %s" % job_id)
+        logger.info("Job moved from scan phase.")
         job.delete()

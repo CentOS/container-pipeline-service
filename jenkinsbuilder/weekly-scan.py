@@ -82,7 +82,8 @@ for f in files:
                 (registry, app_id, job_id, desired_tag),
                 "notify_email": email,
                 "weekly": True,
-                "logs_dir": LOGS_DIR
+                "logs_dir": LOGS_DIR,
+                "TEST_TAG": TEST_TAG
             }
 
             job = bs.put(json.dumps(data))
