@@ -17,6 +17,7 @@ from ci.lib import _print, run_cmd, provision
 
 url_base = os.environ.get('URL_BASE')
 api = os.environ.get('API')
+DEBUG = os.environ.get('CI_DEBUG', None) == 'true'
 ver = "7"
 arch = "x86_64"
 count = 4
@@ -30,31 +31,16 @@ repo_branch = os.environ.get('ghprbSourceBranch') or \
 def get_nodes(ver="7", arch="x86_64", count=4):
     get_nodes_url = "%s/Node/get?key=%s&ver=%s&arch=%s&count=%s" % (
         url_base, api, ver, arch, count)
+    _print("get_nodes_url: %s" % get_nodes_url)
 
     resp = urllib.urlopen(get_nodes_url).read()
+    _print("get_nodes response: %s" % resp)
     data = json.loads(resp)
     with open('env.properties', 'a') as f:
         f.write('DUFFY_SSID=%s' % data['ssid'])
         f.close()
     _print(resp)
     return data['hosts']
-
-
-def fail_nodes():
-    with open('env.properties') as f:
-        s = f.read()
-
-    ssid = None
-    for line in s.splitlines():
-        key, value = line.split('=')
-        if key == 'DUFFY_SSID':
-            ssid = value
-            break
-
-    fail_nodes_url = "{url_base}/Node/fail?key={key}&ssid={ssid}".format(
-        url_base=url_base, key=api, ssid=ssid)
-    resp = urllib.urlopen(fail_nodes_url).read()
-    _print(resp)
 
 
 def print_nodes():
@@ -209,8 +195,10 @@ if __name__ == '__main__':
         run()
     except Exception as e:
         _print('Build failed: %s' % e)
-        _print('Reserving nodes for debugging...')
-        fail_nodes()
-        _print('=' * 10 + 'Node Info' + '=' * 10)
-        print_nodes()
+        if DEBUG:
+            _print('Reserving nodes for debugging...')
+            _print('=' * 10 + 'Node Info' + '=' * 10)
+            print_nodes()
+            with open('env.properties', 'a') as f:
+                f.write('\nBUILD_FAILED=true\n')
         sys.exit(1)
