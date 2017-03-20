@@ -123,3 +123,23 @@
     path: /srv/pipeline-logs
     state: directory
     mode: 0777
+- name: Cron job to update pipeline-scanner image
+  cron:
+      name: Cron job to update pipeline-scanner image
+      special_time: daily
+      job: "docker pull registry.centos.org/pipeline-images/pipeline-scanner"
+      state: present
+
+- name: Cron job to update scanner-rpm-verify image
+  cron:
+      name: Cron job to update scanner-rpm-verify image
+      special_time: daily
+      job: "docker pull registry.centos.org/pipeline-images/scanner-rpm-verify"
+      state: present
+
+- name: Cron job to update misc-package-updates image
+  cron:
+      name: Cron job to update misc-package-updates image
+      special_time: daily
+      job: "docker pull registry.centos.org/pipeline-images/misc-package-updates"
+      state: present
