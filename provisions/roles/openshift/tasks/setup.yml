@@ -61,10 +61,3 @@
   shell: docker build -t cccp-delivery -f ./Dockerfile.delivery .
   args:
       chdir: "{{ ansible_env.HOME }}/cccp-service/server"
-
-- name: Create logs directory (dummy for NFS)
-  file:
-    path: /srv/pipeline-logs
-    state: directory
-    mode: 0777
-  when: test

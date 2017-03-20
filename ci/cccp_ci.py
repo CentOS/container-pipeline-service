@@ -21,6 +21,7 @@ DEBUG = os.environ.get('CI_DEBUG', None) == 'true'
 ver = "7"
 arch = "x86_64"
 count = 4
+NFS_SHARE = "/nfsshare"
 
 repo_url = os.environ.get('ghprbAuthorRepoGitUrl') or \
     os.environ.get('GIT_URL')
@@ -53,6 +54,8 @@ def print_nodes():
 def generate_ansible_inventory(jenkins_master_host, jenkins_slave_host,
                                openshift_host, scanner_host):
 
+    test_nfs_share = scanner_host + ":" + NFS_SHARE
+
     ansible_inventory = ("""
 [all:children]
 jenkins_master
@@ -82,6 +85,7 @@ cccp_source_repo={repo_url}
 cccp_source_branch={repo_branch}
 jenkins_public_key_file = jenkins.key.pub
 enable_epel=False
+test_nfs_share={test_nfs_share}
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key
@@ -92,11 +96,13 @@ oc_slave={jenkins_slave_host}""").format(
         openshift_host=openshift_host,
         repo_url=repo_url,
         repo_branch=repo_branch,
-        scanner_host=scanner_host)
+        scanner_host=scanner_host,
+        test_nfs_share=test_nfs_share)
 
     with open('hosts', 'w') as f:
         f.write(ansible_inventory)
 
+    print test_nfs_share
 
 def setup_controller(controller):
     # provision controller

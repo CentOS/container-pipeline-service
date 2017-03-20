@@ -45,11 +45,3 @@
   tags:
     - test
     - ci-build-test-project
-
-- name: Create logs directory (dummy for NFS)
-  when: test
-  file:
-    path: /srv/pipeline-logs
-    state: directory
-    mode: 0777
-
