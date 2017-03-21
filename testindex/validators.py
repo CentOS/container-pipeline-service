@@ -155,7 +155,7 @@ class IndexFormatValidator(IndexValidator):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing git-url")
             else:
-                if "gitlab" in entry["git-url"] and not entry["git-url"].endswith(".git"):
+                if "gitlab." in entry["git-url"] and not entry["git-url"].endswith(".git"):
                     self._mark_entry_invalid(entry)
                     self._summary_collector.add_error("Git urls from gitlab must end with .git, try {0}.git".format(entry["git-url"]))
 
