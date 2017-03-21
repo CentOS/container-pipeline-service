@@ -154,6 +154,10 @@ class IndexFormatValidator(IndexValidator):
             if "git-url" not in entry or ("git-url" in entry and entry["git-url"] is None):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing git-url")
+            else:
+                if "gitlab" in entry["git-url"] and not entry["git-url"].endswith(".git"):
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("Git urls from gitlab must end with .git, try {0}.git".format(entry["git-url"]))
 
             # Checking git-path
             if "git-path" not in entry or ("git-path" in entry and entry["git-path"] is None):
@@ -222,7 +226,6 @@ class IndexProjectsValidator(IndexValidator):
         # If the path doesnt already exist, attempt to clone repo
         if not path.exists(clone_to):
             cmd = ["git", "clone", git_url, clone_to]
-
             if not execute_command(cmd):
                 return None
 
