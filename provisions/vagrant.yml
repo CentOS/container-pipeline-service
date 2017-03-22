@@ -8,6 +8,10 @@
     - name: Enable centos admin repo when EPEL is disabled
       copy: src=centos-admin.repo dest=/etc/yum.repos.d/centos-admin.repo
       when: not enable_epel
+    - name: Set SELinux to Permissive
+      selinux:
+          policy: targeted
+          state: permissive
   tags:
     - jenkins
     - openshift
