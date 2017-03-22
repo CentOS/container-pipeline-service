@@ -121,8 +121,6 @@ class ScannerRunner(object):
                 level=logging.INFO,
                 msg="Wrote scanners status to file: %s" % status_file_path
             )
-        finally:
-            return status_file_path
 
     def export_scanner_logs(self, scanner, data):
         """

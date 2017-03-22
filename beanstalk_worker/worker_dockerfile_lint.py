@@ -69,8 +69,6 @@ def export_linter_status(status, status_file_path):
             level=logging.INFO,
             msg="Wrote linter status to file: %s" % status_file_path
             )
-    finally:
-        return status_file_path
 
 
 def lint_job_data(job_data):
