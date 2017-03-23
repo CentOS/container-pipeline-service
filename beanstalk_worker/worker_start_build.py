@@ -172,10 +172,11 @@ while True:
             job = bs.reserve()
             job_details = json.loads(job.body)
             result = start_build(job_details)
-            job.delete()
         else:
             debug_log("No job found to process looping again")
             time.sleep(DELAY)
     except Exception as e:
         logger.log(level=logging.CRITICAL, msg=e.message)
         time.sleep(DELAY)
+    finally:
+        job.delete()
