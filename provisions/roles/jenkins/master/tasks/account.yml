@@ -2,7 +2,7 @@
 # Create admin user
 - name: Create admin user
   shell: >
-    echo 'hpsr=new hudson.security.HudsonPrivateSecurityRealm(true); hpsr.createAccount("{{ jenkins_admin_username }}", "{{ jenkins_admin_password }}")' | java -jar  {{ jenkins_jar_location }} -s  http://{{ jenkins_hostname }}:{{ jenkins_http_port }}/ groovy =
+    echo 'hpsr=new hudson.security.HudsonPrivateSecurityRealm(false); hpsr.createAccount("{{ jenkins_admin_username }}", "{{ jenkins_admin_password }}")' | java -jar  {{ jenkins_jar_location }} -s  http://{{ jenkins_hostname }}:{{ jenkins_http_port }}/ groovy =
   args:
       creates: /var/lib/jenkins/user.json
   ignore_errors: true

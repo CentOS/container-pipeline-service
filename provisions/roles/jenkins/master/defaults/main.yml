@@ -16,6 +16,7 @@ jenkins_jar_location: /opt/jenkins-cli.jar
 jenkins_plugins:
   - git
   - ssh
+  - ssh-slaves
   - multiple-scms
   - python
   - ws-cleanup
