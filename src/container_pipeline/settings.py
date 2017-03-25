@@ -84,6 +84,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # tracking
-REGISTRY_ENDPOINTS = [
-    ('registry.centos.org', 'https://registry.centos.org')
-]
+REGISTRY_ENDPOINT = ('registry.centos.org', 'https://registry.centos.org')
+JENKINS_ENDPOINT = 'http://127.0.0.1:8080/'
+JENKINS_USERNAME = 'admin'
+JENKINS_PASSWORD = 'admin'
+JENKINS_CLI = '/opt/jenkins-cli.jar'

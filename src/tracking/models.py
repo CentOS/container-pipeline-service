@@ -27,6 +27,8 @@ class ContainerImage(models.Model):
                                       help_text="Packages")
     parents = models.ManyToManyField('self', symmetrical=False,
                                      help_text="Parent images")
+    to_build = models.BooleanField(default=False, db_index=True,
+                                   help_text='Whether to build image or not')
 
     def __str__(self):
         return self.name
