@@ -1,0 +1,5 @@
+[Unit]
+Description=cccp-pkgupdatelistener.service
+
+[Service]
+ExecStart=/opt/cccp-service/src/manage.py pkgupdatelistener

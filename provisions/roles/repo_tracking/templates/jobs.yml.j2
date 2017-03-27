@@ -1,0 +1,35 @@
+- job:
+    name: 'repo-update-checker'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: master
+    builders:
+        - shell: |
+            CWD=`pwd`
+            cd /opt/cccp-service/src/tracking
+            python repo.py
+    triggers:
+        - reverse:
+            jobs: "populate-image-pkgs"
+            result: 'success'
+        - pollscm: "H/10 * * * *"
+
+- job:
+    name: 'populate-image-pkgs'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: master
+    scm:
+        - git:
+            url: "{{ cccp_index_repo }}"
+            branches:
+                - "origin/master"
+            skip-tag: True
+    triggers:
+        - pollscm: "H/10 * * * *"
+    builders:
+        - shell: |
+            export CWD=`pwd`
+            cd /opt/cccp-service/src
+            python manage.py fetchimagelist $CWD/index.d
+            python manage.py populateimagepkgs

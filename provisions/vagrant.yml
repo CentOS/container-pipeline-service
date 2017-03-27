@@ -69,3 +69,10 @@
   tags:
     - jenkins
     - jenkins/master
+
+- name: Setup repo tracking
+  hosts: jenkins_master
+  roles:
+      - repo_tracking
+  tags:
+      - repo_tracking

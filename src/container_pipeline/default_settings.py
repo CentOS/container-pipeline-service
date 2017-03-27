@@ -84,8 +84,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
-LOG_PATH = os.environ.get('LOG_PATH') or os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..'))
+LOG_PATH = os.environ.get('LOG_PATH') or os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 LOGGING = {
     'version': 1,
