@@ -22,6 +22,11 @@ public_registry=jenkins-slave
 beanstalk_server=openshift
 rsync_ssh_opts=""
 
+## dev environment options, update following to configure NFS
+#test=True
+# replace scanner_worker below with its FQDN / IP
+#test_nfs_share= scanner_worker:/nfsshare
+
 [jenkins_master:vars]
 # update as needed
 oc_slave=jenkins-slave
