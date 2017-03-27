@@ -168,8 +168,10 @@ while True:
     try:
         debug_log("listening to start_build tube")
         current_jobs_in_tube = int(dict(item.split(":") for item in bs.stats_tube('start_build').split('\n')[1:-1])['current-jobs-ready'])
+        got_job=False
         if current_jobs_in_tube > 0 :
             job = bs.reserve()
+            got_job=True
             job_details = json.loads(job.body)
             result = start_build(job_details)
         else:
@@ -179,4 +181,6 @@ while True:
         logger.log(level=logging.CRITICAL, msg=e.message)
         time.sleep(DELAY)
     finally:
-        job.delete()
+        if got_job :
+            job.delete()
+            debug_log("Deleting the job after build worker loop")
