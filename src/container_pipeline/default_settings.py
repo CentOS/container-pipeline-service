@@ -83,6 +83,44 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
+LOG_PATH = os.environ.get('LOG_PATH') or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..'))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'cccp_file': {
+            'format': '[%(asctime)s %(name)s %(levelname)s] %(message)s',
+        },
+        'cccp_stream': {
+            'format': '[%(asctime)s %(name)s %(levelname)s] %(message)s',
+        },
+    },
+    'handlers': {
+        'log_to_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_PATH, 'cccp.log'),
+            'mode': 'a+',
+            'formatter': 'cccp_file',
+        },
+        'log_to_stream': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'cccp_stream',
+        },
+    },
+    'loggers': {
+        'cccp': {
+            'handlers': ['log_to_file', 'log_to_stream', ],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        }
+    },
+}
+
 # tracking
 REGISTRY_ENDPOINT = ('registry.centos.org', 'https://registry.centos.org')
 JENKINS_ENDPOINT = 'http://127.0.0.1:8080/'
