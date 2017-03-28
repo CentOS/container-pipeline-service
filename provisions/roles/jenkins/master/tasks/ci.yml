@@ -1,5 +1,5 @@
 - name: Run cccp-index job
-  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build cccp-index --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} -f -v
+  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build cccp-index -f -v
   when: test
   sudo: yes
   register: result
@@ -18,10 +18,12 @@
   sudo: yes
 
 - name: Run bamachrn-python-release job
-  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build bamachrn-python-release --username {{ jenkins_admin_username }} --password {{ jenkins_admin_password }} -f -v
+  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build bamachrn-python-release -f -v
   when: test
   sudo: yes
   register: result
+  tags:
+    - debug
 
 - name: bamachrn-python build output
   debug: msg="{{ result['stdout'] }}"

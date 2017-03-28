@@ -1,5 +1,11 @@
 - include: install.yml
 
+- include: config.yml
+
+- name: Restart jenkins
+  service: name=jenkins state=restarted
+  sudo: yes
+
 - name: Wait for Jenkins to come up
   shell: curl --head --silent http://localhost:8080/cli/
   register: result
@@ -8,10 +14,6 @@
   delay: 10
 
 - include: plugins.yml
-
-- include: account.yml
-
-- include: config.yml
 
 - name: restart jenkins
   service: name=jenkins state=restarted enabled=yes

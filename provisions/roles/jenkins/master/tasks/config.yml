@@ -13,7 +13,6 @@
     src="{{ item }}"
     dest="/var/lib/jenkins/{{ item }}"
   with_items:
-  - config.xml
   - credentials.xml
 #  - hudson.tasks.Mailer.xml
   tags:
@@ -50,3 +49,9 @@
   - jenkins
   - jenkins/master
   - config
+
+- name: Ensure /var/lib/jenkins is accessible by Jenkins
+  file:
+    path: /var/lib/jenkins
+    state: directory
+    owner: jenkins
