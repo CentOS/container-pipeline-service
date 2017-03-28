@@ -14,9 +14,13 @@ class Command(BaseCommand):
                     id__in=[item.id for item in container.parents.all()]):
                 try:
                     to_build.remove(container)
+                    container.to_build = False
+                    container.save()
                 except KeyError:
                     pass
             else:
                 to_build.add(container)
         for c in to_build:
             c.trigger_build()
+            c.to_build = False
+            c.save()
