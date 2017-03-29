@@ -157,7 +157,9 @@ def process_upstream(name, upstream):
     # fedmsg name, modname
     modname = 'container_pipeline'
 
-    if not initial:
+    # FIXME: Currently publish initial list of packages to fedmsg
+    # if not initial:
+    if initial or not initial:
         for old, new in modified:
             fedmsg.publish(
                 topic='package.modified',
