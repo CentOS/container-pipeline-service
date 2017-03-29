@@ -124,7 +124,7 @@ LOGGING = {
 # tracking
 REGISTRY_ENDPOINT = ('registry.centos.org', 'https://registry.centos.org')
 JENKINS_ENDPOINT = 'http://127.0.0.1:8080/'
-JENKINS_USERNAME = 'admin'
-JENKINS_PASSWORD = 'admin'
+JENKINS_USERNAME = ''
+JENKINS_PASSWORD = ''
 JENKINS_CLI = '/opt/jenkins-cli.jar'
 CONTAINER_BUILD_TRIGGER_DELAY = 10

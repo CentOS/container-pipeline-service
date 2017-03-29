@@ -58,12 +58,22 @@ class ContainerImage(models.Model):
         return subprocess.check_output(docker_cmd, shell=True)
 
     def trigger_build(self):
-        cmd = (
-            'java -jar {} -s {} build {} --username {} --password {}'.format(
-                settings.JENKINS_CLI,
-                settings.JENKINS_ENDPOINT,
-                self.jobname,
-                settings.JENKINS_USERNAME,
-                settings.JENKINS_PASSWORD)
-        )
+        if settings.JENKINS_USERNAME:
+            cmd = (
+                'java -jar {} -s {} build {} --username {} --password {}'
+                .format(
+                    settings.JENKINS_CLI,
+                    settings.JENKINS_ENDPOINT,
+                    self.jobname,
+                    settings.JENKINS_USERNAME,
+                    settings.JENKINS_PASSWORD)
+            )
+        else:
+            cmd = (
+                'java -jar {} -s {} build {}'.format(
+                    settings.JENKINS_CLI,
+                    settings.JENKINS_ENDPOINT,
+                    self.jobname)
+            )
+
         subprocess.check_call(cmd, shell=True)
