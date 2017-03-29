@@ -98,18 +98,18 @@ def lint_job_data(job_data):
         logger.info("Dockerfile Lint check done. Exporting logs.")
         # logs file for linter
         logs_file_path = os.path.join(
-                constants.LOGS_DIR,
+                job_data.get("logs_dir"),
                 constants.LINTER_RESULTFILE
                 )
 
         # logs URL for linter results
         logs_URL = logs_file_path.replace(
-                constants.LOGS_DIR,
+                job_data.get("logs_dir"),
                 constants.LOGS_URL_BASE
                 )
         # linter execution status file path
         status_file_path = os.path.join(
-                constants.LOGS_DIR,
+                job_data.get("logs_dir"),
                 constants.LINTER_STATUS_FILE
                 )
 
