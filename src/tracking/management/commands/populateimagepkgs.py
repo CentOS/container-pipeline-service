@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand  # CommandError
 import logging
 
 from tracking.models import ContainerImage, Package
+from tracking.lib import get_navr_from_pkg_name
 
 logger = logging.getLogger('cccp')
 
@@ -23,12 +24,7 @@ class Command(BaseCommand):
             for line in output.splitlines():
                 if not line:
                     continue
-                a, b = line.rsplit('-', 1)
-                name, version = a.rsplit('-', 1)
-                try:
-                    release, arch = b.rsplit('.', 1)
-                except ValueError:
-                    release, arch = b, ''
+                name, arch, version, release = get_navr_from_pkg_name(line)
                 p, created = Package.objects.get_or_create(
                     name=name, version=version, release=release, arch=arch)
                 packages.append(p)
