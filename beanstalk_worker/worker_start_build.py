@@ -10,6 +10,7 @@ import time
 import logging
 import os
 import config
+from lib import Build, get_job_name
 
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
@@ -77,7 +78,7 @@ def start_build(job_details):
         appid = job_details['appid']
         jobid = job_details['jobid']
         desired_tag = job_details['desired_tag']
-        namespace = str(appid) + "-" + str(jobid) + "-" + str(desired_tag)
+        namespace = get_job_name(job_details)
         oc_name = hashlib.sha224(namespace).hexdigest()
         logger.debug("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
                      "be reproduced with sha224 tool"
@@ -106,6 +107,10 @@ def start_build(job_details):
             " start-build build" + kubeconfig
         out = run_command(command_start_build)
         logger.debug(out)
+
+        # mark container image build as running
+        # This will be mark as complete on delivery complete
+        Build(namespace).start()
 
         build_details = out.split('"')[-1].rstrip()
         logger.debug(build_details)
@@ -165,17 +170,34 @@ def start_build(job_details):
 
 def main():
     while True:
+        parent_build_running = False
+        got_job = False
         try:
             logger.debug("listening to start_build tube")
             current_jobs_in_tube = bs.stats_tube(
                 'start_build')['current-jobs-ready']
-            got_job = False
             if current_jobs_in_tube > 0:
                 job = bs.reserve()
                 got_job = True
                 job_details = json.loads(job.body)
-                logger.debug(str(job_details))
-                result = start_build(job_details)
+                parents = job_details.get('depends_on', '').split(',')
+                parents_in_build = []
+                for parent in parents:
+                    is_build_running = Build(parent).is_running()
+                    if is_build_running:
+                        parents_in_build.append(parent)
+                    parent_build_running = parent_build_running or \
+                        is_build_running
+
+                if parent_build_running:
+                    logger.debug('Parents in build: %s, pushing job: %s back '
+                                 'to queue' % (parents_in_build, job_details))
+                    bs.use('master_tube')
+                    bs.put(json.dumps(job_details))
+                    bs.use('failed_build')
+                else:
+                    logger.debug(str(job_details))
+                    result = start_build(job_details)
             else:
                 logger.debug("No job found to process looping again")
                 time.sleep(DELAY)
