@@ -5,6 +5,9 @@ function _() {
 }
 TOKEN=`cat /var/run/secrets/kubernetes.io/serviceaccount/token`
 
+NFS_SHARE="/srv/pipeline-logs"
+LOGS_DIR="${NFS_SHARE}/${TEST_TAG}"
+
 if [ "${TARGET_REGISTRY}" == "" ];then
     TARGET_REGISTRY=${OUTPUT_REGISTRY}
 fi
@@ -25,8 +28,10 @@ docker push ${FULL_TO}
 
 OUTPUT_IMAGE=registry.centos.org/${APPID}/${TO}
 
+NS="${APPID}-${JOBID}-${DESIRED_TAG}"
+
 _ "Send success mail for user notify tube"
-python /tube_request/send_notify_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} ${NOTIFY_EMAIL} ${TEST_TAG}
+python /tube_request/send_notify_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} ${NOTIFY_EMAIL} ${TEST_TAG} ${NS} ${JOBID} ${LOGS_DIR}
 
 _ "Cleaning environment"
 docker rmi ${FULL_FROM} ${FULL_TO}

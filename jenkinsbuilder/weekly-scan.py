@@ -80,6 +80,8 @@ for f in files:
                 str(desired_tag),
                 "name": "%s:5000/%s/%s:%s" %
                 (registry, app_id, job_id, desired_tag),
+                "image_under_test": "registry.centos.org:%s/%s:%s" %
+                (app_id, job_id, desired_tag),
                 "notify_email": email,
                 "weekly": True,
                 "logs_dir": LOGS_DIR,

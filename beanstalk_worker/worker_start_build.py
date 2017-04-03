@@ -39,13 +39,17 @@ def run_command(command):
         return e.message
 
 
-def notify_build_failure(namespace, notify_email, build_logs_file):
+def notify_build_failure(
+        namespace, notify_email, build_logs_file, project, jobid, test_tag):
     msg_details = {}
     msg_details['action'] = 'notify_user'
     msg_details['namespace'] = namespace
     msg_details['build_status'] = False
     msg_details['notify_email'] = notify_email
     msg_details['build_logs_file'] = build_logs_file
+    msg_details['project_name'] = project
+    msg_details['job_name'] = jobid
+    msg_details['TEST_TAG'] = test_tag
     bs.use('master_tube')
     bs.put(json.dumps(msg_details))
 
@@ -144,9 +148,12 @@ def start_build(job_details):
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
-            notify_build_failure(namespace, notify_email, build_logs_file)
             logger.debug(
                 "Build is not successful putting it to failed build tube")
+            project = appid + "/" + jobid + ":" + desired_tag
+            notify_build_failure(
+                namespace, notify_email, build_logs_file,
+                project, jobid, job_details["TEST_TAG"])
         else:
             logger.debug("Build is successfull going for next job")
 
@@ -167,6 +174,7 @@ def main():
                 job = bs.reserve()
                 got_job = True
                 job_details = json.loads(job.body)
+                logger.debug(str(job_details))
                 result = start_build(job_details)
             else:
                 logger.debug("No job found to process looping again")

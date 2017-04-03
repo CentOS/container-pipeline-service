@@ -8,7 +8,6 @@ import logging
 import os
 import shutil
 import subprocess
-import sys
 import config
 
 from Atomic import Atomic, mount
@@ -21,15 +20,7 @@ BEANSTALKD_HOST = "BEANSTALK_SERVER"
 config.load_logger()
 logger = logging.getLogger("scan-worker")
 
-logger = logging.getLogger("worker-start-scan")
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-format_string = ("[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} "
-                 "%(levelname)s - %(message)s', '%m-%d %H:%M:%S")
-formatter = logging.Formatter(format_string)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = logging.getLogger("scan-worker")
 
 SCANNERS_OUTPUT = {
     "registry.centos.org/pipeline-images/pipeline-scanner": [
@@ -106,7 +97,7 @@ class ScannerRunner(object):
         """
         try:
             fin = open(status_file_path, "w")
-            json.dump(fin, status)
+            json.dump(status, fin)
         except IOError as e:
             logger.log(
                 level=logging.CRITICAL,
@@ -152,7 +143,7 @@ class ScannerRunner(object):
         #FIXME: at the moment this menthod is returning the results of multiple
         scanners in one json and sends over the bus
         """
-        logger.info("Received job : %s" % job_info)
+        logger.info("Received job : %s" % self.job_info)
 
         # TODO: Figure out why random tag (with date) is coming
         # image_under_test=":".join(self.job_info.get("name").split(":")[:-1])
@@ -162,7 +153,8 @@ class ScannerRunner(object):
         # as we are going to add logs and msg
         scanners_data = self.job_info
         scanners_data["msg"] = {}
-        scanners_data["logs"] = {}
+        scanners_data["logs_URL"] = {}
+        scanners_data["logs_file_path"] = {}
 
         # pull the image first, if failed move on to start_delivery
         if not self.pull_image_under_test(image_under_test):
@@ -197,7 +189,7 @@ class ScannerRunner(object):
 
             # put the logs file name as well here in data
             scanners_data["logs_file_path"][
-                data_temp["scanners_name"]] = logs_filepath
+                data_temp["scanner_name"]] = logs_filepath
 
         # keep notify_user action in data, even if we are deleting the job,
         # since whenever we will read the response, we should be able to see
@@ -210,8 +202,11 @@ class ScannerRunner(object):
         # TODO: Check here if at least one scanner ran successfully
         logger.info("Finished executing all scanners.")
 
+        status_file_path = os.path.join(
+                self.job_info["logs_dir"],
+                constants.SCANNERS_STATUS_FILE)
         # We export the scanners_status on NFS
-        self.export_scanners_status(scanners_data, status)
+        self.export_scanners_status(scanners_data, status_file_path)
 
         return True, scanners_data
 

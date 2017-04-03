@@ -53,9 +53,6 @@ jumpto end
 
 sendstatusmail:
   exit 1
-#_ "Sending mail of failed status to ${NOTIFY_EMAIL}"
-#python /tube_request/send_failed_notify_request.py ${BEANSTALK_SERVER} ${NOTIFY_EMAIL}
-#docker run --rm mail-server /usr/bin/mail-config.sh "Current status is failed" ${NOTIFY_EMAIL}
 
 end:
   exit 0

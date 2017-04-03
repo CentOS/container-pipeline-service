@@ -54,7 +54,7 @@ def export_linter_status(status, status_file_path):
     """
     try:
         fin = open(status_file_path, "w")
-        json.dump(fin, status)
+        json.dump(status, fin)
     except IOError as e:
         logger.log(
             level=logging.CRITICAL,
@@ -104,16 +104,17 @@ def lint_job_data(job_data):
 
         # logs URL for linter results
         logs_URL = logs_file_path.replace(
-                job_data.get("logs_dir"),
-                constants.LOGS_URL_BASE
+                constants.LOGS_DIR,   # /srv/pipeline-logs/
+                constants.LOGS_URL_BASE   # https://registry.centos.org
                 )
+
         # linter execution status file path
         status_file_path = os.path.join(
                 job_data.get("logs_dir"),
                 constants.LINTER_STATUS_FILE
                 )
 
-        out += "\n\nHosted linter results : %s\n" % logs_URL
+        out += "\nHosted linter results : %s\n" % logs_URL
         export_linter_logs(logs_file_path, out)
 
         response = {
