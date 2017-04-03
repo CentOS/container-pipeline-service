@@ -2,7 +2,7 @@ from os import path
 
 from ci.lib import run_cmd
 from ci.tests.base import BaseTestCase
-from testindex.Engine import Engine
+from testindex.engine import Engine
 
 config = {
     "test_index": "test_index",
