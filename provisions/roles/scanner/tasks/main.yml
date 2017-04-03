@@ -84,6 +84,7 @@
     mode: u+x
   with_items:
     - ../beanstalk_worker/beanstalkc.py
+    - ../beanstalk_worker/config.py
     - ../beanstalk_worker/worker_start_scan.py
     - ../beanstalk_worker/constants.py
     - ../beanstalk_worker/scanner.py
