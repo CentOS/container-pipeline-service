@@ -1,6 +1,5 @@
 from os import path
 
-from ci.lib import run_cmd
 from ci.tests.base import BaseTestCase
 from testindex.Engine import Engine
 
@@ -37,8 +36,8 @@ class IndexCIBase(BaseTestCase):
         if not config["local_run"]:
             self.setUp()
         elif config["local_setup"]:
-            run_cmd("sudo yum -y install epel-release", stream=True)
-            run_cmd("sudo yum -y install PyYAML python-networkx", stream=True)
+            self.run_cmd("sudo yum -y install epel-release", stream=True)
+            self.run_cmd("sudo yum -y install PyYAML python-networkx", stream=True)
 
     def _run_index_ci(self, msg, index_location):
         """Trigger an index ci run on remote machine and get the output for evaluation"""
