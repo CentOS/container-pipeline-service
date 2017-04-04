@@ -1,7 +1,6 @@
 from os import path
 
 from ci.tests.base import BaseTestCase
-from testindex.Engine import Engine
 
 config = {
     "test_index": "test_index",
@@ -42,4 +41,5 @@ class IndexCIBase(BaseTestCase):
     def _run_index_ci(self, msg, index_location):
         """Trigger an index ci run on remote machine and get the output for evaluation"""
         self._print_init_msg(msg)
+        from testindex.Engine import Engine
         return Engine(index_path=index_location, verbose=config["verbose"]).run()
