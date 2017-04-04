@@ -1,7 +1,7 @@
 ---
 origin_image_registry: docker.io
 origin_image_name: openshift/origin
-origin_image_tag: v1.2.1
+origin_image_tag: v1.4.1
 
 origin_dir: /var/lib/origin
 
@@ -17,9 +17,9 @@ openshift_shared_dirs:
 openshift_volumes:
   - /:/rootfs:ro
   - /var/run:/var/run:rw
-  - /sys:/sys:ro
+  - /sys:/sys
   - /var/lib/docker:/var/lib/docker:rw
-  - /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes:rw
+  - /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes:rslave
   - /var/lib/origin/openshift.local.config:/var/lib/origin/openshift.local.config:rw
   - /var/lib/origin/openshift.local.etcd:/var/lib/origin/openshift.local.etcd:rw
 

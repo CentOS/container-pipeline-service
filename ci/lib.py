@@ -159,6 +159,7 @@ test=True
 jenkins_public_key_file = jenkins.key.pub
 enable_epel=False
 test_nfs_share={test_nfs_share}
+setup_nfs=True
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key
