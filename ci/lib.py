@@ -1,4 +1,5 @@
 import subprocess
+import select
 import os
 import sys
 import json
@@ -42,17 +43,46 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    out = ""
+    out, err = "", ""
     if stream:
-        for line in iter(p.stdout.readline, ''):
-            _print(line.strip())
-            out += line
-    _out, err = p.communicate()
-    out += _out or ""
+        def read(out, err):
+            reads = [p.stdout.fileno(), p.stderr.fileno()]
+            ret = select.select(reads, [], [], 0.0)
+
+            for fd in ret[0]:
+                if fd == p.stdout.fileno():
+                    c = p.stdout.read(1)
+                    sys.stdout.write(c)
+                    out += c
+                if fd == p.stderr.fileno():
+                    c = p.stderr.read(1)
+                    sys.stderr.write(c)
+                    err += c
+            return out, err
+
+        while p.poll() is None:
+            out, err = read(out, err)
+
+        # Retrieve remaining data from stdout, stderr
+        for fd in select.select([p.stdout.fileno(), p.stderr.fileno()],
+                                [], [], 0.0)[0]:
+            if fd == p.stdout.fileno():
+                for c in iter(lambda: p.stdout.read(1), ''):
+                    sys.stdout.write(c)
+                    out += c
+            if fd == p.stderr.fileno():
+                for c in iter(lambda: p.stderr.read(1), ''):
+                    sys.stderr.write(c)
+                    err += c
+        sys.stdout.flush()
+        sys.stderr.flush()
+    else:
+        out, err = p.communicate()
     if p.returncode is not None and p.returncode != 0:
-        _print("=" * 30 + "ERROR" + "=" * 30)
-        _print(err)
-        raise Exception(err)
+        if not stream:
+            _print("=" * 30 + "ERROR" + "=" * 30)
+            _print(err)
+        raise Exception('Run Command Error: %s' % _cmd)
     return out
 
 
@@ -247,7 +277,7 @@ def setup(nodes, options):
     }
 
 
-def test(data, path):
+def test(data, path=None):
     path = path or '~/container-pipeline-service/ci/tests'
     hosts_env = json.dumps(data['hosts']).replace('"', '\\"')
     provisioned_env = ('true' if data['provisioned'] else '')
