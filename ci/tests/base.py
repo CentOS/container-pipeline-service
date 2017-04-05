@@ -1,4 +1,5 @@
 import os
+import copy
 import json
 import unittest
 
@@ -46,7 +47,9 @@ class BaseTestCase(unittest.TestCase):
             force (bool): Provision forcefully.
             extra_args (str): Extra cmd line args for running ansible playbook
         """
-        provision(self.hosts['controller'], force=force, extra_args=extra_args)
+        controller = copy.copy(self.hosts['controller'])
+        controller['hosts'] = None
+        provision(controller, force=force, extra_args=extra_args)
 
     def run_cmd(self, cmd, user=None, host=None, stream=False):
         """
