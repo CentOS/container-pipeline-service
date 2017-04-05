@@ -92,9 +92,9 @@ class ProvisionHandler(object):
         self._provisioned = True if os.environ.get(
             'CCCP_CI_PROVISIONED', None) == 'true' else False
 
-    def run(self, controller, force=False, extra_args=""):
+    def run(self, controller, force=False, extra_args="", stream=False):
         if not force and self._provisioned:
-            return
+            return False, ''
 
         host = controller.get('host')
 
@@ -119,8 +119,9 @@ class ProvisionHandler(object):
                  private_key_args=private_key_args,
                  extra_args=extra_args)
         _print('Provisioning command: %s' % cmd)
-        run_cmd(cmd, host=host, stream=True)
+        out = run_cmd(cmd, host=host, stream=stream)
         self._provisioned = True
+        return True, out
 
 provision = ProvisionHandler().run
 
@@ -198,6 +199,7 @@ def setup_controller(controller):
     # provision controller
     run_cmd(
         "yum install -y git && "
+        "yum install -y rsync && "
         "yum install -y python-virtualenv && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
         "virtualenv venv && "
@@ -266,10 +268,10 @@ def setup(nodes, options):
     run_cmd('setenforce 0', host=openshift_host)
 
     setup_ssh_access(controller, nodes + [controller])
-    sync_controller(controller)
     setup_controller(controller)
+    sync_controller(controller)
 
-    provision(hosts_data['controller'])
+    provision(hosts_data['controller'], stream=True)
 
     return {
         'provisioned': True,
