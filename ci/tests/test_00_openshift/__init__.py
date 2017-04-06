@@ -19,7 +19,6 @@ class TestOpenshift(BaseTestCase):
             "oc project 53b1a8ddd3df5d4fd94756e8c20ae160e565a4b339bfb47165285955 > /dev/null && "
             "oc get pods"
         ).format(openshift=self.hosts[self.node]['host'])
-        self.run_cmd(cmd)
         retries = 0
         success = False
         while retries < 10 and success is False:
