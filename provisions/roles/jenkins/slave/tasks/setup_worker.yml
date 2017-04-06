@@ -73,18 +73,8 @@
       regexp="OPENSHIFT_SERVER_IP"
       replace='{{ openshift_server_ip.stdout }}'
 
-- name: Build dispatcher-worker image
-  shell: docker build -t dispatcher-worker -f ./Dockerfile.dispatcher_worker .
-  args:
-      chdir: /opt/cccp-service/beanstalk_worker
-
-- name: Build build-worker image
-  shell: docker build -t build-worker -f ./Dockerfile.build_worker .
-  args:
-      chdir: /opt/cccp-service/beanstalk_worker
-
-- name: Build delivery-worker image
-  shell: docker build -t delivery-worker -f ./Dockerfile.delivery_worker .
+- name: Build pipeline-workers image
+  shell: docker build -t pipeline-workers -f ./Dockerfile.workers .
   args:
       chdir: /opt/cccp-service/beanstalk_worker
 
@@ -92,14 +82,16 @@
   docker:
       name: dispatcher-worker
       state: started
-      image: dispatcher-worker
+      image: pipeline-workers
+      command: /run_worker/worker_dispatcher.py
       restart_policy: always
 
 - name: Start build worker
   docker:
       name: build-worker
       state: started
-      image: build-worker
+      image: pipeline-workers
+      command: /run_worker/worker_start_build.py
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
@@ -108,7 +100,8 @@
   docker:
       name: delivery-worker
       state: started
-      image: delivery-worker
+      command: /run_worker/worker_start_delivery.py
+      image: pipeline-workers
       restart_policy: always
 
 - name: Copy Dockerfile linter worker
