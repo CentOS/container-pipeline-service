@@ -106,6 +106,9 @@
   tags:
     - scan
 
+- name: Ensure log path exists
+  file: path=/srv/pipeline-logs/cccp.log state=touch
+
 - name: Enable Scanner worker
   service: name="cccp-scan-worker" state=restarted enabled=yes
 

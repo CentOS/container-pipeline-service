@@ -88,12 +88,17 @@
   args:
       chdir: /opt/cccp-service/beanstalk_worker
 
+- name: Ensure log path exists
+  file: path=/srv/pipeline-logs/cccp.log state=touch
+
 - name: Start dispatcher worker
   docker:
       name: dispatcher-worker
       state: started
       image: dispatcher-worker
       restart_policy: always
+      volumes:
+        /srv/pipeline-logs:/srv/pipeline-logs:rw
 
 - name: Start build worker
   docker:
@@ -110,6 +115,8 @@
       state: started
       image: delivery-worker
       restart_policy: always
+      volumes:
+        /srv/pipeline-logs:/srv/pipeline-logs:rw
 
 - name: Copy Dockerfile linter worker
   copy:
