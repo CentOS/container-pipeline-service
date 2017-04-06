@@ -202,6 +202,8 @@ def setup_controller(controller):
         "yum install -y rsync && "
         "yum install -y python-virtualenv && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
+        "yum install -y epel-release && "
+        "yum install -y PyYAML python-networkx && "
         "virtualenv venv && "
         "$HOME/venv/bin/pip install ansible==2.2.1 && "
         "ln -s $HOME/venv/bin/ansible-playbook /usr/bin/ansible-playbook || "
