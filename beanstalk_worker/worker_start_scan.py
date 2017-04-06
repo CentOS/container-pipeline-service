@@ -19,7 +19,7 @@ DOCKER_PORT = "4243"
 BEANSTALKD_HOST = "BEANSTALK_SERVER"
 
 config.load_logger()
-logger = logging.getLogger("container-pipeline")
+logger = logging.getLogger("scan-worker")
 
 SCANNERS_OUTPUT = {
         "registry.centos.org/pipeline-images/pipeline-scanner": [
