@@ -160,7 +160,8 @@ def main():
     while True:
         try:
             logger.debug("listening to start_build tube")
-            current_jobs_in_tube = int(dict(item.split(":") for item in bs.stats_tube('start_build').split('\n')[1:-1])['current-jobs-ready'])
+            current_jobs_in_tube = bs.stats_tube(
+                'start_build')['current-jobs-ready']
             got_job=False
             if current_jobs_in_tube > 0 :
                 job = bs.reserve()
