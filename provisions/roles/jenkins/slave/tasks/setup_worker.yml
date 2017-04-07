@@ -81,7 +81,7 @@
 - name: Start dispatcher worker
   docker:
       name: dispatcher-worker
-      state: started
+      state: restarted
       image: pipeline-workers
       command: /run_worker/worker_dispatcher.py
       restart_policy: always
@@ -89,7 +89,7 @@
 - name: Start build worker
   docker:
       name: build-worker
-      state: started
+      state: restarted
       image: pipeline-workers
       command: /run_worker/worker_start_build.py
       restart_policy: always
@@ -99,7 +99,7 @@
 - name: Start delivery worker
   docker:
       name: delivery-worker
-      state: started
+      state: restarted
       command: /run_worker/worker_start_delivery.py
       image: pipeline-workers
       restart_policy: always
