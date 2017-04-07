@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import beanstalkc
-from binascii import hexlify
 import hashlib
 import json
 from subprocess import Popen
@@ -9,7 +8,6 @@ from subprocess import PIPE
 import re
 import time
 import logging
-import sys
 import os
 import config
 
@@ -25,21 +23,24 @@ config_path = os.path.dirname(os.path.realpath(__file__))
 kubeconfig = " --config=" + os.path.join(config_path, "node.kubeconfig")
 
 
-def notify_build_failure(name_space, notify_email, logs):
-    msg_details = {}
-    msg_details['action'] = 'notify_user'
-    msg_details['logs'] = logs
-    msg_details['notify_email'] = notify_email
-    msg_details['build_status'] = False
+def notify_build_failure(job_details, logs):
+    """
+    Notify build failure via notification module to user
+    """
+    # other info like, namespace, notify_email, TEST_TAG etc are there
+    job_details["build_status"] = False
+    job_details["logs"] = logs
+    job_details["action"] = "notify_user"
     bs.use('master_tube')
-    bs.put(json.dumps(msg_details))
+
+    bs.put(json.dumps(job_details))
 
 
 def run_command(command):
     try:
         p = Popen(command, bufsize=0, shell=True,
                   stdout=PIPE, stderr=PIPE, stdin=PIPE)
-        #p.wait()
+        # p.wait()
         out = p.communicate()
         return out
     except Exception as e:
@@ -50,14 +51,14 @@ def run_command(command):
 def start_delivery(job_details):
     try:
         logger.debug("Retrieving namespace")
-        name_space = job_details['name_space']
-        oc_name = hashlib.sha224(name_space).hexdigest()
+        namespace = job_details['namespace']
+        oc_name = hashlib.sha224(namespace).hexdigest()
         logger.debug("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
-                  .format(name_space, oc_name))
+                     .format(namespace, oc_name))
         notify_email = job_details['notify_email']
 
-        #tag = job_details['tag']
-        #depends_on = job_details['depends_on']
+        # tag = job_details['tag']
+        # depends_on = job_details['depends_on']
 
         logger.debug("Login to OpenShift server")
         command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
@@ -80,7 +81,8 @@ def start_delivery(job_details):
         logger.debug(build_details)
 
         if build_details == "":
-            logger.critical("build could not be started as OpenShift is not reachable")
+            logger.critical(
+                "build could not be started as OpenShift is not reachable")
             return 1
 
         logger.debug("Delivery started is " + build_details)
@@ -105,14 +107,13 @@ def start_delivery(job_details):
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
-            notify_build_failure(name_space, notify_email, logs)
+            notify_build_failure(job_details, logs)
             logger.debug(
                 "Delivery is not successful putting it to failed build tube")
         else:
             bs.use('tracking')
             bs.put(json.dumps(job_details))
             bs.use("delivery_failed")
-
         return 0
     except Exception as e:
         logger.critical(e.message, exc_info=True, extra={'locals': locals()})
@@ -132,7 +133,8 @@ def main():
             else:
                 logger.debug("Job was not succesfull and returned to tube")
         except Exception as e:
-            logger.critical(e.message, extra={'locals': locals()}, exc_info=True)
+            logger.critical(e.message, extra={
+                            'locals': locals()}, exc_info=True)
 
 if __name__ == '__main__':
     main()

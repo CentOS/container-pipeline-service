@@ -46,8 +46,8 @@ class ScannerRunner(object):
     def __init__(self, job_info):
         self.job_info = job_info
         self.atomic_object = Atomic()
-        # Receive and send `name_space` key-value as is
-        self.job_namespace = job_info.get('name_space')
+        # Receive and send `namespace` key-value as is
+        self.job_namespace = job_info.get('namespace')
         self.scanners = {
             "registry.centos.org/pipeline-images/pipeline-scanner":
             PipelineScanner,
@@ -147,7 +147,7 @@ class ScannerRunner(object):
 
         # TODO: Figure out why random tag (with date) is coming
         # image_under_test=":".join(self.job_info.get("name").split(":")[:-1])
-        image_under_test = self.job_info.get("name")
+        image_under_test = self.job_info.get("output_image")
         logger.info("Image under test:%s" % image_under_test)
         # copy the job info into scanners data,
         # as we are going to add logs and msg
