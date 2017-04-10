@@ -22,7 +22,7 @@
 - name: Start Mail Service
   docker:
       name: mail-server
-      state: started
+      state: restarted
       image: mail-server
       restart_policy: unless-stopped
       volumes:
