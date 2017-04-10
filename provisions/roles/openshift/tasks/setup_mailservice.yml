@@ -1,4 +1,8 @@
 ---
+
+- name: Ensure log path exists
+  file: path=/srv/pipeline-logs/cccp.log state=touch
+
 - name: Stop Mail Service
   shell: docker rm -f mail-server
   register: result
@@ -18,6 +22,8 @@
 - name: Start Mail Service
   docker:
       name: mail-server
-      state: started
+      state: restarted
       image: mail-server
       restart_policy: unless-stopped
+      volumes:
+        /srv/pipeline-logs:/srv/pipeline-logs:rw
