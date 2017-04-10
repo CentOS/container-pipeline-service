@@ -16,6 +16,7 @@ class Package(models.Model):
     last_updated = models.DateTimeField(auto_now=True, blank=True)
 
     class Meta:
+        db_table = 'packages'
         unique_together = ('name', 'arch', 'version', 'release')
 
     def __str__(self):
@@ -35,6 +36,9 @@ class ContainerImage(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
+
+    class Meta:
+        db_table = 'container_images'
 
     def __str__(self):
         return self.name
