@@ -114,12 +114,12 @@ def start_delivery(job_details):
             bs.use('tracking')
             bs.put(json.dumps(job_details))
             bs.use("delivery_failed")
-            debug_log("Build is successfull going for next job")
+            logger.debug("Build is successfull going for next job")
 
         delete_pod_command = "oc delete pods " + build_details + \
           "-build --namespace " + oc_name + " " + kubeconfig
         is_deleted = run_command(delete_pod_command).rstrip()
-        debug_log("pods deleted status " + is_deleted)
+        logger.debug("pods deleted status " + is_deleted)
 
         return 0
     except Exception as e:
