@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -116,6 +116,11 @@ LOGGING = {
             'handlers': ['log_to_file', 'log_to_stream', ],
             'level': LOG_LEVEL,
             'propagate': False,
+        },
+        'tracking': {
+            'handlers': ['log_to_file', 'log_to_stream', ],
+            'level': LOG_LEVEL,
+            'propagate': False,
         }
     },
 }
@@ -127,3 +132,4 @@ JENKINS_USERNAME = ''
 JENKINS_PASSWORD = ''
 JENKINS_CLI = '/opt/jenkins-cli.jar'
 CONTAINER_BUILD_TRIGGER_DELAY = 10
+UPSTREAM_PACKAGE_CACHE = os.path.join(BASE_DIR, 'tracking/data')

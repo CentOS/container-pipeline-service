@@ -44,12 +44,12 @@ def populate_upstreams(container):
     basearch = data['basearch']
     releasever = data['releasever']
     infra = data['infra']
-    repolist, created = RepoInfo.objects.get_or_create(
+    repoinfo, created = RepoInfo.objects.get_or_create(
         baseurls=json.dumps(list(urls)), defaults={
             'releasever': releasever, 'basearch': basearch,
             'infra': infra
         })
-    container.repolist = repolist
+    container.repoinfo = repoinfo
     container.save()
 
 

@@ -4,8 +4,10 @@ import rpmUtils.arch
 import yum
 import fedmsg
 from distutils.version import LooseVersion
+import logging
 
-import config
+
+logger = logging.getLogger('tracking')
 
 
 class YumRepoUpdateCheck(yum.YumBase):
@@ -126,19 +128,21 @@ class YumRepoUpdateCheck(yum.YumBase):
         return (added, modified, removed)
 
 
-def process_upstream(name, upstream):
+def process_upstream(name, upstream, datadir):
     """
     Check an upstream for updates.
 
     Args:
         name (str): Upstream name
         upstream (dict): Upstream details
+        datadir (str): Directory to save data
     """
+    logger.info('Checking for updates for upstream: %s' % upstream)
     yruc = YumRepoUpdateCheck('upstream', upstream['baseurls'],
-                              upstream['arch'])
+                              upstream['basearch'])
     yruc.setup_repos()
     initial = False
-    filename = os.path.join(config.datadir, 'repodata_%s.json' % name)
+    filename = os.path.join(datadir, 'repodata_%s.json' % name)
     try:
         with open(filename) as f:
             opkgs = json.load(f)
@@ -148,11 +152,14 @@ def process_upstream(name, upstream):
     npkgs = [pkg.pkgtup for pkg in yruc.iter_newest_packages()]
     added, modified, removed = yruc.compare(opkgs, npkgs)
 
-    print 'Added: {}, Modified: {}, Removed: {}'.format(
-        len(added), len(modified), len(removed))
+    logger.info(
+        'Added: {}, Modified: {}, Removed: {}'.format(
+            len(added), len(modified), len(removed)))
 
     with open(filename, 'w') as f:
         json.dump(npkgs, f, indent=2)
+
+    logger.info('Updated upstream packages data dumped to: %s' % filename)
 
     # fedmsg name, modname
     modname = 'container_pipeline'
@@ -214,12 +221,3 @@ def process_upstream(name, upstream):
                     }
                 }
             )
-
-
-def main():
-    for name, upstream in config.upstreams.items():
-        process_upstream(name, upstream)
-
-
-if __name__ == '__main__':
-    main()

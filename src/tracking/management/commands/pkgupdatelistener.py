@@ -17,11 +17,16 @@ class Command(BaseCommand):
                     topic.endswith('package.removed') or \
                     topic.endswith('package.added'):
                 pkg = msg['msg']['package']
+                repoinfo_id = msg['msg'].get('upstream')
                 for package in Package.objects.filter(
                         name=pkg['name'], arch=pkg['arch']):
                     if package.version != pkg['version'] or \
                             package.release != pkg['release']:
                         logger.info('Package changed: %s %s' % (pkg, package))
-                        package.images.update(to_build=True)
-                        logger.info('Images marked for build: %s' %
-                                    package.images.all())
+                        images_qs = package.images.all()
+                        if repoinfo_id is not None:
+                            images_qs = images_qs.filter(
+                                repoinfo__id=repoinfo_id)
+                        images_qs.update(to_build=True)
+                        logger.info('Images marked for build: %s'
+                                    % images_qs)
