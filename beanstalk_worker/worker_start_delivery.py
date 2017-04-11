@@ -117,8 +117,8 @@ def start_delivery(job_details):
             logger.debug("Build is successfull going for next job")
 
         delete_pod_command = "oc delete pods " + build_details + \
-          "-build --namespace " + oc_name + " " + kubeconfig
-        is_deleted = run_command(delete_pod_command).rstrip()
+            "-build --namespace " + oc_name + " " + kubeconfig
+        is_deleted = run_command(delete_pod_command)[0].rstrip()
         logger.debug("pods deleted status " + is_deleted)
 
         return 0
