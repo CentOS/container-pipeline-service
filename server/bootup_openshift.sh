@@ -58,7 +58,7 @@ done
 sudo docker run -d --name "origin" \
         --privileged --pid=host --net=host \
         -v /:/rootfs:ro -v /var/run:/var/run:rw -v /sys:/sys -v /var/lib/docker:/var/lib/docker:rw \
-        -v /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes:rslave \
+        -v /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes:rw \
         openshift/origin start
 ##############################################
 docker run -d --name "origin" --privileged --net=host --pid=host -v /:/rootfs:ro -v /var/run:/var/run:rw -v /sys:/sys:ro -v /var/lib/docker:/var/lib/docker:rw -v ${ORIGIN_DIR}/openshift.local.volumes:${ORIGIN_DIR}/openshift.local.volumes:z -v ${ORIGIN_DIR}/openshift.local.config:${ORIGIN_DIR}/openshift.local.config:z -v ${ORIGIN_DIR}/openshift.local.etcd:${ORIGIN_DIR}/openshift.local.etcd:z ${ORIGIN_IMAGE_NAME} start --master="https://${PUBLIC_ADDRESS}:8443" --etcd-dir="${ORIGIN_DIR}/openshift.local.etcd" --cors-allowed-origins=.*

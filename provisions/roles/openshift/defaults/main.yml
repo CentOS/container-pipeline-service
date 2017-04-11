@@ -19,7 +19,7 @@ openshift_volumes:
   - /var/run:/var/run:rw
   - /sys:/sys
   - /var/lib/docker:/var/lib/docker:rw
-  - /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes:rslave
+  - /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes:rw
   - /var/lib/origin/openshift.local.config:/var/lib/origin/openshift.local.config:rw
   - /var/lib/origin/openshift.local.etcd:/var/lib/origin/openshift.local.etcd:rw
 
