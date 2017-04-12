@@ -76,3 +76,10 @@
       - repo_tracking
   tags:
       - repo_tracking
+
+- name: Run tasks for CI
+  hosts: jenkins_master
+  roles:
+    - ci
+  tags:
+    - test

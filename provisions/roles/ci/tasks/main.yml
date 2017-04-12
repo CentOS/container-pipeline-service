@@ -1,0 +1,6 @@
+---
+- include: ci.yml
+  when: test
+  tags:
+    - test
+    - ci-build-test-project
