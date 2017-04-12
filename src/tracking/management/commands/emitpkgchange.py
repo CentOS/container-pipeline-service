@@ -9,11 +9,13 @@ logger = logging.getLogger('cccp')
 
 class Command(BaseCommand):
     help = 'Emit package change for test'
-    args = '[<pkg_name1> <pkg_name2> ...]'
+    args = '[<pkg_name1>,<pkg_name2> upstream_id]'
 
     def handle(self, *args, **options):
-        if args:
-            for arg in args:
+        argc = len(args)
+        if argc > 0:
+            upstream = args[1] if argc > 1 else None
+            for arg in args[0].split(','):
                 try:
                     n, a, v, r = get_navr_from_pkg_name(arg)
                 except:
@@ -23,7 +25,7 @@ class Command(BaseCommand):
                 fedmsg.publish(topic='package.added',
                                modname='container_pipeline',
                                msg={
-                                   'upstream': {},
+                                   'upstream': upstream,
                                    'package': {
                                        'name': n,
                                        'arch': a,
