@@ -29,10 +29,9 @@ FAILURE_EMAIL_SUBJECT = "FAILED: Container build failed: %s"
 WEEKLY_EMAIL_SUBJECT = "Weekly scanning results for image: %s"
 
 EMAIL_HEADER = """
-CentOS Community Container Pipeline Service <https://github.com/centos/container-index>
-"""
+CentOS Community Container Pipeline Service <https://github.com/centos/container-index>"""
 
-EMAIL_HEADER = EMAIL_HEADER + "\n" + "=" * len(EMAIL_HEADER)
+EMAIL_HEADER = EMAIL_HEADER + "\n" + "=" * (len(EMAIL_HEADER) - 22)
 
 EMAIL_FOOTER = """
 --
@@ -42,26 +41,26 @@ https://wiki.centos.org/ContainerPipeline
 """
 
 SUCCESS_EMAIL_MSG = """
-Build is successful. You can pull the image %s
-
-Build logs: %s
+Build status:   Success
+Image:          %s
+Build logs:     %s
 """
 
 FAILURE_EMAIL_MSG = """
-Container build %s is failed due to error in build or test
-steps. Pleae check logs below.
+Container build %s is failed due to error in build or test steps.
 
-Build logs: %s
+Build status:   Failure
+Build logs:     %s
 """
 
 LINTER_RESULTS = """
-Dockerfile linter results for project = %s :
+Dockerfile linter results:
 
 %s
 """
 
 SCANNERS_RESULTS = """
-Container image scanning results for image=%s built at CentOS community container pipeline service.
+Container image scanning results for image %s built at CentOS community container pipeline service.
 
 Following are the atomic scanners ran on built image, displaying the result message and detailed logs.
 
@@ -171,9 +170,9 @@ class NotifyUser(object):
         " Composes email subject based on build status"
 
         if self.job_info.get("build_status"):
-            return SUCCESS_EMAIL_SUBJECT % self.image_under_test
+            return SUCCESS_EMAIL_SUBJECT % self.project
         else:
-            return FAILURE_EMAIL_SUBJECT % self.image_under_test
+            return FAILURE_EMAIL_SUBJECT % self.project
 
     def compose_success_build_contents(self):
         "Composes email contents for completed builds"
@@ -228,7 +227,7 @@ class NotifyUser(object):
             # TODO: Better handling and reporting here
             return ""
 
-        return LINTER_RESULTS % (self.project, linter_results)
+        return LINTER_RESULTS % linter_results
 
     def compose_email_contents(self):
         "Aggregates contents from different modules and composes one email"
