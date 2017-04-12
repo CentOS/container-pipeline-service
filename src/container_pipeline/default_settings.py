@@ -133,3 +133,4 @@ JENKINS_PASSWORD = ''
 JENKINS_CLI = '/opt/jenkins-cli.jar'
 CONTAINER_BUILD_TRIGGER_DELAY = 10
 UPSTREAM_PACKAGE_CACHE = os.path.join(BASE_DIR, 'tracking/data')
+BEANSTALK_SERVER = 'localhost'

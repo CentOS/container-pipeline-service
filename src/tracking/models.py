@@ -80,6 +80,12 @@ class ContainerImage(models.Model):
             format(name=self.fullname, cmd=cmd.replace('"', '\\"')))
         return subprocess.check_output(docker_cmd, shell=True)
 
+    def remove(self):
+        """Remove docker image"""
+        docker_cmd = (
+            'docker rmi -f {}'.format(self.fullname))
+        return subprocess.check_output(docker_cmd, shell=True)
+
     def trigger_build(self):
         if settings.JENKINS_USERNAME:
             cmd = (

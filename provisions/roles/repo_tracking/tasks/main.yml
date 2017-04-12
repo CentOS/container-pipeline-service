@@ -149,6 +149,7 @@
   with_items:
       - cccp_pkgupdatelistener.service
       - cccp_triggerbuilds.service
+      - cccp_imagescanner.service
   sudo: yes
 
 - name: Enable and start services
@@ -156,4 +157,5 @@
   with_items:
       - cccp_pkgupdatelistener
       - cccp_triggerbuilds
+      - cccp_imagescanner
   sudo: yes

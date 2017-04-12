@@ -2,9 +2,11 @@ from django.core.management.base import BaseCommand  # CommandError
 import logging
 import json
 from django.utils import timezone
+from django.conf import settings
 
 from tracking.models import ContainerImage, Package, RepoInfo
 from tracking.lib import get_navr_from_pkg_name
+from vendors import beanstalkc
 
 logger = logging.getLogger('cccp')
 
@@ -61,6 +63,7 @@ def scan_image(image):
     image.scanned = True
     image.last_scanned = timezone.now()
     image.save()
+    image.remove()
 
 
 class Command(BaseCommand):
@@ -81,3 +84,21 @@ class Command(BaseCommand):
                 logger.error('Image scan error for %s: %s' % (image, e),
                              exc_info=True)
         logger.info('Scanned not already scanned images')
+
+        if not args:
+            logger.info('Image scanner running...')
+            bs = beanstalkc.Connection(host=settings.BEANSTALK_SERVER)
+            bs.watch('tracking')
+            while True:
+                try:
+                    job = bs.reserve()
+                    job_details = json.loads(job.body)
+                    logger.debug(
+                        'Scanning image post delivery for %s' % job_details)
+                    image_name = '{}/{}:{}'.format(
+                        job_details['appid'], job_details['jobid'],
+                        job_details['desired_tag'])
+                    image = ContainerImage.objects.get(name=image_name)
+                    scan_image(image)
+                except Exception as e:
+                    logger.error('Image scan error: %s' % e, exc_info=True)
