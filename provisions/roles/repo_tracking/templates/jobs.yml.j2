@@ -6,16 +6,13 @@
     builders:
         - shell: |
             CWD=`pwd`
-            cd /opt/cccp-service/src/tracking
-            python repo.py
+            cd /opt/cccp-service/src/
+            ./manage.py checkupdates
     triggers:
-        - reverse:
-            jobs: "populate-image-pkgs"
-            result: 'success'
-        - pollscm: "H/10 * * * *"
+        - timed: "@midnight"
 
 - job:
-    name: 'populate-image-pkgs'
+    name: 'fetch-scan-image'
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     node: master
@@ -26,10 +23,13 @@
                 - "origin/master"
             skip-tag: True
     triggers:
+        - reverse:
+            jobs: "cccp-index"
+            result: 'success'
         - pollscm: "H/10 * * * *"
     builders:
         - shell: |
             export CWD=`pwd`
             cd /opt/cccp-service/src
             python manage.py fetchimagelist $CWD/index.d
-            python manage.py populateimagepkgs
+            python manage.py imagescanner onetime
