@@ -37,6 +37,7 @@ _ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
 NS="${APPID}-${JOBID}-${DESIRED_TAG}"
 OUTPUT_IMAGE=${TARGET_REGISTRY}/${APPID}/${TO}
+IMAGE_NAME=${APPID}/${JOBID}:${DESIRED_TAG}
 
 _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #if [ -n "${FULL_TO}" ] || [ -s "/root/.dockercfg" ]; then
@@ -44,7 +45,7 @@ _ "Pushing the image to registry (${OUTPUT_IMAGE})"
 #fi
 docker push ${FULL_TO}||jumpto sendstatusmail
 
-python /tube_request/send_scan_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} ${TEST_TAG} ${NOTIFY_EMAIL} ${LOGS_DIR}
+python /tube_request/send_scan_request.py ${BEANSTALK_SERVER} ${NS} ${OUTPUT_IMAGE} ${TEST_TAG} ${NOTIFY_EMAIL} ${LOGS_DIR} ${IMAGE_NAME}
 
 _ "Cleaning environment"
 docker rmi ${FULL_FROM}

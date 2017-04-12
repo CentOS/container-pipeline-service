@@ -90,15 +90,23 @@ class Command(BaseCommand):
             bs = beanstalkc.Connection(host=settings.BEANSTALK_SERVER)
             bs.watch('tracking')
             while True:
+                job = None
                 try:
                     job = bs.reserve()
-                    job_details = json.loads(job.body)
+                    try:
+                        job_details = json.loads(job.body)
+                    except ValueError:
+                        logger.error(
+                            'Error in loading job body: %s' % job.body)
+                        job.delete()
+                        continue
                     logger.debug(
                         'Scanning image post delivery for %s' % job_details)
-                    image_name = '{}/{}:{}'.format(
-                        job_details['appid'], job_details['jobid'],
-                        job_details['desired_tag'])
+                    image_name = job_details['image_name']
                     image = ContainerImage.objects.get(name=image_name)
                     scan_image(image)
                 except Exception as e:
                     logger.error('Image scan error: %s' % e, exc_info=True)
+                finally:
+                    if job:
+                        job.delete()
