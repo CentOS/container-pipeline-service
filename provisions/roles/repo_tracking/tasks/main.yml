@@ -130,6 +130,10 @@
     dest: /opt/container-index
   sudo: yes
 
+- name: Ensure jenkins user can write to log file
+  file: path=/srv/pipeline-logs/cccp.log state=file owner=jenkins
+  sudo: yes
+
 - name: Copy jenkins job template
   template: src=jobs.yml.j2 dest="{{ ansible_env.HOME }}/repo_tracking_job.yml"
   sudo: yes
