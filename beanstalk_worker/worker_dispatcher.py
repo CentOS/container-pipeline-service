@@ -20,7 +20,7 @@ while True:
     job_details = json.loads(job.body)
 
     logger.info("==> Retrieving job action")
-    action = job_details['action']
+    action = str(job_details['action'])
 
     if action == "start_build":
         bs.use("start_build")

@@ -78,7 +78,7 @@ for f in files:
                 "tag": desired_tag,
                 "namespace": str(app_id) + "-" + str(job_id) + "-" +
                 str(desired_tag),
-                "name": "%s:5000/%s/%s:%s" %
+                "output_image": "%s:5000/%s/%s:%s" %
                 (registry, app_id, job_id, desired_tag),
                 "image_under_test": "registry.centos.org:%s/%s:%s" %
                 (app_id, job_id, desired_tag),

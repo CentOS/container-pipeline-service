@@ -60,9 +60,7 @@ Dockerfile linter results:
 """
 
 SCANNERS_RESULTS = """
-Container image scanning results for image %s built at CentOS community container pipeline service.
-
-Following are the atomic scanners ran on built image, displaying the result message and detailed logs.
+Atomic scanners results for built image %s
 
 %s
 """
@@ -275,7 +273,8 @@ class NotifyUser(object):
         "Compose weekly scanning email artifcats"
 
         subject = WEEKLY_EMAIL_SUBJECT % self.image_under_test
-        text = EMAIL_HEADER + self.compose_scanners_summary() + EMAIL_FOOTER
+        text = EMAIL_HEADER + "\n" + self.compose_scanners_summary() +\
+            EMAIL_FOOTER
         return subject, text
 
     def notify_user(self):
