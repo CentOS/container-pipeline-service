@@ -8,7 +8,7 @@ from tracking.models import ContainerImage, Package, RepoInfo
 from tracking.lib import get_navr_from_pkg_name
 from vendors import beanstalkc
 
-logger = logging.getLogger('cccp')
+logger = logging.getLogger('tracking')
 
 
 def populate_packages(container):

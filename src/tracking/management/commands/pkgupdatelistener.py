@@ -5,7 +5,7 @@ import logging
 
 from tracking.models import Package
 
-logger = logging.getLogger('cccp')
+logger = logging.getLogger('tracking')
 
 
 class Command(BaseCommand):

@@ -8,7 +8,7 @@ from django.conf import settings
 from tracking.models import ContainerImage
 from jenkinsbuilder.cccp_index_reader import get_projects_from_index
 
-logger = logging.getLogger('cccp')
+logger = logging.getLogger('tracking')
 
 
 class Command(BaseCommand):

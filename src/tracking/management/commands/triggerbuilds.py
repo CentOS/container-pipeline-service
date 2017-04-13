@@ -7,7 +7,7 @@ from django.conf import settings
 
 from tracking.models import ContainerImage, Package
 
-logger = logging.getLogger('cccp')
+logger = logging.getLogger('tracking')
 
 
 class Command(BaseCommand):

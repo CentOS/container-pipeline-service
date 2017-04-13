@@ -4,7 +4,7 @@ import fedmsg
 
 from tracking.lib import get_navr_from_pkg_name
 
-logger = logging.getLogger('cccp')
+logger = logging.getLogger('tracking')
 
 
 class Command(BaseCommand):
