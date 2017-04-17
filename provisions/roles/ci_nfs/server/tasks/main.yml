@@ -27,7 +27,7 @@
   sudo: yes
   lineinfile:
     destfile: /etc/exports
-    line: "/nfsshare (rw,sync,no_root_squash)"
+    line: "/nfsshare (rw,sync,no_subtree_check,all_squash,anonuid=0,anongid=0)"
 
 - name: ensure iptables is configured to allow TCP ports 2049
   when: test
