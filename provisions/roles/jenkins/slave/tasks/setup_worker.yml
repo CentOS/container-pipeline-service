@@ -111,6 +111,12 @@
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
 
+- name: Pull Linter image
+  docker_image:
+      name: registry.centos.org/pipeline-images/dockerfile-lint
+      state: present
+      force: yes
+
 - name: Copy Dockerfile linter worker
   copy:
       src: ../../beanstalk_worker/cccp-dockerfile-lint-worker.service
