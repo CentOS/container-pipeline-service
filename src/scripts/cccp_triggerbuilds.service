@@ -1,0 +1,5 @@
+[Unit]
+Description=cccp-triggerbuilds.service
+
+[Service]
+ExecStart=/opt/cccp-service/src/manage.py triggerbuilds

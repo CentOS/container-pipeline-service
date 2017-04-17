@@ -81,8 +81,8 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
     if p.returncode is not None and p.returncode != 0:
         if not stream:
             _print("=" * 30 + "ERROR" + "=" * 30)
-            _print(err)
-        raise Exception('Run Command Error: %s' % _cmd)
+            _print('ERROR: %s\nOUT: %s' % (err, out))
+        raise Exception('Run Command Error for: %s\n%s' % (_cmd, err))
     return out
 
 

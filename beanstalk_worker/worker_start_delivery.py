@@ -110,6 +110,10 @@ def start_delivery(job_details):
             notify_build_failure(name_space, notify_email, logs)
             logger.debug(
                 "Delivery is not successful putting it to failed build tube")
+        else:
+            bs.use('tracking')
+            bs.put(json.dumps(job_details))
+            bs.use("delivery_failed")
 
         return 0
     except Exception as e:

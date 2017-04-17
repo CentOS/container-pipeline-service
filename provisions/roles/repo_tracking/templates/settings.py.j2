@@ -1,0 +1,16 @@
+from container_pipeline.default_settings import *
+
+LOGGING['handlers']['log_to_file']['filename'] = '/srv/pipeline-logs/cccp.log'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': '{{ db_name }}',
+        'USER': '{{ db_user }}',
+        'PASSWORD': '{{ db_pass }}',
+        'HOST': '{{ db_host }}',
+        'PORT': '{{ db_port }}'
+    }
+}
+REGISTRY_ENDPOINT = ('{{ public_registry }}:5000', '{{ public_registry }}:5000')
+BEANSTALK_SERVER = '{{ beanstalk_server }}'

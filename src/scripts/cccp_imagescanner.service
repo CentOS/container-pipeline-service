@@ -1,0 +1,5 @@
+[Unit]
+Description=cccp-imagescanner.service
+
+[Service]
+ExecStart=/opt/cccp-service/src/manage.py imagescanner

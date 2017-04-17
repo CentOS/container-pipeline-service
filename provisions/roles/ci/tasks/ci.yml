@@ -1,3 +1,4 @@
+---
 - name: Run cccp-index job
   shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build cccp-index -f -v
   when: test
