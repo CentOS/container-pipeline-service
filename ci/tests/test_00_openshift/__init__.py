@@ -43,28 +43,7 @@ class TestOpenshift(BaseTestCase):
         self.assertTrue(success)
         _print("Openshift builds completed successfully.")
 
-    def test_01_openshift_builds_persist_after_provision(self):
-        self.provision(force=True,
-                       extra_args='--skip-tags=ci-build-test-project')
-        _print("=" * 30)
-        _print("Test if openshift builds persist after reprovision")
-        _print("=" * 30)
-        cmd = (
-            "oc login https://%s:8443 --insecure-skip-tls-verify=true "
-            "-u test-admin -p test > /dev/null && "
-            "oc project 53b1a8ddd3df5d4fd94756e8c20ae160e565a4b339bfb47165285955 > /dev/null && "
-            "oc get pods"
-        ) % (self.hosts["openshift"]["host"])
-        output = self.run_cmd(cmd)
-        _print(output)
-        lines = output.splitlines()
-        pods = set([line.split()[0] for line in lines[1:]])
-        success = set(
-            ['build-1-build', 'test-1-build', 'delivery-1-build']
-        ).difference(pods)
-        self.assertFalse(success)
-
-    def test_02_pull_built_image(self):
+    def test_01_pull_built_image(self):
         image = self.hosts['jenkins_slave']['host'] + \
             ':5000/bamachrn/python:release'
         cmd = (
