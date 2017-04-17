@@ -4,7 +4,7 @@ import logging
 import json
 
 from tracking.models import RepoInfo
-from tracking.lib.repo import process_upstream
+from tracking.lib.repo import process_upstream, publish
 
 logger = logging.getLogger('tracking')
 
@@ -20,8 +20,9 @@ class Command(BaseCommand):
                     'baseurls': json.loads(repoinfo.baseurls),
                     'basearch': repoinfo.basearch,
                 }
-                process_upstream(repoinfo.id, data,
-                                 settings.UPSTREAM_PACKAGE_CACHE)
+                added, modified, removed = process_upstream(
+                    repoinfo.id, data, settings.UPSTREAM_PACKAGE_CACHE)
+                publish(added, modified, removed, repoinfo.id)
             except Exception as e:
                 logger.error(
                     'Error in fetching update info for %s: %s' % (

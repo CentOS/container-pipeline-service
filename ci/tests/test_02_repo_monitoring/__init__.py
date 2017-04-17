@@ -1,8 +1,11 @@
 from ci.tests.base import BaseTestCase
 from ci.vendors import beanstalkc
+import sys
+import os
 import json
 import time
 from xml.dom.minidom import parseString
+from distutils.version import LooseVersion
 
 
 class TestRepoMonitoring(BaseTestCase):
@@ -254,3 +257,51 @@ class TestRepoMonitoring(BaseTestCase):
                 'print ContainerImage.objects.filter(to_build=True)'
                 '.order_by(\\"name\\")').strip(),
             '[<ContainerImage: image2>, <ContainerImage: image3>]')
+
+    def test_04_process_upstream_repo(self):
+        # cleanup
+        try:
+            os.remove('/tmp/repodata_1.json')
+        except:
+            pass
+
+        # setup
+        sys.path.append(os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '../../src'))
+        )
+        from tracking.lib.repo import process_upstream
+        added, modified, removed = process_upstream('1', {
+            'baseurls': ['http://mirrors.uprm.edu/centos/7/os/x86_64/'],
+            'basearch': 'x86_64'}, '/tmp')
+
+        added, modified, removed = process_upstream('1', {
+            'baseurls': [
+                'http://mirrors.uprm.edu/centos/7/os/x86_64/',
+                'http://mirrors.uprm.edu/centos/7/updates/x86_64/'
+            ],
+            'basearch': 'x86_64'}, '/tmp')
+
+        # Check if item[0] is None and item[1] is not None for item in added
+        for item in added:
+            self.assertFalse(item[0])
+            self.assertTrue(item[1])
+
+        # Check if name, arch of item[0] and item[0] are same for item in
+        # modified
+        for item in modified:
+            self.assertEqual(
+                (item[0][0], item[0][1]), (item[1][0], item[1][1]))
+            # Assert that none of the new package has version less than the
+            # old package
+            self.assertFalse(
+                LooseVersion(item[1][-2]) < LooseVersion(item[0][-2]))
+            # Assert that none of the new package whose version is equal to
+            # the old package has a release less than that of the old package
+            self.assertFalse(
+                LooseVersion(item[1][-2]) == LooseVersion(item[0][-2]) and
+                LooseVersion(item[1][-1]) < LooseVersion(item[0][-1]))
+
+        # Check if item[0] is not None and item[1] is None for item in removed
+        for item in removed:
+            self.assertFalse(item[1])
+            self.assertTrue(item[0])
