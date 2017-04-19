@@ -22,10 +22,13 @@ public_registry=jenkins-slave
 beanstalk_server=openshift
 rsync_ssh_opts=""
 
+# update index repo URL per requirement
+cccp_index_repo=https://github.com/centos/container-index.git
+
 ## dev environment options, update following to configure NFS
 #test=True
 # replace scanner_worker below with its FQDN / IP
-#test_nfs_share= scanner_worker:/nfsshare
+#test_nfs_share=scanner_worker:/nfsshare
 
 [jenkins_master:vars]
 # update as needed
