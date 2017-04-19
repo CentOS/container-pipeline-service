@@ -2,35 +2,38 @@
 - name: create jenkins user
   user: name=jenkins state=present createhome=yes system=no
   tags:
-  - jenkins
-  - jenkins/slave
-  - config
+    - jenkins
+    - jenkins/slave
+    - config
 
 - name: add jenkins ssh public key to authorized keys
   authorized_key: user=jenkins key="{{ item }}"
   with_file:
   - "{{ jenkins_public_key_file }}"
   tags:
-  - jenkins
-  - jenkins/slave
-  - config
+    - jenkins
+    - jenkins/slave
+    - config
 
 - name: create workspace directory
   file: state=directory path=/srv/jenkins owner=jenkins group=jenkins
   tags:
-  - jenkins
-  - jenkins/slave
-  - config
+    - jenkins
+    - jenkins/slave
+    - config
 
 - include: setup_oc.yml
   tags:
-  - openshift/jenkins
+    - openshift/jenkins
+    - jenkins/slave
 
 - include: setup_worker.yml
   tags:
-  - beanstalk/worker
+    - beanstalk/worker
+    - jenkins/slave
 
 - include: monitor.yml
   tags:
-      - jenkins
-      - monitor
+    - jenkins
+    - monitor
+    - jenkins/slave

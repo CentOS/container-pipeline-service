@@ -2,36 +2,44 @@
 - name: Enable epel
   yum: name=epel-release state=installed
   sudo: yes
+  tags: repo_tracking
 
 - name: Install Django
   yum: name=Django state=installed
   sudo: yes
+  tags: repo_tracking
 
 - name: Install Docker
   yum: name=docker state=installed
   sudo: yes
+  tags: repo_tracking
 
 - name: Install docker-py
   yum: name=python-docker-py state=installed
   sudo: yes
+  tags: repo_tracking
 
 - name: Install python-psycopg2
   yum: name=python-psycopg2 state=installed
   sudo: yes
+  tags: repo_tracking
 
 - name: Ensure docker group exists
   group: name=docker state=present
   sudo: yes
+  tags: repo_tracking
 
 - name: Ensure that user jenkins is included in docker group
   user: name=jenkins groups=docker append=yes
   sudo: yes
+  tags: repo_tracking
 
 - name: Enable Docker Registry
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#*\s*ADD_REGISTRY=.*"
     replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --insecure-registry {{ public_registry }}:5000"'
+  tags: repo_tracking
 
 - name: Enable access to Docker daemon over TCP in localhost
   replace: >
@@ -43,6 +51,7 @@
 - name: Enable and start Docker service
   service: name=docker state=started
   sudo: yes
+  tags: repo_tracking
 
 - name: Install fedmsg and utils
   yum: name={{ item }} state=installed
@@ -50,6 +59,7 @@
   with_items:
     - fedmsg
     - fedmsg-relay
+  tags: repo_tracking
 
 - name: Don't validate fedmsg signatures
   replace:
@@ -57,6 +67,7 @@
       regexp: "validate_signatures=True"
       replace: "validate_signatures=False"
   sudo: yes
+  tags: repo_tracking
 
 - name: Sync repo tracking code
   synchronize:
@@ -69,14 +80,17 @@
     - src
     - jenkinsbuilder
   sudo: yes
+  tags: repo_tracking
 
 - name: Customize settings
   template: src=settings.py.j2 dest=/opt/cccp-service/src/container_pipeline/settings.py owner=jenkins
   sudo: yes
+  tags: repo_tracking
 
 - name: Ensure cccp data dir exists
   file: path=/var/lib/cccp/db state=directory
   sudo: yes
+  tags: repo_tracking
 
 - name: Set selinux context for datadir for mounting in containers
   sefcontext:
@@ -84,12 +98,14 @@
       setype: svirt_sandbox_file_t
       state: present
   sudo: yes
+  tags: repo_tracking
 
 - name: Pull CentOS postgres container
   docker_image:
       name: docker.io/centos/postgresql-95-centos7
       tag: latest
   sudo: yes
+  tags: repo_tracking
 
 - name: Run postgres container
   docker_container:
@@ -106,44 +122,53 @@
       state: started
       restart_policy: on-failure
   sudo: yes
+  tags: repo_tracking
 
 - name: Wait for 10 seconds for the db to come up
   pause:
       seconds: 10
+  tags: repo_tracking
 
 - name: Create DB tables
   shell: /opt/cccp-service/src/manage.py syncdb --noinput
   sudo: yes
+  tags: repo_tracking
 
 - name: Copy fedmsg conf
   copy:
       src: "{{ role_path }}/../../../fedmsg.d/container_pipeline.py"
       dest: "/etc/fedmsg.d/container_pipeline.py"
   sudo: yes
+  tags: repo_tracking
 
 - name: Copy empty fedmsg endpoints conf
   copy:
       src: fedmsg_endpoints.py
       dest: /etc/fedmsg.d/endpoints.py
   sudo: yes
+  tags: repo_tracking
 
 - name: Start fedmsg-relay
   service: name=fedmsg-relay state=restarted enabled=True
   sudo: yes
+  tags: repo_tracking
 
 - name: Get container index
   git:
     repo: https://github.com/rtnpro/container-index
     dest: /opt/container-index
   sudo: yes
+  tags: repo_tracking
 
 - name: Ensure jenkins user can write to log file
   file: path=/srv/pipeline-logs/cccp.log state=file owner=jenkins
   sudo: yes
+  tags: repo_tracking
 
 - name: Copy jenkins job template
   template: src=jobs.yml.j2 dest="{{ ansible_env.HOME }}/repo_tracking_job.yml"
   sudo: yes
+  tags: repo_tracking
 
 - name: Ensure jenkins user is owner of src dir
   file:
@@ -151,9 +176,11 @@
       owner: jenkins
       recurse: yes
   sudo: yes
+  tags: repo_tracking
 
 - name: Create jenkins jobs
   shell: "jenkins-jobs --ignore-cache update {{ ansible_env.HOME }}/repo_tracking_job.yml"
+  tags: repo_tracking
 
 - name: Copy servie files
   copy: src="{{ role_path }}/../../../src/scripts/{{ item }}" dest=/etc/systemd/system/ mode=u+x
@@ -162,6 +189,7 @@
       - cccp_triggerbuilds.service
       - cccp_imagescanner.service
   sudo: yes
+  tags: repo_tracking
 
 - name: Enable and start services
   service: name={{ item }} state=restarted enabled=yes
@@ -170,3 +198,4 @@
       - cccp_triggerbuilds
       - cccp_imagescanner
   sudo: yes
+  tags: repo_tracking

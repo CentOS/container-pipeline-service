@@ -2,11 +2,13 @@
 - name: Install Atomic
   yum: name=atomic state=present
   sudo: yes
+  tags: scanner
 
 # Fix for issue:  https://github.com/projectatomic/atomic/issues/804
 - name: Install python-dateutil
   yum: name=python-dateutil state=present
   sudo: yes
+  tags: scanner
 
 # Patch from https://github.com/projectatomic/atomic/commit/a261270e727353899675a3fde8f9108376bb27cf
 - name: Patch atomic scanner to run on non tty input
@@ -15,34 +17,41 @@
       regexp="'-it'"
       replace="'-t'"
   sudo: yes
+  tags: scanner
 
 - name: Install docker
   yum: name=docker state=present
   sudo: yes
+  tags: scanner
 
 - name: Start and Enable docker
   service: name=docker enabled=yes state=started
   sudo: yes
+  tags: scanner
 
 - name: Enable Docker Host socket
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#*\s*OPTIONS=.*"
     replace='OPTIONS="--selinux-enabled --log-driver=journald -H tcp://0.0.0.0:4243 -H unix:///var/run/docker.sock"'
+  tags: scanner
 
 - name: Enable Docker Registry
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#*\s*ADD_REGISTRY=.*"
     replace='ADD_REGISTRY="--add-registry {{ public_registry }} --insecure-registry {{ public_registry }}:5000"'
+  tags: scanner
 
 - name: Set SELinux to permissive
   selinux:
       policy: targeted
       state: permissive
+  tags: scanner
 
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
+  tags: scanner
 
 - name: Install pipeline-scanner container
   docker_container:
@@ -53,6 +62,7 @@
         - /etc/atomic.d/:/host/etc/atomic.d/
       command: sh /install.sh
       state: started
+  tags: scanner
 
 - name: Install scanner-rpm-verify container
   docker_container:
@@ -63,6 +73,7 @@
         - /etc/atomic.d/:/host/etc/atomic.d/
       command: sh /install.sh
       state: started
+  tags: scanner
 
 - name: Install misc-package-updates container
   docker_container:
@@ -73,9 +84,11 @@
         - /etc/atomic.d/:/host/etc/atomic.d/
       command: sh /install.sh
       state: started
+  tags: scanner
 
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/beanstalk_worker state=directory
+  tags: scanner
 
 - name: Get scanner worker scripts
   copy:
@@ -89,6 +102,7 @@
     - ../beanstalk_worker/constants.py
     - ../beanstalk_worker/scanner.py
   when: not vagrant
+  tags: scanner
 
 - name: Get service files for workers
   copy:
@@ -96,18 +110,23 @@
     dest: "{{ item.dest }}"
   with_items:
       - {src: "../beanstalk_worker/cccp-scan-worker.service", dest: /etc/systemd/system/cccp-scan-worker.service}
+  tags: scanner
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
+  tags: scanner
 
 - name: Enable Scanner worker
   service: name="cccp-scan-worker" state=restarted enabled=yes
+  tags: scanner
 
 - name: Replace Beanstalk server with its FQDN for test worker
   replace: >
       dest=/opt/cccp-service/beanstalk_worker/worker_start_scan.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
+  tags: scanner
 
 - name: Enable Scanner worker
   service: name="cccp-scan-worker" state=restarted enabled=yes
+  tags: scanner

@@ -2,7 +2,13 @@
 - name: Install Docker distribution
   yum: name=docker-distribution state=present
   sudo: yes
+  tags:
+    - registry
+    - jenkins/slave
 
 - name: Enable and run Docker Distribution
   service: name=docker-distribution enabled=yes state=started
   sudo: yes
+  tags:
+    - registry
+    - jenkins/slave

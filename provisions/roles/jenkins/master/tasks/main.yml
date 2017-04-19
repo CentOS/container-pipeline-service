@@ -1,10 +1,16 @@
 - include: install.yml
+  tags:
+  - jenkins/master
 
 - include: config.yml
+  tags:
+  - jenkins/master
 
 - name: Restart jenkins
   service: name=jenkins state=restarted
   sudo: yes
+  tags:
+  - jenkins/master
 
 - name: Wait for Jenkins to come up
   shell: curl --head --silent http://localhost:8080/cli/
@@ -12,11 +18,17 @@
   until: result.stdout.find("200 OK") != -1
   retries: 50
   delay: 10
+  tags:
+    - jenkins/master
 
 - include: plugins.yml
+  tags:
+    - jenkins/master
 
 - name: restart jenkins
   service: name=jenkins state=restarted enabled=yes
+  tags:
+    - jenkins/master
 
 - name: Wait for Jenkins to come up
   shell: curl --head --silent http://localhost:8080/cli/
@@ -24,20 +36,25 @@
   until: result.stdout.find("200 OK") != -1
   retries: 50
   delay: 10
+  tags:
+    - jenkins/master
 
 - include: jobs.yml
   tags:
     - jenkins
     - jobs
+    - jenkins/master
 
 - name: Copy script to monitor access to Jenkins slave from master using Zabbix
   template: src=cron_check_slave_uptime.sh.j2 dest=/root/cron_check_slave_uptime.sh mode=0755
   tags:
     - jenkins
     - monitor
+    - jenkins/master
 
 - name: Cronjob to check if Jenkins slave is up, every minute
   cron: name="check jenkins slave access" job="/root/cron_check_slave_uptime.sh"
   tags:
     - jenkins
     - monitor
+    - jenkins/master

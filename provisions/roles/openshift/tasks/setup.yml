@@ -23,7 +23,7 @@
 - name: Wait for Openshift Router to come up
   pause: seconds={{ openshift_startup_delay }}
 
-- name: Create test user 
+- name: Create test user
   command: "{{ item }}"
   with_items:
     - "oadm policy add-role-to-user view test-admin --config={{ kubeconfig }}"
