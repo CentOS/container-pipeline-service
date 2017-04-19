@@ -21,10 +21,11 @@ class TestOpenshift(BaseTestCase):
         ).format(openshift=self.hosts[self.node]['host'])
         retries = 0
         success = False
-        while retries < 10 and success is False:
+        total_retries = 20
+        while retries < total_retries and success is False:
             if retries > 0:
                 time.sleep(60)
-            _print("Retries: %d/100" % retries)
+            _print("Retries: %d/%d" % (retries, total_retries))
             try:
                 output = self.run_cmd(cmd)
                 _print(output)
