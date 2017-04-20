@@ -17,7 +17,7 @@ class TestOpenshift(BaseTestCase):
             "--insecure-skip-tls-verify=true "
             "-u test-admin -p test > /dev/null && "
             "oc project 53b1a8ddd3df5d4fd94756e8c20ae160e565a4b339bfb47165285955 > /dev/null && "
-            "oc get pods"
+            "oc get builds"
         ).format(openshift=self.hosts[self.node]['host'])
         retries = 0
         success = False
@@ -31,12 +31,12 @@ class TestOpenshift(BaseTestCase):
                 _print(output)
                 lines = output.splitlines()
                 pods = set([line.split()[0] for line in lines[1:]
-                            if line and line.split()[2] == 'Completed'])
+                            if line and 'Complete' in line.split()])
                 success = not set(
                     # FIXME: we're ignoring delivery build right now as it will
                     # need the atomic scan host for that.
-                    # ['build-1-build', 'delivery-1-build', 'test-1-build'])
-                    ['build-1-build', 'test-1-build', 'delivery-1-build']
+                    # ['build-1', 'delivery-1', 'test-1'])
+                    ['build-1', 'test-1', 'delivery-1']
                 ).difference(pods)
             except Exception:
                 success = False
