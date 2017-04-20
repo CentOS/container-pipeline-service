@@ -1,21 +1,21 @@
 ---
 - name: Install nfs-utils for NFS sharing
-  when: test
+  when: setup_nfs
   sudo: yes
   yum: name=nfs-utils state=present
 
 - name: Install firewalld for opening NFS ports
-  when: test
+  when: setup_nfs
   sudo: yes
   yum: name=firewalld state=present
 
 - name: Start firewalld service
-  when: test
+  when: setup_nfs
   sudo: yes
   service: name=firewalld enabled=yes state=started
 
 - name: Create NFS mount directory
-  when: test
+  when: setup_nfs
   sudo: yes
   file:
     path: /nfsshare
@@ -23,23 +23,23 @@
     mode: 0777
 
 - name: Add entry in /etc/exports to configure NFS mount
-  when: test
+  when: setup_nfs
   sudo: yes
   lineinfile:
     destfile: /etc/exports
     line: "/nfsshare (rw,sync,no_subtree_check,all_squash,anonuid=0,anongid=0)"
 
 - name: ensure iptables is configured to allow TCP ports 2049
-  when: test
+  when: setup_nfs
   sudo: yes
   firewalld: port=2049/tcp zone=public permanent=true state=enabled immediate=yes
 
 - name: Ensure iptables is configured to allow TCP ports 111
-  when: test
+  when: setup_nfs
   sudo: yes
   firewalld: port=111/tcp zone=public permanent=true state=enabled immediate=yes
 
 - name: Start and Enable NFS service
-  when: test
+  when: setup_nfs
   sudo: yes
   service: name=nfs-server enabled=yes state=started
