@@ -9,6 +9,21 @@ class TestOpenshift(BaseTestCase):
 
     def test_00_openshift_builds_are_complete(self):
         self.provision()
+        self.cleanup_openshift()
+        self.cleanup_beanstalkd()
+        print self.run_cmd(
+            'java -jar /opt/jenkins-cli.jar '
+            '-s http://localhost:8080 enable-job bamachrn-python-release',
+            host=self.hosts['jenkins_master']['host'])
+        print self.run_cmd(
+            'java -jar /opt/jenkins-cli.jar '
+            '-s http://localhost:8080 '
+            'build bamachrn-python-release -f -v',
+            host=self.hosts['jenkins_master']['host'])
+        print self.run_cmd(
+            'java -jar /opt/jenkins-cli.jar '
+            '-s http://localhost:8080 disable-job bamachrn-python-release',
+            host=self.hosts['jenkins_master']['host'])
         print "=" * 30
         print "Test if openshift builds are running"
         print "=" * 30

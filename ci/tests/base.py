@@ -1,6 +1,7 @@
 import os
 import copy
 import json
+import time
 import unittest
 
 from ci.lib import provision, run_cmd, _print
@@ -76,3 +77,41 @@ class BaseTestCase(unittest.TestCase):
                        host=host or host_info['host'],
                        private_key=host_info.get('private_key'),
                        stream=stream)
+
+    def cleanup_openshift(self):
+        try:
+            print self.run_cmd(
+                'oc --config /var/lib/origin/openshift.local.config/master/'
+                'admin.kubeconfig delete project '
+                '53b1a8ddd3df5d4fd94756e8c20ae160e565a4b339bfb47165285955',
+                host=self.hosts['openshift']['host'])
+        except:
+            pass
+        time.sleep(10)
+
+    def cleanup_beanstalkd(self):
+        print self.run_cmd('systemctl stop cccp_imagescanner',
+                           host=self.hosts['jenkins_master']['host'])
+        print self.run_cmd('systemctl stop cccp-dockerfile-lint-worker',
+                           host=self.hosts['jenkins_slave']['host'])
+        print self.run_cmd('systemctl stop cccp-scan-worker',
+                           host=self.hosts['scanner']['host'])
+        print self.run_cmd('docker stop build-worker; '
+                           'docker stop delivery-worker; '
+                           'docker stop dispatcher-worker',
+                           host=self.hosts['jenkins_slave']['host'])
+
+        print self.run_cmd('systemctl restart beanstalkd',
+                           host=self.hosts['openshift']['host'])
+        time.sleep(5)
+
+        print self.run_cmd('docker start build-worker; '
+                           'docker start delivery-worker; '
+                           'docker start dispatcher-worker',
+                           host=self.hosts['jenkins_slave']['host'])
+        print self.run_cmd('systemctl start cccp-dockerfile-lint-worker',
+                           host=self.hosts['jenkins_slave']['host'])
+        print self.run_cmd('systemctl start cccp-scan-worker',
+                           host=self.hosts['scanner']['host'])
+        print self.run_cmd('systemctl start cccp_imagescanner',
+                           host=self.hosts['jenkins_master']['host'])

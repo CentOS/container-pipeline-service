@@ -249,6 +249,10 @@ def setup(nodes, options):
             'host': jenkins_slave_host,
             'remote_user': 'root'
         },
+        'scanner': {
+            'host': scanner_host,
+            'remote_user': 'root'
+        },
         'controller': {
             'host': controller,
             'user': 'root',
