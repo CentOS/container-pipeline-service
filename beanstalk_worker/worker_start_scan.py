@@ -54,11 +54,10 @@ class ScannerRunner(object):
             "registry.centos.org/pipeline-images/scanner-rpm-verify":
             ScannerRPMVerify,
             "registry.centos.org/pipeline-images/misc-package-updates":
-            MiscPackageUpdates
-            "registry.centos.org/pipeline-images/pipeline-scanner": PipelineScanner,
-            "registry.centos.org/pipeline-images/scanner-rpm-verify": ScannerRPMVerify,
-            "registry.centos.org/pipeline-images/misc-package-updates": MiscPackageUpdates,
-            "registry.centos.org/pipeline-images/container-capabilities-scanner": ContainerCapabilities
+            MiscPackageUpdates,
+            "registry.centos.org/pipeline-images/"
+            "container-capabilities-scanner":
+            ContainerCapabilities
         }
 
     def pull_image_under_test(self, image_under_test):
@@ -512,7 +511,8 @@ class ContainerCapabilities(Scanner):
     def __init__(self):
         self.scanner_name = "container-capabilities-scanner"
         self.full_scanner_name = \
-            "registry.centos.org/pipeline-images/container-capabilities-scanner"
+            "registry.centos.org/pipeline-images/" \
+            "container-capabilities-scanner"
         self.scan_types = ["check-capabilities"]
 
     def run(self, image_under_test):
@@ -555,7 +555,7 @@ class ContainerCapabilities(Scanner):
         """
         data = {}
         data["scanner_name"] = self.scanner_name
-        data["msg"] = "Results for miscellaneous package manager updates"
+        data["msg"] = "Results for container capabilities scanner"
         data["logs"] = logs
 
         return data
@@ -590,14 +590,17 @@ while True:
             next_job = job_info
             # change the action
             next_job["action"] = "start_delivery"
-            # Remove the msg and logs from the job_info as they are not needed now
+            # Remove the msg and logs from the job_info as they are not
+            # needed now
             next_job.pop("msg", None)
             next_job.pop("logs", None)
             next_job.pop("scan_results", None)
             # Put the job details on central tube
             bs.use("master_tube")
             job_id = bs.put(json.dumps(next_job))
-            logger.info("Put job for delivery on master tube with id = %s" % job_id)
+            logger.info(
+                "Put job for delivery on master tube with id = %s" % job_id
+            )
     except Exception as e:
         logger.fatal(str(e), exc_info=True)
         job_info["action"] = "start_delivery"

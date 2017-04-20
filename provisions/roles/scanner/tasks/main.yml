@@ -86,6 +86,16 @@
       state: started
   tags: scanner
 
+- name: Install misc-package-updates container
+  docker_container:
+      image: registry.centos.org/pipeline-images/container-capabilities-scanner:latest
+      name: misc-package-updates
+      privileged: true
+      volumes:
+        - /etc/atomic.d/:/host/etc/atomic.d/
+      command: sh /install.sh
+      state: started
+
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/beanstalk_worker state=directory
   tags: scanner
