@@ -526,6 +526,20 @@ while True:
         if job_info.get("weekly"):
             bs.use("master_tube")
             bs.put(json.dumps(job_info))
+        else:
+            # now scanning is complete, relay job for delivery
+            # all other details about job stays same
+            next_job = job_info
+            # change the action
+            next_job["action"] = "start_delivery"
+            # Remove the msg and logs from the job_info as they are not needed now
+            next_job.pop("msg", None)
+            next_job.pop("logs", None)
+            next_job.pop("scan_results", None)
+            # Put the job details on central tube
+            bs.use("master_tube")
+            job_id = bs.put(json.dumps(next_job))
+            logger.info("Put job for delivery on master tube with id = %s" % job_id)
     except Exception as e:
         logger.fatal(str(e), exc_info=True)
         job_info["action"] = "start_delivery"
