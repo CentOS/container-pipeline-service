@@ -7,6 +7,6 @@ ADD run-test.sh /usr/bin/
 
 RUN mkdir -p /tube_request/
 
-ADD beanstalkc.py send_scan_request.py send_failed_notify_request.py /tube_request/
+ADD beanstalkc.py send_scan_request.py /tube_request/
 
 CMD run-test.sh

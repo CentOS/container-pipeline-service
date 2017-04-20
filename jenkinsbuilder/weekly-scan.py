@@ -76,13 +76,17 @@ for f in files:
             data = {
                 "action": "start_scan",
                 "tag": desired_tag,
-                "name_space": str(app_id) + "-" + str(job_id) + "-" +
+                "namespace": str(app_id) + "-" + str(job_id) + "-" +
                 str(desired_tag),
-                "name": "%s:5000/%s/%s:%s" %
+                "output_image": "%s:5000/%s/%s:%s" %
                 (registry, app_id, job_id, desired_tag),
+                "image_under_test": "registry.centos.org:%s/%s:%s" %
+                (app_id, job_id, desired_tag),
                 "notify_email": email,
                 "weekly": True,
-                "logs_dir": LOGS_DIR
+                "logs_dir": LOGS_DIR,
+                "TEST_TAG": TEST_TAG,
+                "job_name": job_id
             }
 
             job = bs.put(json.dumps(data))

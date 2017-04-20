@@ -3,198 +3,317 @@
 import beanstalkc
 import json
 import logging
+import os
 import subprocess
+
+from urlparse import urljoin
 # FIXME: we've duplicated config.py from ../beanstalk_worker into this dir
 # because we don't yet have a global config which can be shared across
 # all components.
 from config import load_logger
 
-bs = beanstalkc.Connection(host="172.17.0.1")
-bs.watch("notify_user")
-
-LOGS_DIR = "/srv/pipeline-logs/"
-LOGS_URL_BASE = "https://registry.centos.org/pipeline-logs/"
-
 load_logger()
 logger = logging.getLogger('mail-service')
 
+bs = beanstalkc.Connection(host="172.17.0.1")
+bs.watch("notify_user")
 
-def send_mail(notify_email, subject, msg):
-    """
-    Sends user success build notification
-    """
-    success_msg_command = "/mail_service/send_mail.sh"
-    # escape the \ with \\ for rendering in email
-    msg = msg.replace("\n", "\\n")
-    subprocess.call([success_msg_command, subject, notify_email, msg])
+LOGS_DIR_PARENT = "/srv/pipeline-logs/"
+LOGS_URL_BASE = "https://registry.centos.org/pipeline-logs/"
+BUILD_LOGS_FILENAME = "build_logs.txt"
+LINTER_STATUS_FILE = "linter_status.json"
+SCANNERS_STATUS_FILE = "scanners_status.json"
 
+SUCCESS_EMAIL_SUBJECT = "SUCCESS: Your container build: %s request is complete"
+FAILURE_EMAIL_SUBJECT = "FAILED: Container build failed: %s"
+WEEKLY_EMAIL_SUBJECT = "Weekly scanning results for image: %s"
 
-def notify_user_with_scan_results(job_info):
-    """
-    Fetches the results of scanners from job_info and
-    composes the the message body to be sent to the user.
-    """
-    logger.debug("Retrieving message details from: %s" % job_info)
-    notify_email = job_info['notify_email']
+EMAIL_HEADER = """
+CentOS Community Container Pipeline Service <https://github.com/centos/container-index>"""
 
-    # find image's full name, remove the registry name
-    image_under_test = job_info.get('name').split(":")[1]
-    # remove the port of registry
-    # TODO: Find a better way to remove regisry and port part
-    image_under_test = image_under_test.replace("5000/", "")
+EMAIL_HEADER = EMAIL_HEADER + "\n" + "=" * (len(EMAIL_HEADER) - 22)
 
-    logger.debug("Image under test is %s" % image_under_test)
-
-    if job_info.get("weekly"):
-        subject = "Weekly scanning results for image: %s" % image_under_test
-    else:
-        subject = "Scanning results for image: %s" % image_under_test
-    text = """
-CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
-==================================================================
-
-Container image scanning results for image=%s built at CentOS community container pipeline service.
-
-Following are the atomic scanners ran on built image, displaying the result message and detailed logs.
-
+EMAIL_FOOTER = """
+--
+Do you have a query ?
+Talk to Pipeline team on #centos-devel at freenode
+https://wiki.centos.org/ContainerPipeline
 """
-    # render image_under_test from above text
-    text = text % image_under_test
 
-    for scanner in job_info["msg"]:
-        text += scanner + ":\n"
-        text += job_info["msg"][scanner]
-        text += "\n\n"
+SUCCESS_EMAIL_MSG = """
+Build status:   Success
+Image:          %s
+Build logs:     %s
+"""
 
-    text += "Detailed logs per scanner:\n\n"
-    for scanner in job_info["logs"]:
-        text += job_info["logs"][scanner]
-        text += "\n\n"
+FAILURE_EMAIL_MSG = """
+Container build %s is failed due to error in build or test steps.
 
-    logger.info("Sending scan results email to user: %s" % notify_email)
-    logger.debug('Scan results email content: %s\n%s' % (subject, text))
-    # last parameter (logs) has to None for the sake of
-    # condition put in send_mail function
-    send_mail(notify_email, subject, text)
+Build status:   Failure
+Build logs:     %s
+"""
 
-    # if weekly scan is being executed, we do not want trigger delivery phase
-    if job_info.get("weekly"):
-        logger.info("Weekly scan completed; moving to next job.")
-        return
+LINTER_RESULTS = """
+Dockerfile linter results:
 
-    # We notified user, lets put the job on delivery tube
-    # all other details about job stays same
-    next_job = job_info
-    # change the action
-    next_job["action"] = "start_delivery"
+%s
+"""
 
-    # Remove the msg and logs from the job_info as they are not needed now
-    next_job.pop("msg")
-    next_job.pop("logs")
-    next_job.pop("scan_results")
+SCANNERS_RESULTS = """
+Atomic scanners results for built image %s
 
-    # Put the job details on central tube
-    bs.use("master_tube")
-    job_id = bs.put(json.dumps(next_job))
-    logger.info("Put job for delivery on master tube with id = %s" % job_id)
+%s
+"""
 
 
-def notify_user_with_linter_results(job_info):
-    """
-    Fetches the results of linter from job_info and composes the the message
-    body to be sent to the user.
-    """
-    logger.debug("Retrieving message details from %s" % job_info)
-    notify_email = job_info['notify_email']
-    project = job_info["namespace"] + "/" + job_info["job_name"]
+class NotifyUser(object):
+    "Compose and send build status, linter and scanners results"
 
-    subject = "Dockerfile linter results for project: %s" % project
-    if "logs" not in job_info:
-        # Linter failed for some reason which should be in "msg" key
-        text = "Failed to scan the Dockerfile for project %s \n" % project
-        text += "Reason for failure: %s\n" % job_info["msg"]
+    def __init__(self, job_info):
 
-        logger.info("Sending linter failure results email to user: %s"
-                    % notify_email)
-        logger.debug("Linter failure results email content: %s\n%s"
-                     % (subject, text))
-        # Setting last parameter to anything but None should trigger failure
-        # email
-        send_mail(notify_email, subject, text)
-    else:
-        text = """
-CentOS Community Container Pipeline Service <https://wiki.centos.org/ContainerPipeline>
-=======================================================================================
+        self.send_mail_command = "/mail_service/send_mail.sh"
+        self.job_info = job_info
 
-Dockerfile linter results for project=%s.
+        # the logs directory
+        self.logs_dir = os.path.join(
+            LOGS_DIR_PARENT,
+            self.job_info["TEST_TAG"])
 
-""" % project
+        # linter execution status file
+        self.linter_status_file = os.path.join(
+            self.logs_dir, LINTER_STATUS_FILE)
 
-        text += "Detailed linter logs:\n\n"
-        text += job_info["logs"] + "\n\n"
+        # scanners execution status file
+        self.scanners_status_file = os.path.join(
+            self.logs_dir, SCANNERS_STATUS_FILE)
 
-        logger.info(
-            "Sending linter results email to user: %s" % notify_email)
-        logger.debug("Linter results email content: %s\n%s"
-                     % (subject, text))
-        # last parameter (logs) has to None for the sake of
-        # condition put in send_mail function
-        send_mail(notify_email, subject, text)
+        # if image has successful build
+        if self.job_info.get("build_status"):
+            logger.debug("Processing mail for SUCCESS build.")
+            self.image_under_test = job_info.get("output_image")
+        # if it is weekly scan job
+        elif self.job_info.get("weekly"):
+            logger.debug("Processing mail for Weekly scan.")
+            self.image_under_test = job_info.get("image_under_test")
+        # if it is a failed build
+        else:
+            logger.debug("Processing mail for failed build.")
+            self.image_under_test = job_info.get("project_name")
+
+        self.project = self.job_info["namespace"] + "/" + \
+            self.job_info["job_name"]
+
+        # build_logs filename
+        self.build_logs = urljoin(
+            LOGS_URL_BASE,
+            self.job_info["TEST_TAG"],
+            BUILD_LOGS_FILENAME
+        )
+
+    def _escape_text_(self, text):
+        "Escapes \n with \\n for rendering newlines in email body"
+
+        return text.replace("\n", "\\n")
+
+    def send_email(self, subject, contents):
+        "Sends email to user"
+
+        subprocess.call([
+            self.send_mail_command,
+            subject,
+            self.job_info["notify_email"],
+            self._escape_text_(contents)])
+
+    def _read_status(self, filepath):
+        "Method to read status JSON files"
+        try:
+            fin = open(filepath)
+        except IOError as e:
+            logger.warning("Failed to read %s file, error: %s" %
+                           (filepath, str(e)))
+            return None
+        else:
+            return json.load(fin)
+
+    def _read_text_file(self, text_file):
+        "Method to read text files"
+
+        try:
+            fin = open(text_file)
+        except IOError as e:
+            logger.warning("Failed to read %s file, error: %s" %
+                           (text_file, str(e)))
+            return None
+        else:
+            return fin.read()
+
+    def _dump_logs(self, logs, logfile):
+        "Method to dump logs into logfile"
+
+        try:
+            # open in append mode, if there are more logs already
+            fin = open(logfile, "a+")
+        except IOError as e:
+            logger.warning("Failed to open %s file in append mode. Error: %s"
+                           % (logfile, str(e)))
+        else:
+            fin.write(logs)
+
+    def _separate_section(self, char="-", count=99):
+        " Creates string with char x count and returns"
+
+        return char * count
+
+    def compose_email_subject(self):
+        " Composes email subject based on build status"
+
+        if self.job_info.get("build_status"):
+            return SUCCESS_EMAIL_SUBJECT % self.project
+        else:
+            return FAILURE_EMAIL_SUBJECT % self.project
+
+    def compose_success_build_contents(self):
+        "Composes email contents for completed builds"
+
+        # need output image name and build logs
+        return SUCCESS_EMAIL_MSG % (
+            self.job_info["output_image"],
+            self.build_logs)
+
+    def compose_failed_build_contents(self):
+        "Composes email contents for email of failed build"
+
+        # need output image name and build logs
+        return FAILURE_EMAIL_MSG % (
+            self.project,
+            self.build_logs)
+
+    def compose_scanners_summary(self):
+        "Composes scanners result summary"
+
+        scanners_status = self._read_status(self.scanners_status_file)
+        if not scanners_status:
+            # TODO: Better handling and reporting here
+            return ""
+
+        text = ""
+        for scanner in scanners_status["logs_file_path"]:
+            text += scanner + ":\n"
+            text += scanners_status["msg"][scanner] + "\n"
+            text += "Detailed logs link: "
+            text += scanners_status["logs_URL"][scanner]
+            text += "\n\n"
+
+        return SCANNERS_RESULTS % (self.image_under_test, text)
+
+    def compose_linter_summary(self):
+        "Composes Dockerfile Linter results summary"
+
+        linter_status = self._read_status(self.linter_status_file)
+        if not linter_status:
+            # TODO: Better handling and reporting here
+            return ""
+
+        if not linter_status["linter_results"]:
+            # TODO: Better handling and reporting here
+            return ""
+
+        linter_results = self._read_text_file(
+            linter_status["linter_results_path"])
+
+        if not linter_results:
+            # TODO: Better handling and reporting here
+            return ""
+
+        return LINTER_RESULTS % linter_results
+
+    def compose_email_contents(self):
+        "Aggregates contents from different modules and composes one email"
+
+        text = EMAIL_HEADER
+
+        text += "\n"
+
+        # if build has failed
+        if not self.job_info.get("build_status"):
+            text += self.compose_failed_build_contents()
+            # see if job_info has logs keyword and append those logs to
+            # build_logs
+
+            if self.job_info.get("logs"):
+                # build_logs.txt file path on the disk
+                logfile = os.path.join(self.logs_dir, BUILD_LOGS_FILENAME)
+                self._dump_logs(str(self.job_info.get("logs")), logfile)
+
+        else:
+            text += self.compose_success_build_contents()
+
+            # scanners will run only on success builds
+            # new line and separate section with hyphens
+            text += "\n" + self._separate_section()
+
+            # scanners results
+            text += self.compose_scanners_summary()
+
+        # linter has already run for project irrespective of
+        # build failure or success
+
+        # new line and separate section with hyphens
+        text += "\n" + self._separate_section() + "\n"
+
+        # linter results
+        text += self.compose_linter_summary()
+
+        # put email footer
+        text += EMAIL_FOOTER
+
+        return text
+
+    def compose_weekly_email(self):
+        "Compose weekly scanning email artifcats"
+
+        subject = WEEKLY_EMAIL_SUBJECT % self.image_under_test
+        text = EMAIL_HEADER + "\n" + self.compose_scanners_summary() +\
+            EMAIL_FOOTER
+        return subject, text
+
+    def notify_user(self):
+        """
+        Main method to orchestrate the email body composition
+        and sending email
+        """
+        if self.job_info.get("weekly"):
+            subject, email_contents = self.compose_weekly_email()
+            self.remove_status_files([self.scanners_status_file])
+        else:
+            subject = self.compose_email_subject()
+            email_contents = self.compose_email_contents()
+            self.remove_status_files([
+                self.linter_status_file,
+                self.scanners_status_file])
+        # send email
+        logger.info("Sending email to user %s" %
+                    self.job_info["notify_email"])
+        self.send_email(subject, email_contents)
+
+    def remove_status_files(self, status_files):
+        "Removes the status file"
+        logger.debug("Cleaning statuses files %s" % str(status_files))
+        for each in status_files:
+            try:
+                os.remove(each)
+            except OSError as e:
+                logger.info("Failed to remove file: %s , error: %s" %
+                            (each, str(e)))
 
 
 while True:
-    logger.info("Listening to notify_user tube")
-
+    logger.debug("Listening to notify_user tube")
     job = bs.reserve()
     job_id = job.jid
     job_info = json.loads(job.body)
-
-    if "scan_results" in job_info:
-        if job_info["scan_results"]:
-            logger.info("Received job id= %s for reporting scan results"
-                        % job_id)
-            notify_user_with_scan_results(job_info)
-            job.delete()
-            continue
-
-    if "linter_results" in job_info:
-        if job_info["linter_results"]:
-            logger.info("Received job id= %s for reporting linter results"
-                        % job_id)
-            notify_user_with_linter_results(job_info)
-            job.delete()
-            continue
-
-    if "build_failed" in job_info:
-        if job_info["build_failed"]:
-            logger.info("Build with id= %s failed, sending failure email."
-                        % job_id)
-
-            logs_url = job_info["build_logs_file"].replace(
-                LOGS_DIR, LOGS_URL_BASE)
-
-            subject = "FAILED: Container build failed " + job_info["namespace"]
-            msg = """
-Container build for %s is failed due to error in build or test
-steps. Pleae check logs below.
-
-Build logs: %s""" % (job_info["namespace"], logs_url)
-
-            send_mail(job_info["notify_email"], subject, msg)
-            job.delete()
-            continue
-
-    logger.info("Retrieving message details")
-    notify_email = job_info['notify_email']
-    subject = job_info['subject']
-
-    if 'msg' not in job_info:
-        msg = None
-    else:
-        msg = job_info['msg']
-
-    logger.info("Sending email to user: %s" % notify_email)
-    logger.debug('User email content: %s\n%s' % (subject, msg))
-    send_mail(notify_email, subject, msg)
-
+    logger.info("Received Job:")
+    logger.debug(str(job_info))
+    notify_user = NotifyUser(job_info)
+    notify_user.notify_user()
     job.delete()

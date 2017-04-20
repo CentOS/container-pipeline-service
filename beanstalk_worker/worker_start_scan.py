@@ -8,7 +8,6 @@ import logging
 import os
 import shutil
 import subprocess
-import sys
 import config
 
 from Atomic import Atomic, mount
@@ -21,11 +20,13 @@ BEANSTALKD_HOST = "BEANSTALK_SERVER"
 config.load_logger()
 logger = logging.getLogger("scan-worker")
 
+logger = logging.getLogger("scan-worker")
+
 SCANNERS_OUTPUT = {
-        "registry.centos.org/pipeline-images/pipeline-scanner": [
-            "image_scan_results.json"],
-        "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-            "RPMVerify.json"]}
+    "registry.centos.org/pipeline-images/pipeline-scanner": [
+        "image_scan_results.json"],
+    "registry.centos.org/pipeline-images/scanner-rpm-verify": [
+        "RPMVerify.json"]}
 
 try:
     # docker client connection to CentOS 7 system
@@ -45,12 +46,15 @@ class ScannerRunner(object):
     def __init__(self, job_info):
         self.job_info = job_info
         self.atomic_object = Atomic()
-        # Receive and send `name_space` key-value as is
-        self.job_namespace = job_info.get('name_space')
+        # Receive and send `namespace` key-value as is
+        self.job_namespace = job_info.get('namespace')
         self.scanners = {
-            "registry.centos.org/pipeline-images/pipeline-scanner": PipelineScanner,
-            "registry.centos.org/pipeline-images/scanner-rpm-verify": ScannerRPMVerify,
-            "registry.centos.org/pipeline-images/misc-package-updates": MiscPackageUpdates
+            "registry.centos.org/pipeline-images/pipeline-scanner":
+            PipelineScanner,
+            "registry.centos.org/pipeline-images/scanner-rpm-verify":
+            ScannerRPMVerify,
+            "registry.centos.org/pipeline-images/misc-package-updates":
+            MiscPackageUpdates
         }
 
     def pull_image_under_test(self, image_under_test):
@@ -83,8 +87,31 @@ class ScannerRunner(object):
         else:
             logger.info("Finished running %s scanner." % scanner)
 
-        # if scanner failed to run, this will return {}, do check at receiver end
+        # if scanner failed to run, this will return {}, do check at receiver
+        # end
         return json_data
+
+    def export_scanners_status(self, status, status_file_path):
+        """
+        Export status of scanners execution for build in process
+        """
+        try:
+            fin = open(status_file_path, "w")
+            json.dump(status, fin)
+        except IOError as e:
+            logger.log(
+                level=logging.CRITICAL,
+                msg="Failed to write scanners status on NFS share."
+            )
+            logger.log(
+                level=logging.CRITICAL,
+                msg=str(e)
+            )
+        else:
+            logger.log(
+                level=logging.INFO,
+                msg="Wrote scanners status to file: %s" % status_file_path
+            )
 
     def export_scanner_logs(self, scanner, data):
         """
@@ -116,18 +143,18 @@ class ScannerRunner(object):
         #FIXME: at the moment this menthod is returning the results of multiple
         scanners in one json and sends over the bus
         """
-        logger.info("Received job : %s" % job_info)
+        logger.info("Received job : %s" % self.job_info)
 
         # TODO: Figure out why random tag (with date) is coming
-        # image_under_test = ":".join(self.job_info.get("name").split(":")[:-1])
-        image_under_test = self.job_info.get("name")
+        # image_under_test=":".join(self.job_info.get("name").split(":")[:-1])
+        image_under_test = self.job_info.get("output_image")
         logger.info("Image under test:%s" % image_under_test)
-
         # copy the job info into scanners data,
         # as we are going to add logs and msg
         scanners_data = self.job_info
         scanners_data["msg"] = {}
-        scanners_data["logs"] = {}
+        scanners_data["logs_URL"] = {}
+        scanners_data["logs_file_path"] = {}
 
         # pull the image first, if failed move on to start_delivery
         if not self.pull_image_under_test(image_under_test):
@@ -143,30 +170,44 @@ class ScannerRunner(object):
                 continue
 
             # TODO: what to do if the logs writing failed, check status here
+            # scanners results file path on NFS
             logs_filepath = self.export_scanner_logs(scanner, data_temp)
 
+            # scanner results logs URL
             logs_URL = logs_filepath.replace(
-                    constants.LOGS_DIR,
-                    constants.LOGS_URL_BASE
-                    )
+                constants.LOGS_DIR,
+                constants.LOGS_URL_BASE
+            )
 
             # keep the message
             scanners_data["msg"][data_temp["scanner_name"]] = data_temp["msg"]
-            # pass the logs filepath via beanstalk tube
-            scanners_data["logs"][data_temp["scanner_name"]] = logs_URL
 
+            # pass the logs filepath via beanstalk tube
+            # TODO: change the respective key from logs ==> logs_URL while
+            # accessing this
+            scanners_data["logs_URL"][data_temp["scanner_name"]] = logs_URL
+
+            # put the logs file name as well here in data
+            scanners_data["logs_file_path"][
+                data_temp["scanner_name"]] = logs_filepath
+
+        # keep notify_user action in data, even if we are deleting the job,
+        # since whenever we will read the response, we should be able to see
+        # action
         scanners_data["action"] = "notify_user"
-        # This field is needed for email worker to hint that this is scan
-        # result email and need to move to next phase of delivery
-        scanners_data["scan_results"] = True
 
         # after all scanners are ran, remove the image
         logger.info("Removing the image: %s" % image_under_test)
-
         conn.remove_image(image=image_under_test, force=True)
-
         # TODO: Check here if at least one scanner ran successfully
         logger.info("Finished executing all scanners.")
+
+        status_file_path = os.path.join(
+                self.job_info["logs_dir"],
+                constants.SCANNERS_STATUS_FILE)
+        # We export the scanners_status on NFS
+        self.export_scanners_status(scanners_data, status_file_path)
+
         return True, scanners_data
 
 
@@ -174,9 +215,11 @@ class ScannerRPMVerify(object):
     """
     scanner-rpm-verify atomic scanner handler
     """
+
     def __init__(self):
         self.scanner_name = "scanner-rpm-verify"
-        self.full_scanner_name = "registry.centos.org/pipeline-images/scanner-rpm-verify"
+        self.full_scanner_name = \
+            "registry.centos.org/pipeline-images/scanner-rpm-verify"
         self.atomic_object = Atomic()
 
     def run_atomic_scanner(self):
@@ -246,9 +289,11 @@ class PipelineScanner(object):
     """
     pipeline-scanner atomic scanner handler
     """
+
     def __init__(self):
         self.scanner_name = "pipeline-scanner"
-        self.full_scanner_name = "registry.centos.org/pipeline-images/pipeline-scanner"
+        self.full_scanner_name = \
+            "registry.centos.org/pipeline-images/pipeline-scanner"
         self.atomic_object = Atomic()
         self.mount_object = mount.Mount()
 
@@ -304,7 +349,6 @@ class PipelineScanner(object):
                 self.image_id, self.image_rootfs_path))
         self.mount_object.mount()
         logger.info("Successfully mounted image's rootfs")
-
         return True
 
     def unmount_image(self):
@@ -354,12 +398,11 @@ class PipelineScanner(object):
         ]
 
         logger.info("Executing atomic scan:  %s" % " ".join(cmd))
-
         process = subprocess.Popen(
             cmd,
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE
-            )
+        )
 
         out, err = process.communicate()
 
@@ -408,6 +451,7 @@ class PipelineScanner(object):
 
 
 class MiscPackageUpdates(Scanner):
+
     def __init__(self):
         self.scanner_name = "misc-package-updates"
         self.full_scanner_name = \
@@ -473,13 +517,34 @@ while True:
             logger.critical(
                 "Failed to run scanners on image under test, moving on!"
             )
-        bs.use("master_tube")
-        job_id = bs.put(json.dumps(scanners_data))
+        else:
+            logger.log(
+                level=logging.INFO,
+                msg=str(scanners_data)
+            )
+        # if weekly scan, push the job for notification
+        if job_info.get("weekly"):
+            bs.use("master_tube")
+            bs.put(json.dumps(job_info))
+        else:
+            # now scanning is complete, relay job for delivery
+            # all other details about job stays same
+            next_job = job_info
+            # change the action
+            next_job["action"] = "start_delivery"
+            # Remove the msg and logs from the job_info as they are not needed now
+            next_job.pop("msg", None)
+            next_job.pop("logs", None)
+            next_job.pop("scan_results", None)
+            # Put the job details on central tube
+            bs.use("master_tube")
+            job_id = bs.put(json.dumps(next_job))
+            logger.info("Put job for delivery on master tube with id = %s" % job_id)
     except Exception as e:
         logger.fatal(str(e), exc_info=True)
         job_info["action"] = "start_delivery"
         bs.use("master_tube")
-        job_id = bs.put(json.dumps(job_info))
+        bs.put(json.dumps(job_info))
     finally:
-        logger.info("Job moved from scan phase, id: %s" % job_id)
+        logger.info("Job moved from scan phase.")
         job.delete()

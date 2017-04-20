@@ -9,6 +9,6 @@ ADD cccp_reader.py /
 
 RUN mkdir -p /tube_request/
 
-ADD beanstalkc.py send_failed_notify_request.py /tube_request/
+ADD beanstalkc.py /tube_request/
 
 CMD run.sh
