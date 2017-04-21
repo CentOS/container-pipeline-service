@@ -33,6 +33,13 @@
     regexp="^#*\s*ADD_REGISTRY=.*"
     replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --insecure-registry {{ public_registry }}:5000"'
 
+- name: Enable access to Docker daemon over TCP in localhost
+  replace: >
+    dest=/etc/sysconfig/docker
+    regexp="^\s*OPTIONS=.*"
+    replace="OPTIONS='--selinux-enabled --log-driver=journald --signature-verification=false -H localhost:2367 -H unix:///var/run/docker.sock'"
+  sudo: yes
+
 - name: Enable and start Docker service
   service: name=docker state=started
   sudo: yes
