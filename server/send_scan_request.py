@@ -14,6 +14,7 @@ image_details["TEST_TAG"] = sys.argv[4]
 image_details["notify_email"] = sys.argv[5]
 image_details["logs_dir"] = sys.argv[6]
 image_details["job_name"] = sys.argv[7]
+image_details["image_name"] = sys.argv[8]
 print "Pushing image details in the tube"
 bs = beanstalkc.Connection(host=beanstalk_host)
 bs.use("master_tube")
