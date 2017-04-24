@@ -1,5 +1,5 @@
 FROM registry.centos.org/centos/centos
-MAINTAINER Bamacharan Kundu<bkundu@redhat.com>
+MAINTAINER CentOS Community Container Pipeline<container-group@centos.org>
 
 RUN yum update -y && \
     yum install python -y && \

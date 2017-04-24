@@ -13,6 +13,8 @@ class TestRepoMonitoring(BaseTestCase):
 
     def setUp(self):
         super(TestRepoMonitoring, self).setUp()
+        self.cleanup_openshift()
+        self.cleanup_beanstalkd()
         self._teardown()
 
     def tearDown(self):
@@ -45,20 +47,22 @@ class TestRepoMonitoring(BaseTestCase):
     def test_00_if_fetch_scan_image_job_is_successful(self):
         self.run_cmd(
             'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
+            'enable-job fetch-scan-image')
+        print self.run_cmd(
+            'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
             'build fetch-scan-image -f -v')
-        self.assertTrue(
-            int(
-                self.run_dj_script(
+        self.run_cmd(
+            'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
+            'disable-job fetch-scan-image')
+        out = self.run_dj_script(
                     'from tracking.models import ContainerImage; '
-                    'print ContainerImage.objects.all().count()').strip()
-            )
-        )
-        self.assertTrue(
-            int(
-                self.run_dj_script('from tracking.models import Package; '
-                                   'print Package.objects.all().count()')
-            ) > 0
-        )
+                    'print ContainerImage.objects.all().count()')
+        print 'Images fetched', out.strip()
+        self.assertTrue(int(out.strip()))
+        out = self.run_dj_script('from tracking.models import Package; '
+                                 'print Package.objects.all().count()')
+        print 'Packages found', out.strip()
+        self.assertTrue(int(out.strip()) > 0)
 
     def test_01_image_delivery_triggers_image_scan(self):
         # Create ContainerImage for bamachrn/python:release
@@ -165,12 +169,19 @@ class TestRepoMonitoring(BaseTestCase):
                                'name=\\"bamachrn/python:release\\")'
                                '.to_build').strip(),
             'True')
+        self.run_cmd(
+            'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
+            'enable-job bamachrn-python-release')
         prev_builds = self.get_jenkins_builds_for_job(
             'bamachrn-python-release')
         time.sleep(20)
         cur_builds = self.get_jenkins_builds_for_job(
             'bamachrn-python-release')
+        self.run_cmd(
+            'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
+            'disable-job bamachrn-python-release')
         self.assertTrue(len(cur_builds) > len(prev_builds))
+        self.cleanup_openshift()
 
     def test_03_package_change_effect_on_dependent_images(self):
         """

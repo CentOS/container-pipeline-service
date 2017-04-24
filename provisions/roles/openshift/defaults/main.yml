@@ -17,7 +17,7 @@ openshift_shared_dirs:
 openshift_volumes:
   - /:/rootfs:ro
   - /var/run:/var/run:rw
-  - /sys:/sys:ro
+  - /sys:/sys
   - /var/lib/docker:/var/lib/docker:rw
   - /var/lib/origin/openshift.local.volumes:/var/lib/origin/openshift.local.volumes:rw
   - /var/lib/origin/openshift.local.config:/var/lib/origin/openshift.local.config:rw

@@ -1,37 +1,23 @@
 import os
-import urllib
 
-from ci.lib import _print
+from ci.lib import _print, run_cmd
 
 DUFFY_SSID = os.environ.get('DUFFY_SSID')
-URL_BASE = os.environ.get('URL_BASE')
-API = os.environ.get('API')
 DEBUG = os.environ.get('CI_DEBUG', None) == 'true'
 BUILD_FAILED = os.environ.get('BUILD_FAILED', None) == 'true'
 
-print (DUFFY_SSID, URL_BASE)
-
-
-def fail_nodes():
-    _print("Failing nodes")
-    fail_nodes_url = "{url_base}/Node/fail?key={key}&ssid={ssid}".format(
-        url_base=URL_BASE, key=API, ssid=DUFFY_SSID)
-    resp = urllib.urlopen(fail_nodes_url).read()
-    with open(os.path.expanduser('~/failed_ssids.txt', 'a')) as f:
-        f.writelines([DUFFY_SSID])
-    _print(resp)
+print DUFFY_SSID
 
 
 def clean_nodes():
     _print("Cleaning nodes")
-    done_nodes_url = "%s/Node/done?key=%s&ssid=%s" % (
-        URL_BASE, API, DUFFY_SSID)
-    resp = urllib.urlopen(done_nodes_url).read()
-    _print(resp)
+    _print(run_cmd(
+        'export CICO_API_KEY=`cat ~/duffy.key` && '
+        'cico node done %s' % DUFFY_SSID))
 
 
 if __name__ == '__main__':
-    if DEBUG and BUILD_FAILED:
-        fail_nodes()
-    else:
-        clean_nodes()
+    # if DEBUG and BUILD_FAILED:
+    #     fail_nodes()
+    # else:
+    clean_nodes()

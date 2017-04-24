@@ -16,7 +16,7 @@
     name: centos-container-pipeline-service-ci-cleanup-builders
     builders:
         - python:
-            !include-raw: ./cccp_ci_cleanup.py
+            !include-raw ./cccp_ci_cleanup.py
 
 - builder:
     name: git-fast-forward-branch
@@ -136,8 +136,6 @@
     builders:
         - git-fast-forward-branch
         - centos-container-pipeline-service-ci-builder-setup-env
-        - shell: |
-            echo "CI_DEBUG=true" >> env.properties
         - centos-container-pipeline-service-ci-builder-tests
     publishers:
         - trigger-parameterized-builds:
@@ -181,14 +179,6 @@
     ci_project: container
     builders:
         - centos-container-pipeline-service-ci-cleanup-builders
-
-- job:
-    name: 'centos-container-pipeline-service-ci-return-failed-nodes'
-    node: container
-    ci_project: container
-    builders:
-        - shell:
-            !include-raw: ./return_failed_nodes.sh
 
 - job:
     name: centos-container-pipeline-service-container-index

@@ -10,18 +10,16 @@
 
 import json
 import os
-import urllib
 import sys
 
 from ci.lib import _print, setup, test, teardown, run_cmd
 
-url_base = os.environ.get('URL_BASE')
-api = os.environ.get('API')
-DEBUG = os.environ.get('CI_DEBUG', None) == 'true'
+DEBUG = os.environ.get('ghprbCommentBody', None) == '#dotests-debug'
 ver = "7"
 arch = "x86_64"
 count = 4
 NFS_SHARE = "/nfsshare"
+
 
 # repo_url = os.environ.get('ghprbAuthorRepoGitUrl') or \
 #     os.environ.get('GIT_URL')
@@ -30,18 +28,18 @@ NFS_SHARE = "/nfsshare"
 
 
 def get_nodes(ver="7", arch="x86_64", count=4):
-    get_nodes_url = "%s/Node/get?key=%s&ver=%s&arch=%s&count=%s" % (
-        url_base, api, ver, arch, count)
-    _print("get_nodes_url: %s" % get_nodes_url)
+    out = run_cmd(
+        'export CICO_API_KEY=`cat ~/duffy.key` && '
+        'cico node get --arch %s --release %s --count %s '
+        '--format json' % (arch, ver, count))
+    _print('Get nodes output: %s' % out)
+    hosts = json.loads(out)
 
-    resp = urllib.urlopen(get_nodes_url).read()
-    _print("get_nodes response: %s" % resp)
-    data = json.loads(resp)
     with open('env.properties', 'a') as f:
-        f.write('DUFFY_SSID=%s' % data['ssid'])
+        f.write('DUFFY_SSID=%s' % hosts[0]['comment'])
         f.close()
-    _print(resp)
-    return data['hosts']
+
+    return [host['hostname'] for host in hosts]
 
 
 def print_nodes():
@@ -67,6 +65,14 @@ if __name__ == '__main__':
             _print('Reserving nodes for debugging...')
             _print('=' * 10 + 'Node Info' + '=' * 10)
             print_nodes()
+            try:
+                _print('Sleeping for %s seconds for debugging...'
+                       % 7200)
+                import time
+                time.sleep(int(7200))
+            except Exception as e:
+                _print(e)
+                pass
             with open('env.properties', 'a') as f:
                 f.write('\nBUILD_FAILED=true\n')
         sys.exit(1)

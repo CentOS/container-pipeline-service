@@ -41,7 +41,7 @@
     pid: host
     net: host
     volumes: "{{ openshift_volumes }}"
-    command: start --master=https://"{{ansible_default_ipv4.address}}":8443 --etcd-dir="{{openshift_etcd_dir}}" --cors-allowed-origins=.*
+    command: start --master=https://"{{ansible_default_ipv4.address}}":8443
     restart_policy: always
   retries: 2
 

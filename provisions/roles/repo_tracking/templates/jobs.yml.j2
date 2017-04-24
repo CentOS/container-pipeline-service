@@ -30,6 +30,7 @@
     builders:
         - shell: |
             export CWD=`pwd`
+            export DOCKER_HOST=localhost:2367
             cd /opt/cccp-service/src
             python manage.py fetchimagelist $CWD/index.d
             python manage.py imagescanner onetime
