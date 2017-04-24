@@ -97,15 +97,6 @@
   with_items:
       - {src: "../beanstalk_worker/cccp-scan-worker.service", dest: /etc/systemd/system/cccp-scan-worker.service}
 
-- name: Skip atomic scan for scan environment
-  replace: >
-    dest=/etc/systemd/system/cccp-scan-worker.service
-    regexp='worker_start_scan.py$'
-    replace='worker_start_scan.py ci'
-  when: test
-  tags:
-    - scan
-
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
 
