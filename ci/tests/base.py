@@ -3,6 +3,7 @@ import copy
 import json
 import time
 import unittest
+from xml.dom.minidom import parseString
 
 from ci.lib import provision, run_cmd, _print
 
@@ -115,3 +116,13 @@ class BaseTestCase(unittest.TestCase):
                            host=self.hosts['scanner']['host'])
         print self.run_cmd('systemctl start cccp_imagescanner',
                            host=self.hosts['jenkins_master']['host'])
+
+    def get_jenkins_builds_for_job(self, job):
+        """Get builds for a Jenkins job"""
+        s = self.run_cmd('curl -g "http://localhost:8080/job/%s/api/xml?'
+                         'tree=allBuilds[result,number]&"' % job,
+                         host=self.hosts['jenkins_master']['host']).strip()
+        dom = parseString(s)
+        builds = [child.getElementsByTagName('number')[0].childNodes[0].data
+                  for child in dom.childNodes[0].childNodes]
+        return builds

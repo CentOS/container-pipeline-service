@@ -4,7 +4,6 @@ import sys
 import os
 import json
 import time
-from xml.dom.minidom import parseString
 from distutils.version import LooseVersion
 
 
@@ -35,14 +34,6 @@ class TestRepoMonitoring(BaseTestCase):
         return self.run_cmd(
             'cd /opt/cccp-service/src && '
             'python -c "{}"'.format(_script))
-
-    def get_jenkins_builds_for_job(self, job):
-        s = self.run_cmd('curl -g "http://localhost:8080/job/%s/api/xml?'
-                         'tree=allBuilds[result,number]&"' % job).strip()
-        dom = parseString(s)
-        builds = [child.getElementsByTagName('number')[0].childNodes[0].data
-                  for child in dom.childNodes[0].childNodes]
-        return builds
 
     def test_00_if_fetch_scan_image_job_is_successful(self):
         self.run_cmd(
