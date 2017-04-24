@@ -3,3 +3,4 @@
 *.pyc
 .vagrant
 *.sqlite3
+provisions/hosts
