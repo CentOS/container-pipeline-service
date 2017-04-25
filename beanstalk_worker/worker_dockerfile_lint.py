@@ -34,18 +34,10 @@ def export_linter_logs(logs_file_path, data):
         fin = open(logs_file_path, "w")
         fin.write(data)
     except IOError as e:
-        logger.log(
-            level=logging.CRITICAL,
-            msg="Failed to write linter logs on NFS share."
-        )
-        logger.log(
-            level=logging.CRITICAL,
-            msg=str(e))
+        logger.critical("Failed to write linter logs on NFS share.")
+        logger.critical(str(e))
     else:
-        logger.log(
-            level=logging.INFO,
-            msg="Wrote linter logs to log file: %s" % logs_file_path
-            )
+        logger.info("Wrote linter logs to log file: %s" % logs_file_path)
 
 
 def export_linter_status(status, status_file_path):
@@ -56,19 +48,10 @@ def export_linter_status(status, status_file_path):
         fin = open(status_file_path, "w")
         json.dump(status, fin)
     except IOError as e:
-        logger.log(
-            level=logging.CRITICAL,
-            msg="Failed to write linter status on NFS share."
-        )
-        logger.log(
-            level=logging.CRITICAL,
-            msg=str(e)
-        )
+        logger.critical("Failed to write linter status on NFS share.")
+        logger.critical(str(e))
     else:
-        logger.log(
-            level=logging.INFO,
-            msg="Wrote linter status to file: %s" % status_file_path
-            )
+        logger.info("Wrote linter status to file: %s" % status_file_path)
 
 
 def lint_job_data(job_data):
@@ -149,10 +132,12 @@ bs.watch("start_linter")
 
 
 def main():
+    logger.info('Starting dockerfile linter')
     while True:
         try:
             job = bs.reserve()
             job_data = json.loads(job.body)
+            logger.info('Got job: %s' % job_data)
             lint_job_data(job_data)
             job.delete()
         except Exception as e:

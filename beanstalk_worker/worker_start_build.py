@@ -67,14 +67,13 @@ def export_build_logs(logs, destination):
         with open(destination, "w") as fin:
             fin.write(logs)
     except IOError as e:
-        logger.log(level=logging.CRITICAL,
-                   msg="Failed writing logs to %s" % destination)
-        logger.log(level=logging.CRITICAL, msg=str(e))
+        logger.critical("Failed writing logs to %s" % destination)
+        logger.critical(str(e))
 
 
 def start_build(job_details):
     try:
-        logger.debug(" Retrieving namespace")
+        logger.debug("Retrieving namespace")
         appid = job_details['appid']
         jobid = job_details['jobid']
         desired_tag = job_details['desired_tag']
@@ -152,12 +151,11 @@ def start_build(job_details):
         try:
             logs = run_command(log_command)
         except Exception as e:
-            logger.log(level=logging.CRITICAL, msg=e.message)
+            logger.critical(e.message)
             logs = "Could not retrieve build logs."
-            logger.log(level=logging.CRITICAL, msg=logs)
+            logger.critical(logs)
         else:
-            logger.log(level=logging.INFO,
-                       msg="Writing build logs to NFS share..")
+            logger.info("Writing build logs to NFS share..")
         finally:
             # Export logs on disk in either case
             export_build_logs(logs, build_logs_file)
@@ -166,7 +164,7 @@ def start_build(job_details):
 
         if is_complete < 0:
             bs.put(json.dumps(job_details))
-            logger.debug(
+            logger.info(
                 "Build is not successful putting it to failed build tube")
             project = appid + "/" + jobid + ":" + desired_tag
             notify_build_failure(
@@ -182,17 +180,18 @@ def start_build(job_details):
 
 
 def main():
+    logger.info('Starting build worker')
     while True:
         parent_build_running = False
         got_job = False
         try:
-            logger.debug("listening to start_build tube")
             current_jobs_in_tube = bs.stats_tube(
                 'start_build')['current-jobs-ready']
             if current_jobs_in_tube > 0:
                 job = bs.reserve()
                 got_job = True
                 job_details = json.loads(job.body)
+                logger.info('Got job: %s' % job_details)
                 parents = job_details.get('depends_on', '').split(',')
                 parents_in_build = []
                 for parent in parents:
@@ -203,16 +202,16 @@ def main():
                         is_build_running
 
                 if parent_build_running:
-                    logger.debug('Parents in build: %s, pushing job: %s back '
-                                 'to queue' % (parents_in_build, job_details))
+                    logger.info('Parents in build: %s, pushing job: %s back '
+                                'to queue' % (parents_in_build, job_details))
                     bs.use('master_tube')
                     bs.put(json.dumps(job_details))
                     bs.use('failed_build')
                 else:
-                    logger.debug(str(job_details))
+                    logger.info('Starting build for job: %s' % job_details)
                     result = start_build(job_details)
             else:
-                logger.debug("No job found to process looping again")
+                logger.info("No job found to process looping again")
                 time.sleep(DELAY)
         except Exception as e:
             logger.critical(
@@ -224,7 +223,7 @@ def main():
         finally:
             if got_job:
                 job.delete()
-                logger.debug("Deleting the job after build worker loop")
+                logger.info("Deleting the job after build worker loop")
 
 if __name__ == '__main__':
     main()

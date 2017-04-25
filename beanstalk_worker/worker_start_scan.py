@@ -99,19 +99,11 @@ class ScannerRunner(object):
             fin = open(status_file_path, "w")
             json.dump(status, fin)
         except IOError as e:
-            logger.log(
-                level=logging.CRITICAL,
-                msg="Failed to write scanners status on NFS share."
-            )
-            logger.log(
-                level=logging.CRITICAL,
-                msg=str(e)
-            )
+            logger.critical("Failed to write scanners status on NFS share.")
+            logger.critical(str(e))
         else:
-            logger.log(
-                level=logging.INFO,
-                msg="Wrote scanners status to file: %s" % status_file_path
-            )
+            logger.info(
+                "Wrote scanners status to file: %s" % status_file_path)
 
     def export_scanner_logs(self, scanner, data):
         """
@@ -511,6 +503,7 @@ while True:
     try:
         job = bs.reserve()
         job_info = json.loads(job.body)
+        logger.info('Got job: %s' % job_info)
         scan_runner_obj = ScannerRunner(job_info)
         status, scanners_data = scan_runner_obj.run()
         if not status:
@@ -518,10 +511,7 @@ while True:
                 "Failed to run scanners on image under test, moving on!"
             )
         else:
-            logger.log(
-                level=logging.INFO,
-                msg=str(scanners_data)
-            )
+            logger.info(str(scanners_data))
         # if weekly scan, push the job for notification
         if job_info.get("weekly"):
             bs.use("master_tube")

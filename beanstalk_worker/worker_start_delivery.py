@@ -10,7 +10,7 @@ import time
 import logging
 import os
 import config
-from lib import Build, get_job_name
+from lib import Build
 
 
 bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
@@ -138,21 +138,22 @@ def start_delivery(job_details):
 
 
 def main():
+    logger.info('Starting delivery worker')
     while True:
         try:
-            logger.debug("listening to start_delivery tube")
             job = bs.reserve()
             job_details = json.loads(job.body)
+            logger.debug('Got job: %s' % job_details)
             result = start_delivery(job_details)
             if result == 0:
-                logger.debug("Delivery is successful deleting the job")
+                logger.info("Delivery is successful deleting the job")
                 # Mark container image build as complete
                 Build(job_details['namespace']).complete()
-                logger.debug('Marked build: %s as complete'
-                             % job_details['namespace'])
+                logger.info('Marked build: %s as complete'
+                            % job_details['namespace'])
                 job.delete()
             else:
-                logger.debug("Job was not succesfull and returned to tube")
+                logger.info("Job was not succesful and returned to tube")
         except Exception as e:
             logger.critical(e.message, extra={
                             'locals': locals()}, exc_info=True)
