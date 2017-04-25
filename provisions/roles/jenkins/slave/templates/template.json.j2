@@ -29,6 +29,11 @@
       "value": "secret101"
     },
 	{
+      "name": "INTERNAL_REGISTRY",
+      "description": "An URL of a registry where to push the intermediate images",
+      "value": "{{ internal_registry }}"
+    },
+	{
       "name": "TARGET_REGISTRY",
       "description": "An URL of a registry where to push the final image",
       "value": "{{ public_registry }}:5000"
@@ -155,6 +160,10 @@
                 "value": "${BEANSTALK_SERVER}"
               },
               {
+                "name": "INTERNAL_REGISTRY",
+                "value": "${INTERNAL_REGISTRY}"
+              },
+              {
                 "name": "NOTIFY_EMAIL",
                 "value": "${NOTIFY_EMAIL}"
               }
@@ -216,8 +225,8 @@
                 "value": "${NOTIFY_EMAIL}"
               },
               {
-                "name": "TARGET_REGISTRY",
-                "value": "${TARGET_REGISTRY}"
+                "name": "INTERNAL_REGISTRY",
+                "value": "${INTERNAL_REGISTRY}"
               },
               {
                 "name":"APPID",
@@ -293,6 +302,10 @@
               {
                 "name": "NOTIFY_EMAIL",
                 "value": "${NOTIFY_EMAIL}"
+              },
+              {
+                "name": "INTERNAL_REGISTRY",
+                "value": "${INTERNAL_REGISTRY}"
               },
               {
                 "name": "TARGET_REGISTRY",

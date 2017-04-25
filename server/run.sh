@@ -62,7 +62,7 @@ docker build --rm --no-cache -t $JOBID:$TAG -f $TARGET_FILE . || jumpto sendstat
 #_ "Running build steps"
 #docker run --rm $TAG --entrypoint /bin/bash /usr/bin/build_script
 
-TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
+TO=${INTERNAL_REGISTRY}/`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
 
 #TO=${DOCKER_REGISTRY_SERVICE_HOST}:${DOCKER_REGISTRY_SERVICE_PORT}/$TAG
 
@@ -70,14 +70,15 @@ docker tag ${JOBID}:${TAG} ${TO}
 
 _ "Pushing the image to registry (${TO})"
 
-if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; then
-  _ "Copying the dockercfg to home dir"
-  cp /var/run/secrets/openshift.io/push/.dockercfg /root/.dockercfg
-fi
+#if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; then
+#  _ "Copying the dockercfg to home dir"
+#  cp /var/run/secrets/openshift.io/push/.dockercfg /root/.dockercfg
+#fi
 
-if [ -n "${TO}" ] || [ -s "/root/.dockercfg" ]; then
-  docker push "${TO}" || jumpto sendstatusmail
-fi
+
+#if [ -n "${TO}" ] || [ -s "/root/.dockercfg" ]; then
+docker push "${TO}" || jumpto sendstatusmail
+#fi
 
 _ "Cleaning environment"
 docker rmi ${JOBID}:${TAG}
