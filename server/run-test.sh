@@ -19,7 +19,7 @@ if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; t
   cp /var/run/secrets/openshift.io/push/.dockercfg /root/.dockercfg
 fi
 
-FULL_FROM=${OUTPUT_REGISTRY}/`python -c 'import json, os; print json.loads(os.environ["BUILD"])["metadata"]["namespace"]'`/${FROM}
+FULL_FROM=${INTERNAL_REGISTRY}/`python -c 'import json, os; print json.loads(os.environ["BUILD"])["metadata"]["namespace"]'`/${FROM}
 #FULL_TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
 FULL_TO=${TARGET_REGISTRY}/${APPID}/${TO}
 
@@ -36,7 +36,7 @@ docker pull ${FULL_FROM} || jumpto sendstatusmail
 _ "Re-tagging tested image (${FULL_FROM} -> ${FULL_TO})"
 docker tag ${FULL_FROM} ${FULL_TO} || jumpto sendstatusmail
 NS="${APPID}-${JOBID}-${DESIRED_TAG}"
-OUTPUT_IMAGE=${TARGET_REGISTRY}/${APPID}/${TO}
+OUTPUT_IMAGE=${INTERNAL_REGISTRY}/${APPID}/${TO}
 IMAGE_NAME=${APPID}/${JOBID}:${DESIRED_TAG}
 
 _ "Pushing the image to registry (${OUTPUT_IMAGE})"
