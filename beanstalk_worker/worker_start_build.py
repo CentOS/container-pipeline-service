@@ -125,12 +125,21 @@ def start_build(job_details):
         status_command = "oc get --namespace " + oc_name + " build/" + \
             build_details + kubeconfig + "|grep -v STATUS"
         is_running = 1
+        empty_retry = 10
 
         logger.debug("Checking the build status")
         while is_running >= 0:
             status = run_command(status_command).rstrip()
-            is_running = re.search("New|Pending|Running", status)
-            logger.debug("current status: " + status)
+            if status:
+                is_running = re.search("New|Pending|Running", status)
+                logger.debug("current status: " + status)
+            elif empty_retry > 0:
+                    logger.debug("Failed to fetch status, retries left " + str(empty_retry))
+                    empty_retry -= 1
+                    is_running = 1
+            else:
+                logger.debug("Failed to fetch build status multiple times, assuming failure.")
+                is_running = 0
             time.sleep(DELAY)
 
         # checking logs for the build phase
@@ -160,7 +169,7 @@ def start_build(job_details):
                 namespace, notify_email, build_logs_file,
                 project, jobid, job_details["TEST_TAG"])
         else:
-            logger.debug("Build is successfull going for next job")
+            logger.debug("Build is successful going for next job")
 
         return 0
     except Exception as e:
