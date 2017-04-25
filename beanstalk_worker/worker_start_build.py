@@ -40,8 +40,8 @@ def run_command(command):
         return e.message
 
 
-def notify_build_failure(
-        namespace, notify_email, build_logs_file, project, jobid, test_tag):
+def notify_build_failure(namespace, notify_email, build_logs_file, project,
+                         jobid, test_tag):
     msg_details = {}
     msg_details['action'] = 'notify_user'
     msg_details['namespace'] = namespace
@@ -80,9 +80,11 @@ def start_build(job_details):
         desired_tag = job_details['desired_tag']
         namespace = get_job_name(job_details)
         oc_name = hashlib.sha224(namespace).hexdigest()
-        logger.debug("Openshift project namespace is hashed from {0} to {1}, hash can be reproduced with sha224 tool"
-                     "be reproduced with sha224 tool"
-                     .format(namespace, oc_name))
+        logger.debug(
+            "Openshift project namespace is hashed from {0} to {1}, hash can"
+            " be reproduced with sha224 tool be reproduced  with sha224 tool"
+            .format(namespace, oc_name)
+        )
         # depends_on = job_details['depends_on']
         notify_email = job_details['notify_email']
         # This will be a mounted directory
@@ -92,8 +94,9 @@ def start_build(job_details):
         )
 
         logger.debug("Login to OpenShift server")
-        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u test-admin -p test" + \
-            kubeconfig + " --certificate-authority=" + config_path + "/ca.crt"
+        command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u" \
+                        " test-admin -p test" + kubeconfig + \
+                        " --certificate-authority=" + config_path + "/ca.crt"
         out = run_command(command_login)
         logger.debug(out)
 
@@ -117,7 +120,8 @@ def start_build(job_details):
 
         if build_details == "":
             logger.critical(
-                "build could not be started as OpenShift is not reachable")
+                "build could not be started as OpenShift is not reachable"
+            )
             return 1
 
         logger.debug("build started is " + build_details)
@@ -202,8 +206,11 @@ def main():
                 logger.debug("No job found to process looping again")
                 time.sleep(DELAY)
         except Exception as e:
-            logger.critical(e.message, extra={
-                            'locals': locals()}, exc_info=True)
+            logger.critical(
+                e.message,
+                extra={'locals': locals()},
+                exc_info=True
+            )
             time.sleep(DELAY)
         finally:
             if got_job:
