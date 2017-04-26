@@ -1,12 +1,22 @@
 ---
 - include: install.yml
+  tags:
+    - openshift
 
 - include: config.yml
+  tags:
+    - openshift
 
 - include: setup.yml
+  tags:
+    - openshift
 
 - include: fetch.yml
   tags:
     - openshift/jenkins
+    - openshift
 
 - include: setup_mailservice.yml
+  tags:
+    - openshift
+    - mail_service

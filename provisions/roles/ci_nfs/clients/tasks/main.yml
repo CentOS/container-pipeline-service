@@ -3,6 +3,9 @@
   when: setup_nfs
   sudo: yes
   yum: name=nfs-utils state=present
+  tags:
+  - ci_nfs
+  - test
 
 - name: Create NFS mount directory
   when: setup_nfs
@@ -11,6 +14,9 @@
     path: /srv/pipeline-logs
     state: directory
     mode: 0777
+  tags:
+  - ci_nfs
+  - test
 
 - name: Mount NFS share on the node
   when: setup_nfs
@@ -20,3 +26,6 @@
     src: "{{ test_nfs_share }}"
     fstype: nfs
     state: mounted
+  tags:
+  - ci_nfs
+  - test
