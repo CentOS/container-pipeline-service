@@ -91,12 +91,21 @@ def start_delivery(job_details):
         status_command = "oc get --namespace " + oc_name + " build/" + \
             build_details + kubeconfig + "|grep -v STATUS"
         is_running = 1
+        empty_retry = 10
 
         logger.debug("Checking the delivery status")
         while is_running >= 0:
             status = run_command(status_command)[0].rstrip()
-            is_running = re.search("New|Pending|Running", status)
-            logger.debug("current status: " + status)
+            if status:
+                is_running = re.search("New|Pending|Running", status)
+                logger.debug("current status: " + status)
+            elif empty_retry > 0:
+                logger.debug("Failed to fetch status, retries left " + str(empty_retry))
+                empty_retry -= 1
+                is_running = 1
+            else:
+                logger.debug("Failed to fetch build status multiple times, assuming failure.")
+                is_running = 0
             time.sleep(30)
 
         is_complete = run_command(status_command)[0].find('Complete')
