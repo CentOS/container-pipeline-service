@@ -3,4 +3,4 @@ Description=cccp-dockerfile-lint-worker.service
 
 [Service]
 ExecStart=/opt/cccp-service/beanstalk_worker/worker_dockerfile_lint.py
-
+Restart=on-failure
