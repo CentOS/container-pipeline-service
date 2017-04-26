@@ -13,7 +13,7 @@ I, as an application developer want to build, test and deliver my containerized 
 
 We want to provide a single input interface to the system (pipeline index) and don't limit ourselves in ways how to deliver the image (i.e. in case of Docker to push to any registry accessible from the pipeline infra). We want to build an image provided by a user, we want to test it with a predefined set of tests and with tests provided by user, we want to deliver the image (i.e. push it to registry) and present logs in case of failures.
 
-![Container Pipeline Diagram](https://docs.google.com/drawings/d/1sJfniMspEK9LI5CO9NsoSXhixbMqYNoJjPi9AKHNV-k/pub?w=960&h=720)
+![Container Pipeline Diagram](docs/diagrams/architecture.png)
 
 1. Input Interface
     * A web UI/cli which allows user to provide at least name of the project and repo URL.
