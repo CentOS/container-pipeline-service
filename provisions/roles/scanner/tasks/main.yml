@@ -40,7 +40,7 @@
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#*\s*ADD_REGISTRY=.*"
-    replace='ADD_REGISTRY="--add-registry {{ public_registry }} --insecure-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
+    replace='ADD_REGISTRY="--insecure-registry {{ intranet_registry }} --add-registry {{ public_registry }} --add-registry registry.centos.org"'
   tags: scanner
 
 - name: Set SELinux to permissive

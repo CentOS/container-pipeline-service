@@ -19,6 +19,7 @@ scanner_worker
 [all:vars]
 # update as needed
 public_registry=jenkins-slave
+intranet_registry=jenkins-slave:5000
 beanstalk_server=openshift
 rsync_ssh_opts=""
 

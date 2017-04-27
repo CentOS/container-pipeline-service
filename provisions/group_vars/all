@@ -10,3 +10,5 @@ cccp_source_branch: master
 public_registry: registry.centos.org
 
 enable_epel: true
+
+intranet_registry: registry.centos.org:5000
