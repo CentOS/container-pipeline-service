@@ -67,7 +67,7 @@ Before a PR is merged, it must:
 - have maintainers' LGTM (Looks Good To Me)
 
 
-## Generic hosts i.e. hosts not managed by Vagrant
+## Generic hosts
 
 This will allow you to bring up a single or multi-node setup of Container Pipeline
 on various kinds of hosts (baremetal, a VPS, cloud or local VM, etc.) as long as they are accessible over SSH. This method uses Ansible for provisioning the hosts.
