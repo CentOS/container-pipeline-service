@@ -1,0 +1,11 @@
+type: scanner
+scanner_name: container-capabilities-scanner
+image_name: registry.centos.org/pipeline-images/container-capabilities-scanner
+default_scan: check-capabilities
+custom_args: ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "IMAGE_NAME=$IMAGE_NAME"]
+scans: [
+  { name: check-capabilities,
+    args: ['python', 'scanner.py'],
+    description: "Check for capabilities of a container that will be created from the container image. Capabilities could include privileged container or namespace shared between host & container, etc."
+  }
+]

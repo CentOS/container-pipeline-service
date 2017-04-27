@@ -78,7 +78,14 @@
         - "{{ rsync_ssh_opts }}"
   with_items:
     - src
-    - jenkinsbuilder
+    - jenkinsbuilder/__init__.py
+    - jenkinsbuilder/cccp_index_reader.py
+    - jenkinsbuilder/project-defaults.yml
+  sudo: yes
+  tags: repo_tracking
+
+- name: Ensure jenkinsbuilder is a package
+  file: path=/opt/cccp-service/jenkinsbuilder/__init__.py state=touch
   sudo: yes
   tags: repo_tracking
 
