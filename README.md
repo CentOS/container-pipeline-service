@@ -3,93 +3,88 @@
 | Last PR Build | [![Build Status](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/badge/icon)](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/) |
 |---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
-CentOS Community Container Pipeline(cccp) is a service, to provide any Open Source developer(s), a platform for containerising their application(s). This process builds the application(s) from any arbitary git repository/repositories, package the built application along with its runtime in a container image, tests the image with help of test script and delivers to a publicly available registry. A user can anytime pull the tested image from that registry.
+CentOS Community Container Pipeline is a service, to provide any Open Source developer(s), a platform for containerising their application(s). This process builds the application(s) from any arbitary git repository/repositories, package the built application along with its runtime in a container image, tests the image with help of test script and delivers to a publicly available registry. A user can anytime pull the tested image from that registry.
 
 ## User Story
 
-I, as an application developer want to build, test and deliver my containerized application images so that I can focus on development and be sure images are always available and working for the app users.
+As an application developer, I want to develop applications on a stack (django, golang, nodejs, redis, rabbitmq, etc.) of my choice using CentOS as the base platform. I want to make sure that the application is packaged into a container and updated  automatically every time I push changes to my Git (GitHub, BitBucket, Gitlab, etc.) repository; the resulting container image is scanned for updates, fixes, capabilities, and delivered to a public registry from where the users can pull the image and run the application. I also want the container image to be automatically rebuilt when an RPM package is updated in the repository or base image (`FROM` in Dockerfile) is updated.
 
-## Key parts
+## How does it work?
 
-We want to provide a single input interface to the system (pipeline index) and don't limit ourselves in ways how to deliver the image (i.e. in case of Docker to push to any registry accessible from the pipeline infra). We want to build an image provided by a user, we want to test it with a predefined set of tests and with tests provided by user, we want to deliver the image (i.e. push it to registry) and present logs in case of failures.
+A developer working on an open-source project opens a pull request (PR) on [Container Index](https://github.com/CentOS/container-index/) to use Container Pipeline Service for building container images. Once the PR is merged, Container Pipeline Service lints the Dockerfile, builds the image for his/her project, scans it, pushes it to registry.centos.org (Web UI coming soon!), and finally notifies the developer via email.
+
+Once a project is in the Container Index, the Container Pipeline Service service automatically tracks project's Git repo + branch for changes and rebuilds it every time there is a change.
+
+**NOTE:** It might take some time for the build to finish as it depends on the number of jobs in the queue. If it's taking long, [contact us](#get-in-touch).
+
+The entire flow can be summarized as below
 
 ![Container Pipeline Diagram](docs/diagrams/architecture.png)
 
-1. Input Interface
-    * A web UI/cli which allows user to provide at least name of the project and repo URL.
-    * This project tracks [Container Index](https://github.com/CentOS/container-index/blob/master/index.d) as input to the build system.
-2. OpenShift
-    * **Build** - Can be Atomic Reactor, result: image tagged as :test pushed
-    * **Test** - Can be a script connecting to Jenkins, result: image tagged as :rc pushed
-    * **Delivery** - A simple script to re-tag image to it's final name, result: image tagged as :latest or :vX.Y.Z pushed
-3. Jenkins/CI
-    * Infra where **Test** step in OpenShift connects to
-4. Registry
-    * Pulp or a registry provided by OpenShift, deployed at https://registry.centos.org/
-5. Failure UI
-    * Probably part of Input Interface, presenting logs from failed builds
-6. Scan
-    * Scan uses [atomic scan] (https://github.com/projectatomic/atomic) tooling, multiple atomic scanners are run on built images and different checks are done, checking if image has outdated RPM, npm, pip packages and if image has tampered files present, etc.
+1. **Project onboarding**
 
-## Setting a development environment
+    Refer the [Container Index](https://github.com/CentOS/container-index).
+    
+2. **Jenkins based tracking**
 
-### Vagrant
+    Tracks the developer's Git repository + branch for any change and triggers a new build on OpenShift when a change is pushed. Along with developer's repo, an update in base image or any of the RPMs which are a part of the image, also trigger a fresh build.
 
-### Setup environment
+3. **Build the image**
 
-#### CentOS
-```
-# Install dependencies
-sudo yum install -y epel-release git
-sudo yum install -y ansible1.9 centos-release-scl qemu-kvm libvirt sclo-vagrant1
+    Build the container image using the targetfile (Dockerfile) and push it to OpenShift's internal registry. Result: image tagged as `:test` pushed to internal registry.
 
-# start libvirtd
-sudo systemctl start libvirtd; sudo systemctl enable libvirtd
+4. **Test the application**
 
-# enable bash on vagrant scl
-sudo scl enable sclo-vagrant1 bash
-```
+     Can be a script (mentioned in the [yaml file](https://github.com/CentOS/container-index)) which runs tests on above image. Result: image tagged with a [hash based on date & time](https://github.com/CentOS/container-pipeline-service/blob/master/jenkinsbuilder/project-defaults.yml#L20) pushed to internal registry.
+ 
+5. **Scan the image**
+    
+    Scan uses [atomic scan](https://github.com/projectatomic/atomic) tooling. Multiple atomic scanners are run on the built image and different checks are done - check if image has outdated RPM, npm, pip, gem packages and if image has tampered files present, etc. More details about the scanners can be found in `atomic_scanners` directory of this repo. Result: image tagged as `:rc` pushed to internal registry.
+    
+6. **Deliver to public registry**
 
-#### Fedora
-```
-# sudo dnf install -y git ansible vagrant
-```
+    A simple script to re-tag image to it's final name based on value in the yaml file on Container Index. Result: image tagged with `:<desired_tag>` pushed to https://registry.centos.org. You can refer to [Container Pipeline Wiki page](https://wiki.centos.org/ContainerPipeline) to find currently available container images. This page is automatically updated when a new image is built in the Pipeline.
 
-### Get the code and install vagrant plugins
+7. **Email to the Developer**
 
-```
-git clone https://github.com/CentOS/container-pipeline-service
-cd container-pipeline-service
-```
+    An email is sent out the developer mentioning the status of the lint, build and scan processes and a link (s)he can use to read the detailed logs.
+ 
+All the communication between the stages mentioned above happens via [beanstalkd](http://kr.github.io/beanstalkd/) tubes.   
 
-### Get started
+## Contribute to Container Pipeline Service
 
-#### Single node setup
+We're always looking for ideas and improvements for the service! If you're interested in contributing to this repository, follow these simple steps:
 
-```
-ALLINONE=1 vagrant up
-```
+- open an issue on GitHub describing the feature/bug
+- fork the repository
+- work on your branch for the fix of the issue
+- raise a pull request
 
-#### Multi node setup
+Before a PR is merged, it must:
 
-```
-vagrant up
-```
+- pass the CI done on [CentOS CI](https://ci.centos.org/)
+- be code reviewed by the maintainers
+- have maintainers' LGTM (Looks Good To Me)
 
-### Setup on generic hosts
 
-This will allow to setup single or multi node setup of container pipeline
-on various kinds of hosts, any host that is accessible over SSH, be it, a
-baremetal, a VPS, cloud or local VM, etc.
+## Generic hosts i.e. hosts not managed by Vagrant
 
-```
-cd provisions
+This will allow you to bring up a single or multi-node setup of Container Pipeline
+on various kinds of hosts (baremetal, a VPS, cloud or local VM, etc.) as long as they are accessible over SSH. This method uses Ansible for provisioning the hosts.
+
+```bash
+$ git clone https://github.com/CentOS/container-pipeline-service/
+$ cd container-pipeline-service/provisions
 
 # Copy sample hosts file and edit as needed
-cp hosts.sample hosts
+$ cp hosts.sample hosts
 
 # Provision the hosts. This assumes that you have added the usernames,
 # passwords or private keys used to access the hosts in the hosts file
 # above
-ansible-playbook -i hosts vagrant.yml
+$ ansible-playbook -i hosts vagrant.yml
 ```
+
+## <a href="contact"></a>Get in touch
+
+For any queries get in touch with us on **#centos-devel** IRC channel on Freenode or send a mail to centos-devel@centos.org.
