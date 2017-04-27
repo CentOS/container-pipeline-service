@@ -26,7 +26,7 @@ rsync_ssh_opts=""
 cccp_index_repo=https://github.com/centos/container-index.git
 
 ## dev environment options, update following to true to configure NFS
-#setup_nfs=False
+setup_nfs=False
 # replace scanner_worker below with its FQDN / IP
 #test_nfs_share=scanner_worker:/nfsshare
 
