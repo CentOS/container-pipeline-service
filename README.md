@@ -66,26 +66,6 @@ Before a PR is merged, it must:
 - be code reviewed by the maintainers
 - have maintainers' LGTM (Looks Good To Me)
 
-## Setting up a Vagrant based development environment
-
-#### CentOS
-```bash
-# Install dependencies
-$ sudo yum install -y epel-release git
-$ sudo yum install -y ansible1.9 centos-release-scl qemu-kvm libvirt sclo-vagrant1
-
-# start libvirtd
-$ sudo systemctl start libvirtd; sudo systemctl enable libvirtd
-
-# enable bash on vagrant scl
-$ sudo scl enable sclo-vagrant1 bash
-```
-
-#### Fedora
-```bash
-$ sudo dnf install -y git ansible vagrant
-```
-
 
 ## Generic hosts i.e. hosts not managed by Vagrant
 
