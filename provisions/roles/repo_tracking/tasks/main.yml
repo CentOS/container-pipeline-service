@@ -110,7 +110,7 @@
 - name: Run postgres container
   docker_container:
       name: postgres
-      image: docker.io/centos/postgresql-95-centos7
+      image: registry.centos.org/sclo/postgresql-95-centos7
       volumes:
           - /var/lib/cccp/db:/var/lib/postgresql/data
       ports:
@@ -124,9 +124,9 @@
   sudo: yes
   tags: repo_tracking
 
-- name: Wait for 10 seconds for the db to come up
+- name: Wait for 20 seconds for the db to come up
   pause:
-      seconds: 10
+      seconds: 20
   tags: repo_tracking
 
 - name: Create DB tables
