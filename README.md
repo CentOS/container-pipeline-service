@@ -86,33 +86,6 @@ $ sudo scl enable sclo-vagrant1 bash
 $ sudo dnf install -y git ansible vagrant
 ```
 
-## Get the code
-
-```bash
-$ git clone https://github.com/CentOS/container-pipeline-service
-$ cd container-pipeline-service
-```
-
-## Start up your environment
-
-#### Single node setup
-
-```
-$ ALLINONE=1 vagrant up
-```
-
-#### Multi-node setup
-
-This setup requires 4 nodes. Below are the details about how each node is used:
-
-- Jenkins Master + Dockerfile Linter
-- Jenkins Slave
-- OpenShift - to build images. Ensure this system has enough memory and disk space!
-- Scanner
-
-```
-$ vagrant up
-```
 
 ## Generic hosts i.e. hosts not managed by Vagrant
 
