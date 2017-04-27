@@ -15,7 +15,7 @@ A developer working on an open-source project opens a pull request (PR) on [Cont
 
 Once a project is in the Container Index, the Container Pipeline Service service automatically tracks project's Git repo + branch for changes and rebuilds it every time there is a change.
 
-**NOTE:** It might take some time for the build to finish as it depends on the number of jobs in the queue. If it's taking long, [contact us](#contact).
+**NOTE:** It might take some time for the build to finish as it depends on the number of jobs in the queue. If it's taking long, [contact us](#get-in-touch).
 
 The entire flow can be summarized as below
 
