@@ -119,7 +119,7 @@ class TestOpenshift(BaseTestCase):
             'centos-kubernetes-apiserver-latest').hexdigest()
         self.assertOsProjectBuildStatus(
             k8s_master_os_project, ['build-1', 'test-1', 'delivery-1'],
-            'Complete'
+            'Complete', retries=80, delay=15
         )
 
         # Assert that delivery of centos-kubernetes-master-latest triggered
