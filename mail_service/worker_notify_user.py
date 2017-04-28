@@ -24,8 +24,8 @@ BUILD_LOGS_FILENAME = "build_logs.txt"
 LINTER_STATUS_FILE = "linter_status.json"
 SCANNERS_STATUS_FILE = "scanners_status.json"
 
-SUCCESS_EMAIL_SUBJECT = "SUCCESS: Your container build: %s request is complete"
-FAILURE_EMAIL_SUBJECT = "FAILED: Container build failed: %s"
+SUCCESS_EMAIL_SUBJECT = "SUCCESS: Container build: %s is complete"
+FAILURE_EMAIL_SUBJECT = "FAILED: Container build: %s is failed"
 WEEKLY_EMAIL_SUBJECT = "Weekly scanning results for image: %s"
 
 EMAIL_HEADER = """
@@ -91,17 +91,31 @@ class NotifyUser(object):
         if self.job_info.get("build_status"):
             logger.debug("Processing mail for SUCCESS build.")
             self.image_under_test = job_info.get("output_image")
+
+            # for eg: the value would be
+            # registry.centos.org/nshaikh/scanner-rpm-verify:latest
+            self.project = self.image_under_test.replace(
+                "registry.centos.org/", "")
+
         # if it is weekly scan job
         elif self.job_info.get("weekly"):
             logger.debug("Processing mail for Weekly scan.")
             self.image_under_test = job_info.get("image_under_test")
+            # for eg: the value would be
+            # registry.centos.org/nshaikh/scanner-rpm-verify:latest
+            self.project = self.image_under_test.replace(
+                "registry.centos.org/", "")
+
         # if it is a failed build
         else:
             logger.debug("Processing mail for failed build.")
             self.image_under_test = job_info.get("project_name")
-
-        self.project = self.job_info["namespace"] + "/" + \
-            self.job_info["job_name"]
+            # for eg here
+            # self.image_under_test = nshaikh-scanner-rpm-verify-latest
+            # we want to make nshaikh/scanner-rpm-verify:latest
+            names = self.image_under_test.split("-")
+            self.project = names[0] + "/" + "-".join(names[1:-1]) +\
+                ":" + names[-1]
 
         # build_logs filename
         self.build_logs = urljoin(
@@ -239,7 +253,6 @@ class NotifyUser(object):
             text += self.compose_failed_build_contents()
             # see if job_info has logs keyword and append those logs to
             # build_logs
-
             if self.job_info.get("logs"):
                 # build_logs.txt file path on the disk
                 logfile = os.path.join(self.logs_dir, BUILD_LOGS_FILENAME)
@@ -259,7 +272,7 @@ class NotifyUser(object):
         # build failure or success
 
         # new line and separate section with hyphens
-        text += "\n" + self._separate_section() + "\n"
+        text += "\n" + self._separate_section()
 
         # linter results
         text += self.compose_linter_summary()
