@@ -67,7 +67,7 @@ Before a PR is merged, it must:
 - have maintainers' LGTM (Looks Good To Me)
 
 
-## Generic hosts
+## Setting up the Pipeline Service
 
 This will allow you to bring up a single or multi-node setup of Container Pipeline
 on various kinds of hosts (baremetal, a VPS, cloud or local VM, etc.) as long as they are accessible over SSH. This method uses Ansible for provisioning the hosts.
@@ -78,7 +78,21 @@ $ cd container-pipeline-service/provisions
 
 # Copy sample hosts file and edit as needed
 $ cp hosts.sample hosts
+```
 
+You can have an all-in-one setup by using same value for all hosts in the `hosts` file or, use different hosts for each service.
+
+The system that's going to host the registry needs to have SSL certificate. Use appropriate value in place of `registry.yourorg.com` in below commands:
+
+```bash
+$ cd /etc/pki/tls/
+$ openssl genrsa -out private/registry.yourorg.com.key 2048
+$ openssl req -x509 -days 366 -new -key private/registry.yourorg.com.key -out certs/registry.yourorg.com.pem
+```
+
+Provision using Ansible:
+
+```bash
 # Provision the hosts. This assumes that you have added the usernames,
 # passwords or private keys used to access the hosts in the hosts file
 # above
