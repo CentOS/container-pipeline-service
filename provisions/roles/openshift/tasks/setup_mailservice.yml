@@ -20,6 +20,7 @@
       chdir: "{{ ansible_env.HOME }}/cccp-service/mail_service"
 
 - name: Start Mail Service
+  when: production
   docker:
       name: mail-server
       state: restarted
@@ -27,3 +28,17 @@
       restart_policy: unless-stopped
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
+      env:
+        PRODUCTION: True
+
+- name: Start Mail Service
+  when: not production
+  docker:
+    name: mail-server
+    state: restarted
+    image: mail-server
+    restart_policy: unless-stopped
+    volumes:
+      /srv/pipeline-logs/:/srv/pipeline-logs:rw
+    env:
+      PRODUCTION: False
