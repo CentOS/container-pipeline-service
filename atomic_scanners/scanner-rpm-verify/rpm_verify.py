@@ -1,20 +1,19 @@
+# Main scanner execution python module
+
 import json
 import os
 import re
-import sys
 
 from datetime import datetime
 from subprocess import Popen, PIPE
+from rpm_verify_constants import \
+    FILTER_DIRS, \
+    FILTER_PATHS
 
 
 # variables based on the `atomic scan` defaults
 INDIR = "/scanin"
 OUTDIR = "/scanout"
-
-# Filter filepaths starting with following directories listing,
-# since these paths are expected to be modified and should not take into account
-FILTER_DIRS = [
-    "/var", "/run", "/media", "/mnt", "/tmp", "/proc", "/sys", "/boot"]
 
 
 class RPMVerify(object):
@@ -101,7 +100,17 @@ class RPMVerify(object):
         This method filters the expected modifications to directories like
         /var,/run,/media,/mnt,/tmp
         """
+
         return filepath.startswith(tuple(FILTER_DIRS))
+
+    def filter_paths_with_known_issues(self, filepath):
+        """
+        this method filters the paths which should be filtered from the result
+        of scanner since the paths are issues in base image or resulting image
+        which are being fixed.
+        """
+
+        return filepath in FILTER_PATHS
 
     def process_cmd_output_data(self, data):
         """
@@ -119,6 +128,7 @@ class RPMVerify(object):
             if not match:
                 continue
 
+            # do not include the config files in the result
             # filter the config files
             if match.groups()[1] == 'c':
                 continue
@@ -133,9 +143,11 @@ class RPMVerify(object):
             if self.filter_expected_dirs_modifications(filepath):
                 continue
 
+            # filter known paths having issues in base image or resulting image
+            if self.filter_paths_with_known_issues(filepath):
+                continue
+
             rpm = self.source_rpm_of_file(filepath)
-            rpm_meta = self.get_meta_of_rpm(rpm)
-            # do not include the config files in the result
 
             result.append({
                 "issue": match.groups()[0],
