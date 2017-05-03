@@ -110,12 +110,8 @@ class NotifyUser(object):
         else:
             logger.debug("Processing mail for failed build.")
             self.image_under_test = job_info.get("project_name")
-            # for eg here
-            # self.image_under_test = nshaikh-scanner-rpm-verify-latest
-            # we want to make nshaikh/scanner-rpm-verify:latest
-            names = self.image_under_test.split("-")
-            self.project = names[0] + "/" + "-".join(names[1:-1]) +\
-                ":" + names[-1]
+            # projet_name / self.image_under_test and self.project are same
+            self.project = job_info.get("project_name")
 
         # build_logs filename
         self.build_logs = urljoin(
