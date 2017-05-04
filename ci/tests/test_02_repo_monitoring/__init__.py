@@ -232,6 +232,11 @@ class TestRepoMonitoring(BaseTestCase):
             'pkg5.images.add(image5); '
             'pkg5.save(); '
         ).strip()
+        # Ensure cccp_pkgupdatelistener service is running
+        print self.run_cmd('systemctl status cccp_pkgupdatelistener')
+        # Ensure cccp_triggerbuilds service is runnning
+        print self.run_cmd('systemctl status cccp_triggerbuilds')
+
         self.run_cmd(
             'cd /opt/cccp-service/src && '
             './manage.py emitpkgchange pkg2-1.3-1.el7.x86_64 %s'
@@ -252,6 +257,10 @@ class TestRepoMonitoring(BaseTestCase):
                 '.order_by(\\"name\\")').strip(),
             '[<ContainerImage: image2>, <ContainerImage: image3>, '
             '<ContainerImage: image4>, <ContainerImage: image5>]')
+
+        # Ensure cccp_triggerbuilds service is runnning
+        print self.run_cmd('systemctl status cccp_triggerbuilds')
+
         time.sleep(20)
         self.assertEqual(
             self.run_dj_script(
