@@ -14,6 +14,12 @@
 - name: Print result
   debug: msg="Result= {{ result }}"
 
+- name: Set log level
+  replace: >
+      dest="{{ ansible_env.HOME }}/cccp-service/mail_service/config.py"
+      regexp="LOG_LEVEL =.*"
+      replace="LOG_LEVEL = '{{ log_level }}'"
+
 - name: Build mail server image
   shell: docker build -t mail-server -f ./Dockerfile.mailserv .
   args:
