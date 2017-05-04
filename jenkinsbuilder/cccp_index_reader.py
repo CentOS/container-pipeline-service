@@ -26,7 +26,7 @@ def projectify(
     new_project[0]['project']['git_branch'] = gitbranch
     rel_path = "/"
     if gitpath and gitpath != "/":
-            rel_path = gitpath if gitpath.startswith("/") else (rel_path + gitpath)
+        rel_path = gitpath if gitpath.startswith("/") else (rel_path + gitpath)
     new_project[0]['project']['rel_path'] = rel_path
     new_project[0]['project']['jobs'] = ['cccp-rundotsh-job']
 
@@ -101,7 +101,9 @@ def get_projects_from_index(indexdlocation):
     return projects
 
 
-def main(indexdlocation):
+def main(indexdlocation, mock=False):
+    ret_data = []
+
     for project in get_projects_from_index(indexdlocation):
         try:
             # workdir = os.path.join(t, gitpath)
@@ -124,14 +126,20 @@ def main(indexdlocation):
                           [jjb_defaults_file, generated_filename])
                       ]
             print myargs
-            proc = subprocess.Popen(myargs,
-                                    stdout=subprocess.PIPE)
-            proc.communicate()
+            if not mock:
+                proc = subprocess.Popen(myargs,
+                                        stdout=subprocess.PIPE)
+                proc.communicate()
+
+            ret_data.append({
+                "dump_file": generated_filename,
+                "project_info": project
+            })
 
         finally:
             print "Removing {}".format(t)
             # shutil.rmtree(t)
-
+            return ret_data
 
 if __name__ == '__main__':
     main(sys.argv[1])
