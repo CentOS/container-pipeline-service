@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand  # CommandError
 import logging
 import json
+import sys
 from django.utils import timezone
 from django.conf import settings
 
@@ -71,42 +72,48 @@ class Command(BaseCommand):
     args = '[onetime <image_name1> <image_name2> ...]'
 
     def handle(self, *args, **options):
-        logger.info('Scanning not already scanned images')
-        filters = {}
-        if args:
-            if args[0] != 'onetime':
-                filters['name__in'] = args
-            filters['scanned'] = False
-        for image in ContainerImage.objects.filter(**filters):
-            try:
-                scan_image(image)
-            except Exception as e:
-                logger.error('Image scan error for %s: %s' % (image, e),
-                             exc_info=True)
-        logger.info('Scanned not already scanned images')
-
-        if not args:
-            logger.info('Image scanner running...')
-            bs = beanstalkc.Connection(host=settings.BEANSTALK_SERVER)
-            bs.watch('tracking')
-            while True:
-                job = None
+        try:
+            logger.info('Scanning not already scanned images')
+            filters = {}
+            if args:
+                if args[0] != 'onetime':
+                    filters['name__in'] = args
+                filters['scanned'] = False
+            for image in ContainerImage.objects.filter(**filters):
                 try:
-                    job = bs.reserve()
-                    try:
-                        job_details = json.loads(job.body)
-                    except ValueError:
-                        logger.error(
-                            'Error in loading job body: %s' % job.body)
-                        job.delete()
-                        continue
-                    logger.debug(
-                        'Scanning image post delivery for %s' % job_details)
-                    image_name = job_details['image_name']
-                    image = ContainerImage.objects.get(name=image_name)
                     scan_image(image)
                 except Exception as e:
-                    logger.error('Image scan error: %s' % e, exc_info=True)
-                finally:
-                    if job:
-                        job.delete()
+                    logger.error('Image scan error for %s: %s' % (image, e),
+                                 exc_info=True)
+            logger.info('Scanned not already scanned images')
+
+            if not args:
+                logger.info('Image scanner running...')
+                bs = beanstalkc.Connection(host=settings.BEANSTALK_SERVER)
+                bs.watch('tracking')
+                while True:
+                    job = None
+                    try:
+                        job = bs.reserve()
+                        try:
+                            job_details = json.loads(job.body)
+                        except ValueError:
+                            logger.error(
+                                'Error in loading job body: %s' % job.body)
+                            job.delete()
+                            continue
+                        logger.debug(
+                            'Scanning image post delivery for %s'
+                            % job_details)
+                        image_name = job_details['image_name']
+                        image = ContainerImage.objects.get(name=image_name)
+                        scan_image(image)
+                    except Exception as e:
+                        logger.error('Image scan error: %s' % e, exc_info=True)
+                    finally:
+                        if job:
+                            job.delete()
+        except Exception as e:
+            logger.critical('imagescanner errored out: %s' % e,
+                            exc_info=True)
+            sys.exit(1)
