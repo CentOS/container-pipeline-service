@@ -62,6 +62,7 @@
         - /etc/atomic.d/:/host/etc/atomic.d/
       command: sh /install.sh
       state: started
+      pull: yes
   tags: scanner
 
 - name: Install scanner-rpm-verify container
@@ -73,6 +74,7 @@
         - /etc/atomic.d/:/host/etc/atomic.d/
       command: sh /install.sh
       state: started
+      pull: yes
   tags: scanner
 
 - name: Install misc-package-updates container
@@ -84,7 +86,9 @@
         - /etc/atomic.d/:/host/etc/atomic.d/
       command: sh /install.sh
       state: started
+      pull: yes
   tags: scanner
+
 
 - name: Install misc-package-updates container
   docker_container:
