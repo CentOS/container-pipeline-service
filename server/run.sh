@@ -62,7 +62,7 @@ docker build --rm --no-cache -t $JOBID:$TAG -f $TARGET_FILE . || jumpto sendstat
 #_ "Running build steps"
 #docker run --rm $TAG --entrypoint /bin/bash /usr/bin/build_script
 
-TO=${INTERNAL_REGISTRY}/`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
+TO=${INTERNAL_REGISTRY}/${APPID}/${JOBID}:${TAG}
 
 #TO=${DOCKER_REGISTRY_SERVICE_HOST}:${DOCKER_REGISTRY_SERVICE_PORT}/$TAG
 

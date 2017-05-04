@@ -3,7 +3,7 @@
   replace: >
     dest=/etc/sysconfig/docker
     regexp="^#*\s*INSECURE_REGISTRY=.*"
-    replace='INSECURE_REGISTRY="--insecure-registry 172.30.0.0/16 --insecure-registry {{ intranet_registry }}"'
+    replace='INSECURE_REGISTRY="--insecure-registry {{ internal_registry }} --insecure-registry {{ intranet_registry }}"'
 
 - name: Enable Docker registry
   replace: >

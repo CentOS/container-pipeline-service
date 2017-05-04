@@ -29,6 +29,11 @@ while True:
         bs.put(json.dumps(job_details))
         logger.info("Job moved to build tube")
 
+    elif action == "start_test":
+        bs.use("start_test")
+        bs.put(json.dumps(job_details))
+        logger.info("==> Job moved to build tube")
+
     elif action == "start_scan":
         bs.use("start_scan")
         bs.put(json.dumps(job_details))
