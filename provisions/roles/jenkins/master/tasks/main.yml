@@ -58,3 +58,9 @@
     - jenkins
     - monitor
     - jenkins/master
+
+- include: logrotate.yml
+  tags:
+    - jenkins
+    - jenkins/master
+    - logrotate

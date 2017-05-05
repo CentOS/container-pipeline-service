@@ -1,0 +1,10 @@
+/srv/pipeline-logs/cccp.log {
+    daily
+    missingok
+    compress
+    delaycompress
+    copytruncate
+    maxsize 50M
+    su jenkins root
+    rotate 7
+}
