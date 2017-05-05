@@ -152,6 +152,7 @@ scanner_worker
 
 [all:vars]
 public_registry= {jenkins_slave_host}
+intranet_registry = {jenkins_slave_host}:5000
 copy_ssl_certs=True
 openshift_startup_delay=150
 beanstalk_server={openshift_host}
