@@ -1,13 +1,14 @@
 import logging
 import logging.config
+import os
 
-LOGLEVEL = 'DEBUG'
+LOG_LEVEL = 'DEBUG'
 
 LOG_PATH = '/srv/pipeline-logs/cccp.log'
 
 LOGGING_CONF = dict(
     version=1,
-    level=LOGLEVEL,
+    level=LOG_LEVEL,
     formatters=dict(
         bare={
             "format": '[%(asctime)s] %(name)s p%(process)s %(lineno)d %(levelname)s - %(message)s'
@@ -17,7 +18,7 @@ LOGGING_CONF = dict(
         console={
             "class": "logging.StreamHandler",
             "formatter": "bare",
-            "level": LOGLEVEL,
+            "level": LOG_LEVEL,
         },
         log_to_file={
             'level': 'DEBUG',
@@ -64,3 +65,25 @@ LOGGING_CONF = dict(
 
 def load_logger():
     logging.config.dictConfig(LOGGING_CONF)
+
+
+class DynamicFileHandler:
+
+    def __init__(self, logger, log_path, level='DEBUG'):
+        """Initialize dynamic file handler"""
+        self.logger = logger
+        self.h = logging.FileHandler(log_path)
+        self.h.setLevel(getattr(logging, level))
+        self.h.setFormatter(LOGGING_CONF['formatters']['base']['formatter'])
+        self.logger.addHandler(self.h)
+
+    def remove(self):
+        """Remove handler from logger"""
+        self.logger.removeHandler(self.h)
+
+    def clean(self):
+        """Clean associated log file"""
+        try:
+            os.remove(self.h.baseFilename)
+        except OSError as e:
+            self.logger.error('Error during cleaning log file: %s' % e)

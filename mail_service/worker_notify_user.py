@@ -10,9 +10,9 @@ from urlparse import urljoin
 # FIXME: we've duplicated config.py from ../beanstalk_worker into this dir
 # because we don't yet have a global config which can be shared across
 # all components.
-from config import load_logger
+import config
 
-load_logger()
+config.load_logger()
 logger = logging.getLogger('mail-service')
 
 bs = beanstalkc.Connection(host="172.17.0.1")
@@ -349,8 +349,12 @@ while True:
     job = bs.reserve()
     job_id = job.jid
     job_info = json.loads(job.body)
+    dfh = config.DynamicFileHandler(
+        os.path.join(job_info['logs_dir'], 'debug.log'))
     logger.info("Received Job:")
     logger.debug(str(job_info))
     notify_user = NotifyUser(job_info)
     notify_user.notify_user()
     job.delete()
+    dfh.remove()
+    dfh.clean()
