@@ -4,7 +4,7 @@
     compress
     delaycompress
     copytruncate
-    maxsize 50M
+    maxsize {{ logrotate_maxsize }}
     su jenkins root
-    rotate 7
+    rotate {{ logrotate_rotate }}
 }
