@@ -53,7 +53,7 @@ def check_image_for_run_label(image):
     run_label = run_object.get_label("RUN")
 
     if run_label == "":
-        raise RunLabelException("{} doesn't have a RUN label".format(image))
+        raise RunLabelException("Image doesn't have a RUN label")
     return run_label
 
 
