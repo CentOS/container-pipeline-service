@@ -9,16 +9,25 @@ import re
 import time
 import logging
 import os
+import sys
 import config
 from lib import Build, get_job_name
 
-
-bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
-bs.watch("start_build")
-bs.use("failed_build")
-
 config.load_logger()
 logger = logging.getLogger("build-worker")
+beanstalkd_host = "BEANSTALK_SERVER"
+
+try:
+    bs = beanstalkc.Connection(host=beanstalkd_host)
+except beanstalkc.SocketError:
+    logger.critical(
+        'Unable to communicate to beanstalk server: %s. Exiting...'
+        % beanstalkd_host
+    )
+    sys.exit(1)
+
+bs.watch("start_build")
+bs.use("failed_build")
 
 
 config_path = os.path.dirname(os.path.realpath(__file__))
@@ -213,6 +222,12 @@ def main():
             else:
                 logger.info("No job found to process looping again")
                 time.sleep(DELAY)
+        except beanstalkc.SocketError:
+            logger.critical(
+                'Unable to communicate to beanstalk server: %s. Exiting...'
+                % beanstalkd_host
+            )
+            sys.exit(1)
         except Exception as e:
             logger.critical(
                 e.message,
