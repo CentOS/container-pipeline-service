@@ -60,7 +60,7 @@ for f in files:
 
         # TEST_TAG generation, unique per project
         task = subprocess.Popen(
-            "date | md5sum | base64 | head -c 14",
+            "date +%s%N | md5sum | base64 | head -c 14",
             shell=True,
             stdout=subprocess.PIPE)
         TEST_TAG = task.stdout.read()

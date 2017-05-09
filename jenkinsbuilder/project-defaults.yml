@@ -17,7 +17,7 @@
     builders:
         - shell: |
             export DOCKERFILE_DIR=`pwd`
-            TEST_TAG=`date | md5sum | base64 | head -c 14`
+            TEST_TAG=`date +%s%N | md5sum | base64 | head -c 14`
             LOGS_DIR=/srv/pipeline-logs/$TEST_TAG
             echo "Creating logs directory $LOGS_DIR"
             mkdir $LOGS_DIR
