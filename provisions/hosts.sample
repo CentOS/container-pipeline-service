@@ -28,8 +28,13 @@ cccp_index_repo=https://github.com/centos/container-index.git
 
 ## dev environment options, update following to true to configure NFS
 setup_nfs=False
+
 # replace scanner_worker below with its FQDN / IP
 #test_nfs_share=scanner_worker:/nfsshare
+
+# for distinguishing emails from production or devcloud
+# keep it True for production and False for non production
+production=True
 
 [jenkins_master:vars]
 # update as needed
