@@ -6,10 +6,22 @@ import re
 
 from datetime import datetime
 from subprocess import Popen, PIPE
-from rpm_verify_constants import \
-    FILTER_DIRS, \
-    FILTER_PATHS
 
+# Filter the paths you know the resulting image or base image itself
+# has issue about and need to be filtered
+# out since this is a known issue and it is in progress to get fixed.
+FILTER_PATHS = [
+  "/",   # centos base image has issue with this filepath
+]
+
+
+# Filter filepaths starting with following directories listing,
+# since these paths are expected to be modified and should not
+# take into account
+
+FILTER_DIRS = [
+    "/var", "/run", "/media", "/mnt", "/tmp", "/proc", "/sys", "/boot"
+]
 
 # variables based on the `atomic scan` defaults
 INDIR = "/scanin"
