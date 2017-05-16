@@ -8,7 +8,7 @@ RUN yum update -y && \
 
 RUN mkdir -p /run_worker
 
-ADD beanstalkc.py ca.crt node.kubeconfig worker_start_build.py \
+ADD beanstalkc.py ca.crt node.kubeconfig worker_start_build.py worker_start_test.py \
  worker_start_delivery.py worker_dispatcher.py config.py lib.py /run_worker/
 ADD oc /usr/bin/
 

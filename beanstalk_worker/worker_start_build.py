@@ -181,6 +181,7 @@ def start_build(job_details):
         else:
             bs.use("master_tube")
             job_details["action"] = "start_test"
+            job_details["namespace"] = namespace
             bs.put(json.dumps(job_details))
             logger.debug("Build is successful going for next job")
 
