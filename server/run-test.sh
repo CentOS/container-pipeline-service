@@ -19,9 +19,9 @@ if [[ -d /var/run/secrets/openshift.io/push ]] && [[ ! -e /root/.dockercfg ]]; t
   cp /var/run/secrets/openshift.io/push/.dockercfg /root/.dockercfg
 fi
 
-FULL_FROM=${INTERNAL_REGISTRY}/${FROM}
+FULL_FROM=${INTERNAL_REGISTRY}/${APPID}/${FROM}
 #FULL_TO=`python -c 'import json, os; print json.loads(os.environ["BUILD"])["spec"]["output"]["to"]["name"]'`
-FULL_TO=${TARGET_REGISTRY}/${APPID}/${TO}
+FULL_TO=${INTERNAL_REGISTRY}/${APPID}/${TO}
 
 
 _ "Pulling tested image (${FULL_FROM})"
