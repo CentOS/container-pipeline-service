@@ -74,7 +74,8 @@ class DynamicFileHandler:
         self.logger = logger
         self.h = logging.FileHandler(log_path)
         self.h.setLevel(getattr(logging, level))
-        self.h.setFormatter(LOGGING_CONF['formatters']['bare']['format'])
+        self.h.setFormatter(
+            logging.Formatter(LOGGING_CONF['formatters']['bare']['format']))
         self.logger.addHandler(self.h)
 
     def remove(self):
