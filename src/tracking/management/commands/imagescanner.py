@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand  # CommandError
 import logging
 import json
 import sys
+
 from django.utils import timezone
 from django.conf import settings
 
@@ -89,7 +90,14 @@ class Command(BaseCommand):
 
             if not args:
                 logger.info('Image scanner running...')
-                bs = beanstalkc.Connection(host=settings.BEANSTALK_SERVER)
+                try:
+                    bs = beanstalkc.Connection(host=settings.BEANSTALK_SERVER)
+                except beanstalkc.SocketError:
+                    logger.critical(
+                        'Unable to connect to beanstalkd server: %s. '
+                        'Exiting...'
+                        % settings.BEANSTALK_SERVER)
+                    sys.exit(1)
                 bs.watch('tracking')
                 while True:
                     job = None
@@ -108,6 +116,12 @@ class Command(BaseCommand):
                         image_name = job_details['image_name']
                         image = ContainerImage.objects.get(name=image_name)
                         scan_image(image)
+                    except beanstalkc.SocketError:
+                        logger.critical(
+                            'Unable to connect to beanstalkd server: %s. '
+                            'Exiting...'
+                            % settings.BEANSTALK_SERVER)
+                        sys.exit(1)
                     except Exception as e:
                         logger.error('Image scan error: %s' % e, exc_info=True)
                     finally:

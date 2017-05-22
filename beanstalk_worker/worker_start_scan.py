@@ -8,6 +8,8 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
+
 import config
 
 from Atomic import Atomic, mount
@@ -554,8 +556,14 @@ class ContainerCapabilities(Scanner):
 
         return data
 
-
-bs = beanstalkc.Connection(host=BEANSTALKD_HOST)
+try:
+    bs = beanstalkc.Connection(host=BEANSTALKD_HOST)
+except beanstalkc.SocketError:
+    logger.critical(
+        'Unable to communicate to beanstalk server: %s. Exiting...'
+        % BEANSTALKD_HOST
+    )
+    sys.exit(1)
 bs.watch("start_scan")
 
 
@@ -593,6 +601,12 @@ while True:
             logger.info(
                 "Put job for delivery on master tube with id = %s" % job_id
             )
+    except beanstalkc.SocketError:
+        logger.critical(
+            'Unable to communicate to beanstalk server: %s. Exiting...'
+            % BEANSTALKD_HOST
+        )
+        sys.exit(1)
     except Exception as e:
         logger.fatal(str(e), exc_info=True)
         job_info["action"] = "start_delivery"

@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import subprocess
+import sys
 
 from urlparse import urljoin
 # FIXME: we've duplicated config.py from ../beanstalk_worker into this dir
@@ -14,8 +15,13 @@ from config import load_logger
 
 load_logger()
 logger = logging.getLogger('mail-service')
+beanstalkd_host = '127.0.0.1'
 
-bs = beanstalkc.Connection(host="172.17.0.1")
+try:
+    bs = beanstalkc.Connection(host=beanstalkd_host)
+except beanstalkc.SocketError:
+    logger.critical('Unable to connect to beanstalkd server: %s. Exiting...'
+                    % beanstalkd_host)
 bs.watch("notify_user")
 
 LOGS_DIR_PARENT = "/srv/pipeline-logs/"
@@ -345,12 +351,19 @@ class NotifyUser(object):
 
 
 while True:
-    logger.debug("Listening to notify_user tube")
-    job = bs.reserve()
-    job_id = job.jid
-    job_info = json.loads(job.body)
-    logger.info("Received Job:")
-    logger.debug(str(job_info))
-    notify_user = NotifyUser(job_info)
-    notify_user.notify_user()
-    job.delete()
+    try:
+        logger.debug("Listening to notify_user tube")
+        job = bs.reserve()
+        job_id = job.jid
+        job_info = json.loads(job.body)
+        logger.info("Received Job:")
+        logger.debug(str(job_info))
+        notify_user = NotifyUser(job_info)
+        notify_user.notify_user()
+        job.delete()
+    except beanstalkc.SocketError:
+        logger.critical(
+            'Unable to communicate to beanstalk server: %s. Exiting...'
+            % beanstalkd_host
+        )
+        sys.exit(1)

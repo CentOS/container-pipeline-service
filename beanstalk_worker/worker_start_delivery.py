@@ -9,16 +9,25 @@ import re
 import time
 import logging
 import os
+import sys
 import config
 from lib import Build
 
-
-bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
-bs.watch("start_delivery")
-bs.use("delivery_failed")
+beanstalkd_host = "BEANSTALK_SERVER"
 
 config.load_logger()
 logger = logging.getLogger("delivery-worker")
+
+try:
+    bs = beanstalkc.Connection(host=beanstalkd_host)
+except beanstalkc.SocketError:
+    logger.critical(
+        'Unable to communicate to beanstalk server: %s. Exiting...'
+        % beanstalkd_host
+    )
+    sys.exit(1)
+bs.watch("start_delivery")
+bs.use("delivery_failed")
 
 config_path = os.path.dirname(os.path.realpath(__file__))
 kubeconfig = " --config=" + os.path.join(config_path, "node.kubeconfig")
@@ -154,6 +163,12 @@ def main():
                 job.delete()
             else:
                 logger.info("Job was not succesful and returned to tube")
+        except beanstalkc.SocketError:
+            logger.critical(
+                'Unable to communicate to beanstalk server: %s. Exiting...'
+                % beanstalkd_host
+            )
+            sys.exit(1)
         except Exception as e:
             logger.critical(e.message, extra={
                             'locals': locals()}, exc_info=True)

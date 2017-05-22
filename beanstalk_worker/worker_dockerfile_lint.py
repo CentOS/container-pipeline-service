@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import subprocess
+import sys
 import constants
 
 import config
@@ -127,11 +128,17 @@ def lint_job_data(job_data):
     # this response will be read after job builds and sending email to user
     export_linter_status(response, status_file_path)
 
-bs = beanstalkc.Connection(host="BEANSTALK_SERVER")
-bs.watch("start_linter")
-
 
 def main():
+    host = "BEANSTALK_SERVER"
+    try:
+        bs = beanstalkc.Connection(host=host)
+    except beanstalkc.SocketError:
+        logger.critical(
+            'Unable to communicate to beanstalk server: %s. Exiting...'
+            % host)
+        sys.exit(1)
+    bs.watch("start_linter")
     logger.info('Starting dockerfile linter')
     while True:
         try:
@@ -140,6 +147,11 @@ def main():
             logger.info('Got job: %s' % job_data)
             lint_job_data(job_data)
             job.delete()
+        except beanstalkc.SocketError:
+            logger.critical(
+                'Unable to communicate to beanstalk server: %s. Exiting...'
+                % host)
+            sys.exit(1)
         except Exception as e:
             logger.fatal(e.message, extra={'locals': locals()}, exc_info=True)
 
