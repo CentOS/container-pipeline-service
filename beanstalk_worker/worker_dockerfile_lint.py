@@ -141,7 +141,7 @@ def main():
 
             debug_logs_file = os.path.join(
                 job_data["logs_dir"],
-                "service_debug.log"
+                config.SERVICE_LOGFILE
             )
             dfh = config.DynamicFileHandler(logger, debug_logs_file)
 

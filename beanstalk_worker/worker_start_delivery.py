@@ -145,7 +145,7 @@ def main():
             job_details = json.loads(job.body)
 
             debug_logs_file = os.path.join(
-                job_details["logs_dir"], "service_debug.log")
+                job_details["logs_dir"], config.SERVICE_LOGFILE)
             dfh = config.DynamicFileHandler(logger, debug_logs_file)
 
             logger.debug('Got job: %s' % job_details)
