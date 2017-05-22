@@ -70,7 +70,9 @@ class ScannerRunner(object):
         )
 
         if 'error' in pull_data:
-            logger.fatal("Couldn't pull requested image", extra=pull_data)
+            logger.fatal("Error pulling requested image {}: {}".format(
+                image_under_test, pull_data
+            ))
             return False
         logger.info("Image is pulled %s" % image_under_test)
         return True
