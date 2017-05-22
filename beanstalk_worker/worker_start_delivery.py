@@ -143,6 +143,11 @@ def main():
         try:
             job = bs.reserve()
             job_details = json.loads(job.body)
+
+            debug_logs_file = os.path.join(
+                job_details["logs_dir"], "service_debug.log")
+            dfh = config.DynamicFileHandler(logger, debug_logs_file)
+
             logger.debug('Got job: %s' % job_details)
             result = start_delivery(job_details)
             if result == 0:
@@ -157,6 +162,9 @@ def main():
         except Exception as e:
             logger.critical(e.message, extra={
                             'locals': locals()}, exc_info=True)
+        finally:
+            if 'dfh' in locals():
+                dfh.remove()
 
 if __name__ == '__main__':
     main()
