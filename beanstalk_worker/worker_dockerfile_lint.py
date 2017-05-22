@@ -113,7 +113,8 @@ def lint_job_data(job_data):
         }
 
     else:
-        logger.error("Dockerfile Lint check failed", extra={'locals': locals()})
+        logger.error(
+            "Dockerfile Lint check failed", extra={'locals': locals()})
         response = {
             "linter_results": False,
             "action": "notify_user",
@@ -137,9 +138,16 @@ def main():
         try:
             job = bs.reserve()
             job_data = json.loads(job.body)
+            debug_logs_file = os.path.join(
+                job_data["logs_dir"],
+                "service_debug.log"
+            )
+            dfh = config.DynamicFileHandler(logger, debug_logs_file)
             logger.info('Got job: %s' % job_data)
             lint_job_data(job_data)
             job.delete()
+            if 'dfh' in locals():
+                dfh.remove()
         except Exception as e:
             logger.fatal(e.message, extra={'locals': locals()}, exc_info=True)
 
