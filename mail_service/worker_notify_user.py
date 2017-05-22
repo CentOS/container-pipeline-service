@@ -350,7 +350,7 @@ while True:
     job_id = job.jid
     job_info = json.loads(job.body)
     dfh = config.DynamicFileHandler(
-        os.path.join(job_info['logs_dir'], 'debug.log'))
+        os.path.join(job_info['logs_dir'], 'service_debug.log'))
     logger.info("Received Job:")
     logger.debug(str(job_info))
     notify_user = NotifyUser(job_info)

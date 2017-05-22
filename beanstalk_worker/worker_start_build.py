@@ -93,7 +93,7 @@ def start_build(job_details):
         )
         debug_logs_file = os.path.join(
             job_details['logs_dir'],
-            'debug.log'
+            'service_debug.log'
         )
 
         # Run dfh.clean() to clean log files if no error is encountered in
