@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-import json
-import logging
-
-
 import beanstalkc
 import config
+import json
+import logging
+import os
 
 
 config.load_logger()
@@ -19,6 +18,9 @@ logger.info("Starting dispatcher")
 while True:
     job = bs.reserve()
     job_details = json.loads(job.body)
+    debug_logs_file = os.path.join(
+        job_details["logs_dir"], "service_debug.log")
+    dfh = config.DynamicFileHandler(logger, debug_logs_file)
     logger.info('Got job: %s' % job_details)
 
     logger.info("Retrieving job action")
@@ -56,3 +58,7 @@ while True:
 
     logger.debug("Deleting job: %s" % job_details)
     job.delete()
+
+    # remove handler from logging object
+    if 'dfh' in locals():
+        dfh.remove()
