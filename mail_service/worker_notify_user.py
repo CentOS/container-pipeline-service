@@ -149,7 +149,6 @@ class NotifyUser(object):
             # alter subject
             return "[test] " + subject
 
-
     def send_email(self, subject, contents):
         "Sends email to user"
 
@@ -349,7 +348,7 @@ while True:
     job = bs.reserve()
     job_id = job.jid
     job_info = json.loads(job.body)
-    dfh = config.DynamicFileHandler(
+    dfh = config.DynamicFileHandler(logger,
         os.path.join(job_info['logs_dir'], 'service_debug.log'))
     logger.info("Received Job:")
     logger.debug(str(job_info))
@@ -357,4 +356,8 @@ while True:
     notify_user.notify_user()
     job.delete()
     dfh.remove()
+
+    # This cleans the per build logs file created for the build
+    # If service returned properly after sending email, the file
+    # will be cleaned, if service raises, the file statys for debugging
     dfh.clean()
