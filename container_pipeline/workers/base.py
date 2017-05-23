@@ -4,6 +4,7 @@ import os
 
 from container_pipeline.lib import settings
 from container_pipeline.lib.queue import JobQueue
+from container_pipeline.lib.log import DynamicFileHandler
 
 
 class BaseWorker(object):
@@ -57,6 +58,11 @@ class BaseWorker(object):
         while True:
             job_obj = self.queue.get()
             job = json.loads(job_obj.body)
+            debug_logs_file = os.path.join(
+                job['logs_dir'], settings.SERVICE_LOGFILE)
+            # Run dfh.clean() to clean log files if no error is encountered in
+            # post delivering build report mails to user
+            dfh = DynamicFileHandler(self.logger, debug_logs_file)
             self.logger.info('Got job: {}'.format(job))
             try:
                 self.handle_job(job)
@@ -64,4 +70,5 @@ class BaseWorker(object):
                 self.logger.error(
                     'Error in handling job: {}\nJob details: {}'.format(
                         e, job), extra={'locals': locals()}, exc_info=True)
+            dfh.remove()
             self.queue.delete(job_obj)
