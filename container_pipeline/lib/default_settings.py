@@ -9,6 +9,7 @@ import os
 LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
 
 LOG_PATH = '/srv/pipeline-logs/cccp.log'
+SERVICE_LOGFILE = "service_debug.log"
 
 LOGGING_CONF = dict(
     version=1,
