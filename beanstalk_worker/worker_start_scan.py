@@ -563,6 +563,11 @@ while True:
     try:
         job = bs.reserve()
         job_info = json.loads(job.body)
+
+        debug_logs_file = os.path.join(
+            job_info["logs_dir"], "service_debug.log")
+        dfh = config.DynamicFileHandler(logger, debug_logs_file)
+
         logger.info('Got job: %s' % job_info)
         scan_runner_obj = ScannerRunner(job_info)
         status, scanners_data = scan_runner_obj.run()
@@ -601,3 +606,7 @@ while True:
     finally:
         logger.info("Job moved from scan phase.")
         job.delete()
+
+        # remove per file build log handler from logger
+        if 'dfh' in locals():
+            dfh.remove()

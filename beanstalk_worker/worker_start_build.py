@@ -91,6 +91,14 @@ def start_build(job_details):
             job_details["logs_dir"],
             "build_logs.txt"
         )
+        debug_logs_file = os.path.join(
+            job_details['logs_dir'],
+            config.SERVICE_LOGFILE
+        )
+
+        # Run dfh.clean() to clean log files if no error is encountered in
+        # post delivering build report mails to user
+        dfh = config.DynamicFileHandler(logger, debug_logs_file)
 
         logger.debug("Login to OpenShift server")
         command_login = "oc login https://OPENSHIFT_SERVER_IP:8443 -u" \
@@ -177,6 +185,9 @@ def start_build(job_details):
     except Exception as e:
         logger.critical(e.message, extra={'locals': locals()}, exc_info=True)
         return 1
+    finally:
+        if 'dfh' in locals():
+            dfh.remove()
 
 
 def main():
