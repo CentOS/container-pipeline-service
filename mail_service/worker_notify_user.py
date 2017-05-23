@@ -121,9 +121,9 @@ class NotifyUser(object):
         )
 
     def _escape_text_(self, text):
-        "Escapes \n with \\n for rendering newlines in email body"
+        "Escapes \n,\t with \\n,\\tt for rendering in email body"
 
-        return text.replace("\n", "\\n")
+        return text.replace("\n", "\\n").replace("\t", "\\t")
 
     def update_subject_of_email(self, subject):
         """
