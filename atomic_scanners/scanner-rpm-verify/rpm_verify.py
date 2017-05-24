@@ -181,6 +181,8 @@ class RPMVerify(object):
         # Also we should log the RPMs failing the rpm -V test
         # print "Issue found while running rpm -Va test: "
         # print error
+        if not result:
+            result = ["No issues. Libraries and Binaries are intact."]
         return {"rpmVa_issues": result}
 
     def export_results(self, data):
