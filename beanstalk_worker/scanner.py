@@ -26,6 +26,7 @@ logger.addHandler(ch)
 
 
 class Scanner(object):
+
     def __init__(self, image_under_test, scanner_name, full_scanner_name,
                  to_process_output):
         # to be provided by child class
@@ -49,6 +50,16 @@ class Scanner(object):
         # returns out, err
         return process.communicate()
 
+    def clean_scanner_result(self, path):
+        """
+        Clean the scanner  results from /var/lib/atomic directory
+        """
+        try:
+            os.remove(path)
+        except OSError as e:
+            logger.warning("Failed to remove %s" % path)
+            logger.warning("Error: %s" % str(e))
+
     def run(self, cmd):
         # self.image_under_test = image_under_test
         # self.image_id = self.atomic_obj.get_input_id(self.image_under_test)
@@ -66,6 +77,7 @@ class Scanner(object):
 
             if os.path.exists(output_json_file):
                 json_data = json.loads(open(output_json_file).read())
+                self.clean_scanner_result(output_json_file)
             else:
                 logger.log(
                     level=logging.FATAL,
