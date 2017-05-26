@@ -332,6 +332,12 @@ class NotifyUser(object):
                     self.job_info["notify_email"])
         self.send_email(subject, email_contents)
 
+        # if it is a weekly scan, return True to delete service_debug.log
+        if self.job_info.get("weekly", False):
+            return True
+        # if build status if False, do not delete service_debug.log
+        return self.job_info.get("build_status", False)
+
     def remove_status_files(self, status_files):
         "Removes the status file"
         logger.debug("Cleaning statuses files %s" % str(status_files))
@@ -348,16 +354,18 @@ while True:
     job = bs.reserve()
     job_id = job.jid
     job_info = json.loads(job.body)
-    dfh = config.DynamicFileHandler(logger,
+    dfh = config.DynamicFileHandler(
+        logger,
         os.path.join(job_info['logs_dir'], config.SERVICE_LOGFILE))
     logger.info("Received Job:")
     logger.debug(str(job_info))
     notify_user = NotifyUser(job_info)
-    notify_user.notify_user()
+    build_status = notify_user.notify_user()
     job.delete()
     dfh.remove()
 
     # This cleans the per build logs file created for the build
     # If service returned properly after sending email, the file
     # will be cleaned, if service raises, the file statys for debugging
-    dfh.clean()
+    if build_status:
+        dfh.clean()
