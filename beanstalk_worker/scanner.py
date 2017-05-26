@@ -54,11 +54,9 @@ class Scanner(object):
         """
         Clean the scanner  results from /var/lib/atomic directory
         """
-        try:
-            os.remove(path)
-        except OSError as e:
-            logger.warning("Failed to remove %s" % path)
-            logger.warning("Error: %s" % str(e))
+        scan_result_dir = os.path.dirname(os.path.dirname(path))
+        # TODO: add logging statement here
+        shutil.rmtree(scan_result_dir, ignore_errors=True)
 
     def run(self, cmd):
         # self.image_under_test = image_under_test

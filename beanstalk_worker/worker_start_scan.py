@@ -273,11 +273,10 @@ class ScannerRPMVerify(object):
         """
         Clean the scanner  results from /var/lib/atomic directory
         """
-        try:
-            os.remove(path)
-        except OSError as e:
-            logger.warning("Failed to remove %s" % path)
-            logger.warning("Error: %s" % str(e))
+        scan_result_dir = os.path.dirname(os.path.dirname(path))
+        logger.info(
+            "Removing extra result copy of scanner: %s" % scan_result_dir)
+        shutil.rmtree(scan_result_dir, ignore_errors=True)
 
     def process_output(self, json_data):
         """
@@ -445,11 +444,10 @@ class PipelineScanner(object):
         """
         Clean the scanner  results from /var/lib/atomic directory
         """
-        try:
-            os.remove(path)
-        except OSError as e:
-            logger.warning("Failed to remove %s" % path)
-            logger.warning("Error: %s" % str(e))
+        scan_result_dir = os.path.dirname(os.path.dirname(path))
+        logger.info(
+            "Removing extra result copy of scanner: %s" % scan_result_dir)
+        shutil.rmtree(scan_result_dir, ignore_errors=True)
 
     def process_output(self, json_data):
         """
