@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 VAGRANTFILE_API_VERSION = "2"
 
-ALLINONE = (ENV['ALLINONE'] || 0).to_i
+PROD = (ENV['PROD'] || 0).to_i
 HOME = ENV['HOME']
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -10,10 +10,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider "virtualbox" do |vbox, override|
     override.vm.box = "centos/7"
-    if ALLINONE == 1
-        vbox.memory = 2048
-    else
+    if PROD == 1
         vbox.memory = 1024
+    else
+        vbox.memory = 2048
     end
     vbox.cpus = 2
 
@@ -21,31 +21,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vbox.customize ["modifyvm", :id, "--ioapic", "on"]
   end
 
-  if Vagrant.has_plugin?("vagrant-cachier")
-    # Configure cached packages to be shared between instances of the same base box.
-    # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
-    config.cache.scope = :box
-
-    # OPTIONAL: If you are using VirtualBox, you might want to use that to enable
-    # NFS for shared folders. This is also very useful for vagrant-libvirt if you
-    # want bi-directional sync
-    config.cache.synced_folder_opts = {
-      type: :nfs,
-      # The nolock option can be useful for an NFSv3 client that wants to avoid the
-      # NLM sideband protocol. Without this option, apt-get might hang if it tries
-      # to lock files needed for /var/cache/* operations. All of this can be avoided
-      # by using NFSv4 everywhere. Please note that the tcp option is not the default.
-      mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
-    }
-    # For more information please check http://docs.vagrantup.com/v2/synced-folders/basic_usage.html
-  end
-
   config.vm.provider "libvirt" do |libvirt, override|
     libvirt.cpus = 2
-    if ALLINONE == 1
-        libvirt.memory = 2048
-    else
+    if PROD == 1
         libvirt.memory = 1024
+    else
+        libvirt.memory = 2048
     end
     libvirt.driver = 'kvm'
     override.vm.box = "centos/7"
@@ -53,14 +34,23 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     override.vm.box_download_checksum_type = "sha256"
   end
 
+  # vagrant-cachier setup
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :box
+    config.cache.synced_folder_opts = {
+      type: :nfs,
+      mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
+    }
+  end
+
   config.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
 
-  num_nodes = 2
-  if ALLINONE == 1
-      inventory_path = "provisions/hosts.vagrant.allinone"
-      num_nodes = 0
-  else
+  if PROD == 1
+      num_nodes = 2
       inventory_path = "provisions/hosts.vagrant"
+  else
+      inventory_path = "provisions/hosts.vagrant.minimal"
+      num_nodes = 1
   end
 
   # Ensure Jenkins SSH keys exist
@@ -88,7 +78,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
-  if ALLINONE == 1
+  if PROD != 1
     config.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
     config.vm.synced_folder "./", "/home/vagrant/cccp-service", type: "rsync"
   end
@@ -99,33 +89,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       node.vm.hostname = "cccp-#{node_index}"
       node.vm.network :private_network, ip: "192.168.100.#{200 + n}"
       node.vm.synced_folder ".", "/home/vagrant/sync", disabled: true
-      if n == 0
-        node.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
-      end
-
-      if n == 1
-        node.vm.synced_folder "./", "/home/vagrant/cccp-service", type: "rsync"
-      end
+      node.vm.synced_folder "./", "/opt/cccp-service", type: "rsync"
+      node.vm.synced_folder "./", "/home/vagrant/cccp-service", type: "rsync"
       node.vm.provision "shell", inline: "setenforce 0"
       # config.vm.provision "shell", inline: "nmcli connection reload; systemctl restart NetworkManager.service"
     end
   end
 
-  if ALLINONE == 1
-      config.vm.post_up_message = <<-EOF
-You have successfully setup CentOS Community Container Pipeline
-Endpoints:
-=================Registry================
-https://192.168.100.100:5000/
-=================Jenkins=================
-http://192.168.100.100:8080/
-User: admin Password: admin
-================Openshift================
-https://192.168.100.100:8443
-User: test-admin Password: test
-"Happy hacking!
-EOF
-  else
+  if PROD == 1
       config.vm.post_up_message = <<-EOF
 You have successfully setup CentOS Community Container Pipeline
 Endpoints:
@@ -136,6 +107,20 @@ http://192.168.100.100:8080/
 User: admin Password: admin
 ================Openshift================
 https://192.168.100.201:8443
+User: test-admin Password: test
+"Happy hacking!
+EOF
+  else
+      config.vm.post_up_message = <<-EOF
+You have successfully setup CentOS Community Container Pipeline
+Endpoints:
+=================Registry================
+https://192.168.100.100:5000/
+=================Jenkins=================
+http://192.168.100.100:8080/
+User: admin Password: admin
+================Openshift================
+https://192.168.100.200:8443
 User: test-admin Password: test
 "Happy hacking!
 EOF

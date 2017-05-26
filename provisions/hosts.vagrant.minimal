@@ -11,7 +11,7 @@ scanner_worker
 192.168.100.100     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [openshift]
-192.168.100.100     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
+192.168.100.200     ansbile_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
 [scanner_worker]
 192.168.100.100     ansible_ssh_user=vagrant    ansible_ssh_pass=vagrant
@@ -19,9 +19,14 @@ scanner_worker
 [all:vars]
 cccp_index_repo=https://github.com/rtnpro/container-index.git
 vagrant=True
-beanstalk_server=192.168.100.100
+beanstalk_server=192.168.100.200
 copy_ssl_certs=True
 oc_slave=192.168.100.100
 jenkins_public_key_file=/tmp/cccp-jenkins.key.pub
 jenkins_private_key_file=/tmp/cccp-jenkins.key
 public_registry=192.168.100.100
+intranet_registry=192.168.100.100:5000
+setup_nfs=True
+test_nfs_share=192.168.100.100:/nfsshare
+production=False
+test=True
