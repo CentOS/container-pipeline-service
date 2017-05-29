@@ -115,7 +115,7 @@ class Openshift(object):
                 self.logger.debug('Retrying {}/{} to check build status for : '
                                   '{}/{}'.format(project, build_id))
             elif current_status.lower() == 'failed':
-                    return False
+                return False
             else:
                 empty_retry_count = 0
             time.sleep(retry_delay)
@@ -135,3 +135,23 @@ class Openshift(object):
                 '{}/{}\n{}'.format(project, build_id, e))
             output = 'Could not retrieve build logs'
         return output
+
+    def delete_pods(self, project, build_id):
+        """
+        Deletes the pods from OpenShift for the provided project and build_id.
+        Mainly used by the delivery worker.
+        """
+        try:
+            self.logger.info("Deleting pods for project build: {}/{}"
+                             .format(project, build_id))
+            run_cmd(
+                'oc delete pods --namespace {proejct} build/{build_id}'
+                ' {suffix}'.format(project=project, build_id=build_id,
+                                   suffix=self.oc_cmd_suffix))
+            self.logger.info("Deleted pods for project build: {}/{}"
+                             .format(project, build_id))
+        except subprocess.CalledProcessError as e:
+            self.logger.critical(
+                'Could not delete pods for project build: '
+                '{}/{}\n{}'.format(project, build_id, e)
+            )

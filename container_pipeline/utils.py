@@ -1,10 +1,17 @@
+import hashlib
 import os
 
 
 def get_job_name(job_details):
     """Get jenkins job name from job_detials"""
-    return str(job_details['appid']) + "-" + str(job_details['jobid']) + "-" \
-        + str(job_details['desired_tag'])
+    namespace = str(job_details['appid']) + "-" + str(job_details['jobid']) + \
+        "-" + str(job_details['desired_tag'])
+    return namespace
+
+
+def get_job_hash(namespace):
+    """Returns hash value for the namespace"""
+    return hashlib.sha224(namespace).hexdigest()
 
 
 def get_project_name(job):

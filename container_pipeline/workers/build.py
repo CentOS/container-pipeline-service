@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-import hashlib
 import json
 import logging
 import os
 
-from container_pipeline.utils import Build, get_job_name, get_project_name
+from container_pipeline.utils import Build, get_job_name, get_project_name, \
+    get_job_hash
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.workers.base import BaseWorker
@@ -49,7 +49,7 @@ class BuildWorker(BaseWorker):
     def build(self, job):
         """Run Openshift build for job"""
         namespace = get_job_name(job)
-        project = hashlib.sha224(namespace).hexdigest()
+        project = get_job_hash(namespace)
 
         try:
             self.openshift.login()
