@@ -12,3 +12,4 @@ public_registry: registry.centos.org
 enable_epel: true
 
 intranet_registry: registry.centos.org:5000
+log_level: INFO

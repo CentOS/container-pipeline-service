@@ -99,7 +99,7 @@ LOGGING = {
     },
     'handlers': {
         'log_to_file': {
-            'level': 'DEBUG',
+            'level': LOG_LEVEL,
             'class': 'logging.FileHandler',
             'filename': os.path.join(LOG_PATH, 'cccp.log'),
             'mode': 'a+',

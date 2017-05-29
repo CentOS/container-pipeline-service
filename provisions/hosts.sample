@@ -36,6 +36,9 @@ setup_nfs=False
 # keep it True for production and False for non production
 production=True
 
+# Set log level
+log_level = DEBUG
+
 [jenkins_master:vars]
 # update as needed
 oc_slave=jenkins-slave

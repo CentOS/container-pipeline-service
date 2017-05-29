@@ -2,6 +2,9 @@ from container_pipeline.default_settings import *
 
 LOGGING['handlers']['log_to_file']['filename'] = '/srv/pipeline-logs/cccp.log'
 
+for logger_conf in LOGGING['loggers'].values():
+    logger_conf['level'] = '{{ log_level }}'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
