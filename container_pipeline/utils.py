@@ -7,6 +7,11 @@ def get_job_name(job_details):
         + str(job_details['desired_tag'])
 
 
+def get_project_name(job):
+    """Get project name from job data"""
+    return '{}-{}-{}'.format(job['appid'], job['jobid'], job['desired_tag'])
+
+
 # In future, we can collate a lot of duplicate code from workers
 # to manage and track build, thereby providing a clean interface
 # to manage builds and prevent duplication of code.

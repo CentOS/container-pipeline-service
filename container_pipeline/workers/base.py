@@ -22,23 +22,14 @@ class BaseWorker(object):
         """
         raise NotImplementedError
 
-    def notify_build_failure(self, namespace, notify_email, build_logs_file,
-                             project_name, job_name, test_tag):
-        """This method queues user notifications for build failure, to be
-        processed by the mail service worker"""
-        data = {}
-        data['action'] = 'notify_user'
-        data['namespace'] = namespace
-        data['build_status'] = False
-        data['notify_email'] = notify_email
-        data['build_logs_file'] = build_logs_file
-        data['project_name'] = project_name
-        data['job_name'] = job_name
-        data['TEST_TAG'] = test_tag
+    def notify(self, data):
+        """
+        This method queues user notifications to be processed by the
+        mail service worker. Customize as needed.
+        """
         self.queue.put(json.dumps(data), 'master_tube')
-        self.logger.debug('Notify build failure: {}'.format(data))
 
-    def export_build_logs(self, logs, destination):
+    def export_logs(self, logs, destination):
         """"Write logs in given destination"""
         self.logger.debug('Writing build logs to NFS share')
         # to take care if the logs directory is not created

@@ -4,7 +4,7 @@ import json
 import logging
 import os
 
-from container_pipeline.utils import Build, get_job_name
+from container_pipeline.utils import Build, get_job_name, get_project_name
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.workers.base import BaseWorker
@@ -65,7 +65,7 @@ class BuildWorker(BaseWorker):
             project, build_id, 'Complete')
         logs = self.openshift.get_build_logs(project, build_id)
         build_logs_file = os.path.join(job['logs_dir'], 'build_logs.txt')
-        self.export_build_logs(logs, build_logs_file)
+        self.export_logs(logs, build_logs_file)
         return build_status
 
     def handle_build_success(self, job):
@@ -77,14 +77,18 @@ class BuildWorker(BaseWorker):
         self.queue.put(json.dumps(job))
         self.logger.info(
             "Build is not successful putting it to failed build tube")
-        appid = job['appid']
-        jobid = job['jobid']
-        desired_tag = job['desired_tag']
-        project = appid + "/" + jobid + ":" + desired_tag
-        build_logs_file = os.path.join(job['logs_dir'], 'build_logs.txt')
-        self.notify_build_failure(
-            get_job_name(job), job['notify_email'], build_logs_file,
-            project, job['jobid'], job['TEST_TAG'])
+        data = {
+            'action': 'notify_user',
+            'namespace': get_job_name(job),
+            'build_status': False,
+            'notify_email': job['notify_email'],
+            'build_logs_file': os.path.join(
+                job['logs_dir'], 'build_logs.txt'),
+            'project_name': get_project_name(job),
+            'job_name': job['jobid'],
+            'TEST_TAG': job['TEST_TAG']}
+        self.logger.debug('Notify build failure: {}'.format(data))
+        self.notify(data)
 
 
 if __name__ == '__main__':
