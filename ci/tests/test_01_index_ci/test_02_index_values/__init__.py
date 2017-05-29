@@ -9,8 +9,8 @@ class TestIndexValues(IndexCIBase):
                                             self._test_index_location + "test_00")[0])
         print("VERIFIED")
 
-    def test_01_succeeds_app_id_mismatch(self):
-        self.assertTrue(self._run_index_ci("Test if index ci succeeds if app-id mismatches with file name",
+    def test_01_fails_app_id_mismatch(self):
+        self.assertFalse(self._run_index_ci("Test if index ci fails if app-id mismatches with file name",
                                             self._test_index_location + "test_01")[0])
         print("VERIFIED")
 

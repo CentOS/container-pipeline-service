@@ -128,7 +128,8 @@ class IndexFormatValidator(IndexValidator):
 
             else:
                 if entry["app-id"] != self._file_name.split(".")[0]:
-                        self._summary_collector.add_warning("app-id should be same as first part of the file name")
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("app-id should be same as first part of the file name")
 
                 if "_" in entry["app-id"] or "/" in entry["app-id"] or "." in entry["app-id"]:
                     self._mark_entry_invalid(entry)
