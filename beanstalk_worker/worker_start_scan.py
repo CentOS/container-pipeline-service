@@ -20,8 +20,6 @@ BEANSTALKD_HOST = "BEANSTALK_SERVER"
 config.load_logger()
 logger = logging.getLogger("scan-worker")
 
-logger = logging.getLogger("scan-worker")
-
 SCANNERS_OUTPUT = {
     "registry.centos.org/pipeline-images/pipeline-scanner": [
         "image_scan_results.json"],
@@ -115,10 +113,10 @@ class ScannerRunner(object):
         Export scanner logs in given directory
         """
         logs_file_path = os.path.join(
-                self.job_info["logs_dir"],
-                constants.SCANNERS_RESULTFILE[scanner][0])
+            self.job_info["logs_dir"],
+            constants.SCANNERS_RESULTFILE[scanner][0])
         logger.info(
-                "Scanner=%s result log file:%s" % (scanner, logs_file_path)
+            "Scanner=%s result log file:%s" % (scanner, logs_file_path)
         )
         try:
             fin = open(logs_file_path, "w")
@@ -200,8 +198,8 @@ class ScannerRunner(object):
         logger.info("Finished executing all scanners.")
 
         status_file_path = os.path.join(
-                self.job_info["logs_dir"],
-                constants.SCANNERS_STATUS_FILE)
+            self.job_info["logs_dir"],
+            constants.SCANNERS_STATUS_FILE)
         # We export the scanners_status on NFS
         self.export_scanners_status(scanners_data, status_file_path)
 
@@ -256,6 +254,7 @@ class ScannerRPMVerify(object):
 
             if os.path.exists(output_json_file):
                 json_data = json.loads(open(output_json_file).read())
+                self.clean_scanner_result(output_json_file)
             else:
                 logger.fatal("No scan results found at %s" % output_json_file)
                 # FIXME: handle what happens in this case
@@ -269,6 +268,15 @@ class ScannerRPMVerify(object):
             return False, self.process_output(json_data)
 
         return True, self.process_output(json_data)
+
+    def clean_scanner_result(self, path):
+        """
+        Clean the scanner  results from /var/lib/atomic directory
+        """
+        scan_result_dir = os.path.dirname(os.path.dirname(path))
+        logger.info(
+            "Removing extra result copy of scanner: %s" % scan_result_dir)
+        shutil.rmtree(scan_result_dir, ignore_errors=True)
 
     def process_output(self, json_data):
         """
@@ -415,6 +423,7 @@ class PipelineScanner(object):
 
             if os.path.exists(output_json_file):
                 json_data = json.loads(open(output_json_file).read())
+                self.clean_scanner_result(output_json_file)
             else:
                 logger.fatal(
                     "No scan results found at %s" % output_json_file)
@@ -430,6 +439,15 @@ class PipelineScanner(object):
         logger.info(
             "Finished executing scanner: %s" % self.scanner_name)
         return True, self.process_output(json_data)
+
+    def clean_scanner_result(self, path):
+        """
+        Clean the scanner  results from /var/lib/atomic directory
+        """
+        scan_result_dir = os.path.dirname(os.path.dirname(path))
+        logger.info(
+            "Removing extra result copy of scanner: %s" % scan_result_dir)
+        shutil.rmtree(scan_result_dir, ignore_errors=True)
 
     def process_output(self, json_data):
         """
@@ -502,6 +520,7 @@ class MiscPackageUpdates(Scanner):
 
 
 class ContainerCapabilities(Scanner):
+
     def __init__(self):
         self.scanner_name = "container-capabilities-scanner"
         self.full_scanner_name = \
