@@ -561,23 +561,24 @@ class ScanWorker(BaseWorker):
             )
         else:
             logger.info(str(scanners_data))
+
+        # Remove the msg and logs from the job_info as they are not
+        # needed now
+        scanners_data.pop("msg", None)
+        scanners_data.pop("logs", None)
+        scanners_data.pop("scan_results", None)
+
         # if weekly scan, push the job for notification
         if job.get("weekly"):
+            scanners_data["action"] = "notify_user"
             self.queue.put(json.dumps(scanners_data), 'master_tube')
         else:
             # now scanning is complete, relay job for delivery
             # all other details about job stays same
-            next_job = scanners_data
             # change the action
-            next_job["action"] = "start_delivery"
-
-            # Remove the msg and logs from the job_info as they are not
-            # needed now
-            next_job.pop("msg", None)
-            next_job.pop("logs", None)
-            next_job.pop("scan_results", None)
+            scanners_data["action"] = "start_delivery"
             # Put the job details on central tube
-            self.queue.put(json.dumps(next_job), 'master_tube')
+            self.queue.put(json.dumps(scanners_data), 'master_tube')
             logger.info(
                 "Put job for delivery on master tube"
             )
@@ -625,7 +626,7 @@ if __name__ == '__main__':
         conn = docker.Client(base_url="tcp://%s:%s" % (
             DOCKER_HOST, DOCKER_PORT
         ))
-        worker = ScanWorker(logger, sub='start_build', pub='failed_build')
+        worker = ScanWorker(logger, sub='start_scan', pub='failed_scan')
         worker.run()
     except Exception as e:
         logger.fatal("Error connecting to Docker daemon.", exc_info=True)
