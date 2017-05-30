@@ -48,6 +48,11 @@ LOGGING_CONF = dict(
             "propagate": False,
             "handlers": ["console", "log_to_file"],
         },
+        'test-worker': {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["console", "log_to_file"],
+        },
         'delivery-worker': {
             "level": "DEBUG",
             "propagate": False,
