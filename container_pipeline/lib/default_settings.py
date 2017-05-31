@@ -1,11 +1,14 @@
-import logging
-import logging.config
+"""
+This module contains the default config parameters for the container
+pipeline service. However, other modules don't consume this module
+directly, but container_pipeline.lib.settings.py which extends this module
+and provides a layer of abstraction around config loading.
+"""
 import os
 
-LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
 
 LOG_PATH = '/srv/pipeline-logs/cccp.log'
-
 SERVICE_LOGFILE = "service_debug.log"
 
 LOGGING_CONF = dict(
@@ -13,7 +16,8 @@ LOGGING_CONF = dict(
     level=LOG_LEVEL,
     formatters=dict(
         bare={
-            "format": '[%(asctime)s] %(name)s p%(process)s %(lineno)d %(levelname)s - %(message)s'
+            "format": ('[%(asctime)s] %(name)s p%(process)s %(lineno)d '
+                       '%(levelname)s - %(message)s')
         },
     ),
     handlers=dict(
@@ -23,7 +27,7 @@ LOGGING_CONF = dict(
             "level": LOG_LEVEL,
         },
         log_to_file={
-            'level': 'DEBUG',
+            'level': LOG_LEVEL,
             'class': 'logging.FileHandler',
             'filename': LOG_PATH,
             'mode': 'a+',
@@ -31,17 +35,12 @@ LOGGING_CONF = dict(
         }
     ),
     loggers={
-        'linter': {
+        'dockerfile-linter': {
             "level": "DEBUG",
             "propagate": False,
             "handlers": ["console", "log_to_file"],
         },
         'build-worker': {
-            "level": "DEBUG",
-            "propagate": False,
-            "handlers": ["console", "log_to_file"],
-        },
-        'test-worker': {
             "level": "DEBUG",
             "propagate": False,
             "handlers": ["console", "log_to_file"],
@@ -65,33 +64,22 @@ LOGGING_CONF = dict(
             "level": "DEBUG",
             "propagate": False,
             "handlers": ["console", "log_to_file"],
+        },
+        'console': {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["console"]
         }
     },
 )
 
+BEANSTALKD_HOST = os.environ.get('BEANSTALKD_HOST') or '127.0.0.1'
+BEANSTALKD_PORT = int(os.environ.get('BEANSTALKD_PORT') or '11300')
 
-def load_logger():
-    logging.config.dictConfig(LOGGING_CONF)
-
-
-class DynamicFileHandler:
-
-    def __init__(self, logger, log_path, level='DEBUG'):
-        """Initialize dynamic file handler"""
-        self.logger = logger
-        self.h = logging.FileHandler(log_path)
-        self.h.setLevel(getattr(logging, level))
-        self.h.setFormatter(
-            logging.Formatter(LOGGING_CONF['formatters']['bare']['format']))
-        self.logger.addHandler(self.h)
-
-    def remove(self):
-        """Remove handler from logger"""
-        self.logger.removeHandler(self.h)
-
-    def clean(self):
-        """Clean associated log file"""
-        try:
-            os.remove(self.h.baseFilename)
-        except OSError as e:
-            self.logger.error('Error during cleaning log file: %s' % e)
+OPENSHIFT_ENDPOINT = os.environ.get('OPENSHIFT_ENDPOINT') or \
+    'https://localhost:8443'
+OPENSHIFT_USER = os.environ.get('OPENSHIFT_USER') or 'test-admin'
+OPENSHIFT_PASSWORD = os.environ.get('OPENSHIFT_PASSWORD') or 'admin'
+OC_CONFIG = os.environ.get('OC_CONFIG') or \
+    '/opt/cccp-service/client/node.kubeconfig'
+OC_CERT = os.environ.get('OC_CERT') or '/opt/cccp-service/client/ca.crt'

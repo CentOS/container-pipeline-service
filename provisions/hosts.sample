@@ -18,6 +18,7 @@ scanner_worker
 
 [all:vars]
 # update as needed
+internal_registry=jenkins_master
 public_registry=jenkins-slave
 intranet_registry=jenkins-slave:5000
 beanstalk_server=openshift
