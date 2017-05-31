@@ -42,3 +42,5 @@ log_level = DEBUG
 [jenkins_master:vars]
 # update as needed
 oc_slave=jenkins-slave
+logrotate_maxsize=100M
+logrotate_rotate=5

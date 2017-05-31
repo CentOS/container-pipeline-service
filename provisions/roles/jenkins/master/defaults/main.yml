@@ -28,3 +28,6 @@ jenkins_admin_username: admin
 jenkins_admin_password: admin
 
 cccp_index_repo: https://github.com/centos/container-index.git
+
+logrotate_maxsize: 50M
+logrotate_rotate: 7
