@@ -1,31 +1,22 @@
 #!/usr/bin/python
-
-import constants
-import docker
-import json
-import logging
+"""This class is for checking updates from different other packagers."""
 import os
-import shutil
-import subprocess
-import config
-import hashlib
 
-from Atomic import Atomic, mount
-from scanner import Scanner
+from container_pipeline.workers.scanners.base import Scanner
 
-from container_pipeline.utils import Build, get_job_name
-from container_pipeline.lib.log import load_logger
-from container_pipeline.workers.base import BaseWorker
 
 class MiscPackageUpdates(Scanner):
+    """Checks updates for packages other than RPM."""
 
     def __init__(self):
+        """Name it to Misc Package update check."""
         self.scanner_name = "misc-package-updates"
         self.full_scanner_name = \
             "registry.centos.org/pipeline-images/misc-package-updates"
         self.scan_types = ["pip-updates", "npm-updates", "gem-updates"]
 
     def scan(self, image_under_test):
+        """Run the scanner."""
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
         logs = []
@@ -49,7 +40,7 @@ class MiscPackageUpdates(Scanner):
 
             scan_results = super(MiscPackageUpdates, self).scan(scan_cmd)
 
-            if scan_results[0] != True:
+            if not scan_results[0]:
                 return False, None
 
             logs.append(scan_results[1])
@@ -58,10 +49,13 @@ class MiscPackageUpdates(Scanner):
 
     def process_output(self, logs):
         """
-        Processing data for this scanner is unlike other scanners because, for
-        this scanner we need to send logs of three different scan types of same
-        atomic scanner unlike other atomic scanners which have only one, and
-        hence treated as default, scan type
+        Genaralising output.
+
+        Processing data for this scanner is unlike other scanners
+        because, for this scanner we need to send logs of three
+        different scan types of same atomic scanner unlike other
+        atomic scanners which have only one, and hence treated
+        as default, scan type
         """
         data = {}
         data["scanner_name"] = self.scanner_name

@@ -1,38 +1,45 @@
 #!/usr/bin/python
-
-import constants
-import docker
+"""pipeline scanner class."""
 import json
 import logging
 import os
 import shutil
 import subprocess
-import config
-import hashlib
 
+import docker
 from Atomic import Atomic, mount
-from scanner import Scanner
-
-from container_pipeline.utils import Build, get_job_name
 from container_pipeline.lib.log import load_logger
-from container_pipeline.workers.base import BaseWorker
+from container_pipeline.lib.settings import SCANNERS_OUTPUT
+
 
 class PipelineScanner(object):
-    """
-    pipeline-scanner atomic scanner handler
-    """
+    """pipeline-scanner atomic scanner handler."""
 
     def __init__(self):
+        """Get atomic object for the image."""
         self.scanner_name = "pipeline-scanner"
         self.full_scanner_name = \
             "registry.centos.org/pipeline-images/pipeline-scanner"
-        self.atomic_object = Atomic()
         self.mount_object = mount.Mount()
 
+        # Add logger
+        load_logger()
+        self.logger = logging.getLogger('scan-worker')
+
+        DOCKER_HOST = "127.0.0.1"
+        DOCKER_PORT = "4243"
+        try:
+            # docker client connection to CentOS 7 system
+            self.conn = docker.Client(base_url="tcp://{}:{}".format(
+                DOCKER_HOST, DOCKER_PORT
+            ))
+        except Exception as e:
+            self.logger.fatal(
+                "Error connecting to Docker daemon. Error {}".format(e),
+                exc_info=True)
+
     def mount_image(self):
-        """
-        Mount image on local file system
-        """
+        """Mount image on local file system."""
         # get the SHA ID of the image.
 
         self.mount_object.mountpoint = self.image_rootfs_path
@@ -42,29 +49,29 @@ class PipelineScanner(object):
         self.mount_object.options = ["rw"]
 
         # configure options before mounting the image rootfs
-        logger.info("Setting up system to mount image's rootfs")
+        self.logger.info("Setting up system to mount image's rootfs")
 
         # create a directory /<image_id> where we'll mount image's rootfs
         try:
             os.makedirs(self.image_rootfs_path)
         except OSError as error:
-            logger.warning(msg=str(error), exc_info=True)
-            logger.info(
-                "Unmounting and removing directory %s "
-                % self.image_rootfs_path)
+            self.logger.warning(msg=str(error), exc_info=True)
+            self.logger.info(
+                "Unmounting and removing directory {}".format(
+                    self.image_rootfs_path))
             try:
                 self.mount_object.unmount()
             except Exception as e:
-                logger.warning(
-                    "Failed to unmount path= %s - Error: %s" % (
+                self.logger.warning(
+                    "Failed to unmount path= {} - Error: {}".format(
                         self.image_rootfs_path, str(e)),
                     exc_info=True)
             else:
                 try:
                     shutil.rmtree(self.image_rootfs_path)
                 except Exception as e:
-                    logger.warning(
-                        "Failed to remove= %s - Error: %s" % (
+                    self.logger.warning(
+                        "Failed to remove= {} - Error: {}".format(
                             self.image_rootfs_path, str(e)),
                         exc_info=True
                     )
@@ -72,48 +79,47 @@ class PipelineScanner(object):
             try:
                 os.makedirs(self.image_rootfs_path)
             except OSError as error:
-                logger.fatal(str(error), exc_info=True)
+                self.logger.critical(str(error), exc_info=True)
                 # fail! and return
                 return False
 
-        logger.info(
-            "Mounting rootfs %s on %s" % (
+        self.logger.info(
+            "Mounting rootfs {} on {}".format(
                 self.image_id, self.image_rootfs_path))
         self.mount_object.mount()
-        logger.info("Successfully mounted image's rootfs")
+        self.logger.info("Successfully mounted image's rootfs")
         return True
 
     def unmount_image(self):
-        """
-        Unmount image using the Atomic mount object
-        """
-        logger.info("Unmounting image's rootfs from %s"
-                    % self.mount_object.mountpoint)
+        """Unmount image using the Atomic mount object."""
+        self.logger.info("Unmounting image's rootfs from {}".format(
+            self.mount_object.mountpoint))
         # TODO: Error handling and logging
         self.mount_object.unmount()
 
     def remove_image(self):
         """
+        Clear up the scanned image.
+
         Removes the mounted image rootfs path as well as
         removes the image using docker
         """
         try:
             shutil.rmtree(self.image_rootfs_path)
         except OSError as error:
-            logger.warning(
-                "Error removing image rootfs path. %s" % str(error),
+            self.logger.warning(
+                "Error removing image rootfs path. Error {}".format(
+                    str(error)),
                 exc_info=True
             )
-        logger.info(
-            "Removing the image %s" % self.image_under_test)
-        conn.remove_image(image=self.image_under_test, force=True)
+        self.logger.info(
+            "Removing the image {}".format(self.image_under_test))
+        self.conn.remove_image(image=self.image_under_test, force=True)
 
     def scan(self, image_under_test):
-        """
-        Run the scanner
-        """
+        """Run the pipleline scanner."""
         self.image_under_test = image_under_test
-        self.image_id = self.atomic_object.get_input_id(image_under_test)
+        self.image_id = Atomic().get_input_id(image_under_test)
         self.image_rootfs_path = os.path.join("/", self.image_id)
 
         json_data = {}
@@ -124,12 +130,12 @@ class PipelineScanner(object):
         cmd = [
             'atomic',
             'scan',
-            "--scanner=%s" % self.scanner_name,
-            "--rootfs=%s" % self.image_rootfs_path,
-            "%s" % self.image_id
+            "--scanner={}".format(self.scanner_name),
+            "--rootfs={}".format(self.image_rootfs_path),
+            "{}".format(self.image_id)
         ]
 
-        logger.info("Executing atomic scan:  %s" % " ".join(cmd))
+        self.logger.info("Executing atomic scan:  {}".format(" ".join(cmd)))
         process = subprocess.Popen(
             cmd,
             stderr=subprocess.PIPE,
@@ -143,31 +149,34 @@ class PipelineScanner(object):
             # https://github.com/projectatomic/atomic/issues/577
             output_json_file = os.path.join(
                 out.strip().split()[-1].split('.')[0],
-                "_%s" % self.image_rootfs_path.split('/')[1],
+                "_{}".format(self.image_rootfs_path.split('/')[1]),
                 SCANNERS_OUTPUT[self.full_scanner_name][0]
             )
-            logger.info("Result file: %s" % output_json_file)
+            self.logger.info("Result file: {}".format(output_json_file))
 
             if os.path.exists(output_json_file):
                 json_data = json.loads(open(output_json_file).read())
             else:
-                logger.fatal(
-                    "No scan results found at %s" % output_json_file)
+                self.logger.critical(
+                    "No scan results found at {}".format(output_json_file))
                 return False, json_data
         else:
-            logger.warning(
-                "Failed to get the results from atomic CLI. Error:%s" % err
+            self.logger.warning(
+                "Failed to get the results from atomic CLI. Error:{}".format(
+                    err)
             )
             return False, json_data
 
         self.unmount_image()
         shutil.rmtree(self.image_rootfs_path, ignore_errors=True)
-        logger.info(
-            "Finished executing scanner: %s" % self.scanner_name)
+        self.logger.info(
+            "Finished executing scanner: {}".format(self.scanner_name))
         return True, self.process_output(json_data)
 
     def process_output(self, json_data):
         """
+        Process output based on its content.
+
         Process the output from the scanner, parse the json and
         add meaningful information based on validations
         """

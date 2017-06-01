@@ -1,38 +1,30 @@
 #!/usr/bin/python
+"""Scan Base Worker."""
 
-import constants
-import docker
 import json
 import logging
 import os
-import shutil
-import subprocess
-import config
-import hashlib
 
-from Atomic import Atomic, mount
-from scanner import Scanner
-
-from container_pipeline.utils import Build, get_job_name
-from container_pipeline.lib.log import load_logger
+import container_pipeline.lib.log as log
 from container_pipeline.workers.base import BaseWorker
-
 from container_pipeline.workers.scanners.runner import ScannerRunner
 
+
 class ScanWorker(BaseWorker):
-    """Scan worker"""
+    """Scan Base worker."""
 
     def handle_job(self, job):
         """
+        Handle jobs in scan tube.
+
         This scans the images for the job requests in start_scan tube.
-        this cals the ScannerRunner for performing the scan work
+        this calls the ScannerRunner for performing the scan work
         """
-
         debug_logs_file = os.path.join(
-            job_info["logs_dir"], "service_debug.log")
-        dfh = config.DynamicFileHandler(logger, debug_logs_file)
+            job["logs_dir"], "service_debug.log")
+        dfh = log.DynamicFileHandler(logger, debug_logs_file)
 
-        self.logger.info('Got job: %s' % job)
+        self.logger.info('Got job: {}'.format(job))
         scan_runner_obj = ScannerRunner(job)
         status, scanners_data = scan_runner_obj.scan()
         if not status:
@@ -65,25 +57,9 @@ class ScanWorker(BaseWorker):
         if 'dfh' in locals():
             dfh.remove()
 
+
 if __name__ == '__main__':
-    DOCKER_HOST = "127.0.0.1"
-    DOCKER_PORT = "4243"
 
-    load_logger()
+    log.load_logger()
     logger = logging.getLogger("scan-worker")
-
-    SCANNERS_OUTPUT = {
-        "registry.centos.org/pipeline-images/pipeline-scanner": [
-            "image_scan_results.json"],
-        "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-            "RPMVerify.json"]}
-
-    try:
-        # docker client connection to CentOS 7 system
-        conn = docker.Client(base_url="tcp://%s:%s" % (
-            DOCKER_HOST, DOCKER_PORT
-        ))
-        worker = ScanWorker(logger, sub='start_scan', pub='failed_scan')
-        worker.run()
-    except Exception as e:
-        logger.fatal("Error connecting to Docker daemon.", exc_info=True)
+    ScanWorker(logger, sub='start_scan', pub='failed_scan').run()

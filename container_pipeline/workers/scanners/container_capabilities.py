@@ -1,24 +1,20 @@
 #!/usr/bin/python
+"""
+This class is for checking container capabilities.
 
-import constants
-import docker
-import json
-import logging
+It reuses the scanner class for the methods.
+"""
+
 import os
-import shutil
-import subprocess
-import config
-import hashlib
 
-from Atomic import Atomic, mount
-from scanner import Scanner
+from container_pipeline.workers.scanners.base import Scanner
 
-from container_pipeline.utils import Build, get_job_name
-from container_pipeline.lib.log import load_logger
-from container_pipeline.workers.base import BaseWorker
 
 class ContainerCapabilities(Scanner):
+    """Container Capabilities scan."""
+
     def __init__(self):
+        """Scanner name and types."""
         self.scanner_name = "container-capabilities-scanner"
         self.full_scanner_name = \
             "registry.centos.org/pipeline-images/" \
@@ -26,6 +22,7 @@ class ContainerCapabilities(Scanner):
         self.scan_types = ["check-capabilities"]
 
     def scan(self, image_under_test):
+        """Run the scanner on image under test."""
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
         logs = []
@@ -49,7 +46,7 @@ class ContainerCapabilities(Scanner):
 
         scan_results = super(ContainerCapabilities, self).scan(scan_cmd)
 
-        if scan_results[0] != True:
+        if not scan_results[0]:
             return False, None
 
         logs.append(scan_results[1])
@@ -58,6 +55,8 @@ class ContainerCapabilities(Scanner):
 
     def process_output(self, logs):
         """
+        Process the output logs to send to other workers.
+
         Processing data for this scanner is unlike other scanners because, for
         this scanner we need to send logs of three different scan types of same
         atomic scanner unlike other atomic scanners which have only one, and
