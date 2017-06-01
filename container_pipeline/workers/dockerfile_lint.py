@@ -15,9 +15,6 @@ class DockerfileLintWorker(BaseWorker):
     Dockerfile lint worker
     """
 
-    def __init__(self, logger=None, sub=None, pub=None):
-        super(DockerfileLintWorker, self).__init__(logger, sub, pub)
-
     def handle_job(self, job):
         """
         This menthod handles the job received for dockerfile lint worker.
