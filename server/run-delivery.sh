@@ -13,7 +13,11 @@ if [ "${TARGET_REGISTRY}" == "" ];then
 fi
 
 FULL_FROM=${TARGET_REGISTRY}/${APPID}/${FROM}
-FULL_TO=${TARGET_REGISTRY}/${APPID}/${TO}
+if [ ${APPID} == "library" ]; then
+    FULL_TO=${TARGET_REGISTRY}/${TO}
+else
+    FULL_TO=${TARGET_REGISTRY}/${APPID}/${TO}
+fi
 
 _ "Pulling RC image (${FROM})"
 docker pull ${FULL_FROM}
@@ -26,9 +30,14 @@ docker tag ${FULL_FROM} ${FULL_TO}
 _ "Pushing final image (${FULL_TO})"
 docker push ${FULL_TO}
 
-OUTPUT_IMAGE=registry.centos.org/${APPID}/${TO}
+if [ ${APPID} == "library" ]; then
+    OUTPUT_IMAGE=registry.centos.org/${TO}
+else
+    OUTPUT_IMAGE=registry.centos.org/${APPID}/${TO}
+fi
 
 NS="${APPID}-${JOBID}-${DESIRED_TAG}"
+
 
 _ "Send success mail for user notify tube"
 python /tube_request/send_notify_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} ${NOTIFY_EMAIL} ${TEST_TAG} ${NS} ${JOBID} ${LOGS_DIR}
