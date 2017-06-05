@@ -9,11 +9,15 @@
     - git
     - beanstalkd
 
-- name: Install latest docker and docker py packages
+- name: Install latest docker
   yum: name={{ item }} state=latest
   with_items:
       - docker
-      - python-docker-py
+
+- name: Install 1.9.0 version of python-docker-py
+  yum:
+    name: python-docker-py-1.9.0-1.el7
+    state: present
 
 - name: Start Docker service
   service: name=docker state=started enabled=yes
