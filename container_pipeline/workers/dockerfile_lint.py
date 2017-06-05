@@ -12,7 +12,8 @@ from container_pipeline.lib.command import run_cmd
 
 class DockerfileLintWorker(BaseWorker):
     """
-    Dockerfile lint worker
+    Dockerfile lint worker lints the Dockerfile using the projectatomic's
+    dockerfile_lint tool. https://github.com/projectatomic/dockerfile_lint
     """
 
     def handle_job(self, job):
@@ -64,21 +65,20 @@ class DockerfileLintWorker(BaseWorker):
         else:
             logger.info("Dockerfile Lint check done. Exporting logs.")
             # logs file for linter
-            logs_file_path = os.path.join(
+            linter_results_path = os.path.join(
                 job.get("logs_dir"),
                 settings.LINTER_RESULT_FILE
-
             )
 
             # logs URL for linter results
-            logs_URL = logs_file_path.replace(
+            logs_URL = linter_results_path.replace(
                 settings.LOGS_DIR_BASE,   # /srv/pipeline-logs/
                 settings.LOGS_URL_BASE   # https://registry.centos.org
             )
 
             out += "\nHosted linter results : %s\n" % logs_URL
             # export linter results
-            self.export_logs(out, logs_file_path)
+            self.export_logs(out, linter_results_path)
 
             response = {
                 "logs": out,
@@ -88,7 +88,7 @@ class DockerfileLintWorker(BaseWorker):
                 "notify_email": job.get("notify_email"),
                 "job_name": job.get("job_name"),
                 "msg": None,
-                "linter_results_path": logs_file_path,
+                "linter_results_path": linter_results_path,
                 "logs_URL": logs_URL,
             }
 
@@ -108,8 +108,8 @@ class DockerfileLintWorker(BaseWorker):
         Export status of linter execution for build in process
         """
         try:
-            fin = open(status_file_path, "w")
-            json.dump(status, fin)
+            with open(status_file_path, "w") as fin:
+                json.dump(status, fin)
         except IOError as e:
             logger.critical("Failed to write linter status on NFS share.")
             logger.critical(str(e))
