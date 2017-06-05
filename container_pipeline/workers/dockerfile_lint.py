@@ -20,11 +20,11 @@ class DockerfileLintWorker(BaseWorker):
         """
         This menthod handles the job received for dockerfile lint worker.
         """
-        logger.info("Received job for Dockerfile lint.")
-        logger.debug("Job data: %s" % job)
-        logger.info("Writing Dockerfile to /tmp/scan/Dockerfile")
+        self.logger.info("Received job for Dockerfile lint.")
+        self.logger.debug("Job data: %s" % job)
+        self.logger.info("Writing Dockerfile to /tmp/scan/Dockerfile")
         self.write_dockerfile(job.get("Dockerfile"))
-        logger.info("Running Dockerfile Lint check")
+        self.logger.info("Running Dockerfile Lint check")
         self.lint(job)
 
     def write_dockerfile(self, dockerfile):
@@ -32,7 +32,7 @@ class DockerfileLintWorker(BaseWorker):
         Write dockerfile at temporary location to run lint upon
         """
         if os.path.isdir("/tmp/scan"):
-            logger.info("/tmp/scan directory already exists")
+            self.logger.info("/tmp/scan directory already exists")
         elif os.path.isfile("/tmp/scan"):
             os.remove("/tmp/scan")
             os.makedirs("/tmp/scan")
@@ -52,7 +52,7 @@ class DockerfileLintWorker(BaseWorker):
         try:
             out = run_cmd(command)
         except Exception as e:
-            logger.error(
+            self.logger.error(
                 "Dockerfile Lint check failed", extra={'locals': locals()})
             response = {
                 "linter_results": False,
@@ -63,7 +63,7 @@ class DockerfileLintWorker(BaseWorker):
                 "msg": str(e),
             }
         else:
-            logger.info("Dockerfile Lint check done. Exporting logs.")
+            self.logger.info("Dockerfile Lint check done. Exporting logs.")
             # logs file for linter
             linter_results_path = os.path.join(
                 job.get("logs_dir"),
@@ -98,7 +98,8 @@ class DockerfileLintWorker(BaseWorker):
             settings.LINTER_STATUS_FILE
         )
         # now export the status about linter execution in logs dir of the job
-        # this response will be read after job builds and sending email to user
+        # this response will be read after job builds and while sending
+        # email to user. Details from this response is used to generate email.
 
         # TODO: Write export JSON method in base worker
         self.export_linter_status(response, status_file_path)
@@ -111,10 +112,11 @@ class DockerfileLintWorker(BaseWorker):
             with open(status_file_path, "w") as fin:
                 json.dump(status, fin)
         except IOError as e:
-            logger.critical("Failed to write linter status on NFS share.")
-            logger.critical(str(e))
+            self.logger.critical("Failed to write linter status on NFS share.")
+            self.logger.critical(str(e))
         else:
-            logger.info("Wrote linter status to file: %s" % status_file_path)
+            self.logger.info(
+                    "Wrote linter status to file: %s" % status_file_path)
 
 
 if __name__ == '__main__':
