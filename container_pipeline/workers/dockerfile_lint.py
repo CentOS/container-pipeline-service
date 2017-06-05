@@ -3,11 +3,11 @@
 import json
 import logging
 import os
-import subprocess
 
 from container_pipeline.lib.log import load_logger
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.lib import settings
+from container_pipeline.lib.command import run_cmd
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -45,17 +45,23 @@ class DockerfileLintWorker(BaseWorker):
         """
         Lint the Dockerfile received
         """
-        out, err = subprocess.Popen(
-            ["docker",
-             "run",
-             "--rm",
-             "-v",
-             "/tmp/scan:/root/scan:Z",
-             "registry.centos.org/pipeline-images/dockerfile-lint"],
-            stdout=subprocess.PIPE
-        ).communicate()
+        command = ["docker", "run", "--rm", "-v", "/tmp/scan:/root/scan:Z",
+                   "registry.centos.org/pipeline-images/dockerfile-lint"]
 
-        if err is None:
+        try:
+            out = run_cmd(command)
+        except Exception as e:
+            logger.error(
+                "Dockerfile Lint check failed", extra={'locals': locals()})
+            response = {
+                "linter_results": False,
+                "action": "notify_user",
+                "namespace": job.get('namespace'),
+                "notify_email": job.get("notify_email"),
+                "job_name": job.get("job_name"),
+                "msg": str(e),
+            }
+        else:
             logger.info("Dockerfile Lint check done. Exporting logs.")
             # logs file for linter
             logs_file_path = os.path.join(
@@ -84,18 +90,6 @@ class DockerfileLintWorker(BaseWorker):
                 "msg": None,
                 "linter_results_path": logs_file_path,
                 "logs_URL": logs_URL,
-            }
-
-        else:
-            logger.error(
-                "Dockerfile Lint check failed", extra={'locals': locals()})
-            response = {
-                "linter_results": False,
-                "action": "notify_user",
-                "namespace": job.get('namespace'),
-                "notify_email": job.get("notify_email"),
-                "job_name": job.get("job_name"),
-                "msg": err,
             }
 
         # linter execution status file path
