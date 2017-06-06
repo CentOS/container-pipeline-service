@@ -26,63 +26,26 @@
     rsync_opts:
         - "{{ rsync_ssh_opts }}"
   with_items:
-    - {src: /tmp/oc, dest: /opt/cccp-service/beanstalk_worker/oc}
-    - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/beanstalk_worker/ca.crt}
-    - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/beanstalk_worker/node.kubeconfig}
-
-- name: Get OpenShift build scripts
-  copy:
-    src: ../../../../../beanstalk_worker
-    dest: /opt/cccp-service
-    mode: u+x
-  when: not vagrant
-
-- name: Replace Beanstalk server with its FQDN for dispatcher
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_dispatcher.py
-      regexp="BEANSTALK_SERVER"
-      replace='{{ groups['openshift'][0] }}'
-
-- name: Replace Beanstalk server with its FQDN for Build worker
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_start_build.py
-      regexp="BEANSTALK_SERVER"
-      replace='{{ groups['openshift'][0] }}'
+    - {src: /tmp/oc, dest: /opt/cccp-service/oc}
+    - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/ca.crt}
+    - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/node.kubeconfig}
 
 - name: Get OpenShift server ip
   shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
-  register: openshift_server_ip
+  register: openshift_server_ip_out
 
-- debug: var=openshift_server_ip
+- debug: var=openshift_server_ip.stdout
 
-- name: Replace OpenShift server with its IP for Build worker
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_start_build.py
-      regexp="OPENSHIFT_SERVER_IP"
-      replace='{{ openshift_server_ip.stdout }}'
+- set_fact:
+    openshift_server_ip: "{{ openshift_server_ip_out.stdout }}"
 
-- name: Replace Beanstalk server with its FQDN for delivery worker
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
-      regexp="BEANSTALK_SERVER"
-      replace='{{ groups['openshift'][0] }}'
+- name: Update settings
+  template: src=settings.py.j2 dest=/opt/cccp-service/container_pipeline/lib/settings.py
 
-- name: Replace OpenShift server with its IP for Delivery worker
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
-      regexp="OPENSHIFT_SERVER_IP"
-      replace='{{ openshift_server_ip.stdout }}'
-
-- name: Set log level
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/config.py
-      regexp="LOG_LEVEL =.*"
-      replace="LOG_LEVEL = '{{ log_level }}'"
-
-- name: Build pipeline-workers image
-  shell: docker build -t pipeline-workers -f ./Dockerfile.workers .
+- name: Build container-pipeline image
+  shell: docker build -t container-pipeline -f ./Dockerfile .
   args:
-      chdir: /opt/cccp-service/beanstalk_worker
+      chdir: /opt/cccp-service
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
@@ -91,8 +54,8 @@
   docker:
       name: dispatcher-worker
       state: restarted
-      image: pipeline-workers
-      command: /run_worker/worker_dispatcher.py
+      image: container-pipeline
+      command: /src/container_pipeline/workers/dispatcher.py
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
@@ -101,8 +64,8 @@
   docker:
       name: build-worker
       state: restarted
-      image: pipeline-workers
-      command: /run_worker/worker_start_build.py
+      image: container-pipeline
+      command: /src/container_pipeline/workers/build.py
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
@@ -111,8 +74,8 @@
   docker:
       name: delivery-worker
       state: restarted
-      command: /run_worker/worker_start_delivery.py
-      image: pipeline-workers
+      command: /src/container_pipeline/workers/delivery.py
+      image: container-pipeline
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
@@ -125,14 +88,8 @@
 
 - name: Copy Dockerfile linter worker
   copy:
-      src: ../../beanstalk_worker/cccp-dockerfile-lint-worker.service
+      src: ../../scripts/cccp-dockerfile-lint-worker.service
       dest: /etc/systemd/system/cccp-dockerfile-lint-worker.service
-
-- name: Replace Beanstalk server with its FQDN for Dockerfile lint worker
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_dockerfile_lint.py
-      regexp="BEANSTALK_SERVER"
-      replace='{{ groups['openshift'][0] }}'
 
 - name: Enable and start Dockerfile linter worker
   service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted

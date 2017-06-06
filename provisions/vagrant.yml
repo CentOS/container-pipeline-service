@@ -1,5 +1,5 @@
 ---
-- name: Disable requiretty in sudoers
+- name: Perform common tasks for all hosts
   hosts: all
   tasks:
     - name: Disable requiretty in sudoers
@@ -12,9 +12,18 @@
       selinux:
           policy: targeted
           state: permissive
+    - name: Copy source code to all hosts
+      synchronize:
+          src: ../../
+          dest: /opt/cccp-service
+          mode: push
+          rsync_opts:
+            - "{{ rsync_ssh_opts }}"
+      sudo: yes
   tags:
     - jenkins
     - openshift
+    - always
 
 - name: Configure NFS server on scanner node for CI
   hosts: scanner_worker

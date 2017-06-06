@@ -100,36 +100,12 @@
       command: sh /install.sh
       state: started
 
-- name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
-  file: dest=/opt/cccp-service/beanstalk_worker state=directory
-  tags: scanner
-
-- name: Get scanner worker scripts
-  copy:
-    src: "{{ item }}"
-    dest: /opt/cccp-service/beanstalk_worker
-    mode: u+x
-  with_items:
-    - ../beanstalk_worker/beanstalkc.py
-    - ../beanstalk_worker/config.py
-    - ../beanstalk_worker/worker_start_scan.py
-    - ../beanstalk_worker/constants.py
-    - ../beanstalk_worker/scanner.py
-  when: not vagrant
-  tags: scanner
-
-- name: Set log level
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/config.py
-      regexp="LOG_LEVEL =.*"
-      replace="LOG_LEVEL = '{{ log_level }}'"
-
 - name: Get service files for workers
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items:
-      - {src: "../beanstalk_worker/cccp-scan-worker.service", dest: /etc/systemd/system/cccp-scan-worker.service}
+      - {src: "../scripts/cccp-scan-worker.service", dest: /etc/systemd/system/cccp-scan-worker.service}
   tags: scanner
 
 - name: Ensure log path exists
@@ -138,13 +114,6 @@
 
 - name: Enable Scanner worker
   service: name="cccp-scan-worker" state=restarted enabled=yes
-  tags: scanner
-
-- name: Replace Beanstalk server with its FQDN for test worker
-  replace: >
-      dest=/opt/cccp-service/beanstalk_worker/worker_start_scan.py
-      regexp="BEANSTALK_SERVER"
-      replace='{{ groups['openshift'][0] }}'
   tags: scanner
 
 - name: Enable Scanner worker
