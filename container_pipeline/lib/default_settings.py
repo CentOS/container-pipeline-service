@@ -7,16 +7,11 @@ and provides a layer of abstraction around config loading.
 import os
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
-
 LOG_PATH = '/srv/pipeline-logs/cccp.log'
-
 SERVICE_LOGFILE = "service_debug.log"
 
 LOGS_URL_BASE = "https://registry.centos.org/pipeline-logs/"
 LOGS_DIR = LOGS_DIR_BASE = "/srv/pipeline-logs/"
-
-LINTER_RESULT_FILE = "linter_results.txt"
-LINTER_STATUS_FILE = "linter_status.json"
 
 LOGGING_CONF = dict(
     version=1,
@@ -110,7 +105,6 @@ SCANNERS_OUTPUT = {
             "container_capabilities_scanner_results.json"
         ]
 }
-
 SCANNERS_RESULTFILE = {
         "registry.centos.org/pipeline-images/pipeline-scanner": [
             "pipeline_scanner_results.json"],
@@ -123,9 +117,7 @@ SCANNERS_RESULTFILE = {
         ]
 
 }
-
-LINTER_RESULTFILE = "linter_results.txt"
-
-LINTER_STATUS_FILE = "linter_status.json"
-
 SCANNERS_STATUS_FILE = "scanners_status.json"
+
+LINTER_RESULT_FILE = "linter_results.txt"
+LINTER_STATUS_FILE = "linter_status.json"
