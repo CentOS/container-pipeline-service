@@ -2,5 +2,5 @@
 Description=cccp-scan-worker.service
 
 [Service]
-ExecStart=/opt/cccp-service/beanstalk_worker/worker_start_scan.py
+ExecStart=/opt/cccp-service/container_pipeline/workers/scanners/scan.py
 Restart=on-failure
