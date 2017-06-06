@@ -12,6 +12,19 @@ from subprocess import Popen, PIPE
 # out since this is a known issue and it is in progress to get fixed.
 FILTER_PATHS = [
   "/",   # centos base image has issue with this filepath
+  "/usr/lib/udev/hwdb.d/20-OUI.hwdb",
+  "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",
+  "/usr/lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb",
+  "/usr/lib/udev/hwdb.d/20-net-ifname.hwdb",
+  "/usr/lib/udev/hwdb.d/20-pci-classes.hwdb",
+  "/usr/lib/udev/hwdb.d/20-pci-vendor-model.hwdb",
+  "/usr/lib/udev/hwdb.d/20-sdio-classes.hwdb",
+  "/usr/lib/udev/hwdb.d/20-sdio-vendor-model.hwdb",
+  "/usr/lib/udev/hwdb.d/20-usb-classes.hwdb",
+  "/usr/lib/udev/hwdb.d/20-usb-vendor-model.hwdb",
+  "/usr/lib/udev/hwdb.d/60-keyboard.hwdb",
+  "/usr/lib/udev/hwdb.d/70-mouse.hwdb",
+  "/usr/lib/udev/hwdb.d/70-touchpad.hwdb",
 ]
 
 
