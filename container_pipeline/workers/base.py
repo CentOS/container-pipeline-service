@@ -31,7 +31,7 @@ class BaseWorker(object):
 
     def export_logs(self, logs, destination):
         """"Write logs in given destination"""
-        self.logger.debug('Writing build logs to NFS share')
+        self.logger.info('Writing build logs to NFS share')
         # to take care if the logs directory is not created
         if not os.path.exists(os.path.dirname(destination)):
             os.makedirs(os.path.dirname(destination))
@@ -42,7 +42,7 @@ class BaseWorker(object):
         except IOError as e:
             self.logger.critical("Failed writing logs to {}"
                                  .format(destination))
-            self.logger.critical(str(e))
+            self.logger.error(str(e))
 
     def run(self):
         """Run worker"""
