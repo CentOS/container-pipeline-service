@@ -2,5 +2,6 @@
 Description=cccp-dockerfile-lint-worker.service
 
 [Service]
+Environment=PYTHONPATH=/opt/cccp-service
 ExecStart=/opt/cccp-service/container_pipeline/workers/linter.py
 Restart=on-failure

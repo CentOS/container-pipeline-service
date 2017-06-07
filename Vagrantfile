@@ -74,6 +74,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           "vagrant",
           "--extra-vars",
           '{"rsync_ssh_opts": "' + rsync_ssh_opts + '"}',
+          "--tags=jenkins/slaves,scanner"
       ]
     end
   end
