@@ -16,6 +16,6 @@ def run_cmd(cmd, shell=False):
     :raises: subprocess.CalledProcessError
     """
     if shell:
-        subprocess.check_output(cmd, shell=True)
+        return subprocess.check_output(cmd, shell=True)
     else:
-        subprocess.check_output(cmd.split(), shell=False)
+        return subprocess.check_output(cmd.split(), shell=False)
