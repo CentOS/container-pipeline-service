@@ -106,10 +106,10 @@ class Openshift(object):
             if current_status == status:
                 return True
             elif not current_status:
-                self.logger.debug('Failed to fetch build status for: {}/{}'
+                self.logger.warning('Failed to fetch build status for: {}/{}'
                                   .format(project, build_id))
                 if empty_retry_count == empty_retries:
-                    self.logger.debug(
+                    self.logger.warning(
                         'Exceeded max retries for checking build status for: '
                         '{}/{}. Assuming failure.'.format(project, build_id))
                     return False
@@ -146,7 +146,7 @@ class Openshift(object):
         Mainly used by the delivery worker.
         """
         try:
-            self.logger.info("Deleting pods for project build: {}/{}"
+            self.logger.debug("Deleting pods for project build: {}/{}"
                              .format(project, build_id))
             run_cmd(
                 'oc delete pods --namespace {project} build/{build_id}'
