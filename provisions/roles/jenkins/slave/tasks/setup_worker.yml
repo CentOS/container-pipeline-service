@@ -30,22 +30,12 @@
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/node.kubeconfig}
 
-- name: Get OpenShift server ip
-  shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
-  register: openshift_server_ip_out
-
-- debug: var=openshift_server_ip.stdout
-
-- set_fact:
-    openshift_server_ip: "{{ openshift_server_ip_out.stdout }}"
-
-- name: Update settings
-  template: src=settings.py.j2 dest=/opt/cccp-service/container_pipeline/lib/settings.py
-
 - name: Build container-pipeline image
   shell: docker build -t container-pipeline -f ./Dockerfile .
   args:
       chdir: /opt/cccp-service
+  tags:
+      - application
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
@@ -59,6 +49,8 @@
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
+  tags:
+      - application
 
 - name: Start build worker
   docker:
@@ -69,6 +61,8 @@
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
+  tags:
+      - application
 
 - name: Start delivery worker
   docker:
@@ -79,17 +73,25 @@
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
+  tags:
+      - application
 
 - name: Pull Linter image
   docker_image:
       name: registry.centos.org/pipeline-images/dockerfile-lint
       state: present
       force: yes
+  tags:
+      - application
 
 - name: Copy Dockerfile linter worker
   copy:
       src: ../../scripts/cccp-dockerfile-lint-worker.service
       dest: /etc/systemd/system/cccp-dockerfile-lint-worker.service
+  tags:
+      - application
 
 - name: Enable and start Dockerfile linter worker
   service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
+  tags:
+      - application

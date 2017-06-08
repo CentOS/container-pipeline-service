@@ -15,51 +15,47 @@
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
 
-- name: Get openshift build scripts
-  copy:
-    src: "{{ item }}"
-    dest: /opt/cccp-service/client
-  with_items:
-    - ../client/build_project.sh
-    - ../client/send_build_request.py
-    - ../client/beanstalkc.py
-    - ../client/lint-dockerfile.sh
-    - ../client/trigger_dockerfile_lint.py
-  when: not vagrant
-
 - name: Replace Beanstalk server with its FQDN for build request
   replace: >
       dest=/opt/cccp-service/client/send_build_request.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
+  tags: application
 
 - name: Replace Beanstalk server with its FQDN for dockerfile lint trigger
   replace: >
       dest=/opt/cccp-service/client/trigger_dockerfile_lint.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
+  tags: application
 
 - name: Replace OpenShift server with its FQDN for build project sh
   replace: >
       dest=/opt/cccp-service/client/build_project.sh
       regexp="OPENSHIFT_SERVER_HOST"
       replace='{{ groups['openshift'][0] }}'
+  tags: application
 
 - name: Copy OpenShift template file
   template:
     src: template.json.j2
     dest: /opt/cccp-service/client/template.json
+  tags: application
 
 - name: Ensure jenkins is owner of /opt/cccp-service/client dir in slave
   file: path=/opt/cccp-service/client owner=jenkins group=jenkins recurse=yes
+  tags: application
 
 - name: Ensure  build_project.sh is executable
   file: path=/opt/cccp-service/client/build_project.sh mode='u+x'
+  tags: application
 
 - name: Create script for image prune
   template:
     src: imageprune.sh.j2
     dest: /usr/bin/delete_images.sh
+  tags: application
 
 - name: Add cron job to cleanup old images
   cron: name="registry cleanup" special_time=daily job="/usr/bin/delete_images.sh"
+  tags: application

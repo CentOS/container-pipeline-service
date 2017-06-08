@@ -15,18 +15,9 @@
     - name: Install rsync in all nodes
       yum: name=rsync state=installed
       sudo: yes
-    - name: Copy source code to all hosts
-      synchronize:
-          src: ../../
-          dest: /opt/cccp-service
-          mode: push
-          rsync_opts:
-            - "{{ rsync_ssh_opts }}"
-      sudo: yes
   tags:
     - jenkins
     - openshift
-    - always
 
 - name: Configure NFS server on scanner node for CI
   hosts: scanner_worker
@@ -55,6 +46,43 @@
     - openshift
   tags:
     - openshift
+
+- name: Generate source code config file
+  hosts: jenkins_slaves
+  tasks:
+    - name: Get OpenShift server ip
+      shell: echo `ping {{ groups['openshift'][0] }} -c 1 | awk '{print $3}'|head -n 1|sed 's/(//'|sed 's/)//'`
+      register: result
+
+    - debug: var=result.stdout
+
+    - set_fact:
+        openshift_server_ip: "{{ result.stdout }}"
+
+    - name: Render settings file
+      template: src=settings.py.j2 dest=/tmp/cccp_settings.py
+
+    - name: pull rendered settings file
+      synchronize: src=/tmp/cccp_settings.py dest=/tmp/cccp_settings.py mode=pull rsync_opts="{{ rsync_ssh_opts}}"
+  tags:
+      - application
+
+- name: Push source code to all nodes
+  hosts: all
+  tasks:
+    - name: Copy source code to all hosts
+      synchronize:
+          src: ../../
+          dest: /opt/cccp-service
+          mode: push
+          rsync_opts:
+            - "{{ rsync_ssh_opts }}"
+      sudo: yes
+    - name: Push config
+      copy: src=/tmp/cccp_settings.py dest=/opt/cccp-service/container_pipeline/lib/settings.py
+      sudo: yes
+  tags:
+      - application
 
 - name: Setup Scanner Worker
   hosts: scanner_worker

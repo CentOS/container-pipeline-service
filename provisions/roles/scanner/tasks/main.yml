@@ -106,7 +106,9 @@
     dest: "{{ item.dest }}"
   with_items:
       - {src: "../scripts/cccp-scan-worker.service", dest: /etc/systemd/system/cccp-scan-worker.service}
-  tags: scanner
+  tags:
+      - scanner
+      - application
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
@@ -116,6 +118,8 @@
   service: name="cccp-scan-worker" state=restarted enabled=yes
   tags: scanner
 
-- name: Enable Scanner worker
+- name: Restart Scanner worker service
   service: name="cccp-scan-worker" state=restarted enabled=yes
-  tags: scanner
+  tags:
+      - scanner
+      - application
