@@ -61,9 +61,21 @@
       regexp="OPENSHIFT_SERVER_IP"
       replace='{{ openshift_server_ip.stdout }}'
 
+- name: Replace OpenShift server with its IP for test worker
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_test.py
+      regexp="OPENSHIFT_SERVER_IP"
+      replace='{{ openshift_server_ip.stdout }}'
+
 - name: Replace Beanstalk server with its FQDN for delivery worker
   replace: >
       dest=/opt/cccp-service/beanstalk_worker/worker_start_delivery.py
+      regexp="BEANSTALK_SERVER"
+      replace='{{ groups['openshift'][0] }}'
+
+- name: Replace Beanstalk server with its FQDN for test worker
+  replace: >
+      dest=/opt/cccp-service/beanstalk_worker/worker_start_test.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
 
@@ -103,6 +115,16 @@
       state: restarted
       image: pipeline-workers
       command: /run_worker/worker_start_build.py
+      restart_policy: always
+      volumes:
+        /srv/pipeline-logs:/srv/pipeline-logs:rw
+
+- name: Start test worker
+  docker:
+      name: test-worker
+      state: restarted
+      image: pipeline-workers
+      command: /run_worker/worker_start_test.py
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
