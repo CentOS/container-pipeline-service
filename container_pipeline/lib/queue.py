@@ -15,7 +15,10 @@ def retry(delay=30):
                 except beanstalkc.SocketError:
                     obj = args[0]
                     if not error_logged:
-                        obj.logger.error('Lost connection to beanstalkd')
+                        obj.logger.error(
+                            'Lost connection to beanstalkd at {}:{}'
+                            .format(obj.host, obj.port)
+                        )
                         error_logged = True
                     time.sleep(delay)
                     if func != obj._initialize:
@@ -61,4 +64,5 @@ class JobQueue:
         self._conn = beanstalkc.Connection(host=self.host, port=self.port)
         self._conn.watch(self.sub)
         self._conn.use(self.pub)
-        self.logger.info('Connection to beanstalkd initialized')
+        self.logger.info('Connection to beanstalkd at {}:{} initialized'
+                         .format(self.host, self.port))
