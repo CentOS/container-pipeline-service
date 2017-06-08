@@ -113,7 +113,7 @@ class DockerfileLintWorker(BaseWorker):
                 json.dump(status, fin)
         except IOError as e:
             self.logger.critical("Failed to write linter status on NFS share.")
-            self.logger.critical(str(e))
+            self.logger.error(str(e))
         else:
             self.logger.info(
                     "Wrote linter status to file: %s" % status_file_path)
