@@ -12,6 +12,9 @@
       selinux:
           policy: targeted
           state: permissive
+    - name: Install rsync in all nodes
+      yum: name=rsync state=installed
+      sudo: yes
     - name: Copy source code to all hosts
       synchronize:
           src: ../../
