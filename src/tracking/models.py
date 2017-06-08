@@ -10,7 +10,7 @@ class Package(models.Model):
     arch = models.CharField(max_length=20, db_index=True,
                             help_text="Architecture")
     version = models.CharField(max_length=100, help_text="Version")
-    release = models.CharField(max_length=20, help_text="Release")
+    release = models.CharField(max_length=100, help_text="Release")
 
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
