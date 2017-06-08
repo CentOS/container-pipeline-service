@@ -23,7 +23,7 @@ class DockerfileLintWorker(BaseWorker):
         self.logger.info("Received job for Dockerfile lint.")
         self.logger.debug("Job data: %s" % job)
         self.logger.info("Writing Dockerfile to /tmp/scan/Dockerfile")
-        self.write_dockerfile(job.get("Dockerfile"))
+        self.write_dockerfile(job.get("dockerfile"))
         self.logger.info("Running Dockerfile Lint check")
         self.lint(job)
 
