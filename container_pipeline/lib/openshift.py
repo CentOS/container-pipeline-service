@@ -73,7 +73,7 @@ class Openshift(object):
                 'Unable to run build project build: {}/{}\nError: {}'
                 .format(project, build, e))
 
-    def get_build_status(self, project, build_id):
+    def get_build_status(self, project, build_id, status_index=3):
         """Get status of an openshift project build"""
         try:
             output = run_cmd(
@@ -85,7 +85,7 @@ class Openshift(object):
             )
             self.logger.debug('Openshift build status for: {}/{}\n{}'
                               .format(project, build_id, output))
-            return output.split()[3]
+            return output.split()[status_index]
         except subprocess.CalledProcessError as e:
             self.logger.error(
                 'Openshift build status fetch error for {}/{}: {}'
@@ -93,14 +93,16 @@ class Openshift(object):
             return ""
 
     def wait_for_build_status(self, project, build_id, status,
-                              empty_retries=10, retry_delay=30):
+                              empty_retries=10, retry_delay=30,
+                              status_index=3):
         """Wait for openshift project build to reach a desired state"""
         self.logger.debug('Wait for openshift project build: {}/{} to '
                           'be: {}'.format(project, build_id, status))
         current_status = None
         empty_retry_count = 0
         while True:
-            current_status = self.get_build_status(project, build_id)
+            current_status = self.get_build_status(project, build_id,
+                                                   status_index=status_index)
             if current_status == status:
                 return True
             elif not current_status:
@@ -145,7 +147,7 @@ class Openshift(object):
             self.logger.info("Deleting pods for project build: {}/{}"
                              .format(project, build_id))
             run_cmd(
-                'oc delete pods --namespace {proejct} build/{build_id}'
+                'oc delete pods --namespace {project} build/{build_id}'
                 ' {suffix}'.format(project=project, build_id=build_id,
                                    suffix=self.oc_cmd_suffix))
             self.logger.info("Deleted pods for project build: {}/{}"
