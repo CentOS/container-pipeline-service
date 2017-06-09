@@ -23,7 +23,7 @@ class ScannerRPMVerify(object):
 
         # Add logger
         load_logger()
-        self.logger = logging.getlogger('scan-worker')
+        self.logger = logging.getLogger('scan-worker')
 
     def run_atomic_scanner(self):
         """Run the atomic scan command."""
