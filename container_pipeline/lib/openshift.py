@@ -115,7 +115,9 @@ class Openshift(object):
                     return False
                 empty_retry_count += 1
                 self.logger.debug('Retrying {}/{} to check build status for : '
-                                  '{}/{}'.format(project, build_id))
+                                  '{}/{}'.format(
+                                      empty_retry_count, empty_retries,
+                                      project, build_id))
             elif current_status.lower() == 'failed':
                 return False
             else:
