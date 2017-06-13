@@ -7,7 +7,7 @@ It reuses the scanner class for the methods.
 
 import os
 
-from container_pipeline.workers.scanners.base import Scanner
+from container_pipeline.scanners.base import Scanner
 
 
 class ContainerCapabilities(Scanner):

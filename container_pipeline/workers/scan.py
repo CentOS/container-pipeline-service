@@ -7,7 +7,7 @@ import os
 
 import container_pipeline.lib.log as log
 from container_pipeline.workers.base import BaseWorker
-from container_pipeline.workers.scanners.runner import ScannerRunner
+from container_pipeline.scanners.runner import ScannerRunner
 
 
 class ScanWorker(BaseWorker):

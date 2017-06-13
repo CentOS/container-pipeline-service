@@ -3,5 +3,5 @@ Description=cccp-scan-worker.service
 
 [Service]
 Environment=PYTHONPATH=/opt/cccp-service
-ExecStart=/opt/cccp-service/container_pipeline/workers/scanners/scan.py
+ExecStart=/opt/cccp-service/container_pipeline/workers/scan.py
 Restart=on-failure

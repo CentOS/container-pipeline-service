@@ -2,7 +2,7 @@
 """This class is for checking updates from different other packagers."""
 import os
 
-from container_pipeline.workers.scanners.base import Scanner
+from container_pipeline.scanners.base import Scanner
 
 
 class MiscPackageUpdates(Scanner):

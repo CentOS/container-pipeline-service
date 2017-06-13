@@ -7,12 +7,12 @@ import os
 import container_pipeline.lib.settings as constants
 import docker
 from container_pipeline.lib.log import load_logger
-from container_pipeline.workers.scanners.container_capabilities import \
+from container_pipeline.scanners.container_capabilities import \
     ContainerCapabilities
-from container_pipeline.workers.scanners.misc_package_updates import \
+from container_pipeline.scanners.misc_package_updates import \
     MiscPackageUpdates
-from container_pipeline.workers.scanners.pipeline import PipelineScanner
-from container_pipeline.workers.scanners.rpm_verify import ScannerRPMVerify
+from container_pipeline.scanners.pipeline import PipelineScanner
+from container_pipeline.scanners.rpm_verify import ScannerRPMVerify
 
 
 class ScannerRunner(object):
