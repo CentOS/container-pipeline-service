@@ -8,7 +8,7 @@ from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.utils import get_job_name, get_project_name, \
-    get_job_hash
+    get_job_hash, Build
 
 
 class DeliveryWorker(BaseWorker):
@@ -64,9 +64,14 @@ class DeliveryWorker(BaseWorker):
 
     def handle_delivery_success(self, job):
         """
-        Sends job details to RPM tracking piece and deletes the job from the
+        - Marks project build as complete
+        - Sends job details to RPM tracking piece and deletes the job from the
         tube
         """
+        # Mark project build as complete
+        Build(job['namespace']).complete()
+        self.logger.info('Marked project build: {} as complete.'.format(
+            job['namespace']))
         self.logger.info('Putting job details to master-tube for tracker\'s'
                          ' consumption')
         job['action'] = 'tracking'
