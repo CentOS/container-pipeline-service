@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import subprocess
+import time
 
 import docker
 from Atomic import Atomic, mount
@@ -90,12 +91,25 @@ class PipelineScanner(object):
         self.logger.info("Successfully mounted image's rootfs")
         return True
 
-    def unmount_image(self):
+    def unmount_image(self, retries=10, delay=10):
         """Unmount image using the Atomic mount object."""
+        retry_count = 0
         self.logger.info("Unmounting image's rootfs from {}".format(
             self.mount_object.mountpoint))
-        # TODO: Error handling and logging
-        self.mount_object.unmount()
+        while retry_count < retries:
+            try:
+                self.mount_object.unmount()
+                self.logger.info('Unmounted image\'s rootfs from {}'.format(
+                    self.mount_object.mountpoint))
+            except Exception as e:
+                if retry_count < retries:
+                    self.logger.info('Retrying to unmount image rootfs.')
+                    retry_count += 1
+                    time.sleep(delay)
+                else:
+                    self.logger.error(
+                        'Error during unmounting image\'s rootfs from {}: {}'
+                        .format(self.mount_object.mountpoint, e))
 
     def remove_image(self):
         """
@@ -167,7 +181,7 @@ class PipelineScanner(object):
             )
             return False, json_data
 
-        self.unmount_image()
+        self.unmount_image(retries=10, delay=10)
         shutil.rmtree(self.image_rootfs_path, ignore_errors=True)
         self.logger.info(
             "Finished executing scanner: {}".format(self.scanner_name))
