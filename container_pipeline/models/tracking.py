@@ -18,6 +18,7 @@ class Package(models.Model):
     class Meta:
         db_table = 'packages'
         unique_together = ('name', 'arch', 'version', 'release')
+        app_label = 'container_pipeline'
 
     def __str__(self):
         return "{}-{}-{}.{}".format(self.name, self.version, self.release,
@@ -33,6 +34,7 @@ class RepoInfo(models.Model):
 
     class Meta:
         db_table = 'repo_info'
+        app_label = 'container_pipeline'
 
     def __str__(self):
         return self.baseurls
@@ -58,6 +60,7 @@ class ContainerImage(models.Model):
 
     class Meta:
         db_table = 'container_images'
+        app_label = 'container_pipeline'
 
     def __str__(self):
         return self.name

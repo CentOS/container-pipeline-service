@@ -1,14 +1,14 @@
 import logging.config
 import os
 
-from container_pipeline.lib.settings import LOGGING_CONF
+from container_pipeline.lib.settings import LOGGING
 
 
 def load_logger():
     """
     This loads logging config
     """
-    logging.config.dictConfig(LOGGING_CONF)
+    logging.config.dictConfig(LOGGING)
 
 
 class DynamicFileHandler:
@@ -23,7 +23,7 @@ class DynamicFileHandler:
         self.h = logging.FileHandler(log_path)
         self.h.setLevel(getattr(logging, level))
         self.h.setFormatter(
-            logging.Formatter(LOGGING_CONF['formatters']['bare']['format']))
+            logging.Formatter(LOGGING['formatters']['bare']['format']))
         self.logger.addHandler(self.h)
 
     def remove(self):

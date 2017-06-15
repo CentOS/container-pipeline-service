@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand  # CommandError
 import logging
 import fedmsg
 
-from tracking.lib import get_navr_from_pkg_name
+from container_pipeline.tracking.lib import get_navr_from_pkg_name
 
 logger = logging.getLogger('tracking')
 

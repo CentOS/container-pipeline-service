@@ -5,9 +5,10 @@ import sys
 from django.utils import timezone
 from django.conf import settings
 
-from tracking.models import ContainerImage, Package, RepoInfo
-from tracking.lib import get_navr_from_pkg_name
-from vendors import beanstalkc
+from container_pipeline.models.tracking import ContainerImage, Package,\
+    RepoInfo
+from container_pipeline.tracking.lib import get_navr_from_pkg_name
+from container_pipeline.vendors import beanstalkc
 
 logger = logging.getLogger('tracking')
 

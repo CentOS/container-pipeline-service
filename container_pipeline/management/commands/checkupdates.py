@@ -3,8 +3,8 @@ from django.conf import settings
 import logging
 import json
 
-from tracking.models import RepoInfo
-from tracking.lib.repo import process_upstream, publish
+from container_pipeline.models.tracking import RepoInfo
+from container_pipeline.tracking.lib.repo import process_upstream, publish
 
 logger = logging.getLogger('tracking')
 

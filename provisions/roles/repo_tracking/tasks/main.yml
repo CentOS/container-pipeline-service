@@ -69,28 +69,8 @@
   sudo: yes
   tags: repo_tracking
 
-- name: Sync repo tracking code
-  synchronize:
-      src: "{{ role_path }}/../../../../container-pipeline-service/{{ item }}"
-      dest: "/opt/cccp-service/"
-      mode: push
-      rsync_opts:
-        - "{{ rsync_ssh_opts }}"
-  with_items:
-    - src
-    - jenkinsbuilder/__init__.py
-    - jenkinsbuilder/cccp_index_reader.py
-    - jenkinsbuilder/project-defaults.yml
-  sudo: yes
-  tags: repo_tracking
-
 - name: Ensure jenkinsbuilder is a package
   file: path=/opt/cccp-service/jenkinsbuilder/__init__.py state=touch
-  sudo: yes
-  tags: repo_tracking
-
-- name: Customize settings
-  template: src=settings.py.j2 dest=/opt/cccp-service/src/container_pipeline/settings.py owner=jenkins
   sudo: yes
   tags: repo_tracking
 
@@ -137,7 +117,10 @@
   tags: repo_tracking
 
 - name: Create DB tables
-  shell: /opt/cccp-service/src/manage.py syncdb --noinput
+  shell: /opt/cccp-service/manage.py syncdb --noinput
+  ignore_errors: yes
+  retries: 5
+  delay: 10
   sudo: yes
   tags: repo_tracking
 
@@ -179,7 +162,7 @@
 
 - name: Ensure jenkins user is owner of src dir
   file:
-      path: /opt/cccp-service/src/
+      path: /opt/cccp-service/
       owner: jenkins
       recurse: yes
   sudo: yes
@@ -190,13 +173,19 @@
   tags: repo_tracking
 
 - name: Copy servie files
-  copy: src="{{ role_path }}/../../../src/scripts/{{ item }}" dest=/etc/systemd/system/ mode=u+x
+  copy: src="{{ role_path }}/../../../scripts/{{ item }}" dest=/etc/systemd/system/ mode=u+x
   with_items:
       - cccp_pkgupdatelistener.service
       - cccp_triggerbuilds.service
       - cccp_imagescanner.service
   sudo: yes
   tags: repo_tracking
+  register: service_files_updated
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+  sudo: yes
+  when: service_files_updated
 
 - name: Enable and start services
   service: name={{ item }} state=restarted enabled=yes

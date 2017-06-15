@@ -21,18 +21,18 @@ class TestRepoMonitoring(BaseTestCase):
 
     def _teardown(self):
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py flush --noinput')
 
     def run_dj_script(self, script):
         _script = (
             'import os, django; '
             'os.environ.setdefault(\\"DJANGO_SETTINGS_MODULE\\", '
-            '\\"container_pipeline.settings\\"); '
+            '\\"container_pipeline.lib.settings\\"); '
             '{}'
         ).format(script)
         return self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             'python -c "{}"'.format(_script))
 
     def test_00_if_fetch_scan_image_job_is_successful(self):
@@ -46,11 +46,13 @@ class TestRepoMonitoring(BaseTestCase):
             'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
             'disable-job fetch-scan-image')
         out = self.run_dj_script(
-                    'from tracking.models import ContainerImage; '
+                    'from container_pipeline.models.tracking import '
+                    'ContainerImage; '
                     'print ContainerImage.objects.all().count()')
         print 'Images fetched', out.strip()
         self.assertTrue(int(out.strip()))
-        out = self.run_dj_script('from tracking.models import Package; '
+        out = self.run_dj_script('from container_pipeline.models.tracking '
+                                 'import Package; '
                                  'print Package.objects.all().count()')
         print 'Packages found', out.strip()
         self.assertTrue(int(out.strip()) > 0)
@@ -60,7 +62,7 @@ class TestRepoMonitoring(BaseTestCase):
         # In the real world, it will be created automatically by
         # fetch-scan-image job which gets run after cccp-index job
         self.run_dj_script(
-            'from tracking.models import ContainerImage; '
+            'from container_pipeline.models.tracking import ContainerImage; '
             'ContainerImage.objects.create('
             'name=\\"bamachrn/python:release\\")')
 
@@ -77,7 +79,8 @@ class TestRepoMonitoring(BaseTestCase):
             retries += 1
             # Assert that image got scanned
             scanned = self.run_dj_script(
-                    'from tracking.models import ContainerImage; '
+                    'from container_pipeline.models.tracking import '
+                    'ContainerImage; '
                     'print ContainerImage.objects.get('
                     'name=\\"bamachrn/python:release\\").scanned').strip()
             if scanned == 'True':
@@ -92,7 +95,8 @@ class TestRepoMonitoring(BaseTestCase):
         self.assertTrue(
             int(
                 self.run_dj_script(
-                    'from tracking.models import ContainerImage; '
+                    'from container_pipeline.models.tracking import '
+                    'ContainerImage; '
                     'print ContainerImage.objects.get('
                     'name=\\"bamachrn/python:release\\").packages.count()'
                 ).strip()
@@ -101,7 +105,8 @@ class TestRepoMonitoring(BaseTestCase):
 
     def test_02_pkg_change_handler(self):
         repoinfo_id = self.run_dj_script(
-            'from tracking.models import ContainerImage, Package, RepoInfo; '
+            'from container_pipeline.models.tracking import ContainerImage, '
+            'Package, RepoInfo; '
             'repo = RepoInfo.objects.create('
             'baseurls=\\"foo\\", basearch=\\"x86_64\\", releasever=\\"7\\", '
             'infra=\\"container\\"); '
@@ -114,48 +119,52 @@ class TestRepoMonitoring(BaseTestCase):
 
         # Different package, same upstream does not mark image for build
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py emitpkgchange foo-2.8.5-48.el7.x86_64 %s'
             % repoinfo_id)
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from tracking.models import ContainerImage; '
+            self.run_dj_script('from container_pipeline.models.tracking '
+                               'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
                                '.to_build').strip(),
             'False')
         # Same package, same upstream does not mark image for build
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py emitpkgchange foo-1.2-1.el7.x86_64 %s'
             % repoinfo_id)
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from tracking.models import ContainerImage; '
+            self.run_dj_script('from container_pipeline.models.tracking '
+                               'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
                                '.to_build').strip(),
             'False')
         # Package change, different upstream does not mark image for build
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py emitpkgchange abc-1.3-1.el7.x86_64 %s'
             % repoinfo_id + '1')
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from tracking.models import ContainerImage; '
+            self.run_dj_script('from container_pipeline.models.tracking '
+                               'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
                                '.to_build').strip(),
             'False')
         # Package change, same upstream marks image for build
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py emitpkgchange abc-1.3-1.el7.x86_64 %s'
             % repoinfo_id)
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from tracking.models import ContainerImage; '
+            self.run_dj_script('from container_pipeline.models.tracking '
+                               'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
                                '.to_build').strip(),
@@ -187,7 +196,8 @@ class TestRepoMonitoring(BaseTestCase):
                                image5 {pkg1, pkg2, pkg4, pkg5}
         """
         repoinfo_id = self.run_dj_script(
-            'from tracking.models import ContainerImage, Package, RepoInfo; '
+            'from container_pipeline.models.tracking import ContainerImage, '
+            'Package, RepoInfo; '
             'repo = RepoInfo.objects.create('
             'baseurls=\\"foo\\", basearch=\\"x86_64\\", releasever=\\"7\\", '
             'infra=\\"container\\"); '
@@ -238,21 +248,22 @@ class TestRepoMonitoring(BaseTestCase):
         print self.run_cmd('systemctl status cccp_triggerbuilds')
 
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py emitpkgchange pkg2-1.3-1.el7.x86_64 %s'
             % repoinfo_id)
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py emitpkgchange pkg3-1.3-1.el7.x86_64 %s'
             % repoinfo_id)
         self.run_cmd(
-            'cd /opt/cccp-service/src && '
+            'cd /opt/cccp-service && '
             './manage.py emitpkgchange pkg5-1.3-1.el7.x86_64 %s'
             % repoinfo_id)
         time.sleep(2)
         self.assertEqual(
             self.run_dj_script(
-                'from tracking.models import ContainerImage; '
+                'from container_pipeline.models.tracking import '
+                'ContainerImage; '
                 'print ContainerImage.objects.filter(to_build=True)'
                 '.order_by(\\"name\\")').strip(),
             '[<ContainerImage: image2>, <ContainerImage: image3>, '
@@ -264,7 +275,8 @@ class TestRepoMonitoring(BaseTestCase):
         time.sleep(20)
         self.assertEqual(
             self.run_dj_script(
-                'from tracking.models import ContainerImage; '
+                'from container_pipeline.models.tracking import '
+                'ContainerImage; '
                 'print ContainerImage.objects.filter(to_build=True)'
                 '.order_by(\\"name\\")').strip(),
             '[<ContainerImage: image2>, <ContainerImage: image3>]')
@@ -278,9 +290,9 @@ class TestRepoMonitoring(BaseTestCase):
 
         # setup
         sys.path.append(os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '../../src'))
+            os.path.join(os.path.dirname(__file__), '../../'))
         )
-        from tracking.lib.repo import process_upstream
+        from container_pipeline.tracking.lib.repo import process_upstream
         added, modified, removed = process_upstream('1', {
             'baseurls': ['http://mirrors.uprm.edu/centos/7/os/x86_64/'],
             'basearch': 'x86_64'}, '/tmp')

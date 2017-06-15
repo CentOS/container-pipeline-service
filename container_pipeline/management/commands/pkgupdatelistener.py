@@ -4,7 +4,7 @@ import fedmsg
 import logging
 import sys
 
-from tracking.models import Package
+from container_pipeline.models.tracking import Package
 
 logger = logging.getLogger('tracking')
 

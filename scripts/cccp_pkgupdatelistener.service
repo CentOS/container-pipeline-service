@@ -2,5 +2,5 @@
 Description=cccp-pkgupdatelistener.service
 
 [Service]
-ExecStart=/opt/cccp-service/src/manage.py pkgupdatelistener
+ExecStart=/opt/cccp-service/manage.py pkgupdatelistener
 Restart=on-failure

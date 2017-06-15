@@ -4,3 +4,16 @@ BEANSTALKD_HOST = os.environ.get('BEANSTALKD_HOST') or '{{ beanstalk_server }}'
 OPENSHIFT_ENDPOINT = os.environ.get('OPENSHIFT_ENDPOINT') or 'https://{{ openshift_server_ip }}:8443'
 OC_CONFIG = '/src/node.kubeconfig'
 OC_CERT = '/src/ca.crt'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': '{{ db_name }}',
+        'USER': '{{ db_user }}',
+        'PASSWORD': '{{ db_pass }}',
+        'HOST': '{{ db_host }}',
+        'PORT': '{{ db_port }}'
+    }
+}
+REGISTRY_ENDPOINT = ('{{ public_registry }}:5000', '{{ public_registry }}:5000')
+BEANSTALK_SERVER = '{{ beanstalk_server }}'
