@@ -14,7 +14,7 @@ class BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.hosts = json.loads(os.environ.get('CCCP_CI_HOSTS') or "{}") or {
             'openshift': {
-                'host': '192.168.100.201',
+                'host': '192.168.100.200',
                 'private_key': '~/.vagrant.d/insecure_private_key',
                 'remote_user': 'vagrant'
             },
@@ -24,7 +24,7 @@ class BaseTestCase(unittest.TestCase):
                 'remote_user': 'vagrant'
             },
             'jenkins_slave': {
-                'host': '192.168.100.200',
+                'host': '192.168.100.100',
                 'private_key': '~/.vagrant.d/insecure_private_key',
                 'remote_user': 'vagrant'
             },

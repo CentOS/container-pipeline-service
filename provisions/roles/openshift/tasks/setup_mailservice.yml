@@ -27,9 +27,9 @@
 
 - name: Start Mail Service
   when: production
-  docker:
+  docker_container:
       name: mail-server
-      state: restarted
+      state: started
       image: mail-server
       restart_policy: unless-stopped
       volumes:
@@ -39,9 +39,9 @@
 
 - name: Start Mail Service
   when: not production
-  docker:
+  docker_container:
     name: mail-server
-    state: restarted
+    state: started
     image: mail-server
     restart_policy: unless-stopped
     volumes:

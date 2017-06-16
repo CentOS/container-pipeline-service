@@ -1,6 +1,0 @@
-[Unit]
-Description=cccp-scan-worker.service
-
-[Service]
-ExecStart=/opt/cccp-service/beanstalk_worker/worker_start_scan.py
-Restart=on-failure

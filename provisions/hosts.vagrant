@@ -26,3 +26,7 @@ jenkins_public_key_file=/tmp/cccp-jenkins.key.pub
 jenkins_private_key_file=/tmp/cccp-jenkins.key
 public_registry=192.168.100.200
 test=True
+intranet_registry=192.168.100.200:5000
+setup_nfs=True
+test_nfs_share=192.168.100.200:/nfsshare
+production=False
