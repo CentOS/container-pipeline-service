@@ -117,17 +117,26 @@ class TestOpenshift(BaseTestCase):
             'centos-kubernetes-master-latest').hexdigest()
         k8s_apiserver_os_project = hashlib.sha224(
             'centos-kubernetes-apiserver-latest').hexdigest()
+
+        # Assert that lock file for centos-kubernetes-master-latest exists
+        self.assertTrue(self.run_cmd(
+            'ls /srv/pipeline-logs/centos-kubernetes-master-latest'))
         self.assertOsProjectBuildStatus(
             k8s_master_os_project, ['build-1', 'test-1', 'delivery-1'],
             'Complete', retries=80, delay=15
         )
+
+        time.sleep(10)
+
+        # Assert that lock file for centos-kubernetes-master-latest does not
+        # exist anymore
+        self.assertRaises(
+            Exception,
+            self.run_cmd,
+            'ls /srv/pipeline-logs/centos-kubernetes-master-latest')
 
         # Assert that delivery of centos-kubernetes-master-latest triggered
         # build for centos-kubernetes-apiserver-latest
         self.assertOsProjectBuildStatus(
             k8s_apiserver_os_project, ['build-1'], 'Running', retries=6,
             delay=30)
-        self.assertRaises(
-            Exception,
-            self.run_cmd,
-            'ls /srv/pipeline-logs/centos-kubernetes-master-latest')

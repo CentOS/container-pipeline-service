@@ -2,12 +2,14 @@
 import json
 import logging
 import os
+import time
 
 from container_pipeline.utils import Build, get_job_name, get_project_name, \
     get_job_hash
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.workers.base import BaseWorker
+from container_pipeline.lib import settings
 
 
 class BuildWorker(BaseWorker):
@@ -27,6 +29,12 @@ class BuildWorker(BaseWorker):
         parent_build_running = False
         parents = job.get('depends_on', '').split(',')
         parents_in_build = []
+
+        # Reset retry params
+        job.pop('retry', None)
+        job.pop('retry_delay', None)
+        job.pop('last_run_timestamp', None)
+
         for parent in parents:
             is_build_running = Build(parent).is_running()
             if is_build_running:
@@ -37,6 +45,10 @@ class BuildWorker(BaseWorker):
         if parent_build_running:
             self.logger.debug('Parents in build: {}, pushing job: {} back '
                              'to queue'.format(parents_in_build, job))
+            # Retry delay in seconds
+            job['retry'] = True
+            job['retry_delay'] = settings.BUILD_RETRY_DELAY
+            job['last_run_timestamp'] = time.time()
             self.queue.put(json.dumps(job), 'master_tube')
         else:
             self.logger.debug('Starting build for job: {}'.format(job))
