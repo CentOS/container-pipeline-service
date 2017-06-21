@@ -83,7 +83,7 @@ class DeliveryWorker(BaseWorker):
         and requests to notify the user about failure to deliver
         """
         self.queue.put(json.dumps(job))
-        self.logger.info(
+        self.logger.critical(
             "Delivery is not successful putting it to failed delivery tube")
         data = {
             'action': 'notify_user',
