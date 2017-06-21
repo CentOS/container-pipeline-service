@@ -35,11 +35,11 @@ class BuildWorker(BaseWorker):
                 is_build_running
 
         if parent_build_running:
-            self.logger.info('Parents in build: {}, pushing job: {} back '
+            self.logger.debug('Parents in build: {}, pushing job: {} back '
                              'to queue'.format(parents_in_build, job))
             self.queue.put(json.dumps(job), 'master_tube')
         else:
-            self.logger.info('Starting build for job: {}'.format(job))
+            self.logger.debug('Starting build for job: {}'.format(job))
             success = self.build(job)
             if success:
                 self.handle_build_success(job)
@@ -70,7 +70,7 @@ class BuildWorker(BaseWorker):
 
     def handle_build_success(self, job):
         """Handle build success for job"""
-        self.logger.debug("Build is successful going for next job")
+        self.logger.info("Build is successful going for next job")
 
     def handle_build_failure(self, job):
         """Handle build failure for job"""
