@@ -92,6 +92,7 @@ class DeliveryWorker(BaseWorker):
             'notify_email': job['notify_email'],
             'delivery_logs_file': os.path.join(
                 job['logs_dir'], 'delivery_logs.txt'),
+            'logs_dir': job['logs_dir'],
             'project_name': get_project_name(job),
             'job_name': job['jobid'],
             'TEST_TAG': job['TEST_TAG']}
