@@ -6,7 +6,7 @@
     builders:
         - shell: |
             CWD=`pwd`
-            cd /opt/cccp-service/src/
+            cd /opt/cccp-service/
             ./manage.py checkupdates
     triggers:
         - timed: "@midnight"
@@ -31,6 +31,6 @@
         - shell: |
             export CWD=`pwd`
             export DOCKER_HOST=localhost:2367
-            cd /opt/cccp-service/src
+            cd /opt/cccp-service/
             python manage.py fetchimagelist $CWD/index.d
             python manage.py imagescanner onetime

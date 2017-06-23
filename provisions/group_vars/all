@@ -13,3 +13,9 @@ enable_epel: true
 
 intranet_registry: registry.centos.org:5000
 log_level: INFO
+
+db_user: cccp
+db_name: cccp
+db_pass: cccp
+db_host: '0.0.0.0'
+db_port: 5432

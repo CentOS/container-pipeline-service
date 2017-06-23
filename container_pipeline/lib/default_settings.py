@@ -10,10 +10,32 @@ LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
 LOG_PATH = '/srv/pipeline-logs/cccp.log'
 SERVICE_LOGFILE = "service_debug.log"
 
+# Django specific configuration
+TIME_ZONE = 'UTC'
+USE_TZ = True
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+SECRET_KEY = 'xxxxxxxxxxxxxx'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+INSTALLED_APPS = (
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    'container_pipeline',
+)
+
 LOGS_URL_BASE = "https://registry.centos.org/pipeline-logs/"
 LOGS_DIR = LOGS_DIR_BASE = "/srv/pipeline-logs/"
 
-LOGGING_CONF = dict(
+LOGGING = dict(
     version=1,
     level=LOG_LEVEL,
     formatters=dict(
@@ -77,6 +99,12 @@ LOGGING_CONF = dict(
             "propagate": False,
             "handlers": ["console"]
 
+        },
+        'tracking': {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["console", "log_to_file"]
+
         }
     },
 )
@@ -121,3 +149,13 @@ SCANNERS_STATUS_FILE = "scanners_status.json"
 
 LINTER_RESULT_FILE = "linter_results.txt"
 LINTER_STATUS_FILE = "linter_status.json"
+
+# tracking
+REGISTRY_ENDPOINT = ('registry.centos.org', 'https://registry.centos.org')
+JENKINS_ENDPOINT = 'http://127.0.0.1:8080/'
+JENKINS_USERNAME = ''
+JENKINS_PASSWORD = ''
+JENKINS_CLI = '/opt/jenkins-cli.jar'
+CONTAINER_BUILD_TRIGGER_DELAY = 10
+UPSTREAM_PACKAGE_CACHE = os.path.join(BASE_DIR, 'tracking/data')
+BEANSTALK_SERVER = 'localhost'

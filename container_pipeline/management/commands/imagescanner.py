@@ -5,9 +5,11 @@ import sys
 from django.utils import timezone
 from django.conf import settings
 
-from tracking.models import ContainerImage, Package, RepoInfo
-from tracking.lib import get_navr_from_pkg_name
-from vendors import beanstalkc
+from container_pipeline.lib.queue import JobQueue
+
+from container_pipeline.models.tracking import ContainerImage, Package,\
+    RepoInfo
+from container_pipeline.tracking.lib import get_navr_from_pkg_name
 
 logger = logging.getLogger('tracking')
 
@@ -89,12 +91,13 @@ class Command(BaseCommand):
 
             if not args:
                 logger.info('Image scanner running...')
-                bs = beanstalkc.Connection(host=settings.BEANSTALK_SERVER)
-                bs.watch('tracking')
+                queue = JobQueue(host=settings.BEANSTALKD_HOST,
+                                 port=settings.BEANSTALKD_PORT,
+                                 sub='tracking', logger=logger)
                 while True:
                     job = None
                     try:
-                        job = bs.reserve()
+                        job = queue.get()
                         try:
                             job_details = json.loads(job.body)
                         except ValueError:

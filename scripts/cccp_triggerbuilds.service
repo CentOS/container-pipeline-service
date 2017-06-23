@@ -2,5 +2,5 @@
 Description=cccp-triggerbuilds.service
 
 [Service]
-ExecStart=/opt/cccp-service/src/manage.py triggerbuilds
+ExecStart=/opt/cccp-service/manage.py triggerbuilds
 Restart=on-failure

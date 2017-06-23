@@ -66,6 +66,7 @@
       synchronize: src=/tmp/cccp_settings.py dest=/tmp/cccp_settings.py mode=pull rsync_opts="{{ rsync_ssh_opts}}"
   tags:
       - application
+      - application/update_src
 
 - name: Push source code to all nodes
   hosts: all
@@ -81,8 +82,15 @@
     - name: Push config
       copy: src=/tmp/cccp_settings.py dest=/opt/cccp-service/container_pipeline/lib/settings.py
       sudo: yes
+    - name: Ensure manage.py is executable
+      file: path=/opt/cccp-service/manage.py mode='g+x'
+      sudo: yes
+      tags:
+          - application
+          - application/update_src
   tags:
       - application
+      - application/update_src
 
 - name: Setup Scanner Worker
   hosts: scanner_worker
