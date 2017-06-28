@@ -1,4 +1,4 @@
-from ci.tests.test_01_index_ci.index_ci_base import IndexCIBase, config
+from ci.tests.test_00_unit.test_00_index_ci.index_ci_base import IndexCIBase, config
 
 
 class TestIndexValues(IndexCIBase):
