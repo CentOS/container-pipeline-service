@@ -8,10 +8,14 @@
   - jenkins/slave
   - config
 
+- name: ensure java-1.7.0-* is not installed
+  yum: name=java-1.7.0-* state=absent
+
 - name: install deps on jenkins nodes
   yum: name={{ item }} state=present
   with_items:
-   - java-1.7.0-openjdk
+   - java-1.8.0-openjdk
+   - java-1.8.0-openjdk-headless
    - git
    - PyYAML
   tags:

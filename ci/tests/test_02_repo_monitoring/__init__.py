@@ -272,7 +272,7 @@ class TestRepoMonitoring(BaseTestCase):
         # Ensure cccp_triggerbuilds service is runnning
         print self.run_cmd('systemctl status cccp_triggerbuilds')
 
-        time.sleep(20)
+        time.sleep(40)
         self.assertEqual(
             self.run_dj_script(
                 'from container_pipeline.models.tracking import '
