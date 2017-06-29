@@ -72,10 +72,12 @@ class Openshift(object):
             ['-v {k}={v}'.format(k=k, v=v) for k, v in template_data.items()])
         try:
             run_cmd(
-                'oc process {project} -f {tmpl_path} {tmpl_params} {suffix} | '
-                'oc {suffix} create -f -'.format(
+                'oc process -n {project} -f {tmpl_path} {tmpl_params} '
+                '{suffix} | '
+                'oc {suffix} -n {project} create -f -'.format(
                     project=project, tmpl_path=template_path,
-                    tmpl_params=tmpl_params_str, suffix=self.oc_cmd_suffix))
+                    tmpl_params=tmpl_params_str, suffix=self.oc_cmd_suffix),
+                shell=True)
         except subprocess.CalledProcessError as e:
             raise OpenshiftError(
                 'Error during uploading processed template for project {}: {}'
