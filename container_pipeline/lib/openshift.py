@@ -43,6 +43,44 @@ class Openshift(object):
             raise OpenshiftError(
                 'Openshift login error: {}'.format(e))
 
+    def create(self, project):
+        self.logger.debug('Create openshift project: {}'.format(project))
+        try:
+            run_cmd(
+                'oc new-project {project} --display-name {project} {suffix}'
+                .format(project=project, suffix=self.oc_cmd_suffix))
+        except subprocess.CalledProcessError as e:
+            raise OpenshiftError(
+                'Error during creating openshift project {}: {}'.format(
+                    project, e))
+
+    def clean_project(self, project):
+        try:
+            run_cmd(
+                'oc delete build,bc,is -n {project} {suffix}'
+                .format(project=project, suffix=self.oc_cmd_suffix))
+        except subprocess.CalledProcessError as e:
+            self.logger.debug('Error during cleaning project {}: {}'.format(
+                project, e))
+
+    def upload_template(self, project, template_path, template_data):
+        """Upload processed template for project from template path"""
+        self.logger.debug('Uploading template data: {} for project: {} from '
+                          'template: {}'.format(
+                              template_data, project, template_path))
+        tmpl_params_str = ' '.join(
+            ['-v {k}={v}'.format(k=k, v=v) for k, v in template_data.items()])
+        try:
+            run_cmd(
+                'oc process {project} -f {tmpl_path} {tmpl_params} {suffix} | '
+                'oc {suffix} create -f -'.format(
+                    project=project, tmpl_path=template_path,
+                    tmpl_params=tmpl_params_str, suffix=self.oc_cmd_suffix))
+        except subprocess.CalledProcessError as e:
+            raise OpenshiftError(
+                'Error during uploading processed template for project {}: {}'
+                .format(project, e))
+
     def use_project(self, project):
         """Use an openshift project"""
         self.logger.debug('Using openshift project: {}'.format(project))
