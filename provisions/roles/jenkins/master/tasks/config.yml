@@ -13,7 +13,8 @@
     src="{{ item }}"
     dest="/var/lib/jenkins/{{ item }}"
   with_items:
-  - credentials.xml
+   - config.xml
+   - credentials.xml
 #  - hudson.tasks.Mailer.xml
   tags:
   - jenkins
