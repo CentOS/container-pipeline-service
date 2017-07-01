@@ -8,6 +8,12 @@
     - name: Enable centos admin repo when EPEL is disabled
       copy: src=centos-admin.repo dest=/etc/yum.repos.d/centos-admin.repo
       when: not enable_epel
+    - name: Ensure centos admin repo is removed when epel is enabled
+      file: path=/etc/yum.repos.d/centos-admin.repo state=absent
+      when: enable_epel
+    - name: Ensure epel is enabled when enable_epel is True
+      yum: name=epel-release state=present
+      when: enable_epel
     - name: Set SELinux to Permissive
       selinux:
           policy: targeted
