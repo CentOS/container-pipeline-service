@@ -8,6 +8,7 @@ import os
 import container_pipeline.lib.log as log
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.scanners.runner import ScannerRunner
+from container_pipeline.lib import settings
 
 
 class ScanWorker(BaseWorker):
@@ -21,7 +22,7 @@ class ScanWorker(BaseWorker):
         this calls the ScannerRunner for performing the scan work
         """
         debug_logs_file = os.path.join(
-            job["logs_dir"], "service_debug.log")
+            job["logs_dir"], settings.SERVICE_LOGFILE)
         dfh = log.DynamicFileHandler(logger, debug_logs_file)
 
         self.logger.info('Got job: {}'.format(job))

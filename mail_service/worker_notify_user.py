@@ -332,10 +332,10 @@ class NotifyUser(object):
                     self.job_info["notify_email"])
         self.send_email(subject, email_contents)
 
-        # if it is a weekly scan, return True to delete service_debug.log
+        # if it is a weekly scan, return True to delete service_debug_log.txt
         if self.job_info.get("weekly", False):
             return True
-        # if build status if False, do not delete service_debug.log
+        # if build status if False, do not delete service_debug_log.txt
         return self.job_info.get("build_status", False)
 
     def remove_status_files(self, status_files):

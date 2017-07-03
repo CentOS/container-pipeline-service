@@ -8,7 +8,7 @@ import os
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
 LOG_PATH = '/srv/pipeline-logs/cccp.log'
-SERVICE_LOGFILE = "service_debug.log"
+SERVICE_LOGFILE = "service_debug_log.txt"
 
 # Django specific configuration
 TIME_ZONE = 'UTC'
