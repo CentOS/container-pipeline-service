@@ -4,6 +4,8 @@ VAGRANTFILE_API_VERSION = "2"
 
 PROD = (ENV['PROD'] || 0).to_i
 HOME = ENV['HOME']
+TAGS = ENV['TAGS'] || false
+LIMIT = ENV['LIMIT'] || false
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.insert_key = false
@@ -74,8 +76,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           "vagrant",
           "--extra-vars",
           '{"rsync_ssh_opts": "' + rsync_ssh_opts + '"}',
-          "--tags=jenkins/slaves,scanner"
       ]
+      if TAGS
+          ansible.raw_arguments.push('--tags=' + TAGS)
+      end
+      if LIMIT
+          ansible.raw_arguments.push('--limit=' + LIMIT)
+      end
     end
   end
 
