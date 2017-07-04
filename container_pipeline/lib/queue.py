@@ -23,6 +23,8 @@ def retry(delay=30):
                     time.sleep(delay)
                     if func != obj._initialize:
                         obj._initialize()
+                except beanstalkc.DeadlineSoon:
+                    time.sleep(1)
         return wrapper
     return _retry
 
