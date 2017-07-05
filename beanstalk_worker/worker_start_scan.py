@@ -584,7 +584,7 @@ while True:
         job_info = json.loads(job.body)
 
         debug_logs_file = os.path.join(
-            job_info["logs_dir"], "service_debug.log")
+            job_info["logs_dir"], "service_debug_log.txt")
         dfh = config.DynamicFileHandler(logger, debug_logs_file)
 
         logger.info('Got job: %s' % job_info)
