@@ -28,6 +28,11 @@ class BaseTestCase(unittest.TestCase):
                 'private_key': '~/.vagrant.d/insecure_private_key',
                 'remote_user': 'vagrant'
             },
+            'scanner': {
+                'host': '192.168.100.100',
+                'private_key': '~/.vagrant.d/insecure_private_key',
+                'remote_user': 'vagrant'
+            },
             'controller': {
                 'host': None,
                 'private_key': '~/.vagrant.d/insecure_private_key',
@@ -91,30 +96,30 @@ class BaseTestCase(unittest.TestCase):
         time.sleep(10)
 
     def cleanup_beanstalkd(self):
-        print self.run_cmd('systemctl stop cccp_imagescanner',
+        print self.run_cmd('sudo systemctl stop cccp_imagescanner',
                            host=self.hosts['jenkins_master']['host'])
-        print self.run_cmd('systemctl stop cccp-dockerfile-lint-worker',
+        print self.run_cmd('sudo systemctl stop cccp-dockerfile-lint-worker',
                            host=self.hosts['jenkins_slave']['host'])
-        print self.run_cmd('systemctl stop cccp-scan-worker',
+        print self.run_cmd('sudo systemctl stop cccp-scan-worker',
                            host=self.hosts['scanner']['host'])
-        print self.run_cmd('docker stop build-worker; '
-                           'docker stop delivery-worker; '
-                           'docker stop dispatcher-worker',
+        print self.run_cmd('sudo docker stop build-worker; '
+                           'sudo docker stop delivery-worker; '
+                           'sudo docker stop dispatcher-worker',
                            host=self.hosts['jenkins_slave']['host'])
 
-        print self.run_cmd('systemctl restart beanstalkd',
+        print self.run_cmd('sudo systemctl restart beanstalkd',
                            host=self.hosts['openshift']['host'])
         time.sleep(5)
 
-        print self.run_cmd('docker start build-worker; '
-                           'docker start delivery-worker; '
-                           'docker start dispatcher-worker',
+        print self.run_cmd('sudo docker start build-worker; '
+                           'sudo docker start delivery-worker; '
+                           'sudo docker start dispatcher-worker',
                            host=self.hosts['jenkins_slave']['host'])
-        print self.run_cmd('systemctl start cccp-dockerfile-lint-worker',
+        print self.run_cmd('sudo systemctl start cccp-dockerfile-lint-worker',
                            host=self.hosts['jenkins_slave']['host'])
-        print self.run_cmd('systemctl start cccp-scan-worker',
+        print self.run_cmd('sudo systemctl start cccp-scan-worker',
                            host=self.hosts['scanner']['host'])
-        print self.run_cmd('systemctl start cccp_imagescanner',
+        print self.run_cmd('sudo systemctl start cccp_imagescanner',
                            host=self.hosts['jenkins_master']['host'])
 
     def get_jenkins_builds_for_job(self, job):
