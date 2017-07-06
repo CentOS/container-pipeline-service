@@ -5,9 +5,9 @@ RUN yum update -y && \
     yum install python PyYAML -y && \
     yum clean all
 
-ADD client/node.kubeconfig client/ca.crt /src/
-ADD container_pipeline /src/container_pipeline
+ADD node.kubeconfig ca.crt /opt/cccp-service/
+ADD container_pipeline /opt/cccp-service/container_pipeline
 ADD oc /usr/bin/oc
 
-ENV PYTHONPATH=$PYTHONPATH:/src/
-WORKDIR /src
+ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
+WORKDIR /opt/cccp-service
