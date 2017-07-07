@@ -1,0 +1,13 @@
+---
+- name: Stop repo tracking services
+  service: name={{ item }} state=stopped
+  with_items:
+      - cccp_imagescanner
+      - cccp_triggerbuilds
+      - cccp_pkgupdatelistener
+  sudo: yes
+
+- name: Stop postgres container
+  docker_container:
+      name: postgres
+      state: stopped

@@ -1,0 +1,13 @@
+---
+- name: Stop dispatcher, build, test, delivery workers
+  docker_container:
+      name: {{ item }}
+      state: absent
+  with_items:
+      - dispatcher-worker
+      - build-worker
+      - delivery-worker
+
+- name: Stop docker linter service
+  service: name=cccp-docker-lint-worker state=stopped
+  sudo: yes

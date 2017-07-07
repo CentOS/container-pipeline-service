@@ -1,0 +1,10 @@
+---
+- name: Stop openshift
+  docker_container:
+      name: origin
+      state: absent
+  sudo: yes
+
+- name: Clean openshift data dir
+  file: path=/var/lib/origin state=removed
+  sudo: yes
