@@ -16,6 +16,15 @@
     - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/ca.crt}
     - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/node.kubeconfig}
 
+- name: Change mode for oc ca.crt node.kubeconfig
+  file:
+      path: "{{ item.file_path }}"
+      mode: 0777
+  with_items:
+    - { file_path: /opt/cccp-service/oc }
+    - { file_path: /opt/cccp-service/ca.crt }
+    - { file_path: /opt/cccp-service/node.kubeconfig }
+
 - name: Replace Beanstalk server with its FQDN for build request
   replace: >
       dest=/opt/cccp-service/client/send_build_request.py
