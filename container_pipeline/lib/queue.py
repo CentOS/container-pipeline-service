@@ -4,6 +4,14 @@ import time
 from container_pipeline.vendors import beanstalkc
 
 
+class QueueException(Exception):
+    pass
+
+
+class QueueEmptyException(QueueException):
+    pass
+
+
 def retry(delay=30):
     """Decorator to handle beanstalkd outage and recover"""
     def _retry(func):
@@ -23,8 +31,10 @@ def retry(delay=30):
                     time.sleep(delay)
                     if func != obj._initialize:
                         obj._initialize()
-                except beanstalkc.DeadlineSoon:
-                    time.sleep(1)
+                except (beanstalkc.DeadlineSoon, QueueEmptyException) as e:
+                    obj = args[0]
+                    obj.logger.debug(e)
+                    time.sleep(30)
         return wrapper
     return _retry
 
@@ -44,7 +54,9 @@ class JobQueue:
         """Get job from subscribed tube"""
         self.logger.debug('Waiting to get data from tube: {}...'
                           .format(self.sub))
-        return self._conn.reserve()
+        if self._conn.stats_tube(self.sub)['current-jobs-ready'] > 0:
+            return self._conn.reserve()
+        raise QueueEmptyException('No job in queue')
 
     @retry()
     def put(self, data, tube=None):
