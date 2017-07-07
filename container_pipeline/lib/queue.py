@@ -47,6 +47,7 @@ class JobQueue:
         self.sub = sub
         self.pub = pub or self.sub
         self.logger = logger or logging.getLogger('console')
+        self._conn = None
         self._initialize()
 
     @retry()
@@ -75,6 +76,10 @@ class JobQueue:
     @retry()
     def _initialize(self):
         """Initialize connection to queue backend"""
+        if self._conn:
+            self._conn.close()
+            del self._conn
+            self._conn = None
         self._conn = beanstalkc.Connection(host=self.host, port=self.port)
         self._conn.watch(self.sub)
         self._conn.use(self.pub)
