@@ -27,24 +27,21 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path, target_
             pass
         raise
 
-    try:
-        template_path = os.path.join(
-            os.path.dirname(__file__), 'template.json')
-        openshift.upload_template(project, template_path, {
-            'SOURCE_REPOSITORY_URL': repo_url,
-            'REPO_BRANCH': repo_branch,
-            'APPID': appid,
-            'JOBID': jobid,
-            'REPO_BUILD_PATH': repo_build_path,
-            'TARGET_FILE': target_file,
-            'NOTIFY_EMAIL': notify_email,
-            'DESIRED_TAG': desired_tag,
-            'TEST_TAG': test_tag})
-        is_openshift_good = True
-    except OpenshiftError:
-        raise
+    template_path = os.path.join(
+        os.path.dirname(__file__), 'template.json')
+    openshift.upload_template(project, template_path, {
+        'SOURCE_REPOSITORY_URL': repo_url,
+        'REPO_BRANCH': repo_branch,
+        'APPID': appid,
+        'JOBID': jobid,
+        'REPO_BUILD_PATH': repo_build_path,
+        'TARGET_FILE': target_file,
+        'NOTIFY_EMAIL': notify_email,
+        'DESIRED_TAG': desired_tag,
+        'TEST_TAG': test_tag})
+    is_openshift_good = True
 
-    if(is_openshift_good):
+    if is_openshift_good:
         queue = JobQueue(host=settings.BEANSTALKD_HOST,
                          port=settings.BEANSTALKD_PORT,
                          sub='master_tube',
