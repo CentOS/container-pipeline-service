@@ -44,7 +44,7 @@ class BuildWorker(BaseWorker):
 
         if parent_build_running:
             self.logger.debug('Parents in build: {}, pushing job: {} back '
-                             'to queue'.format(parents_in_build, job))
+                              'to queue'.format(parents_in_build, job))
             # Retry delay in seconds
             job['retry'] = True
             job['retry_delay'] = settings.BUILD_RETRY_DELAY
@@ -96,6 +96,7 @@ class BuildWorker(BaseWorker):
             'notify_email': job['notify_email'],
             'build_logs_file': os.path.join(
                 job['logs_dir'], 'build_logs.txt'),
+            'logs_dir': job['logs_dir'],
             'project_name': get_project_name(job),
             'job_name': job['jobid'],
             'TEST_TAG': job['TEST_TAG']}
