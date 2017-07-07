@@ -87,38 +87,50 @@ class TestOpenshift(BaseTestCase):
             'centos-kubernetes-master-latest',
             host=self.hosts['jenkins_master']['host']))
         _print(self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar -s '
-            'http://localhost:8080 enable-job '
-            'centos-kubernetes-apiserver-latest',
-            host=self.hosts['jenkins_master']['host']))
-        k8s_apiserver_prev_builds = self.get_jenkins_builds_for_job(
-            'centos-kubernetes-apiserver-latest')
-        _print(self.run_cmd(
             'sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
             'build centos-kubernetes-master-latest -f -v',
             host=self.hosts['jenkins_master']['host']
         ))
-        time.sleep(10)
-        k8s_apiserver_cur_builds = self.get_jenkins_builds_for_job(
-            'centos-kubernetes-apiserver-latest')
-        self.assertTrue(
-            len(k8s_apiserver_cur_builds) > len(k8s_apiserver_prev_builds))
         _print(self.run_cmd(
             'sudo java -jar /opt/jenkins-cli.jar -s '
             'http://localhost:8080 disable-job '
             'centos-kubernetes-master-latest',
             host=self.hosts['jenkins_master']['host']))
+
+        time.sleep(5)
+
+        # We are not testing jenkins' feature to trigger child builds,
+        # so, we are triggering the child build manually, so that
+        # we can avoid race condition between the builds
+        _print(self.run_cmd(
+            'sudo java -jar /opt/jenkins-cli.jar -s '
+            'http://localhost:8080 enable-job '
+            'centos-kubernetes-apiserver-latest',
+            host=self.hosts['jenkins_master']['host']))
+        _print(self.run_cmd(
+            'sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
+            'build centos-kubernetes-apiserver-latest -f -v',
+            host=self.hosts['jenkins_master']['host']
+        ))
         _print(self.run_cmd(
             'sudo java -jar /opt/jenkins-cli.jar -s '
             'http://localhost:8080 disable-job '
             'centos-kubernetes-apiserver-latest',
             host=self.hosts['jenkins_master']['host']))
+
         k8s_master_os_project = hashlib.sha224(
             'centos-kubernetes-master-latest').hexdigest()
         k8s_apiserver_os_project = hashlib.sha224(
             'centos-kubernetes-apiserver-latest').hexdigest()
 
-        # Assert that lock file for centos-kubernetes-master-latest exists
+        # Wait for build worker to run build
+        self.assertOsProjectBuildStatus(
+            k8s_master_os_project, ['build-1'], 'Running', retries=40,
+            delay=15)
+
+        time.sleep(20)
+
+        # Then assert that lock file for centos-kubernetes-master-latest exists
         self.assertTrue(self.run_cmd(
             'ls /srv/pipeline-logs/centos-kubernetes-master-latest'))
         self.assertOsProjectBuildStatus(
@@ -126,7 +138,11 @@ class TestOpenshift(BaseTestCase):
             'Complete', retries=80, delay=15
         )
 
-        time.sleep(10)
+        # Assert that delivery of centos-kubernetes-master-latest triggered
+        # build for centos-kubernetes-apiserver-latest
+        self.assertOsProjectBuildStatus(
+            k8s_apiserver_os_project, ['build-1'], 'Running', retries=40,
+            delay=5)
 
         # Assert that lock file for centos-kubernetes-master-latest does not
         # exist anymore
@@ -134,9 +150,3 @@ class TestOpenshift(BaseTestCase):
             Exception,
             self.run_cmd,
             'ls /srv/pipeline-logs/centos-kubernetes-master-latest')
-
-        # Assert that delivery of centos-kubernetes-master-latest triggered
-        # build for centos-kubernetes-apiserver-latest
-        self.assertOsProjectBuildStatus(
-            k8s_apiserver_os_project, ['build-1'], 'Running', retries=6,
-            delay=30)
