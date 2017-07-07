@@ -14,16 +14,18 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path, target_
     job_name = utils.get_job_name({
         'appid': appid, 'jobid': jobid, 'desired_tag': desired_tag})
     project = utils.get_job_hash(job_name)
-    is_openshift_good = True
-
+    is_openshift_good = False
     openshift = Openshift(logger=logger)
     try:
         openshift.login("test-admin", "test")
         openshift.create(project)
         openshift.clean_project(project)
     except OpenshiftError:
-        is_openshift_good = False
-        return 1
+        try:
+            openshift.delete(project)
+        except OpenshiftError:
+            pass
+        raise
 
     try:
         template_path = os.path.join(
@@ -38,9 +40,9 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path, target_
             'NOTIFY_EMAIL': notify_email,
             'DESIRED_TAG': desired_tag,
             'TEST_TAG': test_tag})
+        is_openshift_good = True
     except OpenshiftError:
-        is_openshift_good = False
-        return 1
+        raise
 
     if(is_openshift_good):
         queue = JobQueue(host=settings.BEANSTALKD_HOST,
@@ -60,10 +62,8 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path, target_
             'logs_dir': '/srv/pipeline-logs/{}'.format(test_tag),
             'TEST_TAG': test_tag
         }))
-        return 0
     else:
         logger.critical("Jenkins is not able to setup openshift project")
-        return 1
 
 
 if __name__ == '__main__':
@@ -72,4 +72,7 @@ if __name__ == '__main__':
     (appid, jobid, repo_url, repo_branch, repo_build_path,
      target_file, notify_email, desired_tag, depends_on,
      test_tag) = sys.argv[1:]
-    is_success = create_project(*sys.argv[1:])
+    try:
+        create_project(*sys.argv[1:])
+    except OpenshiftError:
+        sys.exit(1)

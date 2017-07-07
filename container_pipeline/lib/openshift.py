@@ -54,6 +54,17 @@ class Openshift(object):
                 'Error during creating openshift project {}: {}'.format(
                     project, e))
 
+    def delete(self, project):
+        self.logger.debug('Delete openshift project: {}'.format(project))
+        try:
+            run_cmd(
+                'oc delete project {project} {suffix}'
+                .format(project=project, suffix=self.oc_cmd_suffix))
+        except subprocess.CalledProcessError as e:
+            raise OpenshiftError(
+                'Error during deleting openshift project {}: {}'.format(
+                    project, e))
+
     def clean_project(self, project):
         try:
             run_cmd(
