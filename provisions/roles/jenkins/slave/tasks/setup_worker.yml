@@ -18,18 +18,6 @@
 - name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
   file: dest=/opt/cccp-service/beanstalk_worker state=directory
 
-- name: Push oc files to Jenkins slaves
-  synchronize:
-    mode: push
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    rsync_opts:
-        - "{{ rsync_ssh_opts }}"
-  with_items:
-    - {src: /tmp/oc, dest: /opt/cccp-service/oc}
-    - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/ca.crt}
-    - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/node.kubeconfig}
-
 - name: Build container-pipeline image
   shell: docker build -t container-pipeline -f ./Dockerfile .
   args:
@@ -45,7 +33,7 @@
       name: dispatcher-worker
       state: restarted
       image: container-pipeline
-      command: /src/container_pipeline/workers/dispatcher.py
+      command: /opt/cccp-service/container_pipeline/workers/dispatcher.py
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
@@ -57,7 +45,7 @@
       name: build-worker
       state: restarted
       image: container-pipeline
-      command: /src/container_pipeline/workers/build.py
+      command: /opt/cccp-service/container_pipeline/workers/build.py
       restart_policy: always
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
@@ -68,7 +56,7 @@
   docker:
       name: delivery-worker
       state: restarted
-      command: /src/container_pipeline/workers/delivery.py
+      command: /opt/cccp-service/container_pipeline/workers/delivery.py
       image: container-pipeline
       restart_policy: always
       volumes:

@@ -12,8 +12,18 @@
         - "{{ rsync_ssh_opts }}"
   with_items:
     - {src: /tmp/oc, dest: /usr/bin/oc}
-    - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/client/ca.crt}
-    - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/client/node.kubeconfig}
+    - {src: /tmp/oc, dest: /opt/cccp-service/oc}
+    - {src: /tmp/oc_ca.crt, dest: /opt/cccp-service/ca.crt}
+    - {src: /tmp/oc_node.kubeconfig, dest: /opt/cccp-service/node.kubeconfig}
+
+- name: Change mode for oc ca.crt node.kubeconfig
+  file:
+      path: "{{ item.file_path }}"
+      mode: 0777
+  with_items:
+    - { file_path: /opt/cccp-service/oc }
+    - { file_path: /opt/cccp-service/ca.crt }
+    - { file_path: /opt/cccp-service/node.kubeconfig }
 
 - name: Replace Beanstalk server with its FQDN for build request
   replace: >
@@ -39,7 +49,7 @@
 - name: Copy OpenShift template file
   template:
     src: template.json.j2
-    dest: /opt/cccp-service/client/template.json
+    dest: /opt/cccp-service/container_pipeline/template.json
   tags: application
 
 - name: Ensure jenkins is owner of /opt/cccp-service/client dir in slave
