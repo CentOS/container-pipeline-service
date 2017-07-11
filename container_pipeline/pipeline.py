@@ -10,7 +10,9 @@ from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.lib.queue import JobQueue
 
 
-def create_project(appid, jobid, repo_url, repo_branch, repo_build_path, target_file, notify_email, desired_tag, depends_on, test_tag):
+def create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
+                   target_file, notify_email, desired_tag, depends_on,
+                   test_tag):
     job_name = utils.get_job_name({
         'appid': appid, 'jobid': jobid, 'desired_tag': desired_tag})
     project = utils.get_job_hash(job_name)
@@ -23,8 +25,8 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path, target_
     except OpenshiftError:
         try:
             openshift.delete(project)
-        except OpenshiftError:
-            pass
+        except OpenshiftError as e:
+            logger.error(e)
         raise
 
     template_path = os.path.join(
@@ -60,12 +62,12 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path, target_
             'TEST_TAG': test_tag
         }))
     else:
-        logger.critical("Jenkins is not able to setup openshift project")
+        logger.error("Jenkins is not able to setup openshift project")
 
 
 if __name__ == '__main__':
     load_logger()
-    logger = logging.getLogger('console')
+    logger = logging.getLogger('jenkins')
     (appid, jobid, repo_url, repo_branch, repo_build_path,
      target_file, notify_email, desired_tag, depends_on,
      test_tag) = sys.argv[1:]

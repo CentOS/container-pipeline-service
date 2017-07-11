@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 
 
@@ -24,9 +25,10 @@ def get_project_name(job):
 # to manage builds and prevent duplication of code.
 class Build:
     """Track image build status in the pipeline"""
-    def __init__(self, name, datadir='/srv/pipeline-logs'):
+    def __init__(self, name, datadir='/srv/pipeline-logs', logger=None):
         self.name = name
         self._path = os.path.join(datadir, name)
+        self.logger = logger or logging.getLogger('console')
 
     def is_running(self):
         """Check if pipeline build is running"""
@@ -46,6 +48,8 @@ class Build:
         # running
         with open(self._path, 'a'):
             os.utime(self._path, None)
+        self.logger.info('Created lock file for {} at {}'.format(
+            self.name, self._path))
 
     def complete(self):
         """Mark build as complete"""
@@ -53,3 +57,5 @@ class Build:
         # as not running
         if self.is_running():
             os.remove(self._path)
+            self.logger.info('Removing lock file for {} at {}'.format(
+                self.name, self._path))

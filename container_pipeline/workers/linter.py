@@ -15,16 +15,16 @@ class DockerfileLintWorker(BaseWorker):
     Dockerfile lint worker lints the Dockerfile using the projectatomic's
     dockerfile_lint tool. https://github.com/projectatomic/dockerfile_lint
     """
+    NAME = 'Linter worker'
 
     def handle_job(self, job):
         """
         This menthod handles the job received for dockerfile lint worker.
         """
-        self.logger.info("Received job for Dockerfile lint.")
-        self.logger.debug("Job data: %s" % job)
-        self.logger.info("Writing Dockerfile to /tmp/scan/Dockerfile")
+        self.logger.info("Received job for Dockerfile lint: %s" % job)
+        self.logger.debug("Writing Dockerfile to /tmp/scan/Dockerfile")
         self.write_dockerfile(job.get("dockerfile"))
-        self.logger.info("Running Dockerfile Lint check")
+        self.logger.debug("Running Dockerfile Lint check")
         self.lint(job)
 
     def write_dockerfile(self, dockerfile):
@@ -32,7 +32,7 @@ class DockerfileLintWorker(BaseWorker):
         Write dockerfile at temporary location to run lint upon
         """
         if os.path.isdir("/tmp/scan"):
-            self.logger.info("/tmp/scan directory already exists")
+            self.logger.debug("/tmp/scan directory already exists")
         elif os.path.isfile("/tmp/scan"):
             os.remove("/tmp/scan")
             os.makedirs("/tmp/scan")
@@ -52,7 +52,7 @@ class DockerfileLintWorker(BaseWorker):
         try:
             out = run_cmd(command)
         except Exception as e:
-            self.logger.error(
+            self.logger.warning(
                 "Dockerfile Lint check failed", extra={'locals': locals()})
             response = {
                 "linter_results": False,
@@ -112,10 +112,10 @@ class DockerfileLintWorker(BaseWorker):
             with open(status_file_path, "w") as fin:
                 json.dump(status, fin)
         except IOError as e:
-            self.logger.critical("Failed to write linter status on NFS share.")
-            self.logger.error(str(e))
+            self.logger.error(
+                "Failed to write linter status on NFS share: {}".format(e))
         else:
-            self.logger.info(
+            self.logger.debug(
                     "Wrote linter status to file: %s" % status_file_path)
 
 

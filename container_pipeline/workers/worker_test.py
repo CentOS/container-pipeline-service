@@ -10,26 +10,31 @@ from container_pipeline.workers.base import BaseWorker
 
 
 class TestWorker(BaseWorker):
-    """Test Worker - Runs the user defined tests on a built container in the pipeline."""
+    """
+    Test Worker - Runs the user defined tests on a built container in the
+    pipeline.
+    """
+    NAME = 'Test worker'
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(TestWorker, self).__init__(logger, sub, pub)
         self.openshift = Openshift(logger=self.logger)
 
     def run_test(self, job):
-        """Run Openshift test build for job, which runs the user defined tests."""
+        """Run Openshift test build for job, which runs the user
+        defined tests."""
         namespace = get_job_name(job)
         project = hashlib.sha224(namespace).hexdigest()
 
         try:
             self.openshift.login()
 
-            #TODO: This needs to be addressed after addressing Issue #276
+            # TODO: This needs to be addressed after addressing Issue #276
             build_id = self.openshift.build(project, 'test')
             if not build_id:
                 return False
         except OpenshiftError as e:
-            logger.error(e)
+            self.logger.error(e)
             return False
 
         Build(namespace).start()
@@ -47,7 +52,7 @@ class TestWorker(BaseWorker):
     def handle_test_failure(self, job):
         """Handle test failure for job"""
         self.queue.put(json.dumps(job))
-        self.logger.info(
+        self.logger.warning(
             "Test is not successful putting it to failed build tube")
         data = {
             'action': 'notify_user',
@@ -64,7 +69,6 @@ class TestWorker(BaseWorker):
 
     def handle_job(self, job):
         """This runs the test worker"""
-        self.logger.info('Starting test for job: {}'.format(job))
         success = self.run_test(job)
 
         if success:

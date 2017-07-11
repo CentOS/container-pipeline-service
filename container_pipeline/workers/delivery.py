@@ -16,6 +16,8 @@ class DeliveryWorker(BaseWorker):
     Delivery Worker tags the image built by Build Worker using the
     `desired-tag` field in index entry
     """
+    NAME = 'Delivery worker'
+
     def __init__(self, logger=None, sub=None, pub=None):
         super(DeliveryWorker, self).__init__(logger, sub, pub)
         self.openshift = Openshift(logger=self.logger)
@@ -47,7 +49,7 @@ class DeliveryWorker(BaseWorker):
             # start the 'delivery' build
             delivery_id = self.openshift.build(project, 'delivery')
         except OpenshiftError as e:
-            logger.error(e)
+            self.logger.error(e)
             return False
         else:
             if not delivery_id:
@@ -69,11 +71,11 @@ class DeliveryWorker(BaseWorker):
         tube
         """
         # Mark project build as complete
-        Build(job['namespace']).complete()
-        self.logger.info('Marked project build: {} as complete.'.format(
+        Build(job['namespace'], logger=self.logger).complete()
+        self.logger.debug('Marked project build: {} as complete.'.format(
             job['namespace']))
-        self.logger.info('Putting job details to master-tube for tracker\'s'
-                         ' consumption')
+        self.logger.debug('Putting job details to master-tube for tracker\'s'
+                          ' consumption')
         job['action'] = 'tracking'
         self.queue.put(json.dumps(job), 'master-tube')
 
@@ -83,7 +85,7 @@ class DeliveryWorker(BaseWorker):
         and requests to notify the user about failure to deliver
         """
         self.queue.put(json.dumps(job))
-        self.logger.critical(
+        self.logger.warning(
             "Delivery is not successful putting it to failed delivery tube")
         data = {
             'action': 'notify_user',
@@ -96,7 +98,6 @@ class DeliveryWorker(BaseWorker):
             'project_name': get_project_name(job),
             'job_name': job['jobid'],
             'TEST_TAG': job['TEST_TAG']}
-        self.logger.debug('Notify delivery failure: {}'.format(data))
         self.notify(data)
 
 

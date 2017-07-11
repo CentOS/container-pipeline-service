@@ -71,7 +71,7 @@ class Openshift(object):
                 'oc delete build,bc,is -n {project} {suffix}'
                 .format(project=project, suffix=self.oc_cmd_suffix))
         except subprocess.CalledProcessError as e:
-            self.logger.debug('Error during cleaning project {}: {}'.format(
+            self.logger.error('Error during cleaning project {}: {}'.format(
                 project, e))
 
     def upload_template(self, project, template_path, template_data):
@@ -115,8 +115,8 @@ class Openshift(object):
                 '{suffix}'.format(
                     project=project, build=build, suffix=self.oc_cmd_suffix)
             )
-            self.logger.debug('Openshift project build run output: {}/{}\n{}'
-                              .format(project, build, output))
+            self.logger.info('Openshift project build run output: {}/{}\n{}'
+                             .format(project, build, output))
             build_id = output.split('"')[-1].rstrip()
             return build_id
         except subprocess.CalledProcessError as e:
@@ -134,8 +134,8 @@ class Openshift(object):
                     suffix=self.oc_cmd_suffix),
                 shell=True
             )
-            self.logger.debug('Openshift build status for: {}/{}\n{}'
-                              .format(project, build_id, output))
+            self.logger.info('Openshift build status for: {}/{}\n{}'
+                             .format(project, build_id, output))
             return output.split()[status_index]
         except subprocess.CalledProcessError as e:
             self.logger.error(
@@ -147,8 +147,8 @@ class Openshift(object):
                               empty_retries=10, retry_delay=30,
                               status_index=3):
         """Wait for openshift project build to reach a desired state"""
-        self.logger.debug('Wait for openshift project build: {}/{} to '
-                          'be: {}'.format(project, build_id, status))
+        self.logger.info('Wait for openshift project build: {}/{} to '
+                         'be: {}'.format(project, build_id, status))
         current_status = None
         empty_retry_count = 0
         while True:
@@ -157,16 +157,16 @@ class Openshift(object):
             if current_status == status:
                 return True
             elif not current_status:
-                self.logger.warning('Failed to fetch build status for: {}/{}'
-                                  .format(project, build_id))
+                self.logger.info('Failed to fetch build status for: {}/{}'
+                                 .format(project, build_id))
                 if empty_retry_count == empty_retries:
                     self.logger.warning(
                         'Exceeded max retries for checking build status for: '
                         '{}/{}. Assuming failure.'.format(project, build_id))
                     return False
                 empty_retry_count += 1
-                self.logger.debug('Retrying {}/{} to check build status for : '
-                                  '{}/{}'.format(
+                self.logger.info('Retrying {}/{} to check build status for : '
+                                 '{}/{}'.format(
                                       empty_retry_count, empty_retries,
                                       project, build_id))
             elif current_status.lower() == 'failed':
@@ -198,7 +198,7 @@ class Openshift(object):
         """
         try:
             self.logger.debug("Deleting pods for project build: {}/{}"
-                             .format(project, build_id))
+                              .format(project, build_id))
             run_cmd(
                 'oc delete pods --namespace {project} build/{build_id}'
                 ' {suffix}'.format(project=project, build_id=build_id,
@@ -206,7 +206,7 @@ class Openshift(object):
             self.logger.info("Deleted pods for project build: {}/{}"
                              .format(project, build_id))
         except subprocess.CalledProcessError as e:
-            self.logger.critical(
+            self.logger.error(
                 'Could not delete pods for project build: '
                 '{}/{}\n{}'.format(project, build_id, e)
             )

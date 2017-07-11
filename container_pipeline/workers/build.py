@@ -14,6 +14,7 @@ from container_pipeline.lib import settings
 
 class BuildWorker(BaseWorker):
     """Build worker"""
+    NAME = 'BUILD WORKER'
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(BuildWorker, self).__init__(logger, sub, pub)
@@ -36,22 +37,22 @@ class BuildWorker(BaseWorker):
         job.pop('last_run_timestamp', None)
 
         for parent in parents:
-            is_build_running = Build(parent).is_running()
+            is_build_running = Build(parent, logger=self.logger).is_running()
             if is_build_running:
                 parents_in_build.append(parent)
             parent_build_running = parent_build_running or \
                 is_build_running
 
         if parent_build_running:
-            self.logger.debug('Parents in build: {}, pushing job: {} back '
-                              'to queue'.format(parents_in_build, job))
+            self.logger.info('Parents in build: {}, pushing job: {} back '
+                             'to queue'.format(parents_in_build, job))
             # Retry delay in seconds
             job['retry'] = True
             job['retry_delay'] = settings.BUILD_RETRY_DELAY
             job['last_run_timestamp'] = time.time()
             self.queue.put(json.dumps(job), 'master_tube')
         else:
-            self.logger.debug('Starting build for job: {}'.format(job))
+            self.logger.info('Starting build for job: {}'.format(job))
             success = self.build(job)
             if success:
                 self.handle_build_success(job)
@@ -69,7 +70,7 @@ class BuildWorker(BaseWorker):
             if not build_id:
                 return False
         except OpenshiftError as e:
-            logger.error(e)
+            self.logger.error(e)
             return False
 
         Build(namespace).start()
@@ -82,12 +83,12 @@ class BuildWorker(BaseWorker):
 
     def handle_build_success(self, job):
         """Handle build success for job"""
-        self.logger.info("Build is successful going for next job")
+        self.logger.debug("Build is successful going for next job")
 
     def handle_build_failure(self, job):
         """Handle build failure for job"""
         self.queue.put(json.dumps(job))
-        self.logger.info(
+        self.logger.warning(
             "Build is not successful putting it to failed build tube")
         data = {
             'action': 'notify_user',
@@ -100,7 +101,6 @@ class BuildWorker(BaseWorker):
             'project_name': get_project_name(job),
             'job_name': job['jobid'],
             'TEST_TAG': job['TEST_TAG']}
-        self.logger.debug('Notify build failure: {}'.format(data))
         self.notify(data)
 
 
