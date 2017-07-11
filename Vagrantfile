@@ -6,6 +6,8 @@ PROD = (ENV['PROD'] || 0).to_i
 HOME = ENV['HOME']
 TAGS = ENV['TAGS'] || false
 LIMIT = ENV['LIMIT'] || false
+VARS = ENV['VARS'] || false
+PLAYBOOK= ENV['PLAYBOOK'] || 'provisions/main.yml'
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.insert_key = false
@@ -70,7 +72,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.limit = 'all'
       ansible.sudo = true
       ansible.inventory_path = inventory_path
-      ansible.playbook = "provisions/vagrant.yml"
+      ansible.playbook = PLAYBOOK
       ansible.raw_arguments = [
           "-u",
           "vagrant",
@@ -82,6 +84,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
       if LIMIT
           ansible.raw_arguments.push('--limit=' + LIMIT)
+      end
+      if VARS
+          ansible.raw_arguments.push('--extra-vars=' + VARS)
       end
     end
   end

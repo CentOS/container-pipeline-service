@@ -16,6 +16,9 @@ scanner_worker
 [scanner_worker]
 192.168.100.100     ansible_ssh_user=vagrant    ansible_ssh_pass=vagrant
 
+[sentry]
+192.168.100.200     ansible_ssh_user=vagrant    ansible_ssh_pass=vagrant
+
 [all:vars]
 cccp_index_repo=https://github.com/rtnpro/container-index.git
 vagrant=True

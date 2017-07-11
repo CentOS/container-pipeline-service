@@ -1,0 +1,67 @@
+---
+- name: Run sentry redis container
+  docker_container:
+      image: redis
+      name: sentry-redis
+  sudo: yes
+
+- name: Run sentry postgres container
+  docker_container:
+      image: postgres
+      name: sentry-postgres
+      env:
+          POSTGRES_PASSWORD: sentry
+          POSTGRES_USER: sentry
+  sudo: yes
+
+- name: Pull sentry image
+  docker_image:
+      name: sentry
+  sudo: yes
+
+- include: initialize.yml
+  tags:
+      - sentry/initialize
+  run_once: yes
+
+- name: Load sentry secret key into vars
+  shell: cat sentry.key
+  register: secret_result
+  sudo: yes
+
+- name: Run sentry server
+  docker_container:
+      name: pipeline-sentry
+      image: sentry
+      links:
+          - sentry-postgres:postgres
+          - sentry-redis:redis
+      ports:
+          - "9000:9000"
+      env:
+          SENTRY_SECRET_KEY: "'{{ secret_result.stdout }}'"
+  sudo: yes
+
+- name: Run sentry cron
+  docker_container:
+      name: sentry-cron
+      image: sentry
+      links:
+          - sentry-postgres:postgres
+          - sentry-redis:redis
+      env:
+          SENTRY_SECRET_KEY: "'{{ secret_result.stdout }}'"
+      command: run cron
+  sudo: yes
+
+- name: Run sentry worker
+  docker_container:
+      name: sentry-worker-1
+      image: sentry
+      links:
+          - sentry-postgres:postgres
+          - sentry-redis:redis
+      env:
+          SENTRY_SECRET_KEY: "'{{ secret_result.stdout }}'"
+      command: run worker
+  sudo: yes
