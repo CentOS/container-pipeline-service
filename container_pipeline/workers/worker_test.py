@@ -3,9 +3,9 @@ import json
 import logging
 import os
 
-from container_pipeline.utils import Build, get_job_name, get_project_name
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
+from container_pipeline.utils import Build, get_job_name, get_project_name
 from container_pipeline.workers.base import BaseWorker
 
 
@@ -51,7 +51,9 @@ class TestWorker(BaseWorker):
 
     def handle_test_failure(self, job):
         """Handle test failure for job"""
-        self.queue.put(json.dumps(job))
+        job.pop('action', None)
+        job['action'] = "test_failure"
+        self.queue.put(json.dumps(job), 'master_tube')
         self.logger.warning(
             "Test is not successful putting it to failed build tube")
         data = {

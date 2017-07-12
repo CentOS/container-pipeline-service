@@ -60,7 +60,7 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
             'depends_on': depends_on,
             'logs_dir': '/srv/pipeline-logs/{}'.format(test_tag),
             'TEST_TAG': test_tag
-        }))
+        }), 'master_tube')
     else:
         logger.error("Jenkins is not able to setup openshift project")
 

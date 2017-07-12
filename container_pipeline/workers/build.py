@@ -4,12 +4,12 @@ import logging
 import os
 import time
 
-from container_pipeline.utils import Build, get_job_name, get_project_name, \
-    get_job_hash
+from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
+from container_pipeline.utils import (Build, get_job_hash, get_job_name,
+                                      get_project_name)
 from container_pipeline.workers.base import BaseWorker
-from container_pipeline.lib import settings
 
 
 class BuildWorker(BaseWorker):
@@ -87,7 +87,9 @@ class BuildWorker(BaseWorker):
 
     def handle_build_failure(self, job):
         """Handle build failure for job"""
-        self.queue.put(json.dumps(job))
+        job.pop('action', None)
+        job['action'] = "build_failure"
+        self.queue.put(json.dumps(job), 'master_tube')
         self.logger.warning(
             "Build is not successful putting it to failed build tube")
         data = {
