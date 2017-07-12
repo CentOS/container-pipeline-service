@@ -46,9 +46,8 @@ class DockerfileLintWorker(BaseWorker):
         """
         Lint the Dockerfile received
         """
-        command = ["docker", "run", "--rm", "-v", "/tmp/scan:/root/scan:Z",
-                   "registry.centos.org/pipeline-images/dockerfile-lint"]
-
+        command = ("docker run --rm -v /tmp/scan:/root/scan:Z "
+                   "registry.centos.org/pipeline-images/dockerfile-lint")
         try:
             out = run_cmd(command)
         except Exception as e:
