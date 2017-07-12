@@ -105,6 +105,12 @@ LOGGING = dict(
             "propagate": False,
             "handlers": ["console", "log_to_file"]
 
+        },
+        'jenkins': {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["console", "log_to_file"]
+
         }
     },
 )

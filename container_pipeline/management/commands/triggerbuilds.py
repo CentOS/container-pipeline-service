@@ -27,7 +27,7 @@ class Command(BaseCommand):
                         continue
                     if (timezone.now() - last_updated).seconds < (
                             settings.CONTAINER_BUILD_TRIGGER_DELAY):
-                        logger.info(
+                        logger.debug(
                             'Waiting for package change burst to complete')
                         time.sleep(settings.CONTAINER_BUILD_TRIGGER_DELAY)
                         continue

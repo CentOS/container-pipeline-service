@@ -9,6 +9,7 @@ from container_pipeline.workers.base import BaseWorker
 class DispatcherWorker(BaseWorker):
     ACTIONS = ('start_build', 'start_scan', 'start_delivery', 'notify_user',
                'report_scan_results', 'start_linter')
+    NAME = 'Dispatcher worker'
 
     def handle_job(self, job):
         """
@@ -16,7 +17,7 @@ class DispatcherWorker(BaseWorker):
         """
         action = job.get('action')
         if action not in self.ACTIONS:
-            self.logger.error('Unknown action: {}'.format(action))
+            self.logger.debug('Unknown action: {}'.format(action))
             return
         # The name of tube and action are same
         self.queue.put(json.dumps(job), action)

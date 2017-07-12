@@ -23,7 +23,7 @@ def retry(delay=30):
                 except beanstalkc.SocketError:
                     obj = args[0]
                     if not error_logged:
-                        obj.logger.error(
+                        obj.logger.warning(
                             'Lost connection to beanstalkd at {}:{}'
                             .format(obj.host, obj.port)
                         )

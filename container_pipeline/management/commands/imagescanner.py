@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            logger.info('Scanning not already scanned images')
+            logger.debug('Scanning not already scanned images')
             filters = {}
             if args:
                 if args[0] != 'onetime':
@@ -84,6 +84,7 @@ class Command(BaseCommand):
             for image in ContainerImage.objects.filter(**filters):
                 try:
                     scan_image(image)
+                    logger.info('Scanned new image: {}'.format(image))
                 except Exception as e:
                     logger.error('Image scan error for %s: %s' % (image, e),
                                  exc_info=True)
@@ -105,7 +106,7 @@ class Command(BaseCommand):
                                 'Error in loading job body: %s' % job.body)
                             job.delete()
                             continue
-                        logger.debug(
+                        logger.info(
                             'Scanning image post delivery for %s'
                             % job_details)
                         image_name = job_details['image_name']

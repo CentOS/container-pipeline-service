@@ -13,6 +13,7 @@ from container_pipeline.lib import settings
 
 class ScanWorker(BaseWorker):
     """Scan Base worker."""
+    NAME = 'Scanner worker'
 
     def handle_job(self, job):
         """
@@ -23,17 +24,17 @@ class ScanWorker(BaseWorker):
         """
         debug_logs_file = os.path.join(
             job["logs_dir"], settings.SERVICE_LOGFILE)
-        dfh = log.DynamicFileHandler(logger, debug_logs_file)
+        dfh = log.DynamicFileHandler(self.logger, debug_logs_file)
 
-        self.logger.info('Got job: {}'.format(job))
         scan_runner_obj = ScannerRunner(job)
         status, scanners_data = scan_runner_obj.scan()
         if not status:
-            logger.critical(
-                "Failed to run scanners on image under test, moving on!"
+            self.logger.warning(
+                "Failed to run scanners on image under test, moving on!",
+                extra=job
             )
         else:
-            self.logger.info(str(scanners_data))
+            self.logger.debug(str(scanners_data))
 
         # Remove the msg and logs from the job_info as they are not
         # needed now
@@ -52,7 +53,7 @@ class ScanWorker(BaseWorker):
             scanners_data["action"] = "start_delivery"
             # Put the job details on central tube
             self.queue.put(json.dumps(scanners_data), 'master_tube')
-            self.logger.info("Put job for delivery on master tube")
+            self.logger.debug("Put job for delivery on master tube")
 
         # remove per file build log handler from logger
         if 'dfh' in locals():

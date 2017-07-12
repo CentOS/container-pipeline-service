@@ -25,7 +25,7 @@ class Command(BaseCommand):
                     os.path.join(os.getcwd(), indexd_path))
         except IndexError:
             indexd_path = settings.INDEXD_PATH
-        logger.info('Fetching image list from index at %s' % indexd_path)
+        logger.debug('Fetching image list from index at %s' % indexd_path)
         projects = get_projects_from_index(indexd_path)
         deps_map = {}
 
@@ -44,7 +44,7 @@ class Command(BaseCommand):
 
         logger.info('Fetched image list from index')
 
-        logger.info('Populating image dependencies')
+        logger.debug('Populating image dependencies')
         # Populate container dependencies
         for image_name, parents in deps_map.items():
             c = ContainerImage.objects.get(name=image_name)

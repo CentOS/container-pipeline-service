@@ -10,12 +10,15 @@ from container_pipeline.lib.log import DynamicFileHandler
 
 class BaseWorker(object):
     """Base class for pipeline workers"""
+    NAME = ''
 
     def __init__(self, logger=None, sub=None, pub=None):
         self.logger = logger or logging.getLogger('console')
         self.queue = JobQueue(host=settings.BEANSTALKD_HOST,
                               port=settings.BEANSTALKD_PORT,
                               sub=sub, pub=pub, logger=self.logger)
+        if not self.NAME:
+            raise Exception('Define name for your worker class!')
 
     def handle_job(self, job):
         """
@@ -32,7 +35,7 @@ class BaseWorker(object):
 
     def export_logs(self, logs, destination):
         """"Write logs in given destination"""
-        self.logger.info('Writing build logs to NFS share')
+        self.logger.info('Writing logs to NFS share')
         # to take care if the logs directory is not created
         if not os.path.exists(os.path.dirname(destination)):
             os.makedirs(os.path.dirname(destination))
@@ -41,12 +44,13 @@ class BaseWorker(object):
             with open(destination, "w") as fin:
                 fin.write(logs)
         except IOError as e:
-            self.logger.critical("Failed writing logs to {}"
-                                 .format(destination))
-            self.logger.error(str(e))
+            self.logger.error("Failed writing logs to {}: {}"
+                              .format(destination, e))
 
     def run(self):
         """Run worker"""
+        self.logger.info('{} running...'.format(self.NAME))
+
         while True:
             job_obj = None
             try:
