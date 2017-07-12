@@ -27,6 +27,9 @@ sys.path.append(os.path.dirname(cp_module_path))
 sys.path.append(cp_module_path)
 
 
+from container_pipeline.models import Project
+from container_pipeline.lib.django import load_dj
+
 jjb_defaults_file = 'project-defaults.yml'
 
 logger = logging.getLogger('jenkins')
@@ -250,6 +253,10 @@ def create_or_update_project_on_jenkins(indexdlocation):
                     error, str(myargs)))
                 logger.critical("Project details: %s ", str(project))
                 exit(1)
+            Project.objects.get_or_create(
+                name='{}-{}-{}'.format(
+                    project['jobid'], project['appid'],
+                    project['desired_tag']))
 
         except Exception as e:
             logger.critical("Error updating jenkins job via file %s",
@@ -324,4 +331,6 @@ def main(indexdlocation):
 
 if __name__ == '__main__':
     load_logger()
+    logger = logging.getLogger('jenkins')
+    load_dj()
     main(sys.argv[1])
