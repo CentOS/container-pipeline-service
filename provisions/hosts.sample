@@ -43,6 +43,8 @@ deployment=production
 # Set log level
 log_level = DEBUG
 
+db_host=jenkins_master
+
 [jenkins_master:vars]
 # update as needed
 oc_slave=jenkins-slave

@@ -21,6 +21,9 @@ from container_pipeline.lib.log import load_logger
 
 from glob import glob
 
+from container_pipeline.models import Project
+from container_pipeline.lib.django import load_dj
+
 jjb_defaults_file = 'project-defaults.yml'
 
 # pathname of file having all project names
@@ -245,6 +248,10 @@ def main(indexdlocation):
                     error, str(myargs)))
                 logger.critical("Project details: %s ", str(project))
                 exit(1)
+            Project.objects.get_or_create(
+                name='{}-{}-{}'.format(
+                    project['jobid'], project['appid'],
+                    project['desired_tag']))
 
             new_projects_names.append(
                 str(project[0]["project"]["appid"]) + "-" +
@@ -281,4 +288,5 @@ def main(indexdlocation):
 if __name__ == '__main__':
     load_logger()
     logger = logging.getLogger('jenkins')
+    load_dj()
     main(sys.argv[1])

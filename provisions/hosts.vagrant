@@ -33,3 +33,4 @@ intranet_registry=192.168.100.200:5000
 setup_nfs=True
 test_nfs_share=192.168.100.200:/nfsshare
 production=False
+db_host=192.168.100.100
