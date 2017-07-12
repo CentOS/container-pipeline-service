@@ -1,12 +1,12 @@
 #!/usr/bin/env python
+"""Create jenkins jobs from the container-index."""
 import os
-import yaml
-import shutil
 import subprocess
-import tempfile
-import warnings
 import sys
+import tempfile
 from glob import glob
+
+import yaml
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -26,7 +26,7 @@ def projectify(
     new_project[0]['project']['git_branch'] = gitbranch
     rel_path = "/"
     if gitpath and gitpath != "/":
-            rel_path = gitpath if gitpath.startswith("/") else (rel_path + gitpath)
+        rel_path = gitpath if gitpath.startswith("/") else (rel_path + gitpath)
     new_project[0]['project']['rel_path'] = rel_path
     new_project[0]['project']['jobs'] = ['cccp-rundotsh-job']
 
@@ -87,6 +87,9 @@ def get_projects_from_index(indexdlocation):
                                 dependson_job = str(dependson)
                             dependson_job = dependson_job.replace(
                                 ':', '-').replace('/', '-')
+
+                        if dependson_job == '':
+                            dependson_job = 'none'
 
                         # overwrite any attributes we care about see:
                         # projectify
