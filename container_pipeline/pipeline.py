@@ -20,7 +20,8 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
     openshift = Openshift(logger=logger)
     try:
         openshift.login("test-admin", "test")
-        openshift.create(project)
+        if not openshift.check_project_existing(project):
+            openshift.create(project)
         openshift.clean_project(project)
     except OpenshiftError:
         try:

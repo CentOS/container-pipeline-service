@@ -43,6 +43,21 @@ class Openshift(object):
             raise OpenshiftError(
                 'Openshift login error: {}'.format(e))
 
+    def check_project_existing(self, project):
+        self.logger.debug(
+            'Check openshift project: {} existing or not'.format(project))
+        is_existing = False
+        try:
+            output = run_cmd(
+                'oc get projects {suffix} | grep {project} | wc -l'
+                .format(project=project, suffix=self.oc_cmd_suffix))
+            if "0" not in output.strip():
+                is_existing = True
+        except subprocess.CalledProcessError as e:
+            self.logger.debug('Error during fetching details for \
+                              openshift project  {}: {}'.format(project, e))
+        return is_existing
+
     def create(self, project):
         self.logger.debug('Create openshift project: {}'.format(project))
         try:
@@ -167,8 +182,8 @@ class Openshift(object):
                 empty_retry_count += 1
                 self.logger.info('Retrying {}/{} to check build status for : '
                                  '{}/{}'.format(
-                                      empty_retry_count, empty_retries,
-                                      project, build_id))
+                                     empty_retry_count, empty_retries,
+                                     project, build_id))
             elif current_status.lower() == 'failed':
                 return False
             else:
