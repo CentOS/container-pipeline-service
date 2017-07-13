@@ -19,3 +19,17 @@ def run_cmd(cmd, shell=False):
         return subprocess.check_output(cmd, shell=True)
     else:
         return subprocess.check_output(cmd.split(), shell=False)
+
+
+def run_cmd_out_err(cmd):
+    """
+    Runs a shell command and returns output & error (if any)
+
+    :param cmd: Command to run
+    :type cmd: tuple or list
+
+    :return: Command output
+    :rtype: str, int
+    """
+    return subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE).communicate()

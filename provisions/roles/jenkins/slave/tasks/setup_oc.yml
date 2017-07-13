@@ -34,7 +34,7 @@
 
 - name: Replace Beanstalk server with its FQDN for dockerfile lint trigger
   replace: >
-      dest=/opt/cccp-service/client/trigger_dockerfile_lint.py
+      dest=/opt/cccp-service/container_pipeline/trigger_dockerfile_lint.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
   tags: application

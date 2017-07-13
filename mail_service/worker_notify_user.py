@@ -248,7 +248,7 @@ class NotifyUser(object):
             # TODO: Better handling and reporting here
             return ""
 
-        if not linter_status["linter_results"]:
+        if not linter_status["lint_status"]:
             # TODO: Better handling and reporting here
             return ""
 
