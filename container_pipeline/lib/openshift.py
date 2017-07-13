@@ -43,15 +43,14 @@ class Openshift(object):
             raise OpenshiftError(
                 'Openshift login error: {}'.format(e))
 
-    def check_project_existing(self, project):
+    def get_project(self, project):
         self.logger.debug(
             'Check openshift project: {} existing or not'.format(project))
         is_existing = False
         try:
             output = run_cmd(
-                'oc get projects {suffix} | grep {project} | wc -l'
-                .format(project=project, suffix=self.oc_cmd_suffix))
-            if "0" not in output.strip():
+                'oc get projects {suffix}'.format(suffix=self.oc_cmd_suffix))
+            if project in output.strip():
                 is_existing = True
         except subprocess.CalledProcessError as e:
             self.logger.debug('Error during fetching details for \
