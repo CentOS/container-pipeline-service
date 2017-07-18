@@ -122,6 +122,10 @@ def export_new_project_names(projects_names):
     with open(projects_list, "w") as fin:
         fin.write(projects_names)
 
+    # change the mod of file so that jenkins user can edit it
+    print "Changing file permission 0777 of file %s" % projects_list
+    run_command(["chmod", "0777", projects_list])
+
 
 def get_old_project_list():
     """
