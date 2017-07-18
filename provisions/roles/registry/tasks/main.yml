@@ -12,3 +12,16 @@
   tags:
     - registry
     - jenkins/slave
+
+- name: Run container for UI for registry.
+  docker_container:
+      image: konradkleine/docker-registry-frontend:v2
+      name: registry-ui
+      state: started
+      pull: yes
+      published_ports: "9000:80"
+      env:
+          ENV_DOCKER_REGISTRY_HOST: "{{ public_registry }}"
+          ENV_DOCKER_REGISTRY_PORT: "5000"
+          ENV_REGISTRY_PROXY_FQDN: "registry.centos.org"
+          ENV_MODE_BROWSE_ONLY: "true"
