@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+import time
 
 import container_pipeline.utils as utils
 from container_pipeline.lib import settings
@@ -22,6 +23,7 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
         openshift.login("test-admin", "test")
         if openshift.get_project(project):
             openshift.delete(project)
+            time.sleep(50)
         openshift.create(project)
     except OpenshiftError:
         try:
