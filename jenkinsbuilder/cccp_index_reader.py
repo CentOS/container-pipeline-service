@@ -119,12 +119,18 @@ def export_new_project_names(projects_names):
     """
     # opens the file defined at the start of this script
     projects_names = "\n".join(projects_names)
-    with open(projects_list, "w") as fin:
-        fin.write(projects_names)
-
-    # change the mod of file so that jenkins user can edit it
-    print "Changing file permission 0777 of file %s" % projects_list
-    run_command(["chmod", "0777", projects_list])
+    try:
+        with open(projects_list, "w") as fin:
+            fin.write(projects_names)
+    except IOError as e:
+        print "Failed to export project names to file %s" % projects_list
+        print "I/O Error {0}:{1}".format(e.errno, e.strerror)
+    except:
+        print "Unexpected error:", sys.exc_info()[0]
+    else:
+        # change the mod of file so that jenkins user can edit it
+        print "Changing file permission 0777 of file %s" % projects_list
+        run_command(["chmod", "0777", projects_list])
 
 
 def get_old_project_list():
