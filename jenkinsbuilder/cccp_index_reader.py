@@ -108,7 +108,9 @@ def get_projects_from_index(indexdlocation):
                                 dependson, notifyemail, desiredtag)
                         )
                     except Exception as e:
-                        print e
+                        print "Failed to projectify %s" % str(project)
+                        print str(e)
+                        print sys.exc_info()[0]
                         raise
     return projects
 
@@ -122,15 +124,16 @@ def export_new_project_names(projects_names):
     try:
         with open(projects_list, "w") as fin:
             fin.write(projects_names)
+        # change the mod of file so that jenkins user can edit it
+        print "Exported current projects list to file %s" % projects_list
+        print "Changing file permission 0777 of file %s" % projects_list
+        run_command(["chmod", "0777", projects_list])
     except IOError as e:
         print "Failed to export project names to file %s" % projects_list
         print "I/O Error {0}:{1}".format(e.errno, e.strerror)
     except:
+        print "Failed to export project names to file %s" % projects_list
         print "Unexpected error:", sys.exc_info()[0]
-    else:
-        # change the mod of file so that jenkins user can edit it
-        print "Changing file permission 0777 of file %s" % projects_list
-        run_command(["chmod", "0777", projects_list])
 
 
 def get_old_project_list():
@@ -143,9 +146,18 @@ def get_old_project_list():
         print "%s does not exist. This is first run or file is absent." \
             % projects_list
         return []
-    with open(projects_list) as fin:
-        old_projects = fin.read()
-    return list(set(old_projects.strip().split("\n")))
+    try:
+        with open(projects_list) as fin:
+            old_projects = fin.read()
+        return list(set(old_projects.strip().split("\n")))
+    except IOError as e:
+        print "Failed to read project names from file: %s" % projects_list
+        print "I/O Error {0}:{1}".format(e.errno, e.strerror)
+        return []
+    except:
+        print "Failed to read project names from file: %s" % projects_list
+        print "Unexpected error:", sys.exc_info()[0]
+        return []
 
 
 def find_stale_projects(old, new):
@@ -165,17 +177,13 @@ def delete_stale_projects_on_jenkins(stale_projects):
     for project in stale_projects:
         myargs = ["jenkins-jobs", "delete", project]
         # print either output or error
-        print run_command(myargs)
-
-
-def delete_stale_projects_on_openshift():
-    """
-    Stale projects found on jenkins need to be deleted
-    accordingly on OpenShift as well. This function maps
-    the project names from jenkins to openshift and deletes them.
-    (see delete_stale_projects_on_jenkins function)
-    """
-    pass
+        out, error = run_command(myargs)
+        if error:
+            print "Failed to delete project %s" % project
+            print sys.exc_info()[0]
+            exit(1)
+            # if a job fails to be deleted from jenkins it will create issues
+            # cccp-index job at jenkins needs to fail and be notified
 
 
 def run_command(command):
@@ -217,8 +225,13 @@ def main(indexdlocation):
                 str(project[0]["project"]["jobid"]) + "-" +
                 str(project[0]["project"]["desired_tag"])
             )
-        finally:
-            pass
+        except Exception as e:
+            print "Error updating jenkins job via file %s" % generated_filename
+            print str(e)
+            # if jenkins job update fails, the cccp-index job should fail
+            print sys.exc_info()[0]
+            raise
+
     # get list of old projects
     old_projects = get_old_project_list()
 
@@ -228,13 +241,10 @@ def main(indexdlocation):
         list(set(new_projects_names))
     )
 
-    print stale_projects
+    print "List of stale projects: %s " % str(stale_projects)
 
     # delete stale entries at jenkins
     delete_stale_projects_on_jenkins(stale_projects)
-
-    # delete stale entries at openshift
-    delete_stale_projects_on_openshift()
 
     # export the current projects_list in file
     export_new_project_names(new_projects_names)
