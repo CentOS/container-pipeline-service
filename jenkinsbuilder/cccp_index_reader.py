@@ -185,7 +185,7 @@ def delete_stale_projects_on_jenkins(stale_projects):
     for project in stale_projects:
         myargs = ["jenkins-jobs", "delete", project]
         # print either output or error
-        out, error = run_command(myargs)
+        _, error = run_command(myargs)
         if error:
             logger.critical("Failed to delete project %s. Exiting..", project)
             logger.critical(sys.exc_info()[0])
@@ -228,7 +228,12 @@ def main(indexdlocation):
                       ':'.join(
                           [jjb_defaults_file, generated_filename])
                       ]
-            run_command(myargs)
+            _, error = run_command(myargs)
+            if error:
+                logger.critical("Error %s running command %s" % (
+                    error, str(myargs)))
+                logger.critical("Project details: %s ", str(project))
+                exit(1)
 
             new_projects_names.append(
                 str(project[0]["project"]["appid"]) + "-" +
@@ -238,6 +243,7 @@ def main(indexdlocation):
         except Exception as e:
             logger.critical("Error updating jenkins job via file %s",
                             generated_filename)
+            logger.critical("Project details: %s", str(project))
             logger.critical(str(e))
             # if jenkins job update fails, the cccp-index job should fail
             logger.critical(sys.exc_info()[0])
