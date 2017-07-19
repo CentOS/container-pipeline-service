@@ -25,7 +25,6 @@
           - "{{ ansible_env.HOME }}/redis.conf:/redis-master/redis.conf"
   sudo: yes
 
-
 - name: Run sentry postgres container
   docker_container:
       image: registry.centos.org/postgresql/postgresql:9.6
@@ -34,6 +33,8 @@
           POSTGRESQL_PASSWORD: '{{ sentry_db_password }}'
           POSTGRESQL_USER: '{{ sentry_db_user }}'
           POSTGRESQL_DATABASE: '{{ sentry_db_name }}'
+      volumes:
+          - sentry-pg-data:/var/lib/pgsql/data
   sudo: yes
 
 - name: Pull sentry image
