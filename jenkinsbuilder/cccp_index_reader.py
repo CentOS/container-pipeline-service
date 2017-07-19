@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 """Create jenkins jobs from the container-index."""
+
+import logging
 import os
 import subprocess
 import sys
 import tempfile
-from glob import glob
-
 import yaml
+
+from container_pipeline.lib.log import load_logger
+
+from glob import glob
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -108,9 +112,10 @@ def get_projects_from_index(indexdlocation):
                                 dependson, notifyemail, desiredtag)
                         )
                     except Exception as e:
-                        print "Failed to projectify %s" % str(project)
-                        print str(e)
-                        print sys.exc_info()[0]
+                        logger.critical("Failed to projectify %s" %
+                                        str(project))
+                        logger.critical(str(e))
+                        logger.critical(sys.exc_info()[0])
                         raise
     return projects
 
@@ -125,15 +130,17 @@ def export_new_project_names(projects_names):
         with open(projects_list, "w") as fin:
             fin.write(projects_names)
         # change the mod of file so that jenkins user can edit it
-        print "Exported current projects list to file %s" % projects_list
-        print "Changing file permission 0777 of file %s" % projects_list
+        logger.info("Exported current projects list to file %s", projects_list)
+        logger.debug("Changing file permission 0777 of file %s", projects_list)
         run_command(["chmod", "0777", projects_list])
     except IOError as e:
-        print "Failed to export project names to file %s" % projects_list
-        print "I/O Error {0}:{1}".format(e.errno, e.strerror)
+        logger.error("Failed to export project names to file %s" %
+                     projects_list)
+        logger.error("I/O Error {0}:{1}".format(e.errno, e.strerror))
     except:
-        print "Failed to export project names to file %s" % projects_list
-        print "Unexpected error:", sys.exc_info()[0]
+        logger.error("Failed to export project names to file %s" %
+                     projects_list)
+        logger.error("Unexpected error:%s", sys.exc_info()[0])
 
 
 def get_old_project_list():
@@ -143,20 +150,21 @@ def get_old_project_list():
     if it can not find the project list.
     """
     if not os.path.exists(projects_list):
-        print "%s does not exist. This is first run or file is absent." \
-            % projects_list
+        logger.warning("%s is absent. It could be first run.", projects_list)
         return []
     try:
         with open(projects_list) as fin:
             old_projects = fin.read()
         return list(set(old_projects.strip().split("\n")))
     except IOError as e:
-        print "Failed to read project names from file: %s" % projects_list
-        print "I/O Error {0}:{1}".format(e.errno, e.strerror)
+        logger.error("Failed to read project names from file: %s",
+                     projects_list)
+        logger.error("I/O Error {0}:{1}".format(e.errno, e.strerror))
         return []
     except:
-        print "Failed to read project names from file: %s" % projects_list
-        print "Unexpected error:", sys.exc_info()[0]
+        logger.error("Failed to read project names from file: %s",
+                     projects_list)
+        logger.error("Unexpected error: %s", sys.exc_info()[0])
         return []
 
 
@@ -179,11 +187,12 @@ def delete_stale_projects_on_jenkins(stale_projects):
         # print either output or error
         out, error = run_command(myargs)
         if error:
-            print "Failed to delete project %s" % project
-            print sys.exc_info()[0]
+            logger.critical("Failed to delete project %s. Exiting..", project)
+            logger.critical(sys.exc_info()[0])
             exit(1)
             # if a job fails to be deleted from jenkins it will create issues
             # cccp-index job at jenkins needs to fail and be notified
+    logger.info("Deleted stale projects successfully.")
 
 
 def run_command(command):
@@ -200,9 +209,7 @@ def main(indexdlocation):
     new_projects_names = []
     for project in get_projects_from_index(indexdlocation):
         try:
-            # workdir = os.path.join(t, gitpath)
             t = tempfile.mkdtemp()
-            # print "creating: {}".format(t)
             generated_filename = os.path.join(
                 t,
                 'cccp_GENERATED.yaml'
@@ -212,6 +219,9 @@ def main(indexdlocation):
             with open(generated_filename, 'w') as outfile:
                 yaml.dump(project, outfile)
             # run jenkins job builder
+            logger.info(
+                "Updating jenkins-job of project {0} via file {1}".format(
+                    project, outfile))
             myargs = ['jenkins-jobs',
                       '--ignore-cache',
                       'update',
@@ -226,10 +236,11 @@ def main(indexdlocation):
                 str(project[0]["project"]["desired_tag"])
             )
         except Exception as e:
-            print "Error updating jenkins job via file %s" % generated_filename
-            print str(e)
+            logger.critical("Error updating jenkins job via file %s",
+                            generated_filename)
+            logger.critical(str(e))
             # if jenkins job update fails, the cccp-index job should fail
-            print sys.exc_info()[0]
+            logger.critical(sys.exc_info()[0])
             raise
 
     # get list of old projects
@@ -240,14 +251,17 @@ def main(indexdlocation):
         old_projects,
         list(set(new_projects_names))
     )
-
-    print "List of stale projects: %s " % str(stale_projects)
+    logger.info("List of stale projects: %s ", str(stale_projects))
 
     # delete stale entries at jenkins
+    logger.debug("Deleting stale projects.")
     delete_stale_projects_on_jenkins(stale_projects)
 
     # export the current projects_list in file
+    logger.debug("Exporting current project names.")
     export_new_project_names(new_projects_names)
 
 if __name__ == '__main__':
+    load_logger()
+    logger = logging.getLogger('jenkins')
     main(sys.argv[1])
