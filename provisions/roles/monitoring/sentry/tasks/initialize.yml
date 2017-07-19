@@ -1,6 +1,6 @@
 ---
 - name: Create secret key if not already there
-  shell: docker run --rm sentry config generate-secret-key > sentry.key
+  shell: docker run --rm registry.centos.org/centos/sentry:8.16 config generate-secret-key > sentry.key
   sudo: yes
   run_once: true
 
@@ -10,10 +10,26 @@
   sudo: yes
 
 - name: Run sentry upgrade
-  shell: "docker run --rm -e SENTRY_SECRET_KEY='{{ secret_result.stdout }}' --link sentry-postgres:postgres --link sentry-redis:redis sentry upgrade --noinput"
+  shell: >
+      docker run --rm
+      -e SENTRY_DB_USER={{ sentry_db_user }}
+      -e SENTRY_DB_PASSWORD={{ sentry_db_password }}
+      -e SENTRY_DB_NAME={{ sentry_db_name }}
+      -e SENTRY_SECRET_KEY='{{ secret_result.stdout }}'
+      --link sentry-postgres:postgres
+      --link sentry-redis:redis
+      registry.centos.org/centos/sentry:8.16 upgrade --noinput
   sudo: yes
 
 - name: Create super user for sentry
-  shell: "docker run --rm -e SENTRY_SECRET_KEY='{{ secret_result.stdout }}' --link sentry-postgres:postgres --link sentry-redis:redis sentry createuser --email {{ sentry_admin_email }} --password {{ sentry_admin_password }} --superuser --no-input"
+  shell: >
+      docker run --rm
+      -e SENTRY_DB_USER={{ sentry_db_user }}
+      -e SENTRY_DB_PASSWORD={{ sentry_db_password }}
+      -e SENTRY_DB_NAME={{ sentry_db_name }}
+      -e SENTRY_SECRET_KEY='{{ secret_result.stdout }}'
+      --link sentry-postgres:postgres
+      --link sentry-redis:redis
+      registry.centos.org/centos/sentry:8.16 createuser --email {{ sentry_admin_email }} --password {{ sentry_admin_password }} --superuser --no-input
   ignore_errors: yes
   sudo: yes
