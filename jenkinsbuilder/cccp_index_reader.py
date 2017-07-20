@@ -8,6 +8,15 @@ import sys
 import tempfile
 import yaml
 
+# populate container_pipeline module path
+cp_module_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "container_pipeline"
+        )
+# add path of modules to system path for imports
+sys.path.append(os.path.dirname(cp_module_path))
+sys.path.append(cp_module_path)
+
 from container_pipeline.lib.log import load_logger
 
 from glob import glob
