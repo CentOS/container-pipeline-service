@@ -19,6 +19,13 @@
   sudo: yes
   tags: scanner
 
+# Patch from https://github.com/projectatomic/atomic/pull/1037
+- name: Patch atomic scan to unmount container image's rootfs
+  lineinfile:
+      dest: /usr/lib/python2.7/site-packages/Atomic/scan.py
+      insertafter: "mcmd = ['mount', '-o', 'ro,bind', _dir, chroot_scan_dir]"
+      line: "            self.mount_paths[chroot_scan_dir] = chroot_scan_dir"
+
 - name: Install docker
   yum: name=docker state=present
   sudo: yes
