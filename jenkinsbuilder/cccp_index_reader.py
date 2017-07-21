@@ -48,7 +48,7 @@ def get_projects_from_index(indexdlocation):
     for yamlfile in glob(indexdlocation + "/*.yml"):
         if "index_template" not in yamlfile:
             stream = open(yamlfile, 'r')
-            index_yaml = yaml.load(stream)
+            index_yaml = yaml.load(stream, Loader=yaml.BaseLoader)
             stream.close()
             # print index_yaml['Projects']
 
@@ -73,6 +73,8 @@ def get_projects_from_index(indexdlocation):
                                 else 'latest'
                         except Exception:
                             desiredtag = 'latest'
+
+                        desiredtag = str(desiredtag)
                         new_proj = [{'project': {}}]
 
                         appid = appid.replace(
