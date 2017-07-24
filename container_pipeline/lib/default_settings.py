@@ -111,6 +111,11 @@ LOGGING = dict(
             "propagate": False,
             "handlers": ["console", "log_to_file"]
 
+        },
+        'cccp-index-reader': {
+            "level": "DEBUG",
+            "propogate": False,
+            "handlers": ["console", "log_to_file"]
         }
     },
 )

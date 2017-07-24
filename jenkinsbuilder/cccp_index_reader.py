@@ -1,14 +1,35 @@
 #!/usr/bin/env python
 """Create jenkins jobs from the container-index."""
+
+import logging
 import os
 import subprocess
 import sys
 import tempfile
-from glob import glob
-
 import yaml
 
+# populate container_pipeline module path
+cp_module_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "container_pipeline"
+        )
+# add path of modules to system path for imports
+sys.path.append(os.path.dirname(cp_module_path))
+sys.path.append(cp_module_path)
+
+from container_pipeline.lib.log import load_logger
+
+from glob import glob
+
 jjb_defaults_file = 'project-defaults.yml'
+
+# pathname of file having all project names
+# this file will be generated after first run
+# and will reside in same directory as of this python file
+projects_list = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)),
+    "all_projects_names.txt"
+)
 
 required_attrs = ['image_name', 'image_version']
 optional_attrs = ['rundotshargs']
@@ -102,16 +123,104 @@ def get_projects_from_index(indexdlocation):
                                 dependson, notifyemail, desiredtag)
                         )
                     except Exception as e:
+                        logger.critical("Failed to projectify %s" %
+                                        str(project))
+                        logger.critical(str(e))
+                        logger.critical(sys.exc_info()[0])
                         raise
     return projects
 
 
+def export_new_project_names(projects_names):
+    """
+    Exports the name of project
+    """
+    # opens the file defined at the start of this script
+    projects_names = "\n".join(projects_names)
+    try:
+        with open(projects_list, "w") as fin:
+            fin.write(projects_names)
+        # change the mod of file so that jenkins user can edit it
+        logger.info("Exported current projects list to file %s", projects_list)
+        logger.debug("Changing file permission 0777 of file %s", projects_list)
+        run_command(["chmod", "0777", projects_list])
+    except IOError as e:
+        logger.error("Failed to export project names to file %s" %
+                     projects_list)
+        logger.error("I/O Error {0}:{1}".format(e.errno, e.strerror))
+    except:
+        logger.error("Failed to export project names to file %s" %
+                     projects_list)
+        logger.error("Unexpected error:%s", sys.exc_info()[0])
+
+
+def get_old_project_list():
+    """
+    This function retuns the list of projects that were indexed
+    during last run of cccp-index job. It returns [] empty list
+    if it can not find the project list.
+    """
+    if not os.path.exists(projects_list):
+        logger.warning("%s is absent. It could be first run.", projects_list)
+        return []
+    try:
+        with open(projects_list) as fin:
+            old_projects = fin.read()
+        return list(set(old_projects.strip().split("\n")))
+    except IOError as e:
+        logger.error("Failed to read project names from file: %s",
+                     projects_list)
+        logger.error("I/O Error {0}:{1}".format(e.errno, e.strerror))
+        return []
+    except:
+        logger.error("Failed to read project names from file: %s",
+                     projects_list)
+        logger.error("Unexpected error: %s", sys.exc_info()[0])
+        return []
+
+
+def find_stale_projects(old, new):
+    """
+    This function diffs the old project list with new project
+    list. And returns the list of project names to be deleted
+    """
+    return list(set(old) - set(new))
+
+
+def delete_stale_projects_on_jenkins(stale_projects):
+    """
+    This function deletes the stale entries at jenkins that
+    are no longer valid. If there is any issue/exception, it
+    bypasses by printing the error.
+    """
+    for project in stale_projects:
+        myargs = ["jenkins-jobs", "delete", project]
+        # print either output or error
+        _, error = run_command(myargs)
+        if error:
+            logger.critical("Failed to delete project %s. Exiting..", project)
+            logger.critical(sys.exc_info()[0])
+            exit(1)
+            # if a job fails to be deleted from jenkins it will create issues
+            # cccp-index job at jenkins needs to fail and be notified
+    logger.info("Deleted stale projects successfully.")
+
+
+def run_command(command):
+    """
+    runs the given shell command using subprocess
+    """
+    proc = subprocess.Popen(command,
+                            stdout=subprocess.PIPE)
+
+    return proc.communicate()
+
+
 def main(indexdlocation):
+    new_projects_names = []
     for project in get_projects_from_index(indexdlocation):
         try:
-            # workdir = os.path.join(t, gitpath)
             t = tempfile.mkdtemp()
-            print "creating: {}".format(t)
             generated_filename = os.path.join(
                 t,
                 'cccp_GENERATED.yaml'
@@ -120,23 +229,56 @@ def main(indexdlocation):
             # projectify
             with open(generated_filename, 'w') as outfile:
                 yaml.dump(project, outfile)
-
             # run jenkins job builder
+            logger.info(
+                "Updating jenkins-job of project {0} via file {1}".format(
+                    project, outfile))
             myargs = ['jenkins-jobs',
                       '--ignore-cache',
                       'update',
                       ':'.join(
                           [jjb_defaults_file, generated_filename])
                       ]
-            print myargs
-            proc = subprocess.Popen(myargs,
-                                    stdout=subprocess.PIPE)
-            proc.communicate()
+            _, error = run_command(myargs)
+            if error:
+                logger.critical("Error %s running command %s" % (
+                    error, str(myargs)))
+                logger.critical("Project details: %s ", str(project))
+                exit(1)
 
-        finally:
-            print "Removing {}".format(t)
-            # shutil.rmtree(t)
+            new_projects_names.append(
+                str(project[0]["project"]["appid"]) + "-" +
+                str(project[0]["project"]["jobid"]) + "-" +
+                str(project[0]["project"]["desired_tag"])
+            )
+        except Exception as e:
+            logger.critical("Error updating jenkins job via file %s",
+                            generated_filename)
+            logger.critical("Project details: %s", str(project))
+            logger.critical(str(e))
+            # if jenkins job update fails, the cccp-index job should fail
+            logger.critical(sys.exc_info()[0])
+            raise
 
+    # get list of old projects
+    old_projects = get_old_project_list()
+
+    # find stale projects
+    stale_projects = find_stale_projects(
+        old_projects,
+        list(set(new_projects_names))
+    )
+    logger.info("List of stale projects: %s ", str(stale_projects))
+
+    # delete stale entries at jenkins
+    logger.debug("Deleting stale projects.")
+    delete_stale_projects_on_jenkins(stale_projects)
+
+    # export the current projects_list in file
+    logger.debug("Exporting current project names.")
+    export_new_project_names(new_projects_names)
 
 if __name__ == '__main__':
+    load_logger()
+    logger = logging.getLogger('jenkins')
     main(sys.argv[1])
