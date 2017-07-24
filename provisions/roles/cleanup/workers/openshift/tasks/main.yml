@@ -1,0 +1,6 @@
+---
+- name: Stop mail-service
+  docker_container:
+      name: mail-server
+      state: absent
+  sudo: yes

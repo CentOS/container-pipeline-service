@@ -1,0 +1,4 @@
+---
+- name: Stop jenkins service
+  service: name=jenkins state=stopped
+  sudo: yes

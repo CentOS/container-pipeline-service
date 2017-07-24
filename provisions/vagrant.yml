@@ -1,4 +1,7 @@
 ---
+- include: cleanup.yml
+  tags:
+      - cleanup
 - name: Perform common tasks for all hosts
   hosts: all
   tasks:
