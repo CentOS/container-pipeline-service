@@ -41,16 +41,16 @@ https://wiki.centos.org/ContainerPipeline
 """
 
 SUCCESS_EMAIL_MSG = """
-Build status:   Success
-Image:          %s
-Build logs:     %s
+Build status:\t\tSuccess
+Image:\t\t%s
+Build logs:\t\t%s
 """
 
 FAILURE_EMAIL_MSG = """
 Container build %s is failed due to error in build or test steps.
 
-Build status:   Failure
-Build logs:     %s
+Build status:\t\tFailure
+Build logs:\t\t%s
 """
 
 LINTER_RESULTS = """
