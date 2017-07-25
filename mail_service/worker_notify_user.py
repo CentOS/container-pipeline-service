@@ -128,26 +128,22 @@ class NotifyUser(object):
     def update_subject_of_email(self, subject):
         """
         Mail server container is created with a environment variable
-        "PRODUCTION", its value is either True or False (Bool).
+        "ENVIRONMENT", its value should be among [production,pre-prod,test].
+        If given production as value, the subject is kept intact, else
+        the value is pre-pended with the subject. Like [test] SUCCESS [..]
         """
-        # Default case (if no env var found): It is production.
-        # PRODUCTION = "True" : no prepending
-        # PRODUCTION = "False" or any other value : prepend [test] in subject
+        environment = os.environ.get("ENVIRONMENT", False)
 
-        # if var's value is "True" and even if the env variable is not found
-        # (since first priority is production)
+        # if environment variable is not found, consider production
+        if not environment:
+            return subject
 
-        if not os.environ.get("PRODUCTION", False) or \
-           os.environ.get("PRODUCTION") == "True":
-            # production
-
-            # no change
+        # case insensitive check for string 'production'
+        elif environment.strip().lower() == "production":
+            # default is production environment
             return subject
         else:
-            # for any other value of "PRODUCTION" environment variable if set
-
-            # alter subject
-            return "[test] " + subject
+            return "[" + environment + "] " + subject
 
     def send_email(self, subject, contents):
         "Sends email to user"
