@@ -2,11 +2,10 @@
 - name: Setup openshift registry
   command: "{{item}}"
   with_items:
-    - oadm registry -n default --config={{ openshift_dir }}/admin.kubeconfig
+    - oc adm registry --config={{ kubeconfig }}
     - oadm policy add-scc-to-group anyuid system:authenticated
   environment:
     KUBECONFIG: "{{ kubeconfig }}"
-  ignore_errors: yes
 
 - name: Wait for Openshift Registry to come up
   pause: seconds={{ openshift_startup_delay }}
@@ -14,11 +13,10 @@
 - name: Setup openshift router
   shell: "{{ item }}"
   with_items:
-    - oc get scc privileged -o json | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f -
-    - oadm router --create --credentials={{ openshift_dir }}/openshift-router.kubeconfig --service-account=router
+    - oc get scc privileged -o json --config={{ kubeconfig }}| sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc --config={{ kubeconfig }} replace scc privileged -f -
+    - oadm router --config={{ kubeconfig }} --service-account=router
   environment:
     KUBECONFIG: "{{ kubeconfig }}"
-  ignore_errors: yes
 
 - name: Wait for Openshift Router to come up
   pause: seconds={{ openshift_startup_delay }}
