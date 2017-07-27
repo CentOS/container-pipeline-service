@@ -15,7 +15,7 @@
 
 - name: Run container for UI for registry.
   docker_container:
-      image: konradkleine/docker-registry-frontend:v2
+      image: pipeline-images/docker-registry-frontend:v2
       name: registry-ui
       state: started
       pull: yes
