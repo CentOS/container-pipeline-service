@@ -132,19 +132,19 @@ class NotifyUser(object):
         If given production as value, the subject is kept intact, else
         the value is pre-pended with the subject. Like [test] SUCCESS [..]
         """
-        environment = os.environ.get("ENVIRONMENT", False)
+        deployment = os.environ.get("DEPLOYMENT", False)
 
-        logger.debug("Got environment variable ENVIRONMENT=%s", environment)
+        logger.debug("Got environment variable DEPLOYMENT=%s", deployment)
         # if environment variable is not found, consider production
-        if not environment:
+        if not deployment:
             return subject
 
         # case insensitive check for string 'production'
-        elif environment.strip().lower() == "production":
+        elif deployment.strip().lower() == "production":
             # default is production environment
             return subject
         else:
-            return "[" + environment + "] " + subject
+            return "[" + deployment + "] " + subject
 
     def send_email(self, subject, contents):
         "Sends email to user"
