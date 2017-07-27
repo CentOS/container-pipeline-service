@@ -28,8 +28,8 @@ SUCCESS_EMAIL_SUBJECT = "SUCCESS: Container build: %s is complete"
 FAILURE_EMAIL_SUBJECT = "FAILED: Container build: %s is failed"
 WEEKLY_EMAIL_SUBJECT = "Weekly scanning results for image: %s"
 
-EMAIL_HEADER = """
-CentOS Community Container Pipeline Service <https://github.com/centos/container-index>"""
+EMAIL_HEADER = ("CentOS Community Container Pipeline Service "
+                "<https://github.com/centos/container-index>")
 
 EMAIL_HEADER = EMAIL_HEADER + "\n" + "=" * (len(EMAIL_HEADER) - 22)
 
@@ -134,6 +134,7 @@ class NotifyUser(object):
         """
         environment = os.environ.get("ENVIRONMENT", False)
 
+        logger.debug("Got environment variable ENVIRONMENT=%s", environment)
         # if environment variable is not found, consider production
         if not environment:
             return subject
