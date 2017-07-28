@@ -42,7 +42,7 @@ https://wiki.centos.org/ContainerPipeline
 
 SUCCESS_EMAIL_MSG = """
 Build status:\t\tSuccess
-Image:\t\t%s
+Image:\t\t\t%s
 Build logs:\t\t%s
 """
 
