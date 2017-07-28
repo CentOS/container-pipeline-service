@@ -34,4 +34,4 @@
       volumes:
         /srv/pipeline-logs:/srv/pipeline-logs:rw
       env:
-        ENVIRONMENT: "{{deployment}}"
+        DEPLOYMENT: "{{deployment}}"
