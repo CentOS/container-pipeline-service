@@ -54,6 +54,7 @@ def trigger_dockerfile_linter(appid, jobid, repo_url, repo_branch,
 
         queue.put(json.dumps(response), tube="master_tube")
         print "==>Put job on 'master_tube' tube"
+        return False
     else:
         lint_job_data = {
             "appid": appid,
@@ -73,3 +74,4 @@ def trigger_dockerfile_linter(appid, jobid, repo_url, repo_branch,
         }
 
         queue.put(json.dumps(lint_job_data), tube="master_tube")
+        return True

@@ -126,24 +126,9 @@ class DockerfileLintWorker(BaseWorker):
         }
 
         # remove Dockerfile from the job data as it's not needed anymore
-        if self.job.has_key("dockerfile"):
+        if "dockerfile" in self.job:
             self.logger.info("Deleting 'dockerfile' data from job")
             del(self.job["dockerfile"])
-
-        # create the OpenShift project
-        self.logger.info("Creating project in OpenShift")
-        create_project(
-            self.job.get('appid'),
-            self.job.get('jobid'),
-            self.job.get('repo_url'),
-            self.job.get('repo_branch'),
-            self.job.get('repo_build_path'),
-            self.job.get('target_file'),
-            self.job.get('notify_email'),
-            self.job.get('desired_tag'),
-            self.job.get('depends_on'),
-            self.job.get('test_tag')
-        )
 
         self.job["action"] = "start_build"
         self.logger.info("Putting job to build tube")

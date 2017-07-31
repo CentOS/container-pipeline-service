@@ -50,8 +50,13 @@ if __name__ == '__main__':
      target_file, notify_email, desired_tag, depends_on,
      test_tag) = sys.argv[1:]
     try:
-        trigger_dockerfile_linter(appid, jobid, repo_url, repo_branch,
-                                  repo_build_path, target_file, notify_email,
-                                  desired_tag, depends_on, test_tag)
+        linter_status = trigger_dockerfile_linter(
+            appid, jobid, repo_url, repo_branch,
+            repo_build_path, target_file, notify_email,
+            desired_tag, depends_on, test_tag)
+        if linter_status:
+            create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
+                           target_file, notify_email, desired_tag, depends_on,
+                           test_tag)
     except OpenshiftError:
         sys.exit(1)
