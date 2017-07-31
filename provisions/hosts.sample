@@ -16,6 +16,9 @@ openshift
 [scanner_worker]
 scanner_worker
 
+[sentry]
+jenkins_master
+
 [all:vars]
 # update as needed
 public_registry=jenkins-slave

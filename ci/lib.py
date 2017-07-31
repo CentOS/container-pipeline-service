@@ -114,7 +114,7 @@ class ProvisionHandler(object):
             "cd {workdir} && "
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
             "-u {user} -s {private_key_args} {extra_args} "
-            "provisions/vagrant.yml"
+            "provisions/main.yml"
         ).format(workdir=workdir, inventory=inventory, user=user,
                  private_key_args=private_key_args,
                  extra_args=extra_args)

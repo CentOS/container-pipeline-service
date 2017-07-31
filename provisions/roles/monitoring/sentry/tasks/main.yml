@@ -1,0 +1,99 @@
+---
+- name: Ensure redis container image is present
+  docker_image:
+      name: registry.centos.org/centos/redis:latest
+  sudo: yes
+
+- name: Copy redis conf file
+  shell: >
+      docker run --rm --entrypoint cat registry.centos.org/centos/redis:latest /redis-master/redis.conf > {{ ansible_env.HOME }}/redis.conf
+  sudo: yes
+
+- name: Disable redis protection-mode in conf
+  lineinfile: dest="{{ ansible_env.HOME }}/redis.conf" regexp="protected-mode" line="protected-mode no"
+  sudo: yes
+
+- name: Run sentry redis container
+  docker_container:
+      image: registry.centos.org/centos/redis:latest
+      name: sentry-redis
+      env:
+          MASTER: 'true'
+      ports:
+          - "6379:6379"
+      volumes:
+          - "{{ ansible_env.HOME }}/redis.conf:/redis-master/redis.conf"
+  sudo: yes
+
+- name: Run sentry postgres container
+  docker_container:
+      image: registry.centos.org/postgresql/postgresql:9.6
+      name: sentry-postgres
+      env:
+          POSTGRESQL_PASSWORD: '{{ sentry_db_password }}'
+          POSTGRESQL_USER: '{{ sentry_db_user }}'
+          POSTGRESQL_DATABASE: '{{ sentry_db_name }}'
+      volumes:
+          - sentry-pg-data:/var/lib/pgsql/data
+  sudo: yes
+
+- name: Pull sentry image
+  docker_image:
+      name: registry.centos.org/centos/sentry:8.16
+  sudo: yes
+
+- include: initialize.yml
+  tags:
+      - sentry/initialize
+  run_once: yes
+
+- name: Load sentry secret key into vars
+  shell: cat sentry.key
+  register: secret_result
+  sudo: yes
+
+- name: Run sentry server
+  docker_container:
+      name: pipeline-sentry
+      image: registry.centos.org/centos/sentry:8.16
+      links:
+          - sentry-postgres:postgres
+          - sentry-redis:redis
+      ports:
+          - "9000:9000"
+      env:
+          SENTRY_SECRET_KEY: "'{{ secret_result.stdout }}'"
+          SENTRY_DB_NAME: '{{ sentry_db_name }}'
+          SENTRY_DB_USER: '{{ sentry_db_user }}'
+          SENTRY_DB_PASSWORD: '{{ sentry_db_password }}'
+  sudo: yes
+
+- name: Run sentry cron
+  docker_container:
+      name: sentry-cron
+      image: registry.centos.org/centos/sentry:8.16
+      links:
+          - sentry-postgres:postgres
+          - sentry-redis:redis
+      env:
+          SENTRY_SECRET_KEY: "'{{ secret_result.stdout }}'"
+          SENTRY_DB_NAME: '{{ sentry_db_name }}'
+          SENTRY_DB_USER: '{{ sentry_db_user }}'
+          SENTRY_DB_PASSWORD: '{{ sentry_db_password }}'
+      command: run cron
+  sudo: yes
+
+- name: Run sentry worker
+  docker_container:
+      name: sentry-worker-1
+      image: registry.centos.org/centos/sentry:8.16
+      links:
+          - sentry-postgres:postgres
+          - sentry-redis:redis
+      env:
+          SENTRY_SECRET_KEY: "'{{ secret_result.stdout }}'"
+          SENTRY_DB_NAME: '{{ sentry_db_name }}'
+          SENTRY_DB_USER: '{{ sentry_db_user }}'
+          SENTRY_DB_PASSWORD: '{{ sentry_db_password }}'
+      command: run worker
+  sudo: yes

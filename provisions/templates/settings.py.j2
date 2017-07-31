@@ -15,5 +15,16 @@ DATABASES = {
         'PORT': '{{ db_port }}'
     }
 }
+{% if sentry_enabled %}
+
+LOGGING['handlers']['sentry'] = {
+    'level': '{{ sentry_log_level }}',
+    'class': 'raven.handlers.logging.SentryHandler',
+    'dsn': '{{ sentry_dsn }}'
+}
+for value in LOGGING['loggers'].values():
+    value['handlers'].append('sentry')
+{% endif %}
+
 REGISTRY_ENDPOINT = ('{{ public_registry }}:5000', '{{ public_registry }}:5000')
 BEANSTALK_SERVER = '{{ beanstalk_server }}'

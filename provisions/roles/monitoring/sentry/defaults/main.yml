@@ -1,0 +1,5 @@
+sentry_admin_email: bkundu@redhat.com
+sentry_admin_password: password
+sentry_db_name: sentry
+sentry_db_user: sentry
+sentry_db_password: sentry
