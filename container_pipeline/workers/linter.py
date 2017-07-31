@@ -130,11 +130,8 @@ class DockerfileLintWorker(BaseWorker):
             self.logger.info("Deleting 'dockerfile' data from job")
             del(self.job["dockerfile"])
 
-        self.job["action"] = "start_build"
-        self.logger.info("Putting job to build tube")
-        self.queue.put(json.dumps(self.job), 'master_tube')
-
         # create the OpenShift project
+        self.logger.info("Creating project in OpenShift")
         create_project(
             self.job.get('appid'),
             self.job.get('jobid'),
@@ -147,6 +144,10 @@ class DockerfileLintWorker(BaseWorker):
             self.job.get('depends_on'),
             self.job.get('test_tag')
         )
+
+        self.job["action"] = "start_build"
+        self.logger.info("Putting job to build tube")
+        self.queue.put(json.dumps(self.job), 'master_tube')
 
         return response
 
