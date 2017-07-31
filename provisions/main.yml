@@ -21,6 +21,10 @@
     - name: Install rsync in all nodes
       yum: name=rsync state=installed
       sudo: yes
+    - name: Flush iptables
+      iptables:
+        flush: True
+      become: yes
   tags:
     - jenkins
     - openshift
