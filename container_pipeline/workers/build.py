@@ -102,7 +102,7 @@ class BuildWorker(BaseWorker):
             'logs_dir': job['logs_dir'],
             'project_name': get_project_name(job),
             'job_name': job['jobid'],
-            'TEST_TAG': job['test_tag']}
+            'test_tag': job['test_tag']}
         self.notify(data)
 
 

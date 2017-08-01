@@ -8,7 +8,6 @@ from container_pipeline.lib.log import load_logger
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.lib import settings
 from container_pipeline.lib.command import run_cmd_out_err
-from container_pipeline.pipeline import create_project
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -72,6 +71,8 @@ class DockerfileLintWorker(BaseWorker):
                 response = self.handle_lint_success(out)
             else:
                 response = self.handle_lint_failure(err)
+                self.job["action"] = "notify_user"
+                self.queue.put(json.dumps(self.job), 'master_tube')
         except Exception as e:
             self.logger.warning(
                 "Dockerfile Lint check command failed", extra={'locals':
@@ -83,6 +84,9 @@ class DockerfileLintWorker(BaseWorker):
                 "job_name": self.job.get("job_name"),
                 "msg": str(e),
             }
+
+            self.job["action"] = "notify_user"
+            self.queue.put(json.dumps(self.job), 'master_tube')
         finally:
             # remove the Dockerfile to have a clean environment on next run
             self.logger.info("Removing Dockerfile from /tmp/scan/Dockerfile")
