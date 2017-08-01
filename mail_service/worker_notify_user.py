@@ -28,8 +28,8 @@ SUCCESS_EMAIL_SUBJECT = "SUCCESS: Container build: %s is complete"
 FAILURE_EMAIL_SUBJECT = "FAILED: Container build: %s is failed"
 WEEKLY_EMAIL_SUBJECT = "Weekly scanning results for image: %s"
 
-EMAIL_HEADER = """
-CentOS Community Container Pipeline Service <https://github.com/centos/container-index>"""
+EMAIL_HEADER = ("CentOS Community Container Pipeline Service "
+                "<https://github.com/centos/container-index>")
 
 EMAIL_HEADER = EMAIL_HEADER + "\n" + "=" * (len(EMAIL_HEADER) - 22)
 
@@ -41,16 +41,16 @@ https://wiki.centos.org/ContainerPipeline
 """
 
 SUCCESS_EMAIL_MSG = """
-Build status:   Success
-Image:          %s
-Build logs:     %s
+Build status:\t\tSuccess
+Image:\t\t\t%s
+Build logs:\t\t%s
 """
 
 FAILURE_EMAIL_MSG = """
 Container build %s is failed due to error in build or test steps.
 
-Build status:   Failure
-Build logs:     %s
+Build status:\t\tFailure
+Build logs:\t\t%s
 """
 
 LINTER_RESULTS = """
@@ -128,26 +128,23 @@ class NotifyUser(object):
     def update_subject_of_email(self, subject):
         """
         Mail server container is created with a environment variable
-        "PRODUCTION", its value is either True or False (Bool).
+        "ENVIRONMENT", its value should be among [production,pre-prod,test].
+        If given production as value, the subject is kept intact, else
+        the value is pre-pended with the subject. Like [test] SUCCESS [..]
         """
-        # Default case (if no env var found): It is production.
-        # PRODUCTION = "True" : no prepending
-        # PRODUCTION = "False" or any other value : prepend [test] in subject
+        deployment = os.environ.get("DEPLOYMENT", False)
 
-        # if var's value is "True" and even if the env variable is not found
-        # (since first priority is production)
+        logger.debug("Got environment variable DEPLOYMENT=%s", deployment)
+        # if environment variable is not found, consider production
+        if not deployment:
+            return subject
 
-        if not os.environ.get("PRODUCTION", False) or \
-           os.environ.get("PRODUCTION") == "True":
-            # production
-
-            # no change
+        # case insensitive check for string 'production'
+        elif deployment.strip().lower() == "production":
+            # default is production environment
             return subject
         else:
-            # for any other value of "PRODUCTION" environment variable if set
-
-            # alter subject
-            return "[test] " + subject
+            return "[" + deployment + "] " + subject
 
     def send_email(self, subject, contents):
         "Sends email to user"

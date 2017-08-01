@@ -35,9 +35,10 @@ setup_nfs=False
 # replace scanner_worker below with its FQDN / IP
 #test_nfs_share=scanner_worker:/nfsshare
 
-# for distinguishing emails from production or devcloud
-# keep it True for production and False for non production
-production=True
+# for distinguishing emails from production, pre-prod, test environments
+# give either value among [production, pre-prod, test]
+# default is production
+deployment=production
 
 # Set log level
 log_level = DEBUG
