@@ -13,9 +13,10 @@
     - registry
     - jenkins/slave
 
-- name: Run container for UI for registry.
+- name: Run UI registry container.
+  sudo: yes
   docker_container:
-      image: pipeline-images/docker-registry-frontend:v2
+      image: pipieline-images/docker-registry-frontend:v2
       name: registry-ui
       state: started
       pull: yes
