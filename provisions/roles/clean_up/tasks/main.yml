@@ -1,0 +1,23 @@
+---
+- include: openshift.yml
+  tags:
+    - cleanup
+    - cleanup/openshift
+
+- include: jenkins_master.yml
+  tags:
+    - cleanup
+    - cleanup/jenkins
+    - cleanup/jenkins_master
+
+
+- include: jenkins_slave.yml
+  tags:
+    - cleanup
+    - cleanup/jenkins
+    - cleanup/jenkins_slave
+
+- include: scanner.yml
+  tags:
+    - cleanup
+    - cleanup/scanner
