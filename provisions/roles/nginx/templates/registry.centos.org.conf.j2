@@ -51,10 +51,6 @@ server {
 		application/x-javascript text/xml application/xml application/xml+rss
 		text/javascript;
 
-     if ($http_user_agent ~ (MSIE|Mozilla|Chrome) ) {
-         rewrite     ^/(.*)$   http:registry.centos.org:9000/$1 permanent;
-     }
-
      location / {
         if ($request_method != GET) {
               return 403;
