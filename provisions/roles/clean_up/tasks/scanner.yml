@@ -1,0 +1,16 @@
+---
+- name: Remove all containers
+  sudo: yes
+  shell: docker rm -f `docker ps -a -q`
+
+- name: Remove all images
+  sudo: yes
+  shell: docker rmi -f `docker images -a -q`
+
+- name: Remove /var/lib/atomic/* directory contents
+  sudo: yes
+  shell: rm -rf /var/lib/atomic/*
+
+- name: Remove /var/lib/docker/volumes/* directory contents
+  sudo: yes
+  shell: rm -rf /var/lib/docker/volumes/*
