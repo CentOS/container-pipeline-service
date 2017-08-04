@@ -40,7 +40,7 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
         'TARGET_FILE': target_file,
         'NOTIFY_EMAIL': notify_email,
         'DESIRED_TAG': desired_tag,
-        'test_tag': test_tag})
+        'TEST_TAG': test_tag})
 
 
 if __name__ == '__main__':

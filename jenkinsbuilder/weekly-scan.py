@@ -58,14 +58,14 @@ for f in files:
 
         entry_short_name = str(app_id) + "/" + str(job_id)
 
-        # TEST_TAG generation, unique per project
+        # test_tag generation, unique per project
         task = subprocess.Popen(
             "date +%s%N | md5sum | base64 | head -c 14",
             shell=True,
             stdout=subprocess.PIPE)
-        TEST_TAG = task.stdout.read()
+        test_tag = task.stdout.read()
 
-        LOGS_DIR = os.path.join(LOGS_DIR_BASE, TEST_TAG)
+        LOGS_DIR = os.path.join(LOGS_DIR_BASE, test_tag)
 
         # Create the logs directory
         if not os.path.exists(LOGS_DIR):
@@ -85,7 +85,7 @@ for f in files:
                 "notify_email": email,
                 "weekly": True,
                 "logs_dir": LOGS_DIR,
-                "TEST_TAG": TEST_TAG,
+                "test_tag": test_tag,
                 "job_name": job_id
             }
 
