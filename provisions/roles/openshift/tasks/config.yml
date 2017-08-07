@@ -31,7 +31,7 @@
       - "{{ origin_image_registry }}/{{ origin_image_name }}-haproxy-router"
       - "{{ origin_image_registry }}/{{ origin_image_name }}-deployer"
       - "{{ origin_image_registry }}/{{ origin_image_name }}-docker-registry"
-      - "{{ origin_image_registry }}/{{ origin_image_name }}-sti-builder"
+      - "{{ origin_image_registry }}/{{ origin_image_name }}-pod"
 
 - name: Create OpenShift origin container
   docker_container:
