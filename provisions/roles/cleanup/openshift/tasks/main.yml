@@ -1,8 +1,22 @@
 ---
-- name: Remove all containers
+- name: Stop and remove mail-server container
   sudo: yes
-  shell: docker rm -f `docker ps -a -q`
-  ignore_errors: yes
+  docker_contianer:
+    name: mail-server
+    state: absent
+    force_kill: yes
+
+- name: Stop and remove OpenShift origin container
+  sudo: yes
+  docker_contianer:
+    name: origin
+    state: absent
+    force_kill: yes
+
+- name: Remove exited containers
+  sudo: yes
+  ignore_erros: yes
+  shell: docker ps -a | grep Exit | cut -d ' ' -f 1 | xargs docker rm
 
 - name: Remove all images
   sudo: yes
