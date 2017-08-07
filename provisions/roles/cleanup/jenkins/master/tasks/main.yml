@@ -2,7 +2,3 @@
 - name: Stop jenkins systemd service
   sudo: yes
   service: name=jenkins state=stopped
-
-- name: Remove contents under direcotry /var/lib/jenkins/
-  sudo: yes
-  shell: rm -rf /var/lib/jenkins/*
