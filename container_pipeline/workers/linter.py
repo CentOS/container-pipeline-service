@@ -8,6 +8,7 @@ from container_pipeline.lib.log import load_logger
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.lib import settings
 from container_pipeline.lib.command import run_cmd_out_err
+from container_pipeline.utils import get_project_name
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -21,6 +22,7 @@ class DockerfileLintWorker(BaseWorker):
         super(DockerfileLintWorker, self).__init__(logger, sub, pub)
         self.status_file_path = ""
         self.job = None
+        self.project_name = None
 
     def handle_job(self, job):
         """
@@ -32,6 +34,8 @@ class DockerfileLintWorker(BaseWorker):
             settings.LINTER_STATUS_FILE
         )
         self.job = job
+        self.project_name = get_project_name(self.job)
+        self.job["project_name"] = self.project_name
 
         self.logger.info("Received job for Dockerfile lint: %s" % job)
         self.logger.debug("Writing Dockerfile to /tmp/scan/Dockerfile")
@@ -77,13 +81,7 @@ class DockerfileLintWorker(BaseWorker):
             self.logger.warning(
                 "Dockerfile Lint check command failed", extra={'locals':
                                                                locals()})
-            response = {
-                "lint_status": False,
-                "namespace": self.job.get('appid'),
-                "notify_email": self.job.get("notify_email"),
-                "job_name": self.job.get("job_name"),
-                "msg": str(e),
-            }
+            response = self.handle_lint_failure(str(e))
 
             self.job["action"] = "notify_user"
             self.queue.put(json.dumps(self.job), 'master_tube')
@@ -149,7 +147,8 @@ class DockerfileLintWorker(BaseWorker):
             "namespace": self.job.get('appid'),
             "notify_email": self.job.get("notify_email"),
             "job_name": self.job.get("job_name"),
-            "msg": error
+            "msg": error,
+            "project_name": self.project_name
             }
 
         return response
