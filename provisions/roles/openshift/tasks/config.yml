@@ -33,17 +33,17 @@
       - "{{ origin_image_registry }}/{{ origin_image_name }}-docker-registry"
       - "{{ origin_image_registry }}/{{ origin_image_name }}-sti-builder"
 
-- name: Run openshift docker image
-  docker:
+- name: Create OpenShift origin container
+  docker_container:
     name: origin
     image: "{{ origin_image_registry }}/{{ origin_image_name }}:{{ origin_image_tag }}"
     privileged: yes
-    pid: host
-    net: host
+    pid_mode: host
+    network_mode: host
     volumes: "{{ openshift_volumes }}"
     command: start --master=https://"{{ansible_default_ipv4.address}}":8443
     restart_policy: always
-  retries: 2
+    restart_retries: 2
 
 - name: Wait for Openshift to come up
   pause: seconds={{ openshift_startup_delay }}

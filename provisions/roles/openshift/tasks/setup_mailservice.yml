@@ -3,27 +3,26 @@
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
 
-- name: Stop Mail Service
-  shell: docker rm -f mail-server
-  register: result
-  until: result['rc'] == 0 or result['stderr'].find('No such container') >= 0
-  retries: 10
-  delay: 10
+- name: Stop mail-server container
+  sudo: yes
   ignore_errors: true
-
-- name: Print result
-  debug: msg="Result= {{ result }}"
+  docker_container:
+    name: mail-server
+    state: absent
+    force_kill: true
 
 - name: Set log level
   replace: >
       dest="{{ ansible_env.HOME }}/cccp-service/mail_service/config.py"
       regexp="LOG_LEVEL =.*"
-      replace="LOG_LEVEL = '{{ log_level }}'"
+      replace= "LOG_LEVEL = '{{ log_level }}'"
 
-- name: Build mail server image
-  shell: docker build -t mail-server -f ./Dockerfile.mailserv .
-  args:
-      chdir: "{{ ansible_env.HOME }}/cccp-service/mail_service"
+- name: Build mail-server container image
+  sudo: yes
+  docker_image:
+    name: mail-server
+    path: "{{ ansible_env.HOME }}/cccp-service/mail_service"
+    dockerfile: Dockerfile.mailserv
 
 - name: Start Mail Service
   docker_container:
