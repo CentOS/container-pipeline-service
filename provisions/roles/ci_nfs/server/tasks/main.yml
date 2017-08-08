@@ -43,6 +43,7 @@
   tags:
   - ci_nfs
   - test
+
 - name: ensure iptables is configured to allow TCP ports 2049
   when: setup_nfs
   sudo: yes
