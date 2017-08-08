@@ -14,10 +14,6 @@
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
-#Push ca cert to slave for worker
-- name: Ensure /opt/cccp-service/beanstalk_worker dir exists on Jenkins slaves
-  file: dest=/opt/cccp-service/beanstalk_worker state=directory
-
 - name: Build container-pipeline image
   shell: docker build -t container-pipeline -f ./Dockerfile .
   args:
