@@ -1,21 +1,21 @@
 ---
 - name: Stop and remove build worker container
   sudo: yes
-  docker_contianer:
+  docker_container:
     name: build-worker
     state: absent
     force_kill: yes
 
 - name: Stop and remove build worker container
   sudo: yes
-  docker_contianer:
+  docker_container:
     name: delivery-worker
     state: absent
     force_kill: yes
 
 - name: Stop and remove build worker container
   sudo: yes
-  docker_contianer:
+  docker_container:
     name: dispatcher-worker
     state: absent
     force_kill: yes
