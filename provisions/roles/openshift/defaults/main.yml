@@ -1,7 +1,7 @@
 ---
 origin_image_registry: docker.io
 origin_image_name: openshift/origin
-origin_image_tag: v1.5.1
+origin_image_tag: v3.6.0
 
 origin_dir: /var/lib/origin
 

@@ -89,12 +89,12 @@ class Openshift(object):
                 project, e))
 
     def upload_template(self, project, template_path, template_data):
-        """Upload processed template for project from template path"""
+        """Upload processed template for project from template path."""
         self.logger.debug('Uploading template data: {} for project: {} from '
                           'template: {}'.format(
                               template_data, project, template_path))
         tmpl_params_str = ' '.join(
-            ['-v {k}={v}'.format(k=k, v=v) for k, v in template_data.items()])
+            ['-p {k}={v}'.format(k=k, v=v) for k, v in template_data.items()])
         try:
             run_cmd(
                 'oc process -n {project} -f {tmpl_path} {tmpl_params} '

@@ -24,6 +24,7 @@
 - name: Create test user and add role to user
   command: "{{ item }}"
   with_items:
+    - "oadm policy add-cluster-role-to-user system:build-strategy-custom test-admin --config={{ kubeconfig }}"
     - "oadm policy add-role-to-user admin test-admin --config={{ kubeconfig }}"
   environment:
     KUBECONFIG: "{{ kubeconfig }}"
