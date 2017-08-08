@@ -1,0 +1,19 @@
+---
+- name: Remove all running and exited other containers
+  sudo: yes
+  ignore_erros: yes
+  shell: docker rm -f `docker ps -a -q`
+
+- name: Remove all images
+  sudo: yes
+  shell: docker rmi -f `docker images -a -q`
+  ignore_errors: yes
+
+- name: Remove mounts
+  sudo: yes
+  shell: for f in `mount | grep origin | cut -f3 -d\ `; do umount $f ; done
+  ignore_errors: yes
+
+- name: Remove /var/lib/origin/* directory contents
+  sudo: yes
+  shell: rm -rf /var/lib/origin/*

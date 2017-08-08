@@ -1,0 +1,35 @@
+---
+- name: Clean up OpenShift node
+  hosts: openshift
+  roles:
+      - cleanup/openshift
+  tags:
+      - cleanup
+      - cleanup/openshift
+
+- name: Clean up Jenkins slave node
+  hosts: jenkins_slaves
+  roles:
+      - cleanup/jenkins/slave
+  tags:
+      - cleanup
+      - cleanup/jenkins
+      - cleanup/jenkins/slave
+
+- name: Clean up Jenkins master node
+  hosts: jenkins_master
+  roles:
+      - cleanup/jenkins/master
+  tags:
+      - cleanup
+      - cleanup/jenkins
+      - cleanup/jenkins/master
+
+- name: Clean up Scanner node
+  hosts: scanner_worker
+  roles:
+      - cleanup/scanner
+  tags:
+      - cleanup
+      - cleanup/scanner
+

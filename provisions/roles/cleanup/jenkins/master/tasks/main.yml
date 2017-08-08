@@ -1,0 +1,4 @@
+---
+- name: Stop jenkins systemd service
+  sudo: yes
+  service: name=jenkins state=stopped
