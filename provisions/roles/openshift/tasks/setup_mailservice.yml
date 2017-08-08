@@ -15,7 +15,7 @@
   replace: >
       dest="{{ ansible_env.HOME }}/cccp-service/mail_service/config.py"
       regexp="LOG_LEVEL =.*"
-      replace= "LOG_LEVEL = '{{ log_level }}'"
+      replace="LOG_LEVEL = '{{ log_level }}'"
 
 - name: Build mail-server container image
   sudo: yes
