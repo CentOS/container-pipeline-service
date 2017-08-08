@@ -1,8 +1,8 @@
 ---
 - name: Remove all running and exited other containers
   sudo: yes
-  ignore_erros: yes
   shell: docker rm -f `docker ps -a -q`
+  ignore_errors: yes
 
 - name: Remove all images
   sudo: yes
