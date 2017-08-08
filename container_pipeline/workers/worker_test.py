@@ -65,7 +65,7 @@ class TestWorker(BaseWorker):
                 job['logs_dir'], 'test_logs.txt'),
             'project_name': get_project_name(job),
             'job_name': job['jobid'],
-            'TEST_TAG': job['TEST_TAG']}
+            'test_tag': job['test_tag']}
         self.logger.debug('Notify test failure: {}'.format(data))
         self.notify(data)
 

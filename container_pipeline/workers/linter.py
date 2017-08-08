@@ -7,7 +7,8 @@ import os
 from container_pipeline.lib.log import load_logger
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.lib import settings
-from container_pipeline.lib.command import run_cmd
+from container_pipeline.lib.command import run_cmd_out_err
+from container_pipeline.utils import get_project_name
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -17,15 +18,30 @@ class DockerfileLintWorker(BaseWorker):
     """
     NAME = 'Linter worker'
 
+    def __init__(self, logger=None, sub=None, pub=None):
+        super(DockerfileLintWorker, self).__init__(logger, sub, pub)
+        self.status_file_path = ""
+        self.job = None
+        self.project_name = None
+
     def handle_job(self, job):
         """
         This menthod handles the job received for dockerfile lint worker.
         """
+        # linter execution status file path
+        self.status_file_path = os.path.join(
+            job.get("logs_dir"),
+            settings.LINTER_STATUS_FILE
+        )
+        self.job = job
+        self.project_name = get_project_name(self.job)
+        self.job["project_name"] = self.project_name
+
         self.logger.info("Received job for Dockerfile lint: %s" % job)
         self.logger.debug("Writing Dockerfile to /tmp/scan/Dockerfile")
         self.write_dockerfile(job.get("dockerfile"))
         self.logger.debug("Running Dockerfile Lint check")
-        self.lint(job)
+        self.lint()
 
     def write_dockerfile(self, dockerfile):
         """
@@ -42,80 +58,114 @@ class DockerfileLintWorker(BaseWorker):
         with open("/tmp/scan/Dockerfile", "w") as f:
             f.write(dockerfile)
 
-    def lint(self, job):
+    def lint(self):
         """
         Lint the Dockerfile received
         """
-        command = ("docker run --rm -v /tmp/scan:/root/scan:Z "
+        command = ("docker",
+                   "run",
+                   "--rm",
+                   "-v",
+                   "/tmp/scan:/root/scan:Z",
                    "registry.centos.org/pipeline-images/dockerfile-lint")
+
         try:
-            out = run_cmd(command)
+            out, err = run_cmd_out_err(command)
+            if err == "":
+                response = self.handle_lint_success(out)
+            else:
+                response = self.handle_lint_failure(err)
+                self.job["action"] = "notify_user"
+                self.queue.put(json.dumps(self.job), 'master_tube')
         except Exception as e:
             self.logger.warning(
-                "Dockerfile Lint check failed", extra={'locals': locals()})
-            response = {
-                "linter_results": False,
-                "action": "notify_user",
-                "namespace": job.get('namespace'),
-                "notify_email": job.get("notify_email"),
-                "job_name": job.get("job_name"),
-                "msg": str(e),
-            }
-        else:
-            self.logger.info("Dockerfile Lint check done. Exporting logs.")
-            # logs file for linter
-            linter_results_path = os.path.join(
-                job.get("logs_dir"),
-                settings.LINTER_RESULT_FILE
-            )
+                "Dockerfile Lint check command failed", extra={'locals':
+                                                               locals()})
+            response = self.handle_lint_failure(str(e))
 
-            # logs URL for linter results
-            logs_URL = linter_results_path.replace(
-                settings.LOGS_DIR_BASE,   # /srv/pipeline-logs/
-                settings.LOGS_URL_BASE   # https://registry.centos.org
-            )
+            self.job["action"] = "notify_user"
+            self.queue.put(json.dumps(self.job), 'master_tube')
+        finally:
+            # remove the Dockerfile to have a clean environment on next run
+            self.logger.info("Removing Dockerfile from /tmp/scan/Dockerfile")
+            os.remove("/tmp/scan/Dockerfile")
 
-            out += "\nHosted linter results : %s\n" % logs_URL
-            # export linter results
-            self.export_logs(out, linter_results_path)
+            # now export the status about linter execution in logs dir of the
+            # job this response will be read after job builds and while sending
+            # email to user. Details from this response is used to generate
+            # email.
 
-            response = {
-                "logs": out,
-                "linter_results": True,
-                "action": "notify_user",
-                "namespace": job.get('namespace'),
-                "notify_email": job.get("notify_email"),
-                "job_name": job.get("job_name"),
-                "msg": None,
-                "linter_results_path": linter_results_path,
-                "logs_URL": logs_URL,
-            }
+            # TODO: Write export JSON method in base worker
+            self.export_linter_status(response, self.status_file_path)
 
-        # linter execution status file path
-        status_file_path = os.path.join(
-            job.get("logs_dir"),
-            settings.LINTER_STATUS_FILE
+    def handle_lint_success(self, output):
+        self.logger.info("Dockerfile Lint check done. Exporting logs.")
+        # logs file for linter
+        linter_results_path = os.path.join(
+            self.job.get("logs_dir"),
+            settings.LINTER_RESULT_FILE
         )
-        # now export the status about linter execution in logs dir of the job
-        # this response will be read after job builds and while sending
-        # email to user. Details from this response is used to generate email.
 
-        # TODO: Write export JSON method in base worker
-        self.export_linter_status(response, status_file_path)
+        # logs URL for linter results
+        logs_URL = linter_results_path.replace(
+            settings.LOGS_DIR_BASE,   # /srv/pipeline-logs/
+            settings.LOGS_URL_BASE   # https://registry.centos.org
+        )
+
+        output += "\nHosted linter results : %s\n" % logs_URL
+        # export linter results
+        self.export_logs(output, linter_results_path)
+
+        response = {
+            "logs": output,
+            "lint_status": True,
+            "namespace": self.job.get('appid'),
+            "notify_email": self.job.get("notify_email"),
+            "job_name": self.job.get("job_name"),
+            "msg": None,
+            "linter_results_path": linter_results_path,
+            "logs_URL": logs_URL,
+        }
+
+        # remove Dockerfile from the job data as it's not needed anymore
+        if "dockerfile" in self.job:
+            self.logger.info("Deleting 'dockerfile' data from job")
+            del(self.job["dockerfile"])
+
+        self.job["action"] = "start_build"
+        self.logger.info("Putting job to build tube")
+        self.queue.put(json.dumps(self.job), 'master_tube')
+
+        return response
+
+    def handle_lint_failure(self, error):
+        self.logger.warning("Dockerfile Lint check failed")
+        self.logger.error(error)
+
+        response = {
+            "lint_status": False,
+            "namespace": self.job.get('appid'),
+            "notify_email": self.job.get("notify_email"),
+            "job_name": self.job.get("job_name"),
+            "msg": error,
+            "project_name": self.project_name
+            }
+
+        return response
 
     def export_linter_status(self, status, status_file_path):
         """
         Export status of linter execution for build in process
         """
         try:
-            with open(status_file_path, "w") as fin:
+            with open(self.status_file_path, "w") as fin:
                 json.dump(status, fin)
         except IOError as e:
             self.logger.error(
                 "Failed to write linter status on NFS share: {}".format(e))
         else:
             self.logger.debug(
-                    "Wrote linter status to file: %s" % status_file_path)
+                    "Wrote linter status to file: %s" % self.status_file_path)
 
 
 if __name__ == '__main__':

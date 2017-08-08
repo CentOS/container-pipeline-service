@@ -99,7 +99,7 @@ class DeliveryWorker(BaseWorker):
             'logs_dir': job['logs_dir'],
             'project_name': get_project_name(job),
             'job_name': job['jobid'],
-            'TEST_TAG': job['TEST_TAG']}
+            'test_tag': job['test_tag']}
         self.notify(data)
 
 

@@ -37,3 +37,10 @@
     - jenkins
     - monitor
     - jenkins/slave
+
+- name: Set PYTHONPATH environment variable
+  lineinfile:
+      dest: /etc/environment
+      state: present
+      regexp: '^PYTHONPATH'
+      line: 'PYTHONPATH=$PYTHONPATH:/opt/cccp-service'

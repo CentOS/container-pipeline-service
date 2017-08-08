@@ -18,13 +18,13 @@
         - shell: |
             export DOCKERFILE_DIR=`pwd`
             export PYTHONPATH=/opt/cccp-service
-            TEST_TAG=`date +%s%N | md5sum | base64 | head -c 14`
-            LOGS_DIR=/srv/pipeline-logs/$TEST_TAG
-            echo "Creating logs directory $LOGS_DIR"
-            mkdir $LOGS_DIR
+            test_tag=`date +%s%N | md5sum | base64 | head -c 14`
+            logs_dir=/srv/pipeline-logs/$test_tag
+            echo "Creating logs directory $logs_dir"
+            mkdir $logs_dir
             cd /opt/cccp-service
-            /bin/bash client/lint-dockerfile.sh {appid} {rel_path} {target_file} {notify_email} {jobid} $LOGS_DIR
-            python container_pipeline/pipeline.py {appid} {jobid} {git_url} {git_branch} {rel_path} {target_file} {notify_email} {desired_tag} {depends_on} $TEST_TAG
+            # /bin/bash client/lint-dockerfile.sh {appid} {rel_path} {target_file} {notify_email} {jobid} $logs_dir
+            python container_pipeline/pipeline.py {appid} {jobid} {git_url} {git_branch} {rel_path} {target_file} {notify_email} {desired_tag} {depends_on} $test_tag
 
 - job-group:
     name: cccp-rundotsh-job

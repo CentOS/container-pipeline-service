@@ -77,7 +77,7 @@ class NotifyUser(object):
         # the logs directory
         self.logs_dir = os.path.join(
             LOGS_DIR_PARENT,
-            self.job_info["TEST_TAG"])
+            self.job_info["test_tag"])
 
         # linter execution status file
         self.linter_status_file = os.path.join(
@@ -116,7 +116,7 @@ class NotifyUser(object):
         # build_logs filename
         self.build_logs = urljoin(
             LOGS_URL_BASE,
-            self.job_info["TEST_TAG"],
+            self.job_info["test_tag"],
             BUILD_LOGS_FILENAME
         )
 
@@ -248,7 +248,7 @@ class NotifyUser(object):
             # TODO: Better handling and reporting here
             return ""
 
-        if not linter_status["linter_results"]:
+        if not linter_status["lint_status"]:
             # TODO: Better handling and reporting here
             return ""
 
