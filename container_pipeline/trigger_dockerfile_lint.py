@@ -67,7 +67,29 @@ def trigger_dockerfile_linter(appid, jobid, repo_url, repo_branch,
             "msg": "Couldn't find the Dockerfile at specified git_path",
             "logs_dir": logs_dir,
             "lint_status": False,
-            "build_status": False
+            "build_status": False,
+            "project_name": get_project_name(lint_job_data),
+            "test_tag": test_tag
+        }
+
+        queue.put(json.dumps(response), tube="master_tube")
+        print "==>Put job on 'master_tube' tube"
+        return False
+    except BaseException as e:
+        print "==> Encountered unexpected error. Dockerfile lint trigger failed"
+        print "==> Error: %s" % str(e)
+        print "==> Sending Dockerfile linter failure email"
+        response = {
+            "action": "notify_user",
+            "namespace": appid,
+            "notify_email": notify_email,
+            "job_name": job_name,
+            "msg": "Unexpected error while trigger Dockerfile linter",
+            "logs_dir": logs_dir,
+            "lint_status": False,
+            "build_status": False,
+            "project_name": get_project_name(lint_job_data),
+            "test_tag": test_tag
         }
 
         queue.put(json.dumps(response), tube="master_tube")
