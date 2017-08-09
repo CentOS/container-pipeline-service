@@ -131,7 +131,7 @@ class Openshift(object):
             )
             self.logger.info('Openshift project build run output: {}/{}\n{}'
                              .format(project, build, output))
-            build_id = output.split('"')[-1].rstrip()
+            build_id = output.split('"')[1].rstrip()
             return build_id
         except subprocess.CalledProcessError as e:
             raise OpenshiftError(
