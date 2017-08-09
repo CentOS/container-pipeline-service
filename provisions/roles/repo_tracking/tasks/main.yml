@@ -74,6 +74,11 @@
   sudo: yes
   tags: repo_tracking
 
+- name: Ensure repo data dir exists
+  file: path=/opt/cccp-service/container_pipeline/tracking/data state=directory
+  sudo: yes
+  tags: repo_tracking
+
 - name: Ensure cccp data dir exists
   file: path=/var/lib/cccp/db state=directory
   sudo: yes
