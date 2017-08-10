@@ -47,16 +47,19 @@
       - "{{ rsync_ssh_opts }}"
 
 - name: Build cccp build image
-  shell: docker build -t cccp-build -f ./Dockerfile.build .
-  args:
-      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
+  docker_image:
+    path: "{{ ansible_env.HOME }}/cccp-service/server"
+    name: cccp-build
+    dockerfile: Dockerfile.build
 
 - name: Build cccp test image
-  shell: docker build -t cccp-test -f ./Dockerfile.test .
-  args:
-      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
+  docker_image:
+    path: "{{ ansible_env.HOME }}/cccp-service/server"
+    name: cccp-test
+    dockerfile: Dockerfile.test
 
 - name: Build cccp delivery image
-  shell: docker build -t cccp-delivery -f ./Dockerfile.delivery .
-  args:
-      chdir: "{{ ansible_env.HOME }}/cccp-service/server"
+  docker_image:
+    path: "{{ ansible_env.HOME }}/cccp-service/server"
+    name: cccp-delivery
+    dockerfile: Dockerfile.delivery

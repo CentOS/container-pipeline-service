@@ -15,48 +15,49 @@
   service: name=docker state=restarted enabled=yes
 
 - name: Build container-pipeline image
-  shell: docker build -t container-pipeline -f ./Dockerfile .
-  args:
-      chdir: /opt/cccp-service
+  sudo: yes
+  docker_image:
+    name: container-pipeline
+    path: /opt/cccp-service
   tags:
       - application
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
 
-- name: Start dispatcher worker
-  docker:
+- name: Start dispatcher-worker container
+  docker_container:
       name: dispatcher-worker
-      state: restarted
+      state: present
+      restart: yes
       image: container-pipeline
       command: /opt/cccp-service/container_pipeline/workers/dispatcher.py
       restart_policy: always
-      volumes:
-        /srv/pipeline-logs:/srv/pipeline-logs:rw
+      volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
   tags:
       - application
 
-- name: Start build worker
-  docker:
+- name: Start build-worker container
+  docker_container:
       name: build-worker
-      state: restarted
+      state: present
+      restart: yes
       image: container-pipeline
       command: /opt/cccp-service/container_pipeline/workers/build.py
       restart_policy: always
-      volumes:
-        /srv/pipeline-logs:/srv/pipeline-logs:rw
+      volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
   tags:
       - application
 
-- name: Start delivery worker
-  docker:
+- name: Start delivery-worker container
+  docker_container:
       name: delivery-worker
-      state: restarted
+      state: present
+      restart: yes
       command: /opt/cccp-service/container_pipeline/workers/delivery.py
       image: container-pipeline
       restart_policy: always
-      volumes:
-        /srv/pipeline-logs:/srv/pipeline-logs:rw
+      volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
   tags:
       - application
 
