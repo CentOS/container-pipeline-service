@@ -42,6 +42,10 @@ def populate_upstreams(container):
         urls.add(item[1])
         for url in item[2]:
             urls.add(url)
+
+    if None in urls:
+        urls.remove(None)
+
     output = container.run(
         'python -c "import yum, json; yb = yum.YumBase(); '
         'print json.dumps(yb.conf.yumvar)"')
