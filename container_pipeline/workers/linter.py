@@ -35,8 +35,6 @@ class DockerfileLintWorker(BaseWorker):
             settings.LINTER_STATUS_FILE
         )
         self.job = job
-        self.project_name = get_project_name(self.job)
-        self.job["project_name"] = self.project_name
 
         self.logger.info("Received job for Dockerfile lint: %s" % job)
         self.logger.debug("Writing Dockerfile to /tmp/scan/Dockerfile")
@@ -76,6 +74,7 @@ class DockerfileLintWorker(BaseWorker):
                 response = self.handle_lint_success(out)
             else:
                 response = self.handle_lint_failure(err)
+                self.job["dockerfile"] = None
                 self.job["action"] = "notify_user"
                 self.queue.put(json.dumps(self.job), 'master_tube')
         except Exception as e:
@@ -84,6 +83,7 @@ class DockerfileLintWorker(BaseWorker):
                                                                locals()})
             response = self.handle_lint_failure(str(e))
 
+            self.job["dockerfile"] = None
             self.job["action"] = "notify_user"
             self.queue.put(json.dumps(self.job), 'master_tube')
         finally:
@@ -131,7 +131,7 @@ class DockerfileLintWorker(BaseWorker):
         # remove Dockerfile from the job data as it's not needed anymore
         if "dockerfile" in self.job:
             self.logger.info("Deleting 'dockerfile' data from job")
-            del(self.job["dockerfile"])
+            self.job["dockerfile"] = None
 
         create_project(self.queue, self.job, self.logger)
         return response
