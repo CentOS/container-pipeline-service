@@ -49,6 +49,18 @@
   tags:
       - application
 
+- name: Start test-worker container
+  docker_container:
+      name: test-worker
+      state: present
+      restart: yes
+      image: container-pipeline
+      command: /opt/cccp-service/container_pipeline/workers/test.py
+      restart_policy: always
+      volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
+  tags:
+      - application
+
 - name: Start delivery-worker container
   docker_container:
       name: delivery-worker

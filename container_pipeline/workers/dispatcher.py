@@ -7,8 +7,9 @@ from container_pipeline.workers.base import BaseWorker
 
 
 class DispatcherWorker(BaseWorker):
-    ACTIONS = ('start_build', 'start_scan', 'start_delivery', 'notify_user',
-               'report_scan_results', 'start_linter')
+    ACTIONS = ('start_build', 'start_test', 'start_scan', 'start_delivery',
+               'notify_user', 'report_scan_results', 'start_linter',
+               'tracking')
     NAME = 'Dispatcher worker'
 
     def handle_job(self, job):

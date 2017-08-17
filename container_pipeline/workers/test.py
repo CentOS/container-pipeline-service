@@ -11,9 +11,11 @@ from container_pipeline.workers.base import BaseWorker
 
 class TestWorker(BaseWorker):
     """
-    Test Worker - Runs the user defined tests on a built container in the
-    pipeline.
+    Test Worker.
+
+    Runs the user defined tests on a built container in the pipeline.
     """
+
     NAME = 'Test worker'
 
     def __init__(self, logger=None, sub=None, pub=None):
@@ -46,7 +48,9 @@ class TestWorker(BaseWorker):
         return test_status
 
     def handle_test_success(self, job):
-        """Handle test success for job"""
+        """Handle test success for job."""
+        job['action'] = "start_scan"
+        self.queue.put(json.dumps(job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
 
     def handle_test_failure(self, job):
