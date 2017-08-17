@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import time
 
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
@@ -55,7 +56,8 @@ class DeliveryWorker(BaseWorker):
             if not delivery_id:
                 return False
         finally:
-            self.openshift.delete_pods(project, delivery_id)
+            time.sleep(50)
+            self.openshift.delete(project)
 
         delivery_status = self.openshift.wait_for_build_status(
             project, delivery_id, 'Complete', status_index=2)
@@ -76,6 +78,12 @@ class DeliveryWorker(BaseWorker):
             job['namespace']))
         self.logger.debug('Putting job details to master-tube for tracker\'s'
                           ' consumption')
+
+        # sending notification as delivery complete and also addingn this into
+        # tracker.
+        job['action'] = 'notify_user'
+        self.queue.put(json.dumps(job), 'master-tube')
+
         job['action'] = 'tracking'
         self.queue.put(json.dumps(job), 'master-tube')
 
