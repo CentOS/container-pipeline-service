@@ -56,6 +56,9 @@ class DeliveryWorker(BaseWorker):
             if not delivery_id:
                 return False
         finally:
+            # This is for cleaning up the openshift envrionment after the build is over
+            # We are putting some delay so that the built image is pushed to registry
+            #properly and it does not give error while deleting
             time.sleep(50)
             self.openshift.delete(project)
 
