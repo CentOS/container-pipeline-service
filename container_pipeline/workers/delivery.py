@@ -55,12 +55,6 @@ class DeliveryWorker(BaseWorker):
         else:
             if not delivery_id:
                 return False
-        finally:
-            # This is for cleaning up the openshift envrionment after the build is over
-            # We are putting some delay so that the built image is pushed to registry
-            #properly and it does not give error while deleting
-            time.sleep(50)
-            self.openshift.delete(project)
 
         delivery_status = self.openshift.wait_for_build_status(
             project, delivery_id, 'Complete', status_index=2)
@@ -81,12 +75,20 @@ class DeliveryWorker(BaseWorker):
             job['namespace']))
         self.logger.debug('Putting job details to master-tube for tracker\'s'
                           ' consumption')
+        project = get_job_hash(job['namespace'])
+        # This is for cleaning up the openshift envrionment after the build is over
+        # We are putting some delay so that the built image is pushed to registry
+        # properly and it does not give error while deleting
+        time.sleep(50)
+        self.openshift.delete(project)
 
         # sending notification as delivery complete and also addingn this into
         # tracker.
         job['action'] = 'notify_user'
         self.queue.put(json.dumps(job), 'master-tube')
 
+        # Put some delay to avoid mismatch in uploading jod details to master_tube
+        time.sleep(10)
         job['action'] = 'tracking'
         self.queue.put(json.dumps(job), 'master-tube')
 
