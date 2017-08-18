@@ -19,6 +19,8 @@
       image: pipeline-images/docker-registry-frontend:v2
       name: registry-ui
       state: started
+      restart: yes
+      restart_policy: always
       pull: yes
       published_ports: "9000:80"
       env:
