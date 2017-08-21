@@ -39,8 +39,5 @@ fi
 NS="${APPID}-${JOBID}-${DESIRED_TAG}"
 
 
-_ "Send success mail for user notify tube"
-python /tube_request/send_notify_request.py ${BEANSTALK_SERVER} ${OUTPUT_IMAGE} ${NOTIFY_EMAIL} ${TEST_TAG} ${NS} ${JOBID} ${LOGS_DIR}
-
 _ "Cleaning environment"
 docker rmi ${FULL_FROM} ${FULL_TO}

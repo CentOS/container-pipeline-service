@@ -82,7 +82,9 @@ class BuildWorker(BaseWorker):
         return build_status
 
     def handle_build_success(self, job):
-        """Handle build success for job"""
+        """Handle build success for job."""
+        job['action'] = 'start_test'
+        self.queue.put(json.dumps(job), 'master_tube')
         self.logger.debug("Build is successful going for next job")
 
     def handle_build_failure(self, job):

@@ -1,8 +1,10 @@
+#!/usr/bin/env python
 import hashlib
 import json
 import logging
 import os
 
+from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.utils import Build, get_job_name, get_project_name
@@ -11,9 +13,11 @@ from container_pipeline.workers.base import BaseWorker
 
 class TestWorker(BaseWorker):
     """
-    Test Worker - Runs the user defined tests on a built container in the
-    pipeline.
+    Test Worker.
+
+    Runs the user defined tests on a built container in the pipeline.
     """
+
     NAME = 'Test worker'
 
     def __init__(self, logger=None, sub=None, pub=None):
@@ -39,14 +43,26 @@ class TestWorker(BaseWorker):
 
         Build(namespace).start()
         test_status = self.openshift.wait_for_build_status(
-            project, build_id, 'Complete')
+            project, build_id, 'Complete', status_index=2)
         logs = self.openshift.get_build_logs(project, build_id)
         test_logs_file = os.path.join(job['logs_dir'], 'test_logs.txt')
         self.export_logs(logs, test_logs_file)
         return test_status
 
     def handle_test_success(self, job):
-        """Handle test success for job"""
+        """Handle test success for job."""
+        job['action'] = "start_scan"
+        # TODO: Below five variables are to be removed and they should in job
+        # from jenkins
+        job['output_image'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
+                                                   job['appid'], job['jobid'], job['test_tag'])
+        job['image_name'] = "{}/{}:{}".format(job['appid'],
+                                              job['jobid'], job['desired_tag'])
+        job['build_status'] = True
+        job['beanstalk_server'] = settings.BEANSTALKD_HOST
+        job['namespace'] = job['project_name']
+
+        self.queue.put(json.dumps(job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
 
     def handle_test_failure(self, job):

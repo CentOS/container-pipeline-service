@@ -183,15 +183,6 @@
             "generic": {
               "secret": "${BUILD_TRIGGER_SECRET}"
             }
-          },
-          {
-            "type": "ImageChange",
-            "imageChange": {
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "${JOBID}:test"
-              }
-            }
           }
         ],
         "strategy": {
