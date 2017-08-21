@@ -73,7 +73,7 @@ class DeliveryWorker(BaseWorker):
         Build(job['namespace'], logger=self.logger).complete()
         self.logger.debug('Marked project build: {} as complete.'.format(
             job['namespace']))
-        self.logger.debug('Putting job details to master-tube for tracker\'s'
+        self.logger.debug('Putting job details to master_tube for tracker\'s'
                           ' consumption')
         project = get_job_hash(job['namespace'])
         # This is for cleaning up the openshift envrionment after the build is over
@@ -85,12 +85,12 @@ class DeliveryWorker(BaseWorker):
         # sending notification as delivery complete and also addingn this into
         # tracker.
         job['action'] = 'notify_user'
-        self.queue.put(json.dumps(job), 'master-tube')
+        self.queue.put(json.dumps(job), 'master_tube')
 
         # Put some delay to avoid mismatch in uploading jod details to master_tube
         time.sleep(10)
         job['action'] = 'tracking'
-        self.queue.put(json.dumps(job), 'master-tube')
+        self.queue.put(json.dumps(job), 'master_tube')
 
     def handle_delivery_failure(self, job):
         """
