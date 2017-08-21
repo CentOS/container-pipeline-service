@@ -56,7 +56,7 @@ class TestWorker(BaseWorker):
         # from jenkins
         job['image_under_test'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
                                                    job['appid'], job['jobid'], job['test_tag'])
-        job['output_name'] = "{}/{}:{}".format(job['appid'],
+        job['output_image'] = "registry.centos.org/{}/{}:{}".format(job['appid'],
                                               job['jobid'], job['desired_tag'])
         job['build_status'] = True
         job['beanstalk_server'] = settings.BEANSTALKD_HOST
