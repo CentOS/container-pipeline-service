@@ -136,7 +136,7 @@ class ScannerRunner(object):
 
         # TODO: Figure out why random tag (with date) is coming
         # image_under_test=":".join(self.job_info.get("name").split(":")[:-1])
-        image_under_test = self.job_info.get("output_image")
+        image_under_test = self.job_info.get("image_under_test")
         self.logger.info("Image under test:{}".format(image_under_test))
         # copy the job info into scanners data,
         # as we are going to add logs and msg

@@ -100,7 +100,7 @@ class NotifyUser(object):
         # if it is weekly scan job
         elif self.job_info.get("weekly"):
             logger.debug("Processing mail for Weekly scan.")
-            self.image_under_test = job_info.get("image_under_test")
+            self.image_under_test = job_info.get("output_image")
             # for eg: the value would be
             # registry.centos.org/nshaikh/scanner-rpm-verify:latest
             self.project = self.image_under_test.replace(

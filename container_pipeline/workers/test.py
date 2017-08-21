@@ -54,9 +54,9 @@ class TestWorker(BaseWorker):
         job['action'] = "start_scan"
         # TODO: Below five variables are to be removed and they should in job
         # from jenkins
-        job['output_image'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
+        job['image_under_test'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
                                                    job['appid'], job['jobid'], job['test_tag'])
-        job['image_name'] = "{}/{}:{}".format(job['appid'],
+        job['output_name'] = "{}/{}:{}".format(job['appid'],
                                               job['jobid'], job['desired_tag'])
         job['build_status'] = True
         job['beanstalk_server'] = settings.BEANSTALKD_HOST
