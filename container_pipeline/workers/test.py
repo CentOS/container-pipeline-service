@@ -61,6 +61,7 @@ class TestWorker(BaseWorker):
         job['build_status'] = True
         job['beanstalk_server'] = settings.BEANSTALKD_HOST
         job['namespace'] = job['project_name']
+        job['image_name'] = job['image_under_test']
 
         self.queue.put(json.dumps(job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
