@@ -54,13 +54,15 @@ class TestWorker(BaseWorker):
         job['action'] = "start_scan"
         # TODO: Below five variables are to be removed and they should in job
         # from jenkins
-        job['output_image'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
+        job['image_under_test'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
                                                    job['appid'], job['jobid'], job['test_tag'])
-        job['image_name'] = "{}/{}:{}".format(job['appid'],
+        job['output_image'] = "registry.centos.org/{}/{}:{}".format(job['appid'],
                                               job['jobid'], job['desired_tag'])
         job['build_status'] = True
         job['beanstalk_server'] = settings.BEANSTALKD_HOST
         job['namespace'] = job['project_name']
+        job['image_name'] = "{}/{}:{}".format(job['appid'], job['jobid'], 
+                                              job['desired_tag'])
 
         self.queue.put(json.dumps(job), 'master_tube')
         self.logger.debug("Test is successful going for next job")

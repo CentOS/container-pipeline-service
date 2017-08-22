@@ -78,9 +78,9 @@ for f in files:
                 "tag": desired_tag,
                 "namespace": str(app_id) + "-" + str(job_id) + "-" +
                 str(desired_tag),
-                "output_image": "%s:5000/%s/%s:%s" %
+                "image_under_test": "%s:5000/%s/%s:%s" %
                 (registry, app_id, job_id, desired_tag),
-                "image_under_test": "registry.centos.org:%s/%s:%s" %
+                "output_image": "registry.centos.org/%s/%s:%s" %
                 (app_id, job_id, desired_tag),
                 "notify_email": email,
                 "weekly": True,
