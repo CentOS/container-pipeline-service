@@ -56,8 +56,10 @@ _ "Put build,test, delivery scripts in proper place"
 # Alter target file, if openshift container is detected
 CONTAINER_NAME="${APPID}/${JOBID}";
 if [[ ${CONTAINER_NAME} =~ ^openshift\/(origin.*|node|openvswitch) ]]; then
-    _ "Openshift container detected, altering Target File ${TARGET_FILE}";
-    sed -i "/^FROM/ s/$/:${DESIRED_TAG}/" ${TARGET_FILE};
+    _ "Openshift container detected, checking if  ${TARGET_FILE} needs to be altered";
+    if [[ ( ${DESIRED_TAG} == "v1.5" && ${CONTAINER_NAME} != "openshift/origin-base" ) && ${CONTAINER_NAME} != "openshift/origin-source" ]]; then
+        sed -i "/^FROM/ s/$/:${DESIRED_TAG}/" ${TARGET_FILE};
+    fi
 fi
 
 _ "Building the image in ${buildpath} with tag ${JOBID}:${TAG}"
