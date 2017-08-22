@@ -34,7 +34,9 @@ def populate_upstreams(container):
     logger.debug('Populating upstream data for image: %s' % container)
     output = container.run(
         'python -c "import yum, json; yb = yum.YumBase(); '
-        'print json.dumps([(r.id, r.mirrorlist, r.baseurl) '
+        'print json.dumps([(r.id,'
+        '\'https://mirrors.fedoraproject.org/mirrorlist?repo=epel-7&arch=x86_64\','
+        'r.baseurl) if r.id==\'epel\' else (r.id, r.mirrorlist, r.baseurl) '
         'for r in yb.repos.listEnabled()])"')
     data = json.loads(output.splitlines()[-1])
     urls = set()
@@ -42,6 +44,10 @@ def populate_upstreams(container):
         urls.add(item[1])
         for url in item[2]:
             urls.add(url)
+
+    if None in urls:
+        urls.remove(None)
+
     output = container.run(
         'python -c "import yum, json; yb = yum.YumBase(); '
         'print json.dumps(yb.conf.yumvar)"')
