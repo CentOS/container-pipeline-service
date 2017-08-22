@@ -41,6 +41,7 @@
     - ../jenkinsbuilder/cccp_index_reader.py
     - ../jenkinsbuilder/project-defaults.yml
     - ../jenkinsbuilder/weekly-scan.py
+    - ../container_pipeline/vendors/beanstalkc.py
   when: not vagrant
 
 - name: Replace Jenkins master with its FQDN for Weekly Scan job
