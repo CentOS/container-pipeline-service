@@ -35,28 +35,6 @@ class TestRepoMonitoring(BaseTestCase):
             'cd /opt/cccp-service && '
             'python -c "{}"'.format(_script))
 
-    def test_00_if_fetch_scan_image_job_is_successful(self):
-        self.run_cmd(
-            'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
-            'enable-job fetch-scan-image')
-        print self.run_cmd(
-            'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
-            'build fetch-scan-image -f -v')
-        self.run_cmd(
-            'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
-            'disable-job fetch-scan-image')
-        out = self.run_dj_script(
-                    'from container_pipeline.models.tracking import '
-                    'ContainerImage; '
-                    'print ContainerImage.objects.all().count()')
-        print 'Images fetched', out.strip()
-        self.assertTrue(int(out.strip()))
-        out = self.run_dj_script('from container_pipeline.models.tracking '
-                                 'import Package; '
-                                 'print Package.objects.all().count()')
-        print 'Packages found', out.strip()
-        self.assertTrue(int(out.strip()) > 0)
-
     def test_01_image_delivery_triggers_image_scan(self):
         # Create ContainerImage for bamachrn/python:release
         # In the real world, it will be created automatically by
