@@ -7,8 +7,7 @@ import time
 from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import (Build, get_job_hash, get_job_name,
-                                      get_project_name)
+from container_pipeline.utils import Build
 from container_pipeline.workers.base import BaseWorker
 
 
@@ -19,6 +18,7 @@ class BuildWorker(BaseWorker):
     def __init__(self, logger=None, sub=None, pub=None):
         super(BuildWorker, self).__init__(logger, sub, pub)
         self.openshift = Openshift(logger=self.logger)
+        self.job = None
 
     def handle_job(self, job):
         """
@@ -27,14 +27,16 @@ class BuildWorker(BaseWorker):
         queue to be processed later. Else, it goes ahead with running
         build for the job.
         """
+        self.job = job
+
         parent_build_running = False
-        parents = job.get('depends_on', '').split(',')
+        parents = self.job.get('depends_on', '').split(',')
         parents_in_build = []
 
         # Reset retry params
-        job.pop('retry', None)
-        job.pop('retry_delay', None)
-        job.pop('last_run_timestamp', None)
+        self.job['retry'] = None
+        self.job['retry_delay'] = None
+        self.job['last_run_timestamp'] = None
 
         for parent in parents:
             is_build_running = Build(parent, logger=self.logger).is_running()
@@ -45,28 +47,29 @@ class BuildWorker(BaseWorker):
 
         if parent_build_running:
             self.logger.info('Parents in build: {}, pushing job: {} back '
-                             'to queue'.format(parents_in_build, job))
+                             'to queue'.format(parents_in_build, self.job))
             # Retry delay in seconds
-            job['retry'] = True
-            job['retry_delay'] = settings.BUILD_RETRY_DELAY
-            job['last_run_timestamp'] = time.time()
-            self.queue.put(json.dumps(job), 'master_tube')
+            self.job['retry'] = True
+            self.job['retry_delay'] = settings.BUILD_RETRY_DELAY
+            self.job['last_run_timestamp'] = time.time()
+            self.queue.put(json.dumps(self.job), 'master_tube')
         else:
-            self.logger.info('Starting build for job: {}'.format(job))
-            success = self.build(job)
+            self.logger.info('Starting build for job: {}'.format(self.job))
+            success = self.build()
             if success:
-                self.handle_build_success(job)
+                self.handle_build_success()
             else:
-                self.handle_build_failure(job)
+                self.handle_build_failure()
 
-    def build(self, job):
+    def build(self):
         """Run Openshift build for job"""
-        namespace = get_job_name(job)
-        project = get_job_hash(namespace)
+        namespace = self.job["namespace"]
+        # project_name = self.job["project_name"]
+        project_hash_key = self.job["project_hash_key"]
 
         try:
             self.openshift.login()
-            build_id = self.openshift.build(project, 'build')
+            build_id = self.openshift.build(project_hash_key, 'build')
             if not build_id:
                 return False
         except OpenshiftError as e:
@@ -75,36 +78,36 @@ class BuildWorker(BaseWorker):
 
         Build(namespace).start()
         build_status = self.openshift.wait_for_build_status(
-            project, build_id, 'Complete')
-        logs = self.openshift.get_build_logs(project, build_id)
-        build_logs_file = os.path.join(job['logs_dir'], 'build_logs.txt')
+            project_hash_key, build_id, 'Complete')
+        logs = self.openshift.get_build_logs(project_hash_key, build_id)
+        build_logs_file = os.path.join(self.job['logs_dir'], 'build_logs.txt')
         self.export_logs(logs, build_logs_file)
         return build_status
 
-    def handle_build_success(self, job):
+    def handle_build_success(self):
         """Handle build success for job."""
-        job['action'] = 'start_test'
-        self.queue.put(json.dumps(job), 'master_tube')
+        self.job['action'] = 'start_test'
+        self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Build is successful going for next job")
 
-    def handle_build_failure(self, job):
+    def handle_build_failure(self):
         """Handle build failure for job"""
-        job.pop('action', None)
-        job['action'] = "build_failure"
-        self.queue.put(json.dumps(job), 'master_tube')
+        self.job.pop('action', None)
+        self.job['action'] = "build_failure"
+        self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
             "Build is not successful putting it to failed build tube")
         data = {
             'action': 'notify_user',
-            'namespace': get_job_name(job),
+            'namespace': self.job["namespace"],
             'build_status': False,
-            'notify_email': job['notify_email'],
+            'notify_email': self.job['notify_email'],
             'build_logs_file': os.path.join(
-                job['logs_dir'], 'build_logs.txt'),
-            'logs_dir': job['logs_dir'],
-            'project_name': get_project_name(job),
-            'job_name': job['jobid'],
-            'test_tag': job['test_tag']}
+                self.job['logs_dir'], 'build_logs.txt'),
+            'logs_dir': self.job['logs_dir'],
+            'project_name': self.job['project_name'],
+            'job_name': self.job['job_name'],
+            'test_tag': self.job['test_tag']}
         self.notify(data)
 
 
