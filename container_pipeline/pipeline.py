@@ -1,11 +1,10 @@
 import logging
-import os
 import sys
-import time
 
 from container_pipeline.lib.log import load_logger
 from trigger_dockerfile_lint import trigger_dockerfile_linter
 from container_pipeline.utils import get_project_name, get_job_hash
+
 
 def create_new_job():
     """
@@ -42,7 +41,11 @@ def create_new_job():
         "lint_status",   # status of lint process
         "scan_status",   # status of scan process
         "delivery_status",   # status of delivery process
-        "job_hash_key"   # hash value of `project_name` key
+        "project_hash_key",  # hash value of `project_name` key
+        # retry params for build worker to retry builds if required
+        "retry",
+        "retry_delay",
+        "last_run_timestamp"
     ])
 
     return job
@@ -78,7 +81,8 @@ def main(args):
     job["test_tag"] = test_tag
 
     job["project_name"] = get_project_name(job)
-    job["job_hash_key"] = get_job_hash(job["project_name"])
+    job["namespace"] = job["project_name"]
+    job["project_hash_key"] = get_job_hash(job["project_name"])
     job["job_name"] = job["project_name"]
 
     try:
@@ -86,7 +90,7 @@ def main(args):
             appid, jobid, repo_url, repo_branch,
             repo_build_path, target_file, notify_email,
             desired_tag, depends_on, test_tag)
-    except:
+    except Exception:
         sys.exit(1)
 
 
