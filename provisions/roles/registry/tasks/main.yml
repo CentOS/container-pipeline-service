@@ -16,7 +16,7 @@
 - name: Run UI registry container.
   sudo: yes
   docker_container:
-      image: pipeline-images/docker-registry-frontend:v2
+      image: registry.centos.org/pipeline-images/docker-registry-frontend:v2
       name: registry-ui
       state: started
       restart: yes
