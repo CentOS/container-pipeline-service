@@ -16,6 +16,8 @@
             CWD=`pwd`
             cd /opt/cccp-service/jenkinsbuilder
             python cccp_index_reader.py $CWD/index.d
+            cd /opt/cccp-service/
+            python manage.py fetchimagelist $CWD/index.d
 
 - job:
     name: 'weekly-image-scan'

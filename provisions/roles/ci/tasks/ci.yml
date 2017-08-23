@@ -1,8 +1,4 @@
 ---
-- name: Disable fetch-scan-image job
-  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} disable-job fetch-scan-image
-  when: test
-
 - name: Enable cccp-index job
   shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} enable-job cccp-index
   when: test
