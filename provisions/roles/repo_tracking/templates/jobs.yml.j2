@@ -10,27 +10,3 @@
             ./manage.py checkupdates
     triggers:
         - timed: "@midnight"
-
-- job:
-    name: 'fetch-scan-image'
-    description: |
-        Managed by Jenkins Job Builder, do not edit manually!
-    node: master
-    scm:
-        - git:
-            url: "{{ cccp_index_repo }}"
-            branches:
-                - "origin/master"
-            skip-tag: True
-    triggers:
-        - reverse:
-            jobs: "cccp-index"
-            result: 'success'
-        - pollscm: "H/10 * * * *"
-    builders:
-        - shell: |
-            export CWD=`pwd`
-            export DOCKER_HOST=localhost:2367
-            cd /opt/cccp-service/
-            python manage.py fetchimagelist $CWD/index.d
-            python manage.py imagescanner onetime
