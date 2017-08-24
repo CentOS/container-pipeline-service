@@ -18,10 +18,20 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
     openshift = Openshift(logger=logger)
     try:
         openshift.login("test-admin", "test")
-        if openshift.get_project(project):
-            openshift.delete(project)
+        max_retry = 10
+        retry = 0
+        # waiting for delivery get completed before next job for the same
+        # project overrides the job parameters
+        while openshift.get_project(project) and (retry < max_retry):
             time.sleep(50)
-        openshift.create(project)
+            retry += 1
+
+        if openshift.get_project(project):
+            logger.error("OpenShift is not able to delete project: {}"
+                         .format(job_name))
+            raise
+        else:
+            openshift.create(project)
     except OpenshiftError:
         try:
             openshift.delete(project)
@@ -41,7 +51,6 @@ def create_project(appid, jobid, repo_url, repo_branch, repo_build_path,
         'NOTIFY_EMAIL': notify_email,
         'DESIRED_TAG': desired_tag,
         'TEST_TAG': test_tag})
-
 
 if __name__ == '__main__':
     load_logger()
