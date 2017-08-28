@@ -14,43 +14,41 @@ def create_new_job():
     pipeline service
     """
     job = dict.fromkeys([
-        "project_name",  # centos/centos:latest will be centos-centos-latest
-        "notify_email",  # email to send notifications to
+        "action",        # action to be performed (lint, build, scan, etc.)
+                         # remove
+        "appid",         # equivalent to namespacein Docker hub lingo
+        # TODO: this one needs to go away
+        "beanstalk_server",  # beanstalk server to connect to
+        "build_status",  # status of build process
+        "delivery_status",   # status of delivery process
         "depends_on",    # parent image. Rebuild of parent will cause child to
-                         # rebuild as well
-        "repo_branch",   # branch of the repository to checkout
+        "desired_tag",   # tag to be applied to the image
+        "dockerfile",    # contents of the Dockerfile for linter purpose
+        "image_name",    # <appid>/<jobid>:<desired_tag>
+        "image_under_test",  # image being tested
+        "job_name",      # same as project_name. need to remove
+        "jobid",         # equivalent to image name in Docker hub lingo
+        "last_run_timestamp",
+        "lint_status",   # status of lint process
+        "logs_URL",      # https URL for the logs hosted on nginx
         "logs_dir",      # directory where all workers' logs files will be
                          # stored
-        "test_tag",      # temporary tag to be applied to image
-        "repo_url",      # url of the remote git repository to build
-        "repo_build_path",  # path on the repo where Dockerfile can be found
-        "target_file",   # Name of the Dockerfile to use to build container
-                         # image
-        "jobid",         # equivalent to image name in Docker hub lingo
-        "desired_tag",   # tag to be applied to the image
-        "appid",         # equivalent to namespacein Docker hub lingo
-        "action",        # action to be performed (lint, build, scan, etc.)
-        "dockerfile",    # contents of the Dockerfile for linter purpose
-        "job_name",      # same as project_name. need to remove
-        "output_image",  # full path to the built image
-        "namespace",     # again same as project_name & job_name. need to
-                         # remove
-        "image_name",    # <appid>/<jobid>:<desired_tag>
-        "logs_URL",      # https URL for the logs hosted on nginx
         "logs_file_path",   # path to the logs of all scanners
-        "build_status",  # status of build process
-        "lint_status",   # status of lint process
-        "scan_status",   # status of scan process
-        "delivery_status",   # status of delivery process
+        "namespace",     # again same as project_name & job_name. need to
+        "notify_email",  # email to send notifications to
+        "output_image",  # full path to the built image
         "project_hash_key",  # hash value of `project_name` key
-        # retry params for build worker to retry builds if required
+        "project_name",  # centos/centos:latest will be centos-centos-latest
+                         # rebuild as well
+        "repo_branch",   # branch of the repository to checkout
+        "repo_build_path",  # path on the repo where Dockerfile can be found
+        "repo_url",      # url of the remote git repository to build
         "retry",
         "retry_delay",
-        "last_run_timestamp",
-        # params specific to test worker
-        "image_under_test",  # image being tested
-        # TODO: this needs to go away
-        "beanstalk_server"   # beanstalk server to connect to
+        "scan_status",   # status of scan process
+        "target_file",   # Name of the Dockerfile to use to build container
+                         # image
+        "test_tag",      # temporary tag to be applied to image
     ])
 
     return job
