@@ -21,7 +21,6 @@ class TestWorker(BaseWorker):
     def __init__(self, logger=None, sub=None, pub=None):
         super(TestWorker, self).__init__(logger, sub, pub)
         self.openshift = Openshift(logger=self.logger)
-        self.job = None
 
     def run_test(self):
         """Run Openshift test build for job, which runs the user

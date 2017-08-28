@@ -15,9 +15,6 @@ class ScanWorker(BaseWorker):
     """Scan Base worker."""
     NAME = 'Scanner worker'
 
-    def __init__(self):
-        self.job = None
-
     def handle_job(self, job):
         """
         Handle jobs in scan tube.
