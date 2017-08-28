@@ -1,6 +1,7 @@
 import logging
 import sys
 
+from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from trigger_dockerfile_lint import trigger_dockerfile_linter
 from container_pipeline.utils import get_project_name, get_job_hash
@@ -88,6 +89,13 @@ def main(args):
     job["namespace"] = job["project_name"]
     job["project_hash_key"] = get_job_hash(job["project_name"])
     job["job_name"] = job["project_name"]
+    job['image_name'] = "{}/{}:{}".format(
+        job['appid'], job['jobid'], job['desired_tag'])
+    job['output_image'] = \
+        "registry.centos.org/{}/{}:{}".format(appid, jobid, desired_tag)
+    job['beanstalk_server'] = settings.BEANSTALKD_HOST
+    job['image_under_test'] = "{}/{}/{}:{}".format(
+                settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
 
     try:
         trigger_dockerfile_linter(
