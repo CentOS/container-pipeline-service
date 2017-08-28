@@ -15,6 +15,9 @@ class ScanWorker(BaseWorker):
     """Scan Base worker."""
     NAME = 'Scanner worker'
 
+    def __init__(self):
+        self.job = None
+
     def handle_job(self, job):
         """
         Handle jobs in scan tube.
@@ -22,16 +25,18 @@ class ScanWorker(BaseWorker):
         This scans the images for the job requests in start_scan tube.
         this calls the ScannerRunner for performing the scan work
         """
+        self.job = job
+
         debug_logs_file = os.path.join(
-            job["logs_dir"], settings.SERVICE_LOGFILE)
+            self.job["logs_dir"], settings.SERVICE_LOGFILE)
         dfh = log.DynamicFileHandler(self.logger, debug_logs_file)
 
-        scan_runner_obj = ScannerRunner(job)
+        scan_runner_obj = ScannerRunner(self.job)
         status, scanners_data = scan_runner_obj.scan()
         if not status:
             self.logger.warning(
                 "Failed to run scanners on image under test, moving on!",
-                extra=job
+                extra=self.job
             )
         else:
             self.logger.debug(str(scanners_data))
@@ -43,7 +48,7 @@ class ScanWorker(BaseWorker):
         scanners_data.pop("scan_results", None)
 
         # if weekly scan, push the job for notification
-        if job.get("weekly"):
+        if self.job.get("weekly"):
             scanners_data["action"] = "notify_user"
             self.queue.put(json.dumps(scanners_data), 'master_tube')
         else:
