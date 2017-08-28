@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import hashlib
 import json
 import logging
 import os
@@ -23,12 +22,13 @@ class TestWorker(BaseWorker):
     def __init__(self, logger=None, sub=None, pub=None):
         super(TestWorker, self).__init__(logger, sub, pub)
         self.openshift = Openshift(logger=self.logger)
+        self.job = None
 
-    def run_test(self, job):
+    def run_test(self):
         """Run Openshift test build for job, which runs the user
         defined tests."""
-        namespace = get_job_name(job)
-        project = hashlib.sha224(namespace).hexdigest()
+        namespace = self.job["namespace"]
+        project = self.job["project_hash_key"]
 
         try:
             self.openshift.login()
@@ -45,26 +45,29 @@ class TestWorker(BaseWorker):
         test_status = self.openshift.wait_for_build_status(
             project, build_id, 'Complete', status_index=2)
         logs = self.openshift.get_build_logs(project, build_id)
-        test_logs_file = os.path.join(job['logs_dir'], 'test_logs.txt')
+        test_logs_file = os.path.join(self.job['logs_dir'], 'test_logs.txt')
         self.export_logs(logs, test_logs_file)
         return test_status
 
-    def handle_test_success(self, job):
+    def handle_test_success(self):
         """Handle test success for job."""
-        job['action'] = "start_scan"
+        self.job['action'] = "start_scan"
         # TODO: Below five variables are to be removed and they should in job
         # from jenkins
-        job['image_under_test'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
-                                                   job['appid'], job['jobid'], job['test_tag'])
-        job['output_image'] = "registry.centos.org/{}/{}:{}".format(job['appid'],
-                                              job['jobid'], job['desired_tag'])
-        job['build_status'] = True
-        job['beanstalk_server'] = settings.BEANSTALKD_HOST
-        job['namespace'] = job['project_name']
-        job['image_name'] = "{}/{}:{}".format(job['appid'], job['jobid'], 
-                                              job['desired_tag'])
+        self.job['image_under_test'] = \
+            "{}/{}/{}:{}".format(
+                settings.REGISTRY_ENDPOINT[0], self.job['appid'],
+                self.job['jobid'], self.job['test_tag'])
+        self.job['output_image'] = \
+            "registry.centos.org/{}/{}:{}".format(
+                self.job['appid'], self.job['jobid'], self.job['desired_tag'])
+        self.job['build_status'] = True
+        self.job['beanstalk_server'] = settings.BEANSTALKD_HOST
+        self.job['image_name'] = \
+            "{}/{}:{}".format(
+                self.job['appid'], self.job['jobid'], self.job['desired_tag'])
 
-        self.queue.put(json.dumps(job), 'master_tube')
+        self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
 
     def handle_test_failure(self, job):
@@ -89,12 +92,13 @@ class TestWorker(BaseWorker):
 
     def handle_job(self, job):
         """This runs the test worker"""
-        success = self.run_test(job)
+        self.job = job
 
+        success = self.run_test()
         if success:
-            self.handle_test_success(job)
+            self.handle_test_success()
         else:
-            self.handle_test_failure(job)
+            self.handle_test_failure()
 
 
 if __name__ == '__main__':

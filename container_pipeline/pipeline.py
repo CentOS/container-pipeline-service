@@ -45,7 +45,11 @@ def create_new_job():
         # retry params for build worker to retry builds if required
         "retry",
         "retry_delay",
-        "last_run_timestamp"
+        "last_run_timestamp",
+        # params specific to test worker
+        "image_under_test",  # image being tested
+        # TODO: this needs to go away
+        "beanstalk_server"   # beanstalk server to connect to
     ])
 
     return job
