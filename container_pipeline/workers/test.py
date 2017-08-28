@@ -6,7 +6,7 @@ import os
 from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import Build, get_job_name, get_project_name
+from container_pipeline.utils import Build
 from container_pipeline.workers.base import BaseWorker
 
 
@@ -61,7 +61,6 @@ class TestWorker(BaseWorker):
         self.job['output_image'] = \
             "registry.centos.org/{}/{}:{}".format(
                 self.job['appid'], self.job['jobid'], self.job['desired_tag'])
-        self.job['build_status'] = True
         self.job['beanstalk_server'] = settings.BEANSTALKD_HOST
         self.job['image_name'] = \
             "{}/{}:{}".format(
@@ -70,23 +69,22 @@ class TestWorker(BaseWorker):
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
 
-    def handle_test_failure(self, job):
+    def handle_test_failure(self):
         """Handle test failure for job"""
-        job.pop('action', None)
-        job['action'] = "test_failure"
-        self.queue.put(json.dumps(job), 'master_tube')
+        self.job['action'] = "test_failure"
+        self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
             "Test is not successful putting it to failed build tube")
         data = {
             'action': 'notify_user',
-            'namespace': get_job_name(job),
+            'namespace': self.job["namespace"],
             'build_status': False,
-            'notify_email': job['notify_email'],
+            'notify_email': self.job['notify_email'],
             'test_logs_file': os.path.join(
-                job['logs_dir'], 'test_logs.txt'),
-            'project_name': get_project_name(job),
-            'job_name': job['jobid'],
-            'test_tag': job['test_tag']}
+                self.job['logs_dir'], 'test_logs.txt'),
+            'project_name': self.job["project_name"],
+            'job_name': self.job['jobid'],
+            'test_tag': self.job['test_tag']}
         self.logger.debug('Notify test failure: {}'.format(data))
         self.notify(data)
 
