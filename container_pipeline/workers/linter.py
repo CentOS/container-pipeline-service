@@ -21,7 +21,6 @@ class DockerfileLintWorker(BaseWorker):
     def __init__(self, logger=None, sub=None, pub=None):
         super(DockerfileLintWorker, self).__init__(logger, sub, pub)
         self.status_file_path = ""
-        self.job = None
         self.project_name = None
 
     def handle_job(self, job):

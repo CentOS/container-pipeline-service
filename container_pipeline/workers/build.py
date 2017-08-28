@@ -18,7 +18,6 @@ class BuildWorker(BaseWorker):
     def __init__(self, logger=None, sub=None, pub=None):
         super(BuildWorker, self).__init__(logger, sub, pub)
         self.openshift = Openshift(logger=self.logger)
-        self.job = None
 
     def handle_job(self, job):
         """
