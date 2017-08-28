@@ -3,6 +3,7 @@ import os
 import sys
 import time
 
+from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from trigger_dockerfile_lint import trigger_dockerfile_linter
@@ -124,6 +125,13 @@ def main(args):
     job["namespace"] = job["project_name"]
     job["project_hash_key"] = get_job_hash(job["project_name"])
     job["job_name"] = job["project_name"]
+    job['image_name'] = "{}/{}:{}".format(
+        job['appid'], job['jobid'], job['desired_tag'])
+    job['output_image'] = \
+        "registry.centos.org/{}/{}:{}".format(appid, jobid, desired_tag)
+    job['beanstalk_server'] = settings.BEANSTALKD_HOST
+    job['image_under_test'] = "{}/{}/{}:{}".format(
+                settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
 
     try:
         linter_status = trigger_dockerfile_linter(job)

@@ -3,7 +3,6 @@ import json
 import logging
 import os
 
-from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.utils import Build
@@ -52,20 +51,6 @@ class TestWorker(BaseWorker):
     def handle_test_success(self):
         """Handle test success for job."""
         self.job['action'] = "start_scan"
-        # TODO: Below five variables are to be removed and they should in job
-        # from jenkins
-        self.job['image_under_test'] = \
-            "{}/{}/{}:{}".format(
-                settings.REGISTRY_ENDPOINT[0], self.job['appid'],
-                self.job['jobid'], self.job['test_tag'])
-        self.job['output_image'] = \
-            "registry.centos.org/{}/{}:{}".format(
-                self.job['appid'], self.job['jobid'], self.job['desired_tag'])
-        self.job['beanstalk_server'] = settings.BEANSTALKD_HOST
-        self.job['image_name'] = \
-            "{}/{}:{}".format(
-                self.job['appid'], self.job['jobid'], self.job['desired_tag'])
-
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
 
