@@ -57,8 +57,10 @@ class BuildWorker(BaseWorker):
             self.logger.info('Starting build for job: {}'.format(self.job))
             success = self.build()
             if success:
+                self.job["build_status"] = True
                 self.handle_build_success()
             else:
+                self.job["build_status"] = False
                 self.handle_build_failure()
 
     def build(self):
