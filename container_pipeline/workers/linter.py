@@ -7,7 +7,7 @@ import os
 from container_pipeline.lib import settings
 from container_pipeline.lib.command import run_cmd_out_err
 from container_pipeline.lib.log import load_logger
-from container_pipeline.pipeline import create_project
+from container_pipeline.trigger_build import create_project
 from container_pipeline.utils import get_project_name
 from container_pipeline.workers.base import BaseWorker
 
