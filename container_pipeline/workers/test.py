@@ -1,13 +1,11 @@
 #!/usr/bin/env python
-import hashlib
 import json
 import logging
 import os
 
-from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import Build, get_job_name, get_project_name
+from container_pipeline.utils import Build
 from container_pipeline.workers.base import BaseWorker
 
 
@@ -24,11 +22,11 @@ class TestWorker(BaseWorker):
         super(TestWorker, self).__init__(logger, sub, pub)
         self.openshift = Openshift(logger=self.logger)
 
-    def run_test(self, job):
+    def run_test(self):
         """Run Openshift test build for job, which runs the user
         defined tests."""
-        namespace = get_job_name(job)
-        project = hashlib.sha224(namespace).hexdigest()
+        namespace = self.job["namespace"]
+        project = self.job["project_hash_key"]
 
         try:
             self.openshift.login()
@@ -45,56 +43,44 @@ class TestWorker(BaseWorker):
         test_status = self.openshift.wait_for_build_status(
             project, build_id, 'Complete', status_index=2)
         logs = self.openshift.get_build_logs(project, build_id)
-        test_logs_file = os.path.join(job['logs_dir'], 'test_logs.txt')
+        test_logs_file = os.path.join(self.job['logs_dir'], 'test_logs.txt')
         self.export_logs(logs, test_logs_file)
         return test_status
 
-    def handle_test_success(self, job):
+    def handle_test_success(self):
         """Handle test success for job."""
-        job['action'] = "start_scan"
-        # TODO: Below five variables are to be removed and they should in job
-        # from jenkins
-        job['image_under_test'] = "{}/{}/{}:{}".format(settings.REGISTRY_ENDPOINT[0],
-                                                   job['appid'], job['jobid'], job['test_tag'])
-        job['output_image'] = "registry.centos.org/{}/{}:{}".format(job['appid'],
-                                              job['jobid'], job['desired_tag'])
-        job['build_status'] = True
-        job['beanstalk_server'] = settings.BEANSTALKD_HOST
-        job['namespace'] = job['project_name']
-        job['image_name'] = "{}/{}:{}".format(job['appid'], job['jobid'], 
-                                              job['desired_tag'])
-
-        self.queue.put(json.dumps(job), 'master_tube')
+        self.job['action'] = "start_scan"
+        self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
 
-    def handle_test_failure(self, job):
+    def handle_test_failure(self):
         """Handle test failure for job"""
-        job.pop('action', None)
-        job['action'] = "test_failure"
-        self.queue.put(json.dumps(job), 'master_tube')
+        self.job['action'] = "test_failure"
+        self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
             "Test is not successful putting it to failed build tube")
         data = {
             'action': 'notify_user',
-            'namespace': get_job_name(job),
+            'namespace': self.job["namespace"],
             'build_status': False,
-            'notify_email': job['notify_email'],
+            'notify_email': self.job['notify_email'],
             'test_logs_file': os.path.join(
-                job['logs_dir'], 'test_logs.txt'),
-            'project_name': get_project_name(job),
-            'job_name': job['jobid'],
-            'test_tag': job['test_tag']}
+                self.job['logs_dir'], 'test_logs.txt'),
+            'project_name': self.job["project_name"],
+            'job_name': self.job['jobid'],
+            'test_tag': self.job['test_tag']}
         self.logger.debug('Notify test failure: {}'.format(data))
         self.notify(data)
 
     def handle_job(self, job):
         """This runs the test worker"""
-        success = self.run_test(job)
+        self.job = job
 
+        success = self.run_test()
         if success:
-            self.handle_test_success(job)
+            self.handle_test_success()
         else:
-            self.handle_test_failure(job)
+            self.handle_test_failure()
 
 
 if __name__ == '__main__':
