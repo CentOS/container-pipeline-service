@@ -98,8 +98,10 @@ def main(args):
      target_file, notify_email, desired_tag, depends_on,
      test_tag) = args
 
+    if repo_build_path == "/":
+        pass
     # having '/' in a value used in os.path.join generates unexpected paths
-    if repo_build_path.startswith("/"):
+    elif repo_build_path.startswith("/"):
         repo_build_path = repo_build_path[1:]
 
     if target_file.startswith("/"):
