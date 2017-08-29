@@ -62,8 +62,10 @@ def main(args):
      target_file, notify_email, desired_tag, depends_on,
      test_tag) = args
 
+    if repo_build_path == "/":
+        pass
     # having '/' in a value used in os.path.join generates unexpected paths
-    if repo_build_path.startswith("/"):
+    elif repo_build_path.startswith("/"):
         repo_build_path = repo_build_path[1:]
 
     if target_file.startswith("/"):
@@ -96,10 +98,7 @@ def main(args):
                 settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
 
     try:
-        trigger_dockerfile_linter(
-            appid, jobid, repo_url, repo_branch,
-            repo_build_path, target_file, notify_email,
-            desired_tag, depends_on, test_tag)
+        trigger_dockerfile_linter(job)
     except Exception:
         sys.exit(1)
 

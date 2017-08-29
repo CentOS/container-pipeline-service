@@ -15,8 +15,10 @@ def trigger_dockerfile_linter(job):
 
     try:
         dockerfile_location = \
-            os.path.join(os.environ['DOCKERFILE_DIR'], job["repo_build_path"],
-                         job["target_file"])
+            os.path.join(
+                os.environ['DOCKERFILE_DIR'],
+                "" if job["repo_build_path"] == "/" else job["repo_build_path"],
+                job["target_file"])
         with open(dockerfile_location) as f:
             dockerfile = f.read()
         job["dockerfile"] = dockerfile
