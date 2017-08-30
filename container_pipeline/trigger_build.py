@@ -62,5 +62,4 @@ def create_project(queue, job, logger):
         return
 
     job["action"] = "start_build"
-    logger.info("Putting job to master tube: {}".format(job))
     queue.put(json.dumps(job), 'master_tube')

@@ -1,5 +1,5 @@
 ---
-- name: Stop and remove {{ item }} container
+- name: Stop and remove worker containers
   sudo: yes
   docker_container:
     name: "{{ item }}"
