@@ -4,11 +4,12 @@ import json
 import logging
 import os
 
-from container_pipeline.lib.log import load_logger
-from container_pipeline.workers.base import BaseWorker
 from container_pipeline.lib import settings
 from container_pipeline.lib.command import run_cmd_out_err
+from container_pipeline.lib.log import load_logger
+from container_pipeline.trigger_build import create_project
 from container_pipeline.utils import get_project_name
+from container_pipeline.workers.base import BaseWorker
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -132,10 +133,7 @@ class DockerfileLintWorker(BaseWorker):
             self.logger.info("Deleting 'dockerfile' data from job")
             del(self.job["dockerfile"])
 
-        self.job["action"] = "start_build"
-        self.logger.info("Putting job to build tube")
-        self.queue.put(json.dumps(self.job), 'master_tube')
-
+        create_project(self.queue, self.job, self.logger)
         return response
 
     def handle_lint_failure(self, error):
@@ -149,7 +147,7 @@ class DockerfileLintWorker(BaseWorker):
             "job_name": self.job.get("job_name"),
             "msg": error,
             "project_name": self.project_name
-            }
+        }
 
         return response
 
@@ -165,7 +163,7 @@ class DockerfileLintWorker(BaseWorker):
                 "Failed to write linter status on NFS share: {}".format(e))
         else:
             self.logger.debug(
-                    "Wrote linter status to file: %s" % self.status_file_path)
+                "Wrote linter status to file: %s" % self.status_file_path)
 
 
 if __name__ == '__main__':
