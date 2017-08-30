@@ -15,7 +15,7 @@ from container_pipeline.lib.openshift import Openshift, OpenshiftError
 
 def create_project(queue, job, logger):
     job_name = job.get("job_name")
-    project = utils.get_job_hash(job_name)
+    project_name_hash = utils.get_job_hash(job_name)
     openshift = Openshift(logger=logger)
     try:
         openshift.login("test-admin", "test")
@@ -23,19 +23,19 @@ def create_project(queue, job, logger):
         retry = 0
         # waiting for delivery get completed before next job for the same
         # project overrides the job parameters
-        while openshift.get_project(project) and (retry < max_retry):
+        while openshift.get_project(project_name_hash) and (retry < max_retry):
             time.sleep(50)
             retry += 1
 
-        if openshift.get_project(project):
+        if openshift.get_project(project_name_hash):
             logger.error("OpenShift is not able to delete project: {}"
                          .format(job_name))
             raise
         else:
-            openshift.create(project)
+            openshift.create(project_name_hash)
     except OpenshiftError:
         try:
-            openshift.delete(project)
+            openshift.delete(project_name_hash)
         except OpenshiftError as e:
             logger.error(e)
         return
@@ -43,7 +43,7 @@ def create_project(queue, job, logger):
     try:
         template_path = os.path.join(
             os.path.dirname(__file__), 'template.json')
-        openshift.upload_template(project, template_path, {
+        openshift.upload_template(project_name_hash, template_path, {
             'SOURCE_REPOSITORY_URL': job.get("repo_url"),
             'REPO_BRANCH': job.get("repo_branch"),
             'APPID': job.get("appid"),
@@ -56,11 +56,11 @@ def create_project(queue, job, logger):
         })
     except OpenshiftError:
         try:
-            openshift.delete(project)
+            openshift.delete(project_name_hash)
         except OpenshiftError as e:
             logger.error(e)
         return
 
     job["action"] = "start_build"
-    logger.info("Putting job to build tube: {}".format(job))
+    logger.info("Putting job to master tube: {}".format(job))
     queue.put(json.dumps(job), 'master_tube')

@@ -1,28 +1,12 @@
 ---
-- name: Stop and remove dispatcher worker container
+- name: Stop and remove {{ item }} container
   sudo: yes
   docker_container:
-    name: dispatcher-worker
+    name: "{{ item }}"
     state: absent
     force_kill: yes
-
-- name: Stop and remove build worker container
-  sudo: yes
-  docker_container:
-    name: build-worker
-    state: absent
-    force_kill: yes
-
-- name: Stop and remove test worker container
-  sudo: yes
-  docker_container:
-    name: test-worker
-    state: absent
-    force_kill: yes
-
-- name: Stop and remove delivery worker container
-  sudo: yes
-  docker_container:
-    name: delivery-worker
-    state: absent
-    force_kill: yes
+  with_items:
+    - dispatcher-worker
+    - build-worker
+    - test-worker
+    - delivery-worker
