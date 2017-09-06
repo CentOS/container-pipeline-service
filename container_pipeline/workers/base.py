@@ -13,6 +13,7 @@ class BaseWorker(object):
     NAME = ''
 
     def __init__(self, logger=None, sub=None, pub=None):
+        self.job = None
         self.logger = logger or logging.getLogger('console')
         self.queue = JobQueue(host=settings.BEANSTALKD_HOST,
                               port=settings.BEANSTALKD_PORT,
