@@ -20,6 +20,7 @@ def create_new_job():
         # TODO: this one needs to go away
         "beanstalk_server",  # beanstalk server to connect to
         "build_status",  # status of build process
+        "cause_of_build",   # cause of build trigger
         "delivery_status",   # status of delivery process
         "depends_on",    # parent image. Rebuild of parent will cause child to
         "desired_tag",   # tag to be applied to the image
