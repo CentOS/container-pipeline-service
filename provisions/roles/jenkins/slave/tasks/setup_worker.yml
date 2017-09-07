@@ -49,7 +49,7 @@
       restart_policy: always
       volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
       env:
-          JENKINS_MASTER: {{ hostvars['jenkins_master'] }}
+          JENKINS_MASTER: "{{ groups['jenkins_master'][0] }}"
   tags:
       - application
 
