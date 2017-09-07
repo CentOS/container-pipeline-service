@@ -48,6 +48,8 @@
       command: /opt/cccp-service/container_pipeline/workers/build.py
       restart_policy: always
       volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
+      env:
+          JENKINS_MASTER: {{ hostvars['jenkins_master'] }}
   tags:
       - application
 
