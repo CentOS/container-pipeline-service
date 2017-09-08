@@ -26,24 +26,24 @@ def parse_json_response(response):
     """Parses the json response provided to it to determin"""
     try:
         cause = response['actions'][0]['causes'][0]['shortDescription']
+
+        if cause == 'Started by an SCM change':
+            return 'Git commit {}'.format(
+                response['actions'][2]['lastBuiltRevision']['SHA1']
+            )
+        elif 'Started by upstream project' in cause:
+            return 'Change in upsream project {}'.format(
+                response['actions'][0]['causes'][0]['shortDescription'].split(
+                    '"')[1]
+            )
+        elif 'Started from command line' in cause:
+            return 'RPM update in enabled repos'
+        elif 'Started by user' in cause:
+            return 'Manually triggered by admin'
+        else:
+            return 'Unknown'
     except KeyError:
         return 'Invalid JSON response from Jenkins'
-
-    if cause == 'Started by an SCM change':
-        return 'Git commit {}'.format(
-            response['actions'][2]['lastBuiltRevision']['SHA1']
-        )
-    elif 'Started by upstream project' in cause:
-        return 'Change in upsream project {}'.format(
-            response['actions'][0]['causes'][0]['shortDescription'].split(
-                '"')[1]
-        )
-    elif 'Started from command line' in cause:
-        return 'RPM update in enabled repos'
-    elif 'Started by user' in cause:
-        return 'Manually triggered by admin'
-    else:
-        return 'Unknown'
 
 
 def get_cause_of_build(jenkins_url, job_name, job_number):
@@ -53,8 +53,12 @@ def get_cause_of_build(jenkins_url, job_name, job_number):
     """
     url = "http://{}:8080/job/{}/{}/api/json".format(
         jenkins_url, job_name, job_number)
-    response = urllib2.urlopen(url)
-    return parse_json_response(json.loads(response.read()))
+    try:
+        response = urllib2.urlopen(url)
+    except Exception:
+        return "Error fetching cause of build from: {}".format(url)
+    else:
+        return parse_json_response(json.loads(response.read()))
 
 
 # In future, we can collate a lot of duplicate code from workers
