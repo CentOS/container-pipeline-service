@@ -30,20 +30,20 @@ def parse_json_response(response):
         return 'Invalid JSON response from Jenkins'
 
     if cause == 'Started by an SCM change':
-        return 'Build triggered by commit {}'.format(
+        return 'Git commit {}'.format(
             response['actions'][2]['lastBuiltRevision']['SHA1']
         )
     elif 'Started by upstream project' in cause:
-        return 'Build triggered by change in upsream project {}'.format(
+        return 'Change in upsream project {}'.format(
             response['actions'][0]['causes'][0]['shortDescription'].split(
                 '"')[1]
         )
     elif 'Started from command line' in cause:
-        return 'Build triggered due to RPM update in enabled repos'
+        return 'RPM update in enabled repos'
     elif 'Started by user' in cause:
-        return 'Build triggered manually by admin'
+        return 'Manually triggered by admin'
     else:
-        return 'Build trigger cause unknown'
+        return 'Unknown'
 
 
 def get_cause_of_build(jenkins_url, job_name, job_number):
