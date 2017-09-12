@@ -20,12 +20,14 @@ def create_new_job():
         # TODO: this one needs to go away
         "beanstalk_server",  # beanstalk server to connect to
         "build_status",  # status of build process
+        "cause_of_build",   # cause of build trigger
         "delivery_status",   # status of delivery process
         "depends_on",    # parent image. Rebuild of parent will cause child to
         "desired_tag",   # tag to be applied to the image
         "dockerfile",    # contents of the Dockerfile for linter purpose
         "image_name",    # <appid>/<jobid>:<desired_tag>
         "image_under_test",  # image being tested
+        "jenkins_build_number"  # build number for the job in Jenkins
         "job_name",      # same as project_name. need to remove
         "jobid",         # equivalent to image name in Docker hub lingo
         "last_run_timestamp",
@@ -60,7 +62,7 @@ def main(args):
 
     (appid, jobid, repo_url, repo_branch, repo_build_path,
      target_file, notify_email, desired_tag, depends_on,
-     test_tag) = args
+     test_tag, jenkins_build_number) = args
 
     if repo_build_path == "/":
         pass
@@ -84,6 +86,7 @@ def main(args):
     job["desired_tag"] = desired_tag
     job["depends_on"] = depends_on
     job["test_tag"] = test_tag
+    job["jenkins_build_number"] = jenkins_build_number
 
     job["project_name"] = get_project_name(job)
     job["namespace"] = job["project_name"]

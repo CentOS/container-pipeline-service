@@ -7,7 +7,7 @@ import time
 from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import Build
+from container_pipeline.utils import Build, get_cause_of_build
 from container_pipeline.workers.base import BaseWorker
 
 
@@ -27,6 +27,12 @@ class BuildWorker(BaseWorker):
         build for the job.
         """
         self.job = job
+
+        self.job["cause_of_build"] = get_cause_of_build(
+            os.environ.get('JENKINS_MASTER'),
+            self.job["job_name"],
+            self.job["jenkins_build_number"]
+        )
 
         parent_build_running = False
         parents = self.job.get('depends_on', '').split(',')

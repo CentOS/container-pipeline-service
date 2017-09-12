@@ -44,6 +44,7 @@ SUCCESS_EMAIL_MSG = """
 Build status:\t\tSuccess
 Image:\t\t\t%s
 Build logs:\t\t%s
+Cause of build:\t\t%s
 """
 
 FAILURE_EMAIL_MSG = """
@@ -212,7 +213,8 @@ class NotifyUser(object):
         # need output image name and build logs
         return SUCCESS_EMAIL_MSG % (
             self.job_info["output_image"],
-            self.build_logs)
+            self.build_logs,
+            self.job_info["cause_of_build"])
 
     def compose_failed_build_contents(self):
         "Composes email contents for email of failed build"
