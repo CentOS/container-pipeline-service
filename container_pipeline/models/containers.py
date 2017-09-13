@@ -9,6 +9,7 @@ from yaml import load
 def form_dockerfile_link(git_url, git_path, target_file):
     pass
 
+
 class ContainerInfo(object):
 
     def __init__(self, data_dir="/srv/pipeline-logs"):
