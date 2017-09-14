@@ -8,7 +8,7 @@ from yaml import load, dump
 
 def form_dockerfile_link(git_url, git_path, git_branch, target_file):
     link_url = None
-    if "github" in git_url:
+    if "github" in git_url or "gitlab" in git_url:
         link_url = str.format(
             "{git_url}/blob/{git_branch}/{git_path}/{target_file}",
             git_url=git_url,
