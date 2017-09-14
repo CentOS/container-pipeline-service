@@ -7,6 +7,10 @@ import subprocess
 import sys
 import tempfile
 import yaml
+from container_pipeline.models.containers import form_dockerfile_link, ContainerInfo
+
+# Container Info Collector
+container_info = ContainerInfo()
 
 # populate container_pipeline module path
 cp_module_path = os.path.join(
@@ -114,6 +118,15 @@ def get_projects_from_index(indexdlocation):
                         if dependson_job == '':
                             dependson_job = 'none'
 
+                        container_name = str.format(
+                            "{app_id}/{job_id}:{desired_tag}",
+                            app_id=appid,
+                            job_id=jobid,
+                            desired_tag=desiredtag
+                        )
+                        dockerfile_link = form_dockerfile_link(giturl, gitpath, gitbranch, targetfile)
+                        container_info.append_info(container_name, dockerfile_link)
+
                         # overwrite any attributes we care about see:
                         # projectify
                         projects.append(
@@ -128,6 +141,7 @@ def get_projects_from_index(indexdlocation):
                         logger.critical(str(e))
                         logger.critical(sys.exc_info()[0])
                         raise
+    container_info.write()
     return projects
 
 
