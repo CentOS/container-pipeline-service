@@ -5,8 +5,6 @@ from container_pipeline.utils import get_job_hash
 
 class Project(models.Model):
     name = models.CharField(max_length=200, unique=True, db_index=True)
-    uuid = models.CharField(max_length=100, unique=True, db_index=True,
-                            blank=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
