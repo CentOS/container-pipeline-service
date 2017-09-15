@@ -28,7 +28,7 @@ sys.path.append(cp_module_path)
 
 
 from container_pipeline.models import Project
-from container_pipeline.lib.django import load_dj
+from container_pipeline.lib import dj
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -330,7 +330,7 @@ def main(indexdlocation):
 
 
 if __name__ == '__main__':
+    dj.load()
     load_logger()
     logger = logging.getLogger('jenkins')
-    load_dj()
     main(sys.argv[1])
