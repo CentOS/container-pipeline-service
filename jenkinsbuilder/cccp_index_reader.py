@@ -22,7 +22,7 @@ from container_pipeline.lib.log import load_logger
 from glob import glob
 
 from container_pipeline.models import Project
-from container_pipeline.lib.django import load_dj
+from container_pipeline.lib import dj
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -286,7 +286,7 @@ def main(indexdlocation):
     export_new_project_names(new_projects_names)
 
 if __name__ == '__main__':
+    dj.load()
     load_logger()
     logger = logging.getLogger('jenkins')
-    load_dj()
     main(sys.argv[1])
