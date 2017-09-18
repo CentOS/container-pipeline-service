@@ -2,3 +2,7 @@
 - name: Stop jenkins systemd service
   sudo: yes
   service: name=jenkins state=stopped
+
+- name: Remove the virtual environment directories
+  sudo: yes
+  file: path=/opt/cccp-service state=absent

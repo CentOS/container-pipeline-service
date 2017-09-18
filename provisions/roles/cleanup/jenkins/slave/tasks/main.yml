@@ -10,3 +10,7 @@
     - build-worker
     - test-worker
     - delivery-worker
+
+- name: Remove /opt/cccp-service directory
+  sudo: yes
+  file: path=/opt/cccp-service state=absent
