@@ -11,6 +11,10 @@
     regexp="^#?\s*ADD_REGISTRY=.*"
     replace='ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
 
+- name: Reload docker systemd service
+  sudo: yes
+  service: name=docker state=reloaded
+
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
 
@@ -89,6 +93,12 @@
   copy:
       src: ../../scripts/cccp-dockerfile-lint-worker.service
       dest: /etc/systemd/system/cccp-dockerfile-lint-worker.service
+  tags:
+      - application
+
+- name: Reload Dockerfile linter worker systemd service
+  sudo: yes
+  service: name=cccp-dockerfile-lint-worker state=reloaded
   tags:
       - application
 
