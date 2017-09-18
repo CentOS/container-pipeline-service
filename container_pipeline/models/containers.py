@@ -1,7 +1,7 @@
 import subprocess
 
-from django.db import models
-from django.conf import settings
+#from django.db import models
+#from django.conf import settings
 from os import path
 from yaml import load, dump
 
