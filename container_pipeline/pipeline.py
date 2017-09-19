@@ -1,5 +1,6 @@
 import logging
 import sys
+import uuid
 
 from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
@@ -14,6 +15,7 @@ def create_new_job():
     pipeline service
     """
     job = dict.fromkeys([
+        "uuid",          # unique identifier for the job
         "action",        # action to be performed (lint, build, scan, etc.)
                          # remove
         "appid",         # equivalent to namespacein Docker hub lingo
@@ -77,6 +79,7 @@ def main(args):
         target_file = target_file[1:]
 
     # populate job's keys with appropriate values
+    job["uuid"] = uuid.uuid4()
     job["appid"] = appid
     job["notify_email"] = notify_email
     job["logs_dir"] = '/srv/pipeline-logs/{}'.format(test_tag)
