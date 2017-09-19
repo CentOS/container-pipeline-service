@@ -4,12 +4,16 @@ import json
 import logging
 import os
 
+from django.utils import timezone
+
 from container_pipeline.lib import settings
+from container_pipeline.lib import dj
 from container_pipeline.lib.command import run_cmd_out_err
 from container_pipeline.lib.log import load_logger
 from container_pipeline.trigger_build import create_project
 from container_pipeline.utils import get_project_name
 from container_pipeline.workers.base import BaseWorker
+from container_pipeline.models import Build, BuildPhase
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -34,6 +38,13 @@ class DockerfileLintWorker(BaseWorker):
             settings.LINTER_STATUS_FILE
         )
         self.job = job
+
+        build = Build.objects.get(uuid=job['uuid'])
+        self.build_phase = BuildPhase.objects.get(
+            build=build, phase='dockerlint')
+        self.build_phase.status = 'processing'
+        self.build_phase.start_time = timezone.now()
+        self.build_phase.save()
 
         self.logger.info("Received job for Dockerfile lint: %s" % job)
         self.logger.debug("Writing Dockerfile to /tmp/scan/Dockerfile")
@@ -85,6 +96,9 @@ class DockerfileLintWorker(BaseWorker):
             self.job["dockerfile"] = None
             self.job["action"] = "notify_user"
             self.queue.put(json.dumps(self.job), 'master_tube')
+            self.build_phase.status = 'error'
+            self.build_phase.end_time = timezone.now()
+            self.build_phase.save()
         finally:
             # remove the Dockerfile to have a clean environment on next run
             self.logger.info("Removing Dockerfile from /tmp/scan/Dockerfile")
@@ -132,6 +146,10 @@ class DockerfileLintWorker(BaseWorker):
             self.logger.info("Deleting 'dockerfile' data from job")
             self.job["dockerfile"] = None
 
+        self.build_phase.status = 'complete'
+        self.build_phase.end_time = timezone.now()
+        self.build_phase.save()
+
         create_project(self.queue, self.job, self.logger)
         return response
 
@@ -147,6 +165,10 @@ class DockerfileLintWorker(BaseWorker):
             "msg": error,
             "project_name": self.project_name
         }
+
+        self.build_phase.status = 'failed'
+        self.build_phase.end_time = timezone.now()
+        self.build_phase.save()
 
         return response
 
@@ -166,6 +188,7 @@ class DockerfileLintWorker(BaseWorker):
 
 
 if __name__ == '__main__':
+    dj.load()
     load_logger()
     logger = logging.getLogger('dockerfile-linter')
     worker = DockerfileLintWorker(
