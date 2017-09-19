@@ -2,10 +2,14 @@ import logging
 import sys
 import uuid
 
+from django.utils import timezone
+
 from container_pipeline.lib import settings
+from container_pipeline.lib import dj
 from container_pipeline.lib.log import load_logger
 from trigger_dockerfile_lint import trigger_dockerfile_linter
 from container_pipeline.utils import get_project_name, get_job_hash
+from container_pipeline.models import Project, Build
 
 
 def create_new_job():
@@ -94,7 +98,8 @@ def main(args):
     job["test_tag"] = test_tag
     job["jenkins_build_number"] = jenkins_build_number
 
-    job["project_name"] = get_project_name(job)
+    project_name = get_project_name(job)
+    job["project_name"] = project_name
     job["namespace"] = job["project_name"]
     job["project_hash_key"] = get_job_hash(job["project_name"])
     job["job_name"] = job["project_name"]
@@ -106,6 +111,12 @@ def main(args):
     job['image_under_test'] = "{}/{}/{}:{}".format(
                 settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
 
+    # Create a build entry for project to track build
+    project, created = Project.objects.get_or_create(project_name)
+    Build.objects.create(uuid=job['uuid'], project=project,
+                         status='queued',
+                         start_time=timezone.now())
+
     try:
         trigger_dockerfile_linter(job)
     except Exception:
@@ -113,6 +124,7 @@ def main(args):
 
 
 if __name__ == '__main__':
+    dj.load()
     load_logger()
     logger = logging.getLogger('jenkins')
     main(sys.argv[1:])

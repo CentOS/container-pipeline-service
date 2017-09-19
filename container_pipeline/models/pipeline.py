@@ -67,6 +67,7 @@ class Build(models.Model):
 class BuildPhase(models.Model):
     build = models.ForeignKey(Build)
     PHASE_CHOICES = (
+        ('dockerlint', 'Docker lint'),
         ('build', 'Build'),
         ('test', 'Test'),
         ('scan', 'Scan'),

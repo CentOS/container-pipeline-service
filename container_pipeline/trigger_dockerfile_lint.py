@@ -2,10 +2,10 @@
 
 import json
 import os
-
+from django.utils import timezone
 from container_pipeline.lib import settings
 from container_pipeline.lib.queue import JobQueue
-
+from container_pipeline.models import Build, BuildPhase
 
 def trigger_dockerfile_linter(job):
     queue = JobQueue(
@@ -71,5 +71,10 @@ def trigger_dockerfile_linter(job):
         print "==>Put job on 'master_tube' tube"
         return False
     else:
+        build = Build.objects.get(uuid=job["uuid"])
+        build.status = 'processing'
+        build.save()
+        BuildPhase.objects.create(
+            build=build, phase='dockerlint', status='queued')
         queue.put(json.dumps(job), tube="master_tube")
         return True
