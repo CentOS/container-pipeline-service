@@ -1,14 +1,14 @@
 ---
 - name: Enable Docker insecure registry
   lineinfile:
-    path: /etc/sysconfig/docker
+    dest: /etc/sysconfig/docker
     state: present
     regexp: "^#*INSECURE_REGISTRY=.*"
     line: 'INSECURE_REGISTRY="--insecure-registry 172.30.0.0/16 --insecure-registry {{ intranet_registry }}"'
 
 - name: Enable Docker registry
   lineinfile:
-    path: /etc/sysconfig/docker
+    dest: /etc/sysconfig/docker
     state: present
     regexp: "^#*ADD_REGISTRY=.*"
     line: 'ADD_REGISTRY="--add-registry {{ public_registry }} --add-registry registry.centos.org"'
