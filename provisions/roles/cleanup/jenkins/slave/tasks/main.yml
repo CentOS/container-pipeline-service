@@ -14,3 +14,8 @@
 - name: Remove /opt/cccp-service directory
   sudo: yes
   file: path=/opt/cccp-service state=absent
+
+- name: Remove images with no name or tag
+  sudo: yes
+  ignore_errors: yes
+  shell: "docker rmi -f $(docker images | awk '/<none>/ {print $3}')"

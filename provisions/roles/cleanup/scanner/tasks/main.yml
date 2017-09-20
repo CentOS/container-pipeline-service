@@ -10,3 +10,8 @@
 - name: Remove /var/lib/docker/volumes/* directory contents
   sudo: yes
   shell: rm -rf /var/lib/docker/volumes/*
+
+- name: Remove images with no name or tag
+  sudo: yes
+  ignore_errors: yes
+  shell: "docker rmi -f $(docker images | awk '/<none>/ {print $3}')"
