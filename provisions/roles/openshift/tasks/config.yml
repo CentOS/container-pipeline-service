@@ -1,17 +1,17 @@
 ---
 - name: Enable Docker insecure registry
   lineinfile:
-    path=/etc/sysconfig/docker
-    state=present
-    regexp="^#*\s*INSECURE_REGISTRY=.*"
-    line='INSECURE_REGISTRY="--insecure-registry 172.30.0.0/16 --insecure-registry {{ intranet_registry }}"'
+    path: /etc/sysconfig/docker
+    state: present
+    regexp: "^#*INSECURE_REGISTRY=.*"
+    line: 'INSECURE_REGISTRY="--insecure-registry 172.30.0.0/16 --insecure-registry {{ intranet_registry }}"'
 
 - name: Enable Docker registry
   lineinfile:
-    path=/etc/sysconfig/docker
-    state=present
-    regexp="^#*\s*ADD_REGISTRY=.*"
-    line='ADD_REGISTRY="--add-registry {{ public_registry }} --add-registry registry.centos.org"'
+    path: /etc/sysconfig/docker
+    state: present
+    regexp: "^#*ADD_REGISTRY=.*"
+    line: 'ADD_REGISTRY="--add-registry {{ public_registry }} --add-registry registry.centos.org"'
 
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
