@@ -109,10 +109,10 @@ try:
         json_out["Scan Results"]["Container capabilities"] = out
 
         if out == "":
-            json_out["Summary"] = "No additional capabilities found"
+            json_out["Summary"] = "No additional capabilities found."
         else:
-            json_out["Summary"] = "Container image has few additional"
-                " capabilities"
+            json_out["Summary"] = \
+                "Container image has few additional capabilities."
     else:
         json_out["Scan Results"]["Container capabilities"] = \
             "This container image doesn't have any special capabilities"
