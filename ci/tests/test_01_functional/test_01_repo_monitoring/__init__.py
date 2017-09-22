@@ -272,13 +272,13 @@ class TestRepoMonitoring(BaseTestCase):
         )
         from container_pipeline.tracking.lib.repo import process_upstream
         added, modified, removed = process_upstream('1', {
-            'baseurls': ['http://mirrors.uprm.edu/centos/7/os/x86_64/'],
+            'baseurls': ['http://mirror.centos.org/centos/7/os/x86_64/'],
             'basearch': 'x86_64'}, '/tmp')
 
         added, modified, removed = process_upstream('1', {
             'baseurls': [
-                'http://mirrors.uprm.edu/centos/7/os/x86_64/',
-                'http://mirrors.uprm.edu/centos/7/updates/x86_64/'
+                'http://mirror.centos.org/centos/7/os/x86_64/',
+                'http://mirror.centos.org/centos/7/updates/x86_64/'
             ],
             'basearch': 'x86_64'}, '/tmp')
 
