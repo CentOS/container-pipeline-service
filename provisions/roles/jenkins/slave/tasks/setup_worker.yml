@@ -8,7 +8,6 @@
 - name: Enable Docker registry
   lineinfile:
     dest: /etc/sysconfig/docker
-    state: present
     line: 'ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
 
 - name: Restart Docker

@@ -46,7 +46,6 @@
 - name: Enable Docker Registry
   lineinfile:
       dest: /etc/sysconfig/docker
-      state: present
       line: 'ADD_REGISTRY="--insecure-registry {{ intranet_registry }} --add-registry {{ public_registry }} --add-registry registry.centos.org"'
   tags: scanner
 
