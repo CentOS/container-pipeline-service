@@ -35,10 +35,10 @@
   tags: repo_tracking
 
 - name: Enable Docker Registry
-  replace: >
-    dest=/etc/sysconfig/docker
-    regexp="^#*\s*ADD_REGISTRY=.*"
-    replace='ADD_REGISTRY="--insecure-registry {{ intranet_registry }} --add-registry {{ public_registry }} --add-registry registry.centos.org"'
+  lineinfile:
+      dest: /etc/sysconfig/docker
+      state: present
+      line: 'ADD_REGISTRY="--insecure-registry {{ intranet_registry }} --add-registry {{ public_registry }} --add-registry registry.centos.org"'
   tags: repo_tracking
 
 - name: Enable access to Docker daemon over TCP in localhost
