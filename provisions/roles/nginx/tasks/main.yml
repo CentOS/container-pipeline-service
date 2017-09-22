@@ -35,7 +35,7 @@
 
   - name: Reload nginx systemd service
     sudo: yes
-    service: name=nginx state=reloaded
+    systemd: name=nginx state=reloaded
     tags:
       - nginx
       - jenkins/slave

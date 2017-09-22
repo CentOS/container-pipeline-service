@@ -13,10 +13,10 @@
 
 - name: Reload docker systemd service
   sudo: yes
-  service: name=docker state=reloaded
+  systemd: name=docker state=reloaded
 
 - name: Restart Docker
-  service: name=docker state=restarted enabled=yes
+  systemd: name=docker state=restarted enabled=yes
 
 - name: Build container-pipeline image
   sudo: yes
@@ -98,11 +98,11 @@
 
 - name: Reload Dockerfile linter worker systemd service
   sudo: yes
-  service: name=cccp-dockerfile-lint-worker state=reloaded
+  systemd: name=cccp-dockerfile-lint-worker state=reloaded
   tags:
       - application
 
 - name: Enable and start Dockerfile linter worker
-  service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
+  systemd: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
   tags:
       - application

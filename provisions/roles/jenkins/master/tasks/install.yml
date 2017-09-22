@@ -17,7 +17,7 @@
 
 - name: Reload jenkins systemd service
   sudo: yes
-  service: name=jenkins state=reloaded
+  systemd: name=jenkins state=reloaded
 
 - name: Ensure jenkins is enabled and started
-  service: name=jenkins state=started enabled=yes
+  systemd: name=jenkins state=started enabled=yes

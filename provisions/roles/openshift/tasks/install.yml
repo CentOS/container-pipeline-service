@@ -17,10 +17,10 @@
 
 - name: Reload docker systemd service
   sudo: yes
-  service: name=docker state=reloaded
+  systemd: name=docker state=reloaded
 
 - name: Start Docker service
-  service: name=docker state=started enabled=yes
+  systemd: name=docker state=started enabled=yes
 
 - name: Start beanstalkd service
-  service: name=beanstalkd state=started enabled=yes
+  systemd: name=beanstalkd state=started enabled=yes
