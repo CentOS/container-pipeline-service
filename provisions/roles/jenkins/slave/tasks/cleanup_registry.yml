@@ -1,0 +1,7 @@
+---
+
+- name: Copy cron script to clean up mismatched tags from registry
+  template: src=cron_delete_index_mismatch.sh.j2 dest=/root/cron_delete_index_mismatch.sh mode=0755
+
+- name: Add cronjob to clean up mismatched tags from registry
+  cron: name="To delete mismatched containers from registry" minute="*/5" job=/root/cron_delete_index_mismatch.sh

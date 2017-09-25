@@ -165,10 +165,10 @@ production=False
 log_level=DEBUG
 openshift_server_ip={openshift_host}
 deployment=ci
+cccp_index_repo=https://github.com/rtnpro/container-index.git
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key
-cccp_index_repo=https://github.com/rtnpro/container-index.git
 oc_slave={jenkins_slave_host}""").format(
         jenkins_master_host=jenkins_master_host,
         jenkins_slave_host=jenkins_slave_host,

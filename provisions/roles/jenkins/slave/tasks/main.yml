@@ -38,6 +38,12 @@
     - monitor
     - jenkins/slave
 
+- include: cleanup_registry.yml
+  tags:
+    - jenkins
+    - monitor
+    - jenkins/slave
+
 - name: Set PYTHONPATH environment variable
   lineinfile:
       dest: /etc/environment
