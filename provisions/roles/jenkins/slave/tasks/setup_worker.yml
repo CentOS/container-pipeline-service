@@ -10,8 +10,12 @@
     dest: /etc/sysconfig/docker
     line: 'ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
 
+- name: Reload docker systemd service
+  sudo: yes
+  systemd: name=docker state=reloaded
+
 - name: Restart Docker
-  service: name=docker state=restarted enabled=yes
+  systemd: name=docker state=restarted enabled=yes
 
 - name: Build container-pipeline image
   sudo: yes
@@ -91,7 +95,13 @@
   tags:
       - application
 
+- name: Reload Dockerfile linter worker systemd service
+  sudo: yes
+  systemd: name=cccp-dockerfile-lint-worker state=reloaded
+  tags:
+      - application
+
 - name: Enable and start Dockerfile linter worker
-  service: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
+  systemd: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
   tags:
       - application

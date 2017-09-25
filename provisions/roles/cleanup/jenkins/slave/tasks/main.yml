@@ -10,3 +10,12 @@
     - build-worker
     - test-worker
     - delivery-worker
+
+- name: Remove /opt/cccp-service directory
+  sudo: yes
+  file: path=/opt/cccp-service state=absent
+
+- name: Remove images with no name or tag
+  sudo: yes
+  ignore_errors: yes
+  shell: docker rmi $(docker images -f "dangling=true" -q)

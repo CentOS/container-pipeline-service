@@ -32,7 +32,7 @@
   tags: scanner
 
 - name: Start and Enable docker
-  service: name=docker enabled=yes state=started
+  systemd: name=docker enabled=yes state=started
   sudo: yes
   tags: scanner
 
@@ -56,7 +56,7 @@
   tags: scanner
 
 - name: Restart Docker
-  service: name=docker state=restarted enabled=yes
+  systemd: name=docker state=restarted enabled=yes
   tags: scanner
 
 - name: Install pipeline-scanner container
@@ -106,7 +106,11 @@
       command: sh /install.sh
       state: started
 
-- name: Get service files for workers
+- name: Ensure log path exists
+  file: path=/srv/pipeline-logs/cccp.log state=touch
+  tags: scanner
+
+- name: Get service file for scan worker
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -116,16 +120,15 @@
       - scanner
       - application
 
-- name: Ensure log path exists
-  file: path=/srv/pipeline-logs/cccp.log state=touch
-  tags: scanner
+- name: Reload scan worker systemd service
+  sudo: yes
+  systemd: name=cccp-scan-worker state=reloaded
+  tags:
+      - scanner
+      - application
 
-- name: Enable Scanner worker
-  service: name="cccp-scan-worker" state=restarted enabled=yes
-  tags: scanner
-
-- name: Restart Scanner worker service
-  service: name="cccp-scan-worker" state=restarted enabled=yes
+- name: Restart scan  worker systemd service
+  systemd: name=cccp-scan-worker state=restarted enabled=yes
   tags:
       - scanner
       - application

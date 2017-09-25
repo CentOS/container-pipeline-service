@@ -17,3 +17,8 @@
 - name: Remove /var/lib/origin/* directory contents
   sudo: yes
   shell: rm -rf /var/lib/origin/*
+
+- name: Remove images with no name or tag
+  sudo: yes
+  ignore_errors: yes
+  shell: docker rmi $(docker images -f "dangling=true" -q)

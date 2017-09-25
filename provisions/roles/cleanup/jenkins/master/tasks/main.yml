@@ -2,3 +2,12 @@
 - name: Stop jenkins systemd service
   sudo: yes
   service: name=jenkins state=stopped
+
+- name: Remove the virtual environment directories
+  sudo: yes
+  file: path=/opt/cccp-service state=absent
+
+- name: Remove images with no name or tag
+  sudo: yes
+  ignore_errors: yes
+  shell: docker rmi $(docker images -f "dangling=true" -q)
