@@ -39,7 +39,7 @@
 
 - name: Pull sentry image
   docker_image:
-      name: registry.centos.org/centos/sentry:8.18
+      name: {{ sentry_container_image }}
   sudo: yes
 
 - include: initialize.yml
@@ -55,7 +55,7 @@
 - name: Run sentry server
   docker_container:
       name: pipeline-sentry
-      image: registry.centos.org/centos/sentry:8.18
+      image: {{ sentry_container_image }}
       links:
           - sentry-postgres:postgres
           - sentry-redis:redis
@@ -71,7 +71,7 @@
 - name: Run sentry cron
   docker_container:
       name: sentry-cron
-      image: registry.centos.org/centos/sentry:8.18
+      image: {{ sentry_container_image }}
       links:
           - sentry-postgres:postgres
           - sentry-redis:redis
@@ -86,7 +86,7 @@
 - name: Run sentry worker
   docker_container:
       name: sentry-worker-1
-      image: registry.centos.org/centos/sentry:8.18
+      image: {{ sentry_container_image }}
       links:
           - sentry-postgres:postgres
           - sentry-redis:redis
