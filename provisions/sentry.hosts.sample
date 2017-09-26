@@ -7,3 +7,4 @@ sentry_admin_password=yourpassword
 sentry_db_name=sentry
 sentry_db_user=sentry
 sentry_db_password=sentry
+sentry_container_image=registry.centos.org/centos/sentry:8.18

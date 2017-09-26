@@ -1,6 +1,6 @@
 ---
 - name: Create secret key if not already there
-  shell: docker run --rm registry.centos.org/centos/sentry:8.16 config generate-secret-key > sentry.key
+  shell: docker run --rm {{ sentry_container_image }} config generate-secret-key > sentry.key
   sudo: yes
   run_once: true
 
@@ -18,7 +18,7 @@
       -e SENTRY_SECRET_KEY='{{ secret_result.stdout }}'
       --link sentry-postgres:postgres
       --link sentry-redis:redis
-      registry.centos.org/centos/sentry:8.16 upgrade --noinput
+      {{ sentry_container_image }} upgrade --noinput
   sudo: yes
 
 - name: Create super user for sentry
@@ -30,6 +30,6 @@
       -e SENTRY_SECRET_KEY='{{ secret_result.stdout }}'
       --link sentry-postgres:postgres
       --link sentry-redis:redis
-      registry.centos.org/centos/sentry:8.16 createuser --email {{ sentry_admin_email }} --password {{ sentry_admin_password }} --superuser --no-input
+      {{ sentry_container_image }} createuser --email {{ sentry_admin_email }} --password {{ sentry_admin_password }} --superuser --no-input
   ignore_errors: yes
   sudo: yes
