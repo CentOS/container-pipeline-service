@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
-import beanstalkc
-import json
-import logging
-import os
-import subprocess
-
-from urlparse import urljoin
 # FIXME: we've duplicated config.py from ../beanstalk_worker into this dir
 # because we don't yet have a global config which can be shared across
 # all components.
 import config
+import json
+import logging
+import os
+import subprocess
+import time
+from urlparse import urljoin
+
+import beanstalkc
+from container_pipeline.lib.openshift import Openshift, OpenshiftError
 
 config.load_logger()
 logger = logging.getLogger('mail-service')
@@ -120,6 +122,8 @@ class NotifyUser(object):
             self.job_info["test_tag"],
             BUILD_LOGS_FILENAME
         )
+
+        self.openshift = Openshift(logger=logger)
 
     def _escape_text_(self, text):
         "Escapes \n,\t with \\n,\\tt for rendering in email body"
@@ -330,6 +334,18 @@ class NotifyUser(object):
         logger.info("Sending email to user %s" %
                     self.job_info["notify_email"])
         self.send_email(subject, email_contents)
+
+        """
+        This is for cleaning up the openshift envrionment after the build
+        is over. We are putting some delay so that the built image is
+        pushed to registry properly and it does not give error while deleting
+        """
+        time.sleep(50)
+        try:
+            self.openshift.delete(self.job_info['project_hash_key'])
+        except OpenshiftError as e:
+            logger.critical("Failed to delete OpenShift project: {} error: {}"
+                            .format(self.job_info['project_name'], e))
 
         # if it is a weekly scan, return True to delete service_debug_log.txt
         if self.job_info.get("weekly", False):
