@@ -8,12 +8,15 @@
   - jenkins/slave
   - config
 
-- name: Ensure Django is installed.
-  yum: name=python-django state=present
+- name: Ensure pip is installed.
+  yum: name=python-pip state=present
   tags:
     - jenkins
     - jenkins/master
     - jenkins/slave
+
+- name: Ensure django is installed
+  shell: "pip install django"
 
 - name: ensure java-1.7.0-* is not installed
   yum: name=java-1.7.0-* state=absent
