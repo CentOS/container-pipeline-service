@@ -6,8 +6,10 @@ import os
 import subprocess
 import sys
 import tempfile
+
 import yaml
-from container_pipeline.models.containers import form_dockerfile_link, ContainerInfo
+
+from container_pipeline.model_tmp.containers import form_dockerfile_link, ContainerInfo
 
 # Container Info Collector
 container_info = ContainerInfo()
