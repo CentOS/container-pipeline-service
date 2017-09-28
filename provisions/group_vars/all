@@ -1,6 +1,5 @@
 ---
 vagrant: False
-rsync_ssh_opts: ""
 test: false
 setup_nfs: false
 

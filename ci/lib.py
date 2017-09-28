@@ -211,7 +211,7 @@ def setup_controller(controller):
         "yum install -y epel-release && "
         "yum install -y PyYAML python-networkx && "
         "virtualenv venv && "
-        "$HOME/venv/bin/pip install ansible==2.2.1 && "
+        "$HOME/venv/bin/pip install ansible==2.3.2 && "
         "ln -s $HOME/venv/bin/ansible-playbook /usr/bin/ansible-playbook || "
         "true && "
         "$HOME/venv/bin/pip install nose && "
