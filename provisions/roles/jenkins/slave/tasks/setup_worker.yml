@@ -95,11 +95,11 @@
   tags:
       - application
 
-  #- name: Reload Dockerfile linter worker systemd service
-  # sudo: yes
-  # systemd: name=cccp-dockerfile-lint-worker state=reloaded
-  # tags:
-  #    - application
+- name: Reload Dockerfile linter worker systemd service
+  sudo: yes
+  systemd: name=cccp-dockerfile-lint-worker daemon_reload=yes
+  tags:
+      - application
 
 - name: Enable and start Dockerfile linter worker
   systemd: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
