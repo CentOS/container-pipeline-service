@@ -19,7 +19,7 @@ def form_dockerfile_link(git_url, git_path, git_branch, target_file):
     return link_url
 
 
-class ContainerInfo(object):
+class ContainerModel(object):
 
     def __init__(self, data_dir="/srv/pipeline-logs"):
         self._data_dir = data_dir

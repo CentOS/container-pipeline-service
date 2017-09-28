@@ -9,10 +9,10 @@ import tempfile
 
 import yaml
 
-from container_pipeline.model_tmp.containers import form_dockerfile_link, ContainerInfo
+from container_pipeline.model_tmp.containers import form_dockerfile_link, ContainerModel
 
 # Container Info Collector
-container_info = ContainerInfo()
+container_info = ContainerModel()
 
 # populate container_pipeline module path
 cp_module_path = os.path.join(
