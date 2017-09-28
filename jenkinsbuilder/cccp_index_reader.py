@@ -9,10 +9,10 @@ import tempfile
 
 import yaml
 
-from container_pipeline.model_tmp.containers import form_dockerfile_link, ContainerModel
+from container_pipeline.model_tmp.containers import form_dockerfile_link, ContainerLinksModel
 
 # Container Info Collector
-container_info = ContainerModel()
+container_info = ContainerLinksModel()
 
 # populate container_pipeline module path
 cp_module_path = os.path.join(
@@ -143,7 +143,7 @@ def get_projects_from_index(indexdlocation):
                         logger.critical(str(e))
                         logger.critical(sys.exc_info()[0])
                         raise
-    container_info.write()
+    container_info.marshall()
     return projects
 
 
