@@ -119,10 +119,9 @@
   tags:
       - scanner
       - application
-
 - name: Reload scan worker systemd service
   sudo: yes
-  systemd: name=cccp-scan-worker state=reloaded
+  systemd: name=cccp-scan-worker daemon_reload=yes
   tags:
       - scanner
       - application
