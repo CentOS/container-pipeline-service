@@ -3,7 +3,7 @@ import subprocess
 #from django.db import models
 #from django.conf import settings
 from os import path
-from yaml import load, dump
+from json import load, dump
 
 
 def form_dockerfile_link(git_url, git_path, git_branch, target_file):
@@ -23,7 +23,7 @@ class ContainerInfo(object):
 
     def __init__(self, data_dir="/srv/pipeline-logs"):
         self._data_dir = data_dir
-        self.data_file = data_dir + "/container_info.yaml"
+        self.data_file = data_dir + "/container_info.json"
         self.data = {
         }
         if path.exists(self.data_file):
