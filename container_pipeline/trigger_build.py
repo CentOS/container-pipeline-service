@@ -9,14 +9,18 @@ import json
 import os
 import time
 
+from django.utils import timezone
+
 import container_pipeline.utils as utils
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
+from container_pipeline.models import Build, BuildPhase
 
 
 def create_project(queue, job, logger):
     job_name = job.get("job_name")
     project_name_hash = utils.get_job_hash(job_name)
     openshift = Openshift(logger=logger)
+
     try:
         openshift.login("test-admin", "test")
         max_retry = 10
@@ -62,4 +66,8 @@ def create_project(queue, job, logger):
         return
 
     job["action"] = "start_build"
+
+    build = Build.objects.get(uuid=job['uuid'])
+    BuildPhase.objects.get_or_create(build=build, phase='build')
+
     queue.put(json.dumps(job), 'master_tube')
