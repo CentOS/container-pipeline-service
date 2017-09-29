@@ -2,10 +2,11 @@ import logging
 import sys
 import uuid
 
+from container_pipeline.lib import dj  # noqa
+
 from django.utils import timezone
 
 from container_pipeline.lib import settings
-from container_pipeline.lib import dj
 from container_pipeline.lib.log import load_logger
 from trigger_dockerfile_lint import trigger_dockerfile_linter
 from container_pipeline.utils import get_project_name, get_job_hash
@@ -124,7 +125,6 @@ def main(args):
 
 
 if __name__ == '__main__':
-    dj.load()
     load_logger()
     logger = logging.getLogger('jenkins')
     main(sys.argv[1:])

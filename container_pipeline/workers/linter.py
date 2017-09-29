@@ -4,10 +4,11 @@ import json
 import logging
 import os
 
+from container_pipeline.lib import dj  # noqa
+
 from django.utils import timezone
 
 from container_pipeline.lib import settings
-from container_pipeline.lib import dj
 from container_pipeline.lib.command import run_cmd_out_err
 from container_pipeline.lib.log import load_logger
 from container_pipeline.trigger_build import create_project
@@ -188,7 +189,6 @@ class DockerfileLintWorker(BaseWorker):
 
 
 if __name__ == '__main__':
-    dj.load()
     load_logger()
     logger = logging.getLogger('dockerfile-linter')
     worker = DockerfileLintWorker(
