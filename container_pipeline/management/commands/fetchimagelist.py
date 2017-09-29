@@ -13,13 +13,15 @@ logger = logging.getLogger('tracking')
 
 class Command(BaseCommand):
     help = 'Fetch container image list from registry'
-    args = "<indexd path>"
     can_import_settings = True
     output_transaction = True
 
+    def add_arguments(self, parser):
+        parser.add_argument('indexd_path', type=str)
+
     def handle(self, *args, **options):
         try:
-            indexd_path = args[0]
+            indexd_path = options['indexd_path']
             if not indexd_path.startswith('/'):
                 indexd_path = os.path.abspath(
                     os.path.join(os.getcwd(), indexd_path))
