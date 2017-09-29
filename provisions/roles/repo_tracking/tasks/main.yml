@@ -4,8 +4,13 @@
   sudo: yes
   tags: repo_tracking
 
+- name: Install pip
+  yum: name=python-pip state=installed
+  sudo: yes
+  tags: repo_tracking
+
 - name: Install Django
-  yum: name=Django state=installed
+  pip: name=django version=1.11.2
   sudo: yes
   tags: repo_tracking
 
@@ -19,8 +24,13 @@
   sudo: yes
   tags: repo_tracking
 
-- name: Install python-psycopg2
-  yum: name=python-psycopg2 state=installed
+- name: Install postgresql-devel
+  yum: name=postgresql-devel state=installed
+  sudo: yes
+  tags: repo_tracking
+
+- name: Install psycopg2
+  pip: name=psycopg2 version=2.7.3.1
   sudo: yes
   tags: repo_tracking
 
