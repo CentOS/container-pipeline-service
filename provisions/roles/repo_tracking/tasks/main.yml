@@ -4,41 +4,6 @@
   sudo: yes
   tags: repo_tracking
 
-- name: Install pip
-  yum: name=python-pip state=installed
-  sudo: yes
-  tags: repo_tracking
-
-- name: Install Django
-  pip: name=django version=1.11.2
-  sudo: yes
-  tags: repo_tracking
-
-- name: Install Docker
-  yum: name=docker state=installed
-  sudo: yes
-  tags: repo_tracking
-
-- name: Install docker-py
-  yum: name=python-docker-py state=installed
-  sudo: yes
-  tags: repo_tracking
-
-- name: Install postgresql-devel
-  yum: name=postgresql-devel state=installed
-  sudo: yes
-  tags: repo_tracking
-
-- name: Install psycopg2
-  pip: name=psycopg2 version=2.7.3.1
-  sudo: yes
-  tags: repo_tracking
-
-- name: Ensure docker group exists
-  group: name=docker state=present
-  sudo: yes
-  tags: repo_tracking
-
 - name: Ensure that user jenkins is included in docker group
   user: name=jenkins groups=docker append=yes
   sudo: yes
