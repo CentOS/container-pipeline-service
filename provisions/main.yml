@@ -98,6 +98,18 @@
   tags:
     - openshift
 
+- name: Setup database
+  hosts: jenkins_master
+  roles:
+      - db
+  tags:
+      - db
+      - django
+      - repo_tracking
+      - jenkins
+      - jenkins/slaves
+      - jenkins/master
+
 - name: Setup Scanner Worker
   hosts: scanner_worker
   roles:
