@@ -46,12 +46,13 @@ class Build(models.Model):
         max_length=20, choices=NOTIFICATION_STATUS_CHOICES, db_index=True,
         default='', blank=True)
 
-    start_time = models.DateTimeField(default=None, blank=True)
-    end_time = models.DateTimeField(default=None, blank=True)
+    start_time = models.DateTimeField(default=None, blank=True, null=True)
+    end_time = models.DateTimeField(default=None, blank=True, null=True)
 
-    trigger = models.CharField(max_length=20, default=None, blank=True)
+    trigger = models.CharField(max_length=20, default=None, blank=True,
+                               null=True)
     trigger_details = models.TextField(max_length=100, default=None,
-                                       blank=True)
+                                       null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
@@ -85,8 +86,8 @@ class BuildPhase(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
                               db_index=True, blank=True)
 
-    start_time = models.DateTimeField(default=None, blank=True)
-    end_time = models.DateTimeField(default=None, blank=True)
+    start_time = models.DateTimeField(default=None, blank=True, null=True)
+    end_time = models.DateTimeField(default=None, blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
