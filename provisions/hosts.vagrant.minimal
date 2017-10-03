@@ -35,3 +35,4 @@ production=False
 test=True
 db_host=192.168.100.100
 deployment=""
+allowed_hosts="['192.168.100.100']"

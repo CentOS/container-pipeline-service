@@ -45,6 +45,8 @@ log_level = DEBUG
 
 db_host=jenkins_master
 
+allowed_hosts = "['127.0.0.1']"
+
 [jenkins_master:vars]
 # update as needed
 oc_slave=jenkins-slave
