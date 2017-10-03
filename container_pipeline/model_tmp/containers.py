@@ -42,8 +42,7 @@ class ContainerLinksModel(object):
         """
         self._data_dir = data_dir
         self.data_file = data_dir + "/container_info.json"
-        self.data = {
-        }
+        self.data = dict()
         if path.exists(self.data_file):
             self.unmarshall()
         else:
