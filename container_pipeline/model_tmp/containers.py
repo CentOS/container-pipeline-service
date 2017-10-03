@@ -69,7 +69,6 @@ class ContainerLinksModel(object):
         """
         if container_name not in self.data:
             self.data[container_name] = {
-                "name": container_name,
                 "dockerfile_link": ""
             }
         self.data[container_name]["dockerfile_link"] = dockerfile_link
