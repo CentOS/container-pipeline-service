@@ -84,7 +84,7 @@ def main(args):
         target_file = target_file[1:]
 
     # populate job's keys with appropriate values
-    job["uuid"] = uuid.uuid4()
+    job["uuid"] = str(uuid.uuid4())
     job["appid"] = appid
     job["notify_email"] = notify_email
     job["logs_dir"] = '/srv/pipeline-logs/{}'.format(test_tag)
@@ -113,7 +113,7 @@ def main(args):
                 settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
 
     # Create a build entry for project to track build
-    project, created = Project.objects.get_or_create(project_name)
+    project, created = Project.objects.get_or_create(name=project_name)
     Build.objects.create(uuid=job['uuid'], project=project,
                          status='queued',
                          start_time=timezone.now())

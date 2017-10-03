@@ -47,6 +47,7 @@ def trigger_dockerfile_linter(job):
         print "==>Put job on 'master_tube' tube"
         return False
     except BaseException as e:
+        print e
         print "==> Encountered unexpected error. Dockerfile lint trigger failed"
         print "==> Error: %s" % str(e)
         print "==> Sending Dockerfile linter failure email"
