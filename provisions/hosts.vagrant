@@ -35,3 +35,4 @@ test_nfs_share=192.168.100.200:/nfsshare
 production=False
 db_host=192.168.100.100
 deployment=""
+allowed_hosts="['192.168.100.100']"
