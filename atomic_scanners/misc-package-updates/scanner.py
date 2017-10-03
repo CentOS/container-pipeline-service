@@ -185,7 +185,7 @@ try:
         json_out["Scan Results"] = \
             "Could not find {} executable in the image".format(cli_arg)
         json_out["Successful"] = "false"
-        json_out["Summary"] = "No updates for packages installed via {}".\
+        json_out["Summary"] = "No updates for packages installed via {}. ".\
             format(cli_arg)
     else:
         json_out["Scan Results"]["{} package updates".format(cli_arg)] = \
