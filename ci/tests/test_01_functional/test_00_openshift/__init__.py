@@ -8,6 +8,17 @@ from ci.lib import _print
 class TestOpenshift(BaseTestCase):
     node = 'openshift'
 
+    def jenkinsProject(self, cmd, project, options=None):
+        _print(self.run_cmd(
+            str.format(
+                "sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 {cmd} {project}{options}",
+                cmd=cmd,
+                project=project,
+                options="" if not options else options
+            ),
+            host=self.hosts['jenkins_master']['host']
+        ))
+
     def assertOsProjectBuildStatus(self, project, expected_builds,
                                    expected_state, retries=20, delay=60):
         print "=" * 30
@@ -48,20 +59,9 @@ class TestOpenshift(BaseTestCase):
         self.provision()
         self.cleanup_openshift()
         self.cleanup_beanstalkd()
-        print self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar '
-            '-s http://localhost:8080 enable-job pipeline-ci-python-latest',
-            host=self.hosts['jenkins_master']['host'])
-        print self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar '
-            '-s http://localhost:8080 '
-            'build pipeline-ci-python-latest -f -v',
-            host=self.hosts['jenkins_master']['host'])
-        print self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar '
-            '-s http://localhost:8080 disable-job pipeline-ci-python-latest',
-            host=self.hosts['jenkins_master']['host'])
-
+        self.jenkinsProject("enable-job", "pipeline-ci-python-latest")
+        self.jenkinsProject("build", "pipeline-ci-python-latest", " -f -v")
+        self.jenkinsProject("disable-job", "pipeline-ci-python-latest")
         self.assertOsProjectBuildStatus(
             'c29e3d422555450d5ad0a2a178575e5640952a0046dd90fd33db80e4',
             ['build-1', 'test-1', 'delivery-1'],
@@ -81,42 +81,19 @@ class TestOpenshift(BaseTestCase):
     def test_03_serialized_builds(self):
         self.cleanup_beanstalkd()
         self.cleanup_openshift()
-        _print(self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar -s '
-            'http://localhost:8080 enable-job '
-            'centos-kubernetes-master-latest',
-            host=self.hosts['jenkins_master']['host']))
-        _print(self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
-            'build centos-kubernetes-master-latest -f -v',
-            host=self.hosts['jenkins_master']['host']
-        ))
-        _print(self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar -s '
-            'http://localhost:8080 disable-job '
-            'centos-kubernetes-master-latest',
-            host=self.hosts['jenkins_master']['host']))
+        self.jenkinsProject("enable-job", "centos-kubernetes-master-latest")
+        self.jenkinsProject("build", "centos-kubernetes-master-latest", " -f -v")
+        self.jenkinsProject("disable-job", "centos-kubernetes-master-latest")
 
         time.sleep(5)
 
         # We are not testing jenkins' feature to trigger child builds,
         # so, we are triggering the child build manually, so that
         # we can avoid race condition between the builds
-        _print(self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar -s '
-            'http://localhost:8080 enable-job '
-            'centos-kubernetes-apiserver-latest',
-            host=self.hosts['jenkins_master']['host']))
-        _print(self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
-            'build centos-kubernetes-apiserver-latest -f -v',
-            host=self.hosts['jenkins_master']['host']
-        ))
-        _print(self.run_cmd(
-            'sudo java -jar /opt/jenkins-cli.jar -s '
-            'http://localhost:8080 disable-job '
-            'centos-kubernetes-apiserver-latest',
-            host=self.hosts['jenkins_master']['host']))
+        self.jenkinsProject("enable-job", "centos-kubernetes-apiserver-latest")
+        self.jenkinsProject("build", "centos-kubernetes-apiserver-latest", " -f -v")
+        self.jenkinsProject("disable-job", "centos-kubernetes-apiserver-latest")
+
 
         k8s_master_os_project = hashlib.sha224(
             'centos-kubernetes-master-latest').hexdigest()
