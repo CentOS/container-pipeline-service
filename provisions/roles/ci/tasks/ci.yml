@@ -16,7 +16,7 @@
 - name: Wait for test job to create
   shell:  java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} list-jobs
   register: result
-  until: result.stdout.find("bamachrn-python") != -1
+  until: result.stdout.find("pipeline-ci-python") != -1
   retries: 50
   delay: 10
   when: test

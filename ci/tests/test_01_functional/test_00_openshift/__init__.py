@@ -94,7 +94,6 @@ class TestOpenshift(BaseTestCase):
         self.jenkinsProject("build", "centos-kubernetes-apiserver-latest", " -f -v")
         self.jenkinsProject("disable-job", "centos-kubernetes-apiserver-latest")
 
-
         k8s_master_os_project = hashlib.sha224(
             'centos-kubernetes-master-latest').hexdigest()
         k8s_apiserver_os_project = hashlib.sha224(
@@ -127,3 +126,11 @@ class TestOpenshift(BaseTestCase):
             Exception,
             self.run_cmd,
             'ls /srv/pipeline-logs/centos-kubernetes-master-latest')
+
+    def test_04_build_fails_missing_cccp_yml(self):
+        self.cleanup_beanstalkd()
+        self.cleanup_openshift()
+
+        self.jenkinsProject("enable-job", "pipeline-ci-missing_cccp_yml")
+        self.jenkinsProject("build", "pipeline-ci-missing_cccp_yml", " -f -v")
+        self.jenkinsProject("disable-job", "pipeline-ci-missing_cccp_yml")
