@@ -165,7 +165,7 @@ production=False
 log_level=DEBUG
 openshift_server_ip={openshift_host}
 deployment=ci
-cccp_index_repo=https://github.com/rtnpro/container-index.git
+cccp_index_repo=https://github.com/mohammedzee1000/container-pipeline-service-ci-index.git
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key

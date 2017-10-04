@@ -50,20 +50,20 @@ class TestOpenshift(BaseTestCase):
         self.cleanup_beanstalkd()
         print self.run_cmd(
             'sudo java -jar /opt/jenkins-cli.jar '
-            '-s http://localhost:8080 enable-job bamachrn-python-release',
+            '-s http://localhost:8080 enable-job pipeline-ci-python-latest',
             host=self.hosts['jenkins_master']['host'])
         print self.run_cmd(
             'sudo java -jar /opt/jenkins-cli.jar '
             '-s http://localhost:8080 '
-            'build bamachrn-python-release -f -v',
+            'build pipeline-ci-python-latest -f -v',
             host=self.hosts['jenkins_master']['host'])
         print self.run_cmd(
             'sudo java -jar /opt/jenkins-cli.jar '
-            '-s http://localhost:8080 disable-job bamachrn-python-release',
+            '-s http://localhost:8080 disable-job pipeline-ci-python-latest',
             host=self.hosts['jenkins_master']['host'])
 
         self.assertOsProjectBuildStatus(
-            '53b1a8ddd3df5d4fd94756e8c20ae160e565a4b339bfb47165285955',
+            'c29e3d422555450d5ad0a2a178575e5640952a0046dd90fd33db80e4',
             ['build-1', 'test-1', 'delivery-1'],
             'Complete'
         )
@@ -71,7 +71,7 @@ class TestOpenshift(BaseTestCase):
 
     def test_01_pull_built_image(self):
         image = self.hosts['jenkins_slave']['host'] + \
-            ':5000/bamachrn/python:release'
+            ':5000/pipeline-ci/python:latest'
         cmd = (
             "sudo docker pull {image}"
         ).format(image=image)
