@@ -36,18 +36,18 @@ class TestRepoMonitoring(BaseTestCase):
             'python -c "{}"'.format(_script))
 
     def test_01_image_delivery_triggers_image_scan(self):
-        # Create ContainerImage for bamachrn/python:release
+        # Create ContainerImage for pipeline-ci/python:latest
         # In the real world, it will be created automatically by
         # fetch-scan-image job which gets run after cccp-index job
         self.run_dj_script(
             'from container_pipeline.models.tracking import ContainerImage; '
             'ContainerImage.objects.create('
-            'name=\\"bamachrn/python:release\\")')
+            'name=\\"pipeline-ci/python:latest\\")')
 
         # simulate image delivery
         bs = beanstalkc.Connection(self.hosts['openshift']['host'])
         bs.use('tracking')
-        bs.put(json.dumps({'image_name': 'bamachrn/python:release'}))
+        bs.put(json.dumps({'image_name': 'pipeline-ci/python:latest'}))
 
         time.sleep(10)
         retries = 0
@@ -60,7 +60,7 @@ class TestRepoMonitoring(BaseTestCase):
                     'from container_pipeline.models.tracking import '
                     'ContainerImage; '
                     'print ContainerImage.objects.get('
-                    'name=\\"bamachrn/python:release\\").scanned').strip()
+                    'name=\\"pipeline-ci/python:latest\\").scanned').strip()
             if scanned == 'True':
                 is_scanned = True
                 break
@@ -76,7 +76,7 @@ class TestRepoMonitoring(BaseTestCase):
                     'from container_pipeline.models.tracking import '
                     'ContainerImage; '
                     'print ContainerImage.objects.get('
-                    'name=\\"bamachrn/python:release\\").packages.count()'
+                    'name=\\"pipeline-ci/python:latest\\").packages.count()'
                 ).strip()
             ) > 0
         )
@@ -89,7 +89,7 @@ class TestRepoMonitoring(BaseTestCase):
             'baseurls=\\"foo\\", basearch=\\"x86_64\\", releasever=\\"7\\", '
             'infra=\\"container\\"); '
             'image = ContainerImage.objects.create('
-            'name=\\"bamachrn/python:release\\", repoinfo=repo); '
+            'name=\\"pipeline-ci/python:latest\\", repoinfo=repo); '
             'pkg = Package.objects.create(name=\\"abc\\", arch=\\"x86_64\\", '
             'version=\\"1.2\\", release=\\"1.el7\\"); '
             'image.packages.add(pkg); image.save(); print repo.id'
@@ -105,7 +105,7 @@ class TestRepoMonitoring(BaseTestCase):
             self.run_dj_script('from container_pipeline.models.tracking '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
-                               'name=\\"bamachrn/python:release\\")'
+                               'name=\\"pipeline-ci/python:latest\\")'
                                '.to_build').strip(),
             'False')
         # Same package, same upstream does not mark image for build
@@ -118,7 +118,7 @@ class TestRepoMonitoring(BaseTestCase):
             self.run_dj_script('from container_pipeline.models.tracking '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
-                               'name=\\"bamachrn/python:release\\")'
+                               'name=\\"pipeline-ci/python:latest\\")'
                                '.to_build').strip(),
             'False')
         # Package change, different upstream does not mark image for build
@@ -131,7 +131,7 @@ class TestRepoMonitoring(BaseTestCase):
             self.run_dj_script('from container_pipeline.models.tracking '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
-                               'name=\\"bamachrn/python:release\\")'
+                               'name=\\"pipeline-ci/python:latest\\")'
                                '.to_build').strip(),
             'False')
         # Package change, same upstream marks image for build
@@ -144,20 +144,20 @@ class TestRepoMonitoring(BaseTestCase):
             self.run_dj_script('from container_pipeline.models.tracking '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
-                               'name=\\"bamachrn/python:release\\")'
+                               'name=\\"pipeline-ci/python:latest\\")'
                                '.to_build').strip(),
             'True')
         self.run_cmd(
             'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
-            'enable-job bamachrn-python-release')
+            'enable-job pipeline-ci-python-latest')
         prev_builds = self.get_jenkins_builds_for_job(
-            'bamachrn-python-release')
+            'pipeline-ci-python-latest')
         time.sleep(20)
         cur_builds = self.get_jenkins_builds_for_job(
-            'bamachrn-python-release')
+            'pipeline-ci-python-latest')
         self.run_cmd(
             'java -jar /opt/jenkins-cli.jar -s http://localhost:8080 '
-            'disable-job bamachrn-python-release')
+            'disable-job pipeline-ci-python-latest')
         self.assertTrue(len(cur_builds) > len(prev_builds))
         self.cleanup_openshift()
 

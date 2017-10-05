@@ -10,6 +10,7 @@ class TestOpenshift(BaseTestCase):
     jenkins_cmd = "sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 "
 
     def jenkinsProject(self, cmd, project, options=None):
+
         _print(self.run_cmd(
             str.format(
                 TestOpenshift.jenkins_cmd + "{cmd} {project}{options}",
