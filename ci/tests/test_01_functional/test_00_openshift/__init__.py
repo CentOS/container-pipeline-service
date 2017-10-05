@@ -7,17 +7,30 @@ from ci.lib import _print
 
 class TestOpenshift(BaseTestCase):
     node = 'openshift'
+    jenkins_cmd = "sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 "
 
     def jenkinsProject(self, cmd, project, options=None):
         _print(self.run_cmd(
             str.format(
-                "sudo java -jar /opt/jenkins-cli.jar -s http://localhost:8080 {cmd} {project}{options}",
+                TestOpenshift.jenkins_cmd + "{cmd} {project}{options}",
                 cmd=cmd,
                 project=project,
                 options="" if not options else options
             ),
             host=self.hosts['jenkins_master']['host']
         ))
+
+    def jenkinsProjectExists(self, project):
+        exists = True
+        try:
+            cmd = str.format(
+                TestOpenshift.jenkins_cmd + " list-jobs | grep {project}",
+                project=project
+            )
+            self.run_cmd(cmd, host=self.hosts['jenkins_master']['host'])
+        except Exception:
+            exists = False
+        return exists
 
     def assertOsProjectBuildStatus(self, project, expected_builds,
                                    expected_state, retries=20, delay=60):
@@ -130,7 +143,4 @@ class TestOpenshift(BaseTestCase):
     def test_04_build_fails_missing_cccp_yml(self):
         self.cleanup_beanstalkd()
         self.cleanup_openshift()
-
-        self.jenkinsProject("enable-job", "pipeline-ci-missing_cccp_yml")
-        self.jenkinsProject("build", "pipeline-ci-missing_cccp_yml", " -f -v")
-        self.jenkinsProject("disable-job", "pipeline-ci-missing_cccp_yml")
+        self.assertFalse(self.jenkinsProjectExists("pipeline-ci-missing_cccp_yml"))
