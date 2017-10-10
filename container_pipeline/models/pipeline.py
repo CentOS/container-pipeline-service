@@ -119,3 +119,18 @@ class Package(models.Model):
     def __str__(self):
         return "{}-{}-{}.{}".format(self.name, self.version, self.release,
                                     self.arch)
+
+
+class RepoInfo(models.Model):
+    baseurls = models.TextField(max_length=2000, db_index=True,
+                                help_text="Repo urls", unique=True)
+    basearch = models.CharField(max_length=20, db_index=True)
+    releasever = models.CharField(max_length=10, db_index=True)
+    infra = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = 'repo_info'
+        app_label = 'container_pipeline'
+
+    def __str__(self):
+        return self.baseurls
