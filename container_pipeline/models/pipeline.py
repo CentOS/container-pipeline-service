@@ -134,3 +134,29 @@ class RepoInfo(models.Model):
 
     def __str__(self):
         return self.baseurls
+
+
+class ContainerImage(models.Model):
+    name = models.CharField(max_length=200, db_index=True,
+                            help_text="Image name", unique=True)
+    packages = models.ManyToManyField(Package, related_name='images',
+                                      help_text="Packages")
+    parents = models.ManyToManyField('self', symmetrical=False,
+                                     help_text="Parent images")
+    repoinfo = models.ForeignKey(RepoInfo, null=True)
+
+    to_build = models.BooleanField(default=False, db_index=True,
+                                   help_text='Whether to build image or not')
+    scanned = models.BooleanField(default=False, db_index=True,
+                                  help_text='Whether the image is scanner')
+    last_scanned = models.DateTimeField(null=True, blank=True)
+
+    created = models.DateTimeField(auto_now_add=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True, blank=True)
+
+    class Meta:
+        db_table = 'container_images'
+        app_label = 'container_pipeline'
+
+    def __str__(self):
+        return self.name
