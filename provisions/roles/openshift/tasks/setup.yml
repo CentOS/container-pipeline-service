@@ -42,8 +42,6 @@
     src: "{{ role_path }}/../../../"
     dest: "{{ ansible_env.HOME }}/cccp-service"
     mode: push
-    rsync_opts:
-      - "{{ rsync_ssh_opts }}"
 
 - name: Build cccp build image
   docker_image:

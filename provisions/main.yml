@@ -69,7 +69,7 @@
       template: src=settings.py.j2 dest=/tmp/cccp_settings.py
 
     - name: pull rendered settings file
-      synchronize: src=/tmp/cccp_settings.py dest=/tmp/cccp_settings.py mode=pull rsync_opts="{{ rsync_ssh_opts}}"
+      synchronize: src=/tmp/cccp_settings.py dest=/tmp/cccp_settings.py mode=pull
   tags:
       - application
       - application/update_src
@@ -82,8 +82,6 @@
           src: ../../
           dest: /opt/cccp-service
           mode: push
-          rsync_opts:
-            - "{{ rsync_ssh_opts }}"
       sudo: yes
     - name: Push config
       copy: src=/tmp/cccp_settings.py dest=/opt/cccp-service/container_pipeline/lib/settings.py

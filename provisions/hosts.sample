@@ -24,7 +24,6 @@ jenkins_master
 public_registry=jenkins-slave
 intranet_registry=jenkins-slave:5000
 beanstalk_server=openshift
-rsync_ssh_opts=""
 
 # update index repo URL per requirement
 cccp_index_repo=https://github.com/centos/container-index.git
