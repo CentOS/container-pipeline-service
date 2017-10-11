@@ -21,7 +21,7 @@
   sudo: yes
   docker_image:
     name: mail-server
-    path: "{{ ansible_env.HOME }}/cccp-service/mail_service"
+    path: "{{ ansible_env.HOME }}/cccp-service"
     dockerfile: Dockerfile.mailserv
 
 - name: Start Mail Service
