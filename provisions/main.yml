@@ -101,6 +101,7 @@
 - name: Setup database
   hosts: jenkins_master
   roles:
+      - django
       - db
   tags:
       - db
