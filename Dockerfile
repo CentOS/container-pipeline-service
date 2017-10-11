@@ -14,12 +14,12 @@ RUN pip install raven --upgrade
 RUN mkdir -p /opt/cccp-service
 ADD node.kubeconfig ca.crt /opt/cccp-service/
 ADD container_pipeline /opt/cccp-service/container_pipeline
-ADD mail_service /mail_service/
+ADD mail_service /opt/cccp-service/mail_service/
 ADD oc /usr/bin/oc
 
-RUN chmod 777 /mail_service/*
+RUN chmod 777 /opt/cccp-service/mail_service/*
 
 ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
 WORKDIR /opt/cccp-service
 
-CMD ["/mail_service/start_mail_server.sh"]
+CMD ["/opt/cccp-service/mail_service/start_mail_server.sh"]
