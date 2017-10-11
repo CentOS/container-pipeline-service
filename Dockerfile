@@ -15,7 +15,5 @@ ADD node.kubeconfig ca.crt /opt/cccp-service/
 ADD container_pipeline /opt/cccp-service/container_pipeline
 ADD oc /usr/bin/oc
 
-RUN chmod 777 /opt/cccp-service/mail_service/*
-
 ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
 WORKDIR /opt/cccp-service
