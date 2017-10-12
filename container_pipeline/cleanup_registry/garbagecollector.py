@@ -54,16 +54,16 @@ class GarbageCollector(object):
         registry_storage_path = "/var/lib/registry/docker/registry/v2"
         registry_blobs = registry_storage_path + "/blobs"
         registry_repositories = registry_storage_path + "/repositories"
-        for k, v in self.mismatched.iteritems():
+        for container_full_name, tag_list in self.mismatched.iteritems():
             # For every entry in mismatched
             ## Formulate nessasary data
-            namespace = k.split("/")[0]
+            namespace = container_full_name.split("/")[0] if "/" in container_full_name else container_full_name
             namespace_path = registry_repositories + "/" + namespace
-            container_name = registry_repositories + "/" + k
+            container_name = registry_repositories + "/" + container_full_name
             manifests = container_name + "/_manifests"
             tags = manifests + "/tags"
             # Delete the tag
-            for item in v:
+            for item in tag_list:
                 del_tag = tags + "/" + item
                 lib.rm(del_tag)
             # If no more tags, delete namespace
@@ -87,7 +87,11 @@ class GarbageCollector(object):
                     job_id = entry["job-id"]
                     desired_tag = entry["desired-tag"]
                     # Initialize mismatch list to recieve data
-                    container_name = str(app_id) + "/" + str(job_id)
+                    container_name = str.format(
+                        "{namespace}{name}",
+                        namespace=(str(app_id) + "/") if str(app_id) != "library" else "",
+                        name=str(job_id)
+                    )
                     container_tag = container_name + ":" + str(desired_tag)
                     if container_name not in self.index_containers:
                         #
