@@ -3,8 +3,11 @@
 import json
 import os
 
+from django.utils import timezone
+
 from container_pipeline.lib import settings
 from container_pipeline.lib.queue import JobQueue
+from container_pipeline.models import Build, BuildPhase
 
 
 def trigger_dockerfile_linter(job):
@@ -27,6 +30,7 @@ def trigger_dockerfile_linter(job):
         print "==> Error: %s" % str(e)
         print "==> Sending Dockerfile linter failure email"
         response = {
+            "uuid": job["uuid"],
             "action": "notify_user",
             "namespace": job["appid"],
             "notify_email": job["notify_email"],
@@ -43,10 +47,12 @@ def trigger_dockerfile_linter(job):
         print "==>Put job on 'master_tube' tube"
         return False
     except BaseException as e:
+        print e
         print "==> Encountered unexpected error. Dockerfile lint trigger failed"
         print "==> Error: %s" % str(e)
         print "==> Sending Dockerfile linter failure email"
         response = {
+            "uuid": job["uuid"],
             "action": "notify_user",
             "namespace": job["appid"],
             "notify_email": job["notify_email"],
@@ -63,5 +69,10 @@ def trigger_dockerfile_linter(job):
         print "==>Put job on 'master_tube' tube"
         return False
     else:
+        build = Build.objects.get(uuid=job["uuid"])
+        build.status = 'processing'
+        build.save()
+        BuildPhase.objects.create(
+            build=build, phase='dockerlint', status='queued')
         queue.put(json.dumps(job), tube="master_tube")
         return True

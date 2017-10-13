@@ -1,0 +1,40 @@
+---
+- name: Enable epel
+  yum: name=epel-release state=installed
+  sudo: yes
+  tags: django
+
+- name: Install pip
+  yum: name=python-pip state=installed
+  sudo: yes
+  tags: django
+
+- name: Install Django
+  pip: name=django version=1.11.2
+  sudo: yes
+  tags: django
+
+- name: Install Docker
+  yum: name=docker state=installed
+  sudo: yes
+  tags: django
+
+- name: Install docker-py
+  yum: name=python-docker-py state=installed
+  sudo: yes
+  tags: django
+
+- name: Install postgresql-devel
+  yum: name=postgresql-devel state=installed
+  sudo: yes
+  tags: django
+
+- name: Install psycopg2
+  pip: name=psycopg2 version=2.7.3
+  sudo: yes
+  tags: django
+
+- name: Ensure docker group exists
+  group: name=docker state=present
+  sudo: yes
+  tags: django

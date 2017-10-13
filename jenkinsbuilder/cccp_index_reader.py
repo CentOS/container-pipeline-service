@@ -8,6 +8,8 @@ import sys
 import tempfile
 import yaml
 
+from container_pipeline.lib import dj  # noqa
+
 # populate container_pipeline module path
 cp_module_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -20,6 +22,8 @@ sys.path.append(cp_module_path)
 from container_pipeline.lib.log import load_logger
 
 from glob import glob
+
+from container_pipeline.models import Project
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -245,6 +249,11 @@ def main(indexdlocation):
                     error, str(myargs)))
                 logger.critical("Project details: %s ", str(project))
                 exit(1)
+            Project.objects.get_or_create(
+                name='{}-{}-{}'.format(
+                    project[0]['project']['jobid'],
+                    project[0]['project']['appid'],
+                    project[0]['project']['desired_tag']))
 
             new_projects_names.append(
                 str(project[0]["project"]["appid"]) + "-" +
