@@ -1,17 +1,18 @@
-import subprocess
+# import subprocess
+# from django.db import models
+# from django.conf import settings
+import json
+import os
 
-#from django.db import models
-#from django.conf import settings
-from os import path
-from json import load, dump
+DATA_FILE_DIR_DEFAULT="/srv/pipeline-logs"
 
 # TODO : Change implementation into proper model and move this class into model package.
 
 
-def form_dockerfile_link(git_url, git_path, git_branch, target_file):
+def form_Dockerfile_link(git_URL, git_path, git_branch, target_file):
     """
-    Helper function to generate docker file link.
-    :param git_url: The url of the git repository.
+    Helper function to generate Dockerfile link.
+    :param git_URL: The url of the git repository.
     :param git_path: The path, relative to the git repository root, where the file resides.
     :param git_branch: The repository branch where the file resides.
     :param target_file: The name of the target file.
@@ -21,10 +22,10 @@ def form_dockerfile_link(git_url, git_path, git_branch, target_file):
     # TODO : Move this into a lib.
 
     link_url = None
-    if "github" in git_url or "gitlab" in git_url:
+    if "github" in git_URL or "gitlab" in git_URL:
         link_url = str.format(
             "{git_url}/blob/{git_branch}/{git_path}/{target_file}",
-            git_url=git_url,
+            git_url=git_URL,
             git_branch=git_branch,
             git_path=git_path,
             target_file=target_file
@@ -35,7 +36,7 @@ def form_dockerfile_link(git_url, git_path, git_branch, target_file):
 class ContainerLinksModel(object):
     """Represents information about the container, stored in the model."""
 
-    def __init__(self, data_dir="/srv/pipeline-logs"):
+    def __init__(self, data_dir=DATA_FILE_DIR_DEFAULT):
         """
         Intialize the Model
         :param data_dir: The directory to which we need to dump the data file to.
@@ -43,22 +44,22 @@ class ContainerLinksModel(object):
         self._data_dir = data_dir
         self.data_file = data_dir + "/container_info.json"
         self.data = dict()
-        if path.exists(self.data_file):
+        if os.path.exists(self.data_file):
             self.unmarshall()
         else:
             self.marshall()
 
     def unmarshall(self):
-        """Loads the modal information into the object."""
+        """Loads the model information into the object."""
 
-        with open(self.data_file, "r") as f:
-            self.data = load(f)
+        with open(self.data_file) as f:
+            self.data = json.load(f)
 
     def marshall(self):
         """Saves the model information"""
 
-        with open(self.data_file, "w+") as f:
-            dump(self.data, f)
+        with open(self.data_file, "w") as f:
+            json.dump(self.data, f)
 
     def append_info(self, container_name, dockerfile_link):
         """
@@ -66,11 +67,9 @@ class ContainerLinksModel(object):
         :param container_name: The name of the container
         :param dockerfile_link: The link to the dockerfile.
         """
-        if container_name not in self.data:
-            self.data[container_name] = {
-                "dockerfile_link": ""
-            }
-        self.data[container_name]["dockerfile_link"] = dockerfile_link
+        self.data[container_name] = {
+            "dockerfile_link": dockerfile_link
+        }
 
     def delete_info(self, container_name):
         """

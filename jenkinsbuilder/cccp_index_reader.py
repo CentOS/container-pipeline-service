@@ -9,7 +9,7 @@ import tempfile
 
 import yaml
 
-from container_pipeline.model_tmp.containers import form_dockerfile_link, ContainerLinksModel
+from container_pipeline.model_tmp.containers import form_Dockerfile_link, ContainerLinksModel
 
 # Container Info Collector
 container_info = ContainerLinksModel()
@@ -120,13 +120,8 @@ def get_projects_from_index(indexdlocation):
                         if dependson_job == '':
                             dependson_job = 'none'
 
-                        container_name = str.format(
-                            "{app_id}/{job_id}:{desired_tag}",
-                            app_id=appid,
-                            job_id=jobid,
-                            desired_tag=desiredtag
-                        )
-                        dockerfile_link = form_dockerfile_link(giturl, gitpath, gitbranch, targetfile)
+                        container_name = appid + "/" + jobid + ":" + desiredtag
+                        dockerfile_link = form_Dockerfile_link(giturl, gitpath, gitbranch, targetfile)
                         container_info.append_info(container_name, dockerfile_link)
 
                         # overwrite any attributes we care about see:
