@@ -208,8 +208,9 @@ def setup_controller(controller):
         "yum install -y rsync && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
         "yum install -y epel-release && "
-        "yum install -y PyYAML python-networkx && "
-        "yum install -y ansible python-nose",
+        "yum install -y PyYAML python-networkx python-nose wget && "
+        "wget http://cbs.centos.org/kojifiles/packages/ansible/2.2.1.0/2.el7/noarch/ansible-2.2.1.0-2.el7.noarch.rpm && "
+        "yum install -y ./ansible-2.2.1.0-2.el7.noarch.rpm",
         host=controller)
 
 
