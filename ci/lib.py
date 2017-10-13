@@ -1,8 +1,8 @@
-import subprocess
-import select
-import os
-import sys
 import json
+import os
+import select
+import subprocess
+import sys
 
 PROJECT_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__),
@@ -206,16 +206,10 @@ def setup_controller(controller):
     run_cmd(
         "yum install -y git && "
         "yum install -y rsync && "
-        "yum install -y python-virtualenv && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
         "yum install -y epel-release && "
-        "yum install -y PyYAML python-networkx && "
-        "virtualenv venv && "
-        "$HOME/venv/bin/pip install ansible==2.2.1 && "
-        "ln -s $HOME/venv/bin/ansible-playbook /usr/bin/ansible-playbook || "
-        "true && "
-        "$HOME/venv/bin/pip install nose && "
-        "ln -s $HOME/venv/bin/nosetests /usr/bin/nosetests || true",
+        "yum install -y PyYAML python-networkx python-nose && "
+        "yum install -y http://cbs.centos.org/kojifiles/packages/ansible/2.2.1.0/2.el7/noarch/ansible-2.2.1.0-2.el7.noarch.rpm",
         host=controller)
 
 
