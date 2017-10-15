@@ -198,10 +198,10 @@ class RPMVerify(object):
         if not result:
             result = ["No issues. Libraries and Binaries are intact."]
             self.json_out["Summary"] = "Libraries and binaries in the image"\
-                " seem intact."
+                " are intact."
         else:
             self.json_out["Summary"] = "rpm -Va reported issues with some "\
-                "libraries/binaries"
+                "libraries/binaries."
         return {"rpmVa_issues": result}
 
     def export_results(self, data):

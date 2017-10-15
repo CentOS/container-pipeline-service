@@ -53,7 +53,7 @@ def check_image_for_run_label(image):
     run_label = run_object.get_label("RUN")
 
     if run_label == "":
-        raise RunLabelException("Dockerfile for the image doesn't have RUN label")
+        raise RunLabelException("Dockerfile for the image doesn't have RUN label.")
     return run_label
 
 
@@ -116,20 +116,20 @@ try:
     else:
         json_out["Scan Results"]["Container capabilities"] = \
             "This container image doesn't have any special capabilities"
-        json_out["Summary"] = "No additional capabilities found"
+        json_out["Summary"] = "No additional capabilities found."
 
     json_out["Successful"] = "true"
 
 except RunLabelException as e:
     json_out["Scan Results"]["Container capabilities"] = e.message
     json_out["Successful"] = "false"
-    json_out["Summary"] = "Dockerfile for the image doesn't have RUN label"
+    json_out["Summary"] = "Dockerfile for the image doesn't have RUN label."
 except Exception as e:
     logger.log(
         level=logging.ERROR,
         msg="Scanner failed: {}".format(e)
     )
-    json_out["Summary"] = "Scanner failed"
+    json_out["Summary"] = "Scanner failed."
 finally:
     json_out["Finished Time"] = \
         datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
