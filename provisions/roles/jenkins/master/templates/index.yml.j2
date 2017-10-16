@@ -14,6 +14,7 @@
     builders:
         - shell: |
             CWD=`pwd`
+            export PYTHONPATH="/opt/cccp-service"
             cd /opt/cccp-service/jenkinsbuilder
             python cccp_index_reader.py $CWD/index.d
             cd /opt/cccp-service/
