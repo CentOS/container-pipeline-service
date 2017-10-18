@@ -5,15 +5,19 @@ MAINTAINER CentOS Community Container Pipeline <centos-devel@centos.org>
 RUN yum update -y && \
     yum install epel-release -y && \
     yum install python PyYAML python-pip  -y && \
+    yum -y install wget mailx postfix rsyslog && \
     yum remove epel-release -y && \
     yum clean all
 
 RUN pip install raven --upgrade
 
 RUN mkdir -p /opt/cccp-service
-ADD node.kubeconfig ca.crt /opt/cccp-service/
 ADD container_pipeline /opt/cccp-service/container_pipeline
-ADD oc /usr/bin/oc
+ADD mail_service /opt/cccp-service/mail_service/
+
+RUN chmod 777 /opt/cccp-service/mail_service/*
 
 ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
 WORKDIR /opt/cccp-service
+
+CMD ["/opt/cccp-service/mail_service/start_mail_server.sh"]
