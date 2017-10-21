@@ -12,6 +12,13 @@
   sudo: yes
   tags: db
 
+- name: Reload docker systemd service
+  sudo: yes
+  systemd: name=docker state=reloaded
+
+- name: Start Docker service
+  systemd: name=docker state=started enabled=yes
+
 - name: Pull CentOS postgres container
   docker_image:
       name: docker.io/centos/postgresql-95-centos7
