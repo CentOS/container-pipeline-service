@@ -100,7 +100,7 @@ class BuildPhase(models.Model):
         return '{}:{}'.format(self.build, self.phase)
 
 
-class Package(models.Model):
+class PackageX(models.Model):
     name = models.CharField(max_length=200, db_index=True,
                             help_text="Package name")
     arch = models.CharField(max_length=20, db_index=True,
@@ -121,7 +121,7 @@ class Package(models.Model):
                                     self.arch)
 
 
-class RepoInfo(models.Model):
+class RepoInfoX(models.Model):
     baseurls = models.TextField(max_length=2000, db_index=True,
                                 help_text="Repo urls", unique=True)
     basearch = models.CharField(max_length=20, db_index=True)
@@ -136,14 +136,14 @@ class RepoInfo(models.Model):
         return self.baseurls
 
 
-class ContainerImage(models.Model):
+class ContainerImageX(models.Model):
     name = models.CharField(max_length=200, db_index=True,
                             help_text="Image name", unique=True)
-    packages = models.ManyToManyField(Package, related_name='images',
+    packages = models.ManyToManyField(PackageX, related_name='images',
                                       help_text="Packages")
     parents = models.ManyToManyField('self', symmetrical=False,
                                      help_text="Parent images")
-    repoinfo = models.ForeignKey(RepoInfo, null=True)
+    repoinfo = models.ForeignKey(RepoInfoX, null=True)
 
     to_build = models.BooleanField(default=False, db_index=True,
                                    help_text='Whether to build image or not')
