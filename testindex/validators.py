@@ -278,7 +278,7 @@ class IndexProjectsValidator(IndexValidator):
                 continue
 
             # Else clone was success, check the git path
-            git_path = clone_path + "/" + entry["git-path"]
+            git_path = clone_path + "/" + str(entry["git-path"])
 
             # Check if specified path exists
             if not path.exists(git_path):
@@ -429,7 +429,7 @@ class DependencyValidationUpdater(IndexValidator):
             # Work out the path to targetfile
             git_branch = entry["git-branch"]
             target_file_dir = entry["git-url"]
-            git_path = entry["git-path"]
+            git_path = str(entry["git-path"])
             if ":" in target_file_dir:
                 # If the git-url containers :, then we dont need the protocol part, so just get the uri
                 target_file_dir = target_file_dir.split(":")[1]
@@ -481,7 +481,7 @@ class LightWeightValidator(IndexValidator):
                 self._summary_collector.add_error("Unable to clone specified git-url or find specified git-branch")
                 self._success = False
                 continue
-            validation_path = clone_location + "/" + entry["git-path"] + "/" + entry["target-file"]
+            validation_path = clone_location + "/" + str(entry["git-path"]) + "/" + entry["target-file"]
             if not path.exists(validation_path):
                 self._summary_collector.add_error("Invalid git-path or target-file specified")
                 self._success = False
