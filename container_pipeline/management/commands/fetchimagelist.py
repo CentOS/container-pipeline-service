@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand  # CommandError
 
 from django.conf import settings
 
-from container_pipeline.models.tracking import ContainerImage
+from container_pipeline.models import ContainerImage
 from jenkinsbuilder.cccp_index_reader import get_projects_from_index
 
 logger = logging.getLogger('tracking')

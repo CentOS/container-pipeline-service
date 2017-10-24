@@ -7,8 +7,9 @@ from django.conf import settings
 
 from container_pipeline.lib.queue import JobQueue
 
-from container_pipeline.models.tracking import ContainerImage, Package,\
+from container_pipeline.models.tracking import Package,\
     RepoInfo
+from container_pipeline.models import ContainerImage
 from container_pipeline.tracking.lib import get_navr_from_pkg_name
 
 logger = logging.getLogger('tracking')

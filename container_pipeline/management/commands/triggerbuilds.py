@@ -6,7 +6,8 @@ from django.core.management.base import BaseCommand  # CommandError
 from django.utils import timezone
 from django.conf import settings
 
-from container_pipeline.models.tracking import ContainerImage, Package
+from container_pipeline.models.tracking import Package
+from container_pipeline.models import ContainerImage
 
 logger = logging.getLogger('tracking')
 
