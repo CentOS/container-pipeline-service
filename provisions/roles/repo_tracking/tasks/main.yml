@@ -54,7 +54,7 @@
   tags: repo_tracking
 
 - name: Create DB tables
-  shell: /opt/cccp-service/manage.py syncdb --noinput
+  shell: /opt/cccp-service/manage.py migrate --noinput
   ignore_errors: yes
   retries: 5
   delay: 10
