@@ -53,6 +53,14 @@
   sudo: yes
   tags: repo_tracking
 
+- name: Initialize for creating DB tables.
+  shell: /opt/cccp-service/manage.py makemigrations --noinput
+  ignore_errors: yes
+  retries: 5
+  delay: 10
+  sudo: yes
+  tags: repo_tracking
+
 - name: Create DB tables
   shell: /opt/cccp-service/manage.py migrate --noinput
   ignore_errors: yes
