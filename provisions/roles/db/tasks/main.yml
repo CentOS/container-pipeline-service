@@ -21,7 +21,7 @@
 
 - name: Pull CentOS postgres container
   docker_image:
-      name: docker.io/centos/postgresql-95-centos7
+      name: registry.centos.org/sclo/postgresql-95-centos7
       tag: latest
   sudo: yes
   tags: db
