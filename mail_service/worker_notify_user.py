@@ -74,7 +74,7 @@ class NotifyUser(object):
 
     def __init__(self, job_info):
 
-        self.send_mail_command = "/mail_service/send_mail.sh"
+        self.send_mail_command = "/opt/cccp-service/mail_service/send_mail.sh"
         self.job_info = job_info
 
         # the logs directory

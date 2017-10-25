@@ -18,6 +18,6 @@ ADD mail_service /opt/cccp-service/mail_service/
 RUN chmod 777 /opt/cccp-service/mail_service/*
 
 ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
-WORKDIR /opt/cccp-service
+WORKDIR /opt/cccp-service/mail_service
 
 CMD ["/opt/cccp-service/mail_service/start_mail_server.sh"]
