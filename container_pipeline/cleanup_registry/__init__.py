@@ -37,9 +37,9 @@ def get_args_parser():
         default="https://github.com/centos/container-index"
     )
     parser.add_argument(
-        "-d",
-        "--dryrun",
-        help="Enable this to do a dry run of the garbge collector without removing images",
+        "-c",
+        "--collect",
+        help="Enable this to make garbage collection work. Otherwise, it does a dry run",
         action="store_true"
     )
 
@@ -54,11 +54,12 @@ def main():
     registry_secure = True if parser.secure else False
     local_index = True if parser.localindex else False
     index_url = parser.indexurl
-    dry_run = True if parser.dryrun else False
+    collect = True if parser.collect else False
 
     gc = GarbageCollector(registry_host=registry_host, registry_port=registry_port, registry_secure=registry_secure,
-                          local_index=local_index, index_git=index_url, dry_run=dry_run)
+                          local_index=local_index, index_git=index_url, collect=collect)
     gc.collect()
+
 
 if __name__ == '__main__':
     main()

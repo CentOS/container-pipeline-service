@@ -10,7 +10,7 @@ class GarbageCollector(object):
     """
 
     def __init__(self, registry_host="127.0.0.1", registry_port="5000", registry_secure=False, local_index=False,
-                 index_git="https://github.com/centos/container-index", verbose=True, dry_run=False):
+                 index_git="https://github.com/centos/container-index", verbose=True, collect=True):
         """
         Initialize the garbage collector object.
 
@@ -20,11 +20,11 @@ class GarbageCollector(object):
         :param local_index: Is the index to query locally available.
         :param index_git: If the index is on a git repo, the url of that repo.
         :param verbose: If set then steps are displayed on screen as they happen.
-        :param dry_run: If set. then the garbage collection itself, does not take place
+        :param collect: If set. then the garbage collection takes place, else it does dry run.
         """
         self._verbose = verbose
         self._index_location = "./c_i"
-        self._dry_run = dry_run
+        self._collect = collect
         if local_index:
             # If local index is set, check if inex files are present at expected location.
             if not lib.path.exists(self._index_location):
@@ -108,7 +108,7 @@ class GarbageCollector(object):
                 if r_name not in self.index_containers:
                     self.mismatched[r_name].append(item1)
         end_msg = "Images to Remove"
-        if not self._dry_run:
+        if self._collect:
             end_msg = "Images Removed"
             self._delete_mismatched()
         print str.format("{0} : \n{1}", end_msg, self.mismatched)
