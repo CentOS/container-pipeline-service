@@ -36,6 +36,12 @@ def get_args_parser():
         help="The git url of index to be cloned.",
         default="https://github.com/centos/container-index"
     )
+    parser.add_argument(
+        "-d",
+        "--dryrun",
+        help="Enable this to do a dry run of the garbge collector without removing images",
+        action="store_true"
+    )
 
     return parser
 
@@ -48,9 +54,10 @@ def main():
     registry_secure = True if parser.secure else False
     local_index = True if parser.localindex else False
     index_url = parser.indexurl
+    dry_run = True if parser.dryrun else False
 
     gc = GarbageCollector(registry_host=registry_host, registry_port=registry_port, registry_secure=registry_secure,
-                          local_index=local_index, index_git=index_url)
+                          local_index=local_index, index_git=index_url, dry_run=dry_run)
     gc.collect()
 
 if __name__ == '__main__':
