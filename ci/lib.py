@@ -151,6 +151,7 @@ scanner_worker
 {scanner_host}
 
 [all:vars]
+db_host= {jenkins_master_host}
 public_registry= {jenkins_slave_host}
 intranet_registry = {jenkins_slave_host}:5000
 copy_ssl_certs=True
