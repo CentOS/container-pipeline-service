@@ -46,13 +46,6 @@
   tags:
     - jenkins
 
-- name: Setup openshift
-  hosts: openshift
-  roles:
-    - openshift
-  tags:
-    - openshift
-
 - name: Generate source code config file
   hosts: jenkins_slaves
   tasks:
@@ -97,6 +90,13 @@
   tags:
       - application
       - application/update_src
+
+- name: Setup openshift
+  hosts: openshift
+  roles:
+    - openshift
+  tags:
+    - openshift
 
 - name: Setup Scanner Worker
   hosts: scanner_worker

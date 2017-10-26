@@ -19,9 +19,12 @@ class Openshift(object):
         self.password = password or settings.OPENSHIFT_PASSWORD
         self.config = config or settings.OC_CONFIG
         self.cert = cert or settings.OC_CERT
-        self.oc_cmd_suffix = (
+        self.oc_login_suffix = (
             '--config {config} --certificate-authority {cert}'.format(
                 config=self.config, cert=self.cert))
+        self.oc_cmd_suffix = (
+            '--config {config}'.format(
+                config=self.config))
         self.logger = logger or logging.getLogger('console')
 
     def login(self, user=None, password=None):
@@ -35,7 +38,7 @@ class Openshift(object):
                         'oc login {endpoint} -u {user} -p {password} {suffix}'
                         .format(
                             endpoint=self.endpoint, user=user,
-                            password=password, suffix=self.oc_cmd_suffix
+                            password=password, suffix=self.oc_login_suffix
                         ))
                 )
             )

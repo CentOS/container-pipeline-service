@@ -37,28 +37,12 @@
     KUBECONFIG: "{{ kubeconfig }}"
   ignore_errors: yes
 
-- name: Get cccp service code
-  synchronize:
-    src: "{{ role_path }}/../../../"
-    dest: "{{ ansible_env.HOME }}/cccp-service"
-    mode: push
-    rsync_opts:
-      - "{{ rsync_ssh_opts }}"
-
-- name: Build cccp build image
+- name: Build cccp builder images
   docker_image:
-    path: "{{ ansible_env.HOME }}/cccp-service/server"
-    name: cccp-build
-    dockerfile: Dockerfile.build
-
-- name: Build cccp test image
-  docker_image:
-    path: "{{ ansible_env.HOME }}/cccp-service/server"
-    name: cccp-test
-    dockerfile: Dockerfile.test
-
-- name: Build cccp delivery image
-  docker_image:
-    path: "{{ ansible_env.HOME }}/cccp-service/server"
-    name: cccp-delivery
-    dockerfile: Dockerfile.delivery
+    path: /opt/cccp-service/server
+    name: "{{ item.image_name }}"
+    dockerfile: "{{ item.file_name }}"
+  with_items:
+    - {image_name: cccp-build, file_name: Dockerfile.build}
+    - {image_name: cccp-test, file_name: Dockerfile.test}
+    - {image_name: cccp-delivery, file_name: Dockerfile.delivery}
