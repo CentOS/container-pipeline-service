@@ -6,9 +6,9 @@
     remote_src: yes
     mode: 0777
   with_items:
-    - {src: /usr/bin/oc, dest: "{{ ansible_env.HOME }}/cccp-service/oc"}
-    - {src: /var/lib/origin/openshift.local.config/master/ca.crt, dest: "{{ ansible_env.HOME }}/cccp-service/ca.crt"}
-    - {src: /var/lib/origin/openshift.local.config/master/admin.kubeconfig,dest: "{{ ansible_env.HOME }}/cccp-service/node.kubeconfig"}
+    - {src: /usr/bin/oc, dest: "/opt/cccp-service/oc"}
+    - {src: /var/lib/origin/openshift.local.config/master/ca.crt, dest: "/opt/cccp-service/ca.crt"}
+    - {src: /var/lib/origin/openshift.local.config/master/admin.kubeconfig, dest: "/opt/cccp-service/node.kubeconfig"}
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
@@ -23,7 +23,7 @@
 
 - name: Set log level
   replace: >
-      dest="{{ ansible_env.HOME }}/cccp-service/mail_service/config.py"
+      dest="/opt/cccp-service/mail_service/config.py"
       regexp="LOG_LEVEL =.*"
       replace="LOG_LEVEL = '{{ log_level }}'"
 
@@ -31,7 +31,7 @@
   sudo: yes
   docker_image:
     name: mail-server
-    path: "{{ ansible_env.HOME }}/cccp-service"
+    path: "/opt/cccp-service"
     dockerfile: Dockerfile.mailserv
 
 - name: Start Mail Service
