@@ -4,6 +4,7 @@
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     remote_src: yes
+    mode: 0777
   with_items:
     - {src: /usr/bin/oc, dest: "{{ ansible_env.HOME }}/cccp-service/oc"}
     - {src: /var/lib/origin/openshift.local.config/master/ca.crt, dest: "{{ ansible_env.HOME }}/cccp-service/ca.crt"}
