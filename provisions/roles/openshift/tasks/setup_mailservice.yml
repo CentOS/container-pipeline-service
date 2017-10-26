@@ -1,4 +1,13 @@
 ---
+- name: Pull oc files from openshift
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: yes
+  with_items:
+    - {src: /usr/bin/oc, dest: /opt/cccp-service/oc}
+    - {src: /var/lib/origin/openshift.local.config/master/ca.crt, dest: /opt/cccp-service/ca.crt}
+    - {src: /var/lib/origin/openshift.local.config/master/admin.kubeconfig,dest: /opt/cccp-service/node.kubeconfig}
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch

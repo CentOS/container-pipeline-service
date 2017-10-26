@@ -12,6 +12,10 @@ RUN yum update -y && \
 RUN pip install raven --upgrade
 
 RUN mkdir -p /opt/cccp-service
+
+ADD oc /usr/bin/oc
+ADD node.kubeconfig ca.crt /opt/cccp-service/
+
 ADD container_pipeline /opt/cccp-service/container_pipeline
 ADD mail_service /opt/cccp-service/mail_service/
 
