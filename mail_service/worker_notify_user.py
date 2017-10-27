@@ -343,7 +343,7 @@ class NotifyUser(object):
         time.sleep(50)
         try:
             self.openshift.delete(self.job_info['project_hash_key'])
-        except OpenshiftError as e:
+        except Exception as e:
             logger.critical("Failed to delete OpenShift project: {} error: {}"
                             .format(self.job_info['project_name'], e))
 
@@ -372,12 +372,16 @@ while True:
     dfh = config.DynamicFileHandler(
         logger,
         os.path.join(job_info['logs_dir'], config.SERVICE_LOGFILE))
-    logger.info("Received Job:")
-    logger.debug(str(job_info))
-    notify_user = NotifyUser(job_info)
-    build_status = notify_user.notify_user()
-    job.delete()
-    dfh.remove()
+    logger.info("Received Job: {}".format(str(job_info)))
+    try:
+        notify_user = NotifyUser(job_info)
+        build_status = notify_user.notify_user()
+    except Exception as e:
+        logger.critical(
+            "Mail server could not pross the job: {}".format(str(job_info)))
+    finally:
+        job.delete()
+        dfh.remove()
 
     # This cleans the per build logs file created for the build
     # If service returned properly after sending email, the file
