@@ -99,22 +99,21 @@ class BuildWorker(BaseWorker):
 
     def handle_build_failure(self):
         """Handle build failure for job"""
-        self.job['action'] = "build_failure"
+        self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
-            "Build is not successful putting it to failed build tube")
-        data = {
-            'action': 'notify_user',
-            'namespace': self.job["namespace"],
-            'build_status': False,
-            'notify_email': self.job['notify_email'],
-            'build_logs_file': os.path.join(
-                self.job['logs_dir'], 'build_logs.txt'),
-            'logs_dir': self.job['logs_dir'],
-            'project_name': self.job['project_name'],
-            'job_name': self.job['job_name'],
-            'test_tag': self.job['test_tag']}
-        self.notify(data)
+            "Build is not successful. Notifying the user.")
+        # data = {
+        #     'action': 'notify_user',
+        #     'namespace': self.job["namespace"],
+        #     'build_status': False,
+        #     'notify_email': self.job['notify_email'],
+        #     'build_logs_file': os.path.join(
+        #         self.job['logs_dir'], 'build_logs.txt'),
+        #     'logs_dir': self.job['logs_dir'],
+        #     'project_name': self.job['project_name'],
+        #     'job_name': self.job['job_name'],
+        #     'test_tag': self.job['test_tag']}
 
 
 if __name__ == '__main__':
