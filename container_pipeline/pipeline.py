@@ -51,6 +51,9 @@ def create_new_job():
         "target_file",   # Name of the Dockerfile to use to build container
                          # image
         "test_tag",      # temporary tag to be applied to image
+        "msg",           # to capture message in case of exception in
+                         # triggering linter
+        "delivery_log_file",     # log file for delivery worker
     ])
 
     return job
