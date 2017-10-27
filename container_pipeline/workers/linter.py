@@ -26,6 +26,7 @@ class DockerfileLintWorker(BaseWorker):
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(DockerfileLintWorker, self).__init__(logger, sub, pub)
+        self.build_phase_name = "dockerlint"
         self.status_file_path = ""
         self.project_name = None
 
@@ -40,13 +41,11 @@ class DockerfileLintWorker(BaseWorker):
         )
         self.job = job
 
-        build = Build.objects.get(uuid=job['uuid'])
-        self.build_phase = BuildPhase.objects.get(
-            build=build, phase='dockerlint')
-        self.build_phase.status = 'processing'
-        self.build_phase.start_time = timezone.now()
-        self.build_phase.save()
-
+        self.setup_data()
+        self.set_data(
+            build_phase_status='processing',
+            build_phase_start_time=timezone.now()
+        )
         self.logger.info("Received job for Dockerfile lint: %s" % job)
         self.logger.debug("Writing Dockerfile to /tmp/scan/Dockerfile")
         self.write_dockerfile(job.get("dockerfile"))
@@ -97,9 +96,10 @@ class DockerfileLintWorker(BaseWorker):
             self.job["dockerfile"] = None
             self.job["action"] = "notify_user"
             self.queue.put(json.dumps(self.job), 'master_tube')
-            self.build_phase.status = 'error'
-            self.build_phase.end_time = timezone.now()
-            self.build_phase.save()
+            self.set_data(
+                build_phase_status='error',
+                build_phase_end_time=timezone.now()
+            )
         finally:
             # remove the Dockerfile to have a clean environment on next run
             self.logger.info("Removing Dockerfile from /tmp/scan/Dockerfile")
@@ -147,9 +147,10 @@ class DockerfileLintWorker(BaseWorker):
             self.logger.info("Deleting 'dockerfile' data from job")
             self.job["dockerfile"] = None
 
-        self.build_phase.status = 'complete'
-        self.build_phase.end_time = timezone.now()
-        self.build_phase.save()
+        self.set_data(
+            build_phase_status='complete',
+            build_phase_end_time=timezone.now()
+        )
 
         create_project(self.queue, self.job, self.logger)
         return response
@@ -167,9 +168,10 @@ class DockerfileLintWorker(BaseWorker):
             "project_name": self.project_name
         }
 
-        self.build_phase.status = 'failed'
-        self.build_phase.end_time = timezone.now()
-        self.build_phase.save()
+        self.set_data(
+            build_phase_status='failed',
+            build_phase_end_time=timezone.now()
+        )
 
         return response
 
