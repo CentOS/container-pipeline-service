@@ -4,10 +4,13 @@ import logging
 import os
 import time
 
+from container_pipeline.lib import dj  # noqa
+from django.utils import timezone
+
 from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import Build, get_cause_of_build
+from container_pipeline.utils import Build as BuildTracker, get_cause_of_build
 from container_pipeline.workers.base import BaseWorker
 
 
@@ -17,6 +20,7 @@ class BuildWorker(BaseWorker):
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(BuildWorker, self).__init__(logger, sub, pub)
+        self.build_phase_name = "build"
         self.openshift = Openshift(logger=self.logger)
 
     def handle_job(self, job):
@@ -44,7 +48,7 @@ class BuildWorker(BaseWorker):
         self.job['last_run_timestamp'] = None
 
         for parent in parents:
-            is_build_running = Build(parent, logger=self.logger).is_running()
+            is_build_running = BuildTracker(parent, logger=self.logger).is_running()
             if is_build_running:
                 parents_in_build.append(parent)
             parent_build_running = parent_build_running or \
@@ -83,7 +87,7 @@ class BuildWorker(BaseWorker):
             self.logger.error(e)
             return False
 
-        Build(namespace).start()
+        BuildTracker(namespace).start()
         build_status = self.openshift.wait_for_build_status(
             project_hash_key, build_id, 'Complete')
         logs = self.openshift.get_build_logs(project_hash_key, build_id)
