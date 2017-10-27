@@ -55,22 +55,22 @@ class TestWorker(BaseWorker):
 
     def handle_test_failure(self):
         """Handle test failure for job"""
-        self.job['action'] = "test_failure"
+        self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
-            "Test is not successful putting it to failed build tube")
-        data = {
-            'action': 'notify_user',
-            'namespace': self.job["namespace"],
-            'build_status': False,
-            'notify_email': self.job['notify_email'],
-            'test_logs_file': os.path.join(
-                self.job['logs_dir'], 'test_logs.txt'),
-            'project_name': self.job["project_name"],
-            'job_name': self.job['jobid'],
-            'test_tag': self.job['test_tag']}
-        self.logger.debug('Notify test failure: {}'.format(data))
-        self.notify(data)
+            "Test is not successful. Notifying the user.")
+        # data = {
+        #     'action': 'notify_user',
+        #     'namespace': self.job["namespace"],
+        #     'build_status': False,
+        #     'notify_email': self.job['notify_email'],
+        #     'test_logs_file': os.path.join(
+        #         self.job['logs_dir'], 'test_logs.txt'),
+        #     'project_name': self.job["project_name"],
+        #     'job_name': self.job['jobid'],
+        #     'test_tag': self.job['test_tag']}
+        # self.logger.debug('Notify test failure: {}'.format(data))
+        # self.notify(data)
 
     def handle_job(self, job):
         """This runs the test worker"""

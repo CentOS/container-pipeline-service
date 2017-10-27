@@ -75,7 +75,6 @@ class DeliveryWorker(BaseWorker):
             self.job['namespace']))
         self.logger.debug('Putting job details to master_tube for tracker\'s'
                           ' consumption')
-        project_hash_key = self.job["project_hash_key"]
 
         # sending notification as delivery complete and also addingn this into
         # tracker.
@@ -93,23 +92,22 @@ class DeliveryWorker(BaseWorker):
         Puts the job back to the delivery tube for later attempt at delivery
         and requests to notify the user about failure to deliver
         """
-        self.job.pop('action', None)
-        self.job['action'] = "delivery_failure"
+        self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
-            "Delivery is not successful putting it to failed delivery tube")
-        data = {
-            'action': 'notify_user',
-            'namespace': self.job["namespace"],
-            'build_status': False,
-            'notify_email': self.job['notify_email'],
-            'delivery_logs_file': os.path.join(
-                self.job['logs_dir'], 'delivery_logs.txt'),
-            'logs_dir': self.job['logs_dir'],
-            'project_name': self.job["project_name"],
-            'job_name': self.job['jobid'],
-            'test_tag': self.job['test_tag']}
-        self.notify(data)
+            "Delivery is not successful. Notifying the user.")
+        # data = {
+        #     'action': 'notify_user',
+        #     'namespace': self.job["namespace"],
+        #     'build_status': False,
+        #     'notify_email': self.job['notify_email'],
+        #     'delivery_logs_file': os.path.join(
+        #         self.job['logs_dir'], 'delivery_logs.txt'),
+        #     'logs_dir': self.job['logs_dir'],
+        #     'project_name': self.job["project_name"],
+        #     'job_name': self.job['jobid'],
+        #     'test_tag': self.job['test_tag']}
+        # self.notify(data)
 
 
 if __name__ == "__main__":
