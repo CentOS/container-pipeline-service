@@ -83,6 +83,7 @@ class BuildPhase(models.Model):
     STATUS_CHOICES = (
         ('queued', 'Queued'),
         ('processing', 'In process'),
+        ('requeuedparent', 'Requeued due to parent'),
         ('complete', 'Complete'),
         ('error', 'Error'),
         ('failed', 'Failed')
