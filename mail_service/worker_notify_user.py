@@ -378,7 +378,8 @@ while True:
         build_status = notify_user.notify_user()
     except Exception as e:
         logger.critical(
-            "Mail server could not pross the job: {}".format(str(job_info)))
+            "Mail server could not process the job: {} with error : {}"
+            .format(str(job_info), e))
     finally:
         job.delete()
         dfh.remove()
