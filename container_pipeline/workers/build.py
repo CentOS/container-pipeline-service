@@ -99,7 +99,6 @@ class BuildWorker(BaseWorker):
 
     def handle_build_failure(self):
         """Handle build failure for job"""
-        self.job.pop('action', None)
         self.job['action'] = "build_failure"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(

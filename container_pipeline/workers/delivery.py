@@ -92,7 +92,6 @@ class DeliveryWorker(BaseWorker):
         Puts the job back to the delivery tube for later attempt at delivery
         and requests to notify the user about failure to deliver
         """
-        self.job.pop('action', None)
         self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
