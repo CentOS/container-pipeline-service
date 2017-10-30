@@ -12,6 +12,7 @@ from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.utils import Build as BuildTracker, get_cause_of_build
 from container_pipeline.workers.base import BaseWorker
+from container_pipeline.models import Build, BuildPhase
 
 
 class BuildWorker(BaseWorker):
@@ -31,7 +32,11 @@ class BuildWorker(BaseWorker):
         build for the job.
         """
         self.job = job
-
+        self.setup_data()
+        self.set_data(
+            build_phase_status='processing',
+            build_phase_start_time=timezone.now()
+        )
         self.job["cause_of_build"] = get_cause_of_build(
             os.environ.get('JENKINS_MASTER'),
             self.job["job_name"],
@@ -57,6 +62,10 @@ class BuildWorker(BaseWorker):
         if parent_build_running:
             self.logger.info('Parents in build: {}, pushing job: {} back '
                              'to queue'.format(parents_in_build, self.job))
+            self.set_data(
+                build_phase_status='requeuedparent',
+                build_phase_start_time=timezone.now()
+            )
             # Retry delay in seconds
             self.job['retry'] = True
             self.job['retry_delay'] = settings.BUILD_RETRY_DELAY
@@ -64,7 +73,7 @@ class BuildWorker(BaseWorker):
             self.queue.put(json.dumps(self.job), 'master_tube')
         else:
             self.logger.info('Starting build for job: {}'.format(self.job))
-            success = self.build()
+            success = self.build_container()
             if success:
                 self.job["build_status"] = True
                 self.handle_build_success()
@@ -72,7 +81,7 @@ class BuildWorker(BaseWorker):
                 self.job["build_status"] = False
                 self.handle_build_failure()
 
-    def build(self):
+    def build_container(self):
         """Run Openshift build for job"""
         namespace = self.job["namespace"]
         # project_name = self.job["project_name"]
@@ -98,12 +107,20 @@ class BuildWorker(BaseWorker):
     def handle_build_success(self):
         """Handle build success for job."""
         self.job['action'] = 'start_test'
+        self.set_data(
+            build_phase_status='complete',
+            build_phase_end_time=timezone.now()
+        )
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Build is successful going for next job")
 
     def handle_build_failure(self):
         """Handle build failure for job"""
         self.job['action'] = "notify_user"
+        self.set_data(
+            build_phase_status='failed',
+            build_phase_end_time=timezone.now()
+        )
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
             "Build is not successful. Notifying the user.")
