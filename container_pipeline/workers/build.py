@@ -111,7 +111,10 @@ class BuildWorker(BaseWorker):
             build_phase_status='complete',
             build_phase_end_time=timezone.now()
         )
+        next_phase = BuildPhase.objects.get_or_create(build=self.build, phase='test')
         self.queue.put(json.dumps(self.job), 'master_tube')
+        next_phase.status = 'queued'
+        next_phase.save()
         self.logger.debug("Build is successful going for next job")
 
     def handle_build_failure(self):
