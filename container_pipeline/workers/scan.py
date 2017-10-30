@@ -5,15 +5,24 @@ import json
 import logging
 import os
 
+from container_pipeline.lib import dj  # noqa
+from django.utils import timezone
+
 import container_pipeline.lib.log as log
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.scanners.runner import ScannerRunner
 from container_pipeline.lib import settings
 
+from container_pipeline.models import Build, BuildPhase
+
 
 class ScanWorker(BaseWorker):
     """Scan Base worker."""
     NAME = 'Scanner worker'
+
+    def __init__(self, logger=None,sub=None, pub=None):
+        super(ScanWorker, self).__init__(logger=logger, sub=sub, pub=pub)
+        self.build_phase_name = 'scan'
 
     def handle_job(self, job):
         """
@@ -23,6 +32,11 @@ class ScanWorker(BaseWorker):
         this calls the ScannerRunner for performing the scan work
         """
         self.job = job
+        self.setup_data()
+        self.set_data(
+            build_phase_status='processing',
+            build_phase_start_time=timezone.now()
+        )
 
         debug_logs_file = os.path.join(
             self.job["logs_dir"], settings.SERVICE_LOGFILE)
@@ -35,7 +49,15 @@ class ScanWorker(BaseWorker):
                 "Failed to run scanners on image under test, moving on!",
                 extra=self.job
             )
+            self.set_data(
+                build_phase_status='complete',
+                build_phase_end_time=timezone.now()
+            )
         else:
+            self.set_data(
+                build_phase_status='failed',
+                build_phase_end_time=timezone.now()
+            )
             self.logger.debug(str(scanners_data))
 
         # Remove the msg and logs from the job_info as they are not
