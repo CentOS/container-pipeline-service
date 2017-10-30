@@ -80,6 +80,7 @@ class TestWorker(BaseWorker):
         if success:
             self.handle_test_success()
         else:
+            self.job["build_status"] = False
             self.handle_test_failure()
 
 

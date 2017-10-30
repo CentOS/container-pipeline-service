@@ -33,6 +33,7 @@ class DeliveryWorker(BaseWorker):
         if success:
             self.handle_delivery_success()
         else:
+            self.job["build_status"] = False
             self.handle_delivery_failure()
 
     def deliver_build(self):
