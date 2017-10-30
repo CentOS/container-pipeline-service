@@ -124,6 +124,10 @@ class BuildWorker(BaseWorker):
             build_phase_status='failed',
             build_phase_end_time=timezone.now()
         )
+        self.set_data(
+            build_phase_status='failed',
+            build_phase_end_time=timezone.now()
+        )
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
             "Build is not successful. Notifying the user.")
