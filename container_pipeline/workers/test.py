@@ -9,6 +9,7 @@ from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.utils import Build as BuildTracker
 from container_pipeline.workers.base import BaseWorker
+from container_pipeline.models import Build, BuildPhase
 
 
 class TestWorker(BaseWorker):
@@ -61,6 +62,9 @@ class TestWorker(BaseWorker):
             build_phase_status='complete',
             build_phase_end_time=timezone.now()
         )
+        next_phase = BuildPhase.objects.get_or_create(build=self.build, phase='scan')
+        next_phase.status = 'queued'
+        next_phase.save()
         self.job['action'] = "start_scan"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
@@ -68,6 +72,10 @@ class TestWorker(BaseWorker):
     def handle_test_failure(self):
         """Handle test failure for job"""
         self.job["build_status"] = False
+        self.set_data(
+            build_phase_status='failed',
+            build_phase_end_time=timezone.now()
+        )
         self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
