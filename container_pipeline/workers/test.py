@@ -55,6 +55,7 @@ class TestWorker(BaseWorker):
 
     def handle_test_failure(self):
         """Handle test failure for job"""
+        self.job["build_status"] = False
         self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
@@ -80,7 +81,6 @@ class TestWorker(BaseWorker):
         if success:
             self.handle_test_success()
         else:
-            self.job["build_status"] = False
             self.handle_test_failure()
 
 

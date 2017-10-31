@@ -33,7 +33,6 @@ class DeliveryWorker(BaseWorker):
         if success:
             self.handle_delivery_success()
         else:
-            self.job["build_status"] = False
             self.handle_delivery_failure()
 
     def deliver_build(self):
@@ -93,6 +92,7 @@ class DeliveryWorker(BaseWorker):
         Puts the job back to the delivery tube for later attempt at delivery
         and requests to notify the user about failure to deliver
         """
+        self.job["build_status"] = False
         self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(
