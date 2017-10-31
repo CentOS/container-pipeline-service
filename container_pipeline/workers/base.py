@@ -38,7 +38,7 @@ class BaseWorker(object):
         self.build_phase = BuildPhase.objects.get(
             build=self.build, phase=self.build_phase_name)
 
-    def set_data(self, build_phase_status=None, build_phase_start_time=None, build_phase_end_time=None):
+    def set_buildphase_data(self, build_phase_status=None, build_phase_start_time=None, build_phase_end_time=None):
         if build_phase_status:
             self.build_phase.status = build_phase_status
         if build_phase_start_time:
@@ -46,6 +46,16 @@ class BaseWorker(object):
         if build_phase_end_time:
             self.build_phase.end_time = build_phase_end_time
         self.build_phase.save()
+
+    def init_next_phase_data(self, next_phase_name):
+        next_phase, created = BuildPhase.objects.get_or_create(build=self.build, phase=next_phase_name)
+        next_phase.status = 'queued'
+        next_phase.save()
+
+    def set_build_data(self, build_status):
+        if build_status:
+            self.build.status = build_status
+        self.build.save()
 
     def notify(self, data):
         """
