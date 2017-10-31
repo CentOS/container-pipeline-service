@@ -5,10 +5,14 @@ import logging
 import os
 import time
 
+from container_pipeline.lib import dj  # noqa
+from django.utils import timezone
+
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import Build
+from container_pipeline.utils import Build as BuildTracker
 from container_pipeline.workers.base import BaseWorker
+from container_pipeline.models import Build, BuildPhase
 
 
 class DeliveryWorker(BaseWorker):
@@ -20,12 +24,18 @@ class DeliveryWorker(BaseWorker):
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(DeliveryWorker, self).__init__(logger, sub, pub)
+        self.build_phase_name = 'delivery'
         self.openshift = Openshift(logger=self.logger)
 
     def handle_job(self, job):
         """Handles a job meant for delivery worker"""
         # TODO: this needs to be addressed after addressing CentOS#278
         self.job = job
+        self.setup_data()
+        self.set_buildphase_data(
+            build_phase_status='processing',
+            build_phase_start_time=timezone.now()
+        )
         self.logger.info('Starting delivery for job: {}'.format(self.job))
 
         success = self.deliver_build()
@@ -71,12 +81,20 @@ class DeliveryWorker(BaseWorker):
         tube
         """
         # Mark project build as complete
-        Build(self.job['namespace'], logger=self.logger).complete()
+        BuildTracker(self.job['namespace'], logger=self.logger).complete()
         self.logger.debug('Marked project build: {} as complete.'.format(
             self.job['namespace']))
         self.logger.debug('Putting job details to master_tube for tracker\'s'
                           ' consumption')
 
+        self.set_buildphase_data(
+            build_phase_status='complete',
+            build_phase_end_time=timezone.now()
+        )
+        self.set_build_data(
+            build_status='complete',
+            build_end_time=timezone.now()
+        )
         # sending notification as delivery complete and also addingn this into
         # tracker.
         self.job['action'] = 'notify_user'
