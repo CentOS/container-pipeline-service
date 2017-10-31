@@ -52,9 +52,11 @@ class BaseWorker(object):
         next_phase.status = 'queued'
         next_phase.save()
 
-    def set_build_data(self, build_status):
+    def set_build_data(self, build_status=None, build_end_time=None):
         if build_status:
             self.build.status = build_status
+        if build_end_time:
+            self.build.end_time = build_end_time
         self.build.save()
 
     def notify(self, data):
