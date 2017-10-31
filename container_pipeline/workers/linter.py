@@ -5,7 +5,6 @@ import logging
 import os
 
 from container_pipeline.lib import dj  # noqa
-
 from django.utils import timezone
 
 from container_pipeline.lib import settings
@@ -26,7 +25,7 @@ class DockerfileLintWorker(BaseWorker):
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(DockerfileLintWorker, self).__init__(logger, sub, pub)
-        self.build_phase_name = "dockerlint"
+        self.build_phase_name = 'dockerlint'
         self.status_file_path = ""
         self.project_name = None
 
@@ -40,12 +39,12 @@ class DockerfileLintWorker(BaseWorker):
             settings.LINTER_STATUS_FILE
         )
         self.job = job
-
         self.setup_data()
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='processing',
             build_phase_start_time=timezone.now()
         )
+
         self.logger.info("Received job for Dockerfile lint: %s" % job)
         self.logger.debug("Writing Dockerfile to /tmp/scan/Dockerfile")
         self.write_dockerfile(job.get("dockerfile"))
@@ -90,13 +89,13 @@ class DockerfileLintWorker(BaseWorker):
         except Exception as e:
             self.logger.warning(
                 "Dockerfile Lint check command failed", extra={'locals':
-                                                               locals()})
+                                                                   locals()})
             response = self.handle_lint_failure(str(e))
 
             self.job["dockerfile"] = None
             self.job["action"] = "notify_user"
             self.queue.put(json.dumps(self.job), 'master_tube')
-            self.set_data(
+            self.set_buildphase_data(
                 build_phase_status='error',
                 build_phase_end_time=timezone.now()
             )
@@ -141,16 +140,15 @@ class DockerfileLintWorker(BaseWorker):
             "linter_results_path": linter_results_path,
             "logs_URL": logs_URL,
         }
+        self.set_buildphase_data(
+            build_phase_status='complete',
+            build_phase_end_time=timezone.now()
+        )
 
         # remove Dockerfile from the job data as it's not needed anymore
         if "dockerfile" in self.job:
             self.logger.info("Deleting 'dockerfile' data from job")
             self.job["dockerfile"] = None
-
-        self.set_data(
-            build_phase_status='complete',
-            build_phase_end_time=timezone.now()
-        )
 
         create_project(self.queue, self.job, self.logger)
         return response
@@ -167,8 +165,7 @@ class DockerfileLintWorker(BaseWorker):
             "msg": error,
             "project_name": self.project_name
         }
-
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='failed',
             build_phase_end_time=timezone.now()
         )
