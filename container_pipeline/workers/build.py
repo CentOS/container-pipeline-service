@@ -33,7 +33,7 @@ class BuildWorker(BaseWorker):
         """
         self.job = job
         self.setup_data()
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='processing',
             build_phase_start_time=timezone.now()
         )
@@ -62,9 +62,8 @@ class BuildWorker(BaseWorker):
         if parent_build_running:
             self.logger.info('Parents in build: {}, pushing job: {} back '
                              'to queue'.format(parents_in_build, self.job))
-            self.set_data(
-                build_phase_status='requeuedparent',
-                build_phase_start_time=timezone.now()
+            self.set_buildphase_data(
+                build_phase_status='requeuedparent'
             )
             # Retry delay in seconds
             self.job['retry'] = True
@@ -107,20 +106,18 @@ class BuildWorker(BaseWorker):
     def handle_build_success(self):
         """Handle build success for job."""
         self.job['action'] = 'start_test'
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='complete',
             build_phase_end_time=timezone.now()
         )
-        next_phase = BuildPhase.objects.get_or_create(build=self.build, phase='test')
         self.queue.put(json.dumps(self.job), 'master_tube')
-        next_phase.status = 'queued'
-        next_phase.save()
+        self.init_next_phase_data('test')
         self.logger.debug("Build is successful going for next job")
 
     def handle_build_failure(self):
         """Handle build failure for job"""
         self.job['action'] = "notify_user"
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='failed',
             build_phase_end_time=timezone.now()
         )

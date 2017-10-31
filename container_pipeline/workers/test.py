@@ -32,7 +32,7 @@ class TestWorker(BaseWorker):
         namespace = self.job["namespace"]
         project = self.job["project_hash_key"]
         self.setup_data()
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='processing',
             build_phase_start_time=timezone.now()
         )
@@ -58,13 +58,11 @@ class TestWorker(BaseWorker):
 
     def handle_test_success(self):
         """Handle test success for job."""
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='complete',
             build_phase_end_time=timezone.now()
         )
-        next_phase = BuildPhase.objects.get_or_create(build=self.build, phase='scan')
-        next_phase.status = 'queued'
-        next_phase.save()
+        self.init_next_phase_data('scan')
         self.job['action'] = "start_scan"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
@@ -73,6 +71,7 @@ class TestWorker(BaseWorker):
         """Handle test failure for job"""
         self.job["build_status"] = False
         self.set_data(
+        self.set_buildphase_data(
             build_phase_status='failed',
             build_phase_end_time=timezone.now()
         )

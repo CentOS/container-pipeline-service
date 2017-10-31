@@ -33,7 +33,7 @@ class ScanWorker(BaseWorker):
         """
         self.job = job
         self.setup_data()
-        self.set_data(
+        self.set_buildphase_data(
             build_phase_status='processing',
             build_phase_start_time=timezone.now()
         )
@@ -49,12 +49,12 @@ class ScanWorker(BaseWorker):
                 "Failed to run scanners on image under test, moving on!",
                 extra=self.job
             )
-            self.set_data(
+            self.set_buildphase_data(
                 build_phase_status='complete',
                 build_phase_end_time=timezone.now()
             )
         else:
-            self.set_data(
+            self.set_buildphase_data(
                 build_phase_status='failed',
                 build_phase_end_time=timezone.now()
             )
@@ -77,6 +77,7 @@ class ScanWorker(BaseWorker):
             scanners_data["action"] = "start_delivery"
             # Put the job details on central tube
             self.queue.put(json.dumps(scanners_data), 'master_tube')
+            self.init_next_phase_data('delivery')
             self.logger.debug("Put job for delivery on master tube")
 
         # remove per file build log handler from logger
