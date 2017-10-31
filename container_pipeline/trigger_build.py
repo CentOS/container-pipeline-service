@@ -68,7 +68,7 @@ def create_project(queue, job, logger):
     job["action"] = "start_build"
 
     build = Build.objects.get(uuid=job['uuid'])
-    build_phase = BuildPhase.objects.get_or_create(build=build, phase='build')
+    build_phase, created = BuildPhase.objects.get_or_create(build=build, phase='build')
 
     queue.put(json.dumps(job), 'master_tube')
     build_phase.status = 'queued'
