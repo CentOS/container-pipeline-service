@@ -37,11 +37,13 @@ class BuildWorker(BaseWorker):
             build_phase_status='processing',
             build_phase_start_time=timezone.now()
         )
-        self.job["cause_of_build"] = get_cause_of_build(
+        cause_of_build = get_cause_of_build(
             os.environ.get('JENKINS_MASTER'),
             self.job["job_name"],
             self.job["jenkins_build_number"]
         )
+        self.job["cause_of_build"] = cause_of_build
+        self.set_build_data(build_trigger=cause_of_build)
 
         parent_build_running = False
         parents = self.job.get('depends_on', '').split(',')
