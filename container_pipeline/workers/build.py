@@ -102,6 +102,7 @@ class BuildWorker(BaseWorker):
             project_hash_key, build_id, 'Complete')
         logs = self.openshift.get_build_logs(project_hash_key, build_id)
         build_logs_file = os.path.join(self.job['logs_dir'], 'build_logs.txt')
+        self.set_buildphase_data(build_phase_log_file=build_logs_file)
         self.export_logs(logs, build_logs_file)
         return build_status
 

@@ -71,6 +71,7 @@ class DeliveryWorker(BaseWorker):
                 project_hash_key, delivery_id, "delivery")
         delivery_logs_file = os.path.join(
             self.job['logs_dir'], 'delivery_logs.txt')
+        self.set_buildphase_data(build_phase_log_file=delivery_logs_file)
         self.export_logs(logs, delivery_logs_file)
         return delivery_status
 
