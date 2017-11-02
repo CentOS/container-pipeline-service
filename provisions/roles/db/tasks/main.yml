@@ -17,6 +17,7 @@
   systemd: name=docker state=reloaded
 
 - name: Start Docker service
+  sudo: yes
   systemd: name=docker state=started enabled=yes
 
 - name: Pull CentOS postgres container
