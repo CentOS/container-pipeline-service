@@ -13,6 +13,14 @@ from container_pipeline.tracking.lib import get_navr_from_pkg_name
 
 logger = logging.getLogger('tracking')
 
+# this is a dictionary for URLs for alternate repos like EPEL, remi-repos, etc.
+# which contain mirrorlist that doesn't yield repomd.xml or repodata dir from
+# the URL itself
+alt_repos = {
+    "epel": "https://mirrors.fedoraproject.org/mirrorlist?repo=epel-7&arch=x86_64",
+    "remi-safe": "http://rpms.remirepo.net/enterprise/7/safe/x86_64/"
+}
+
 
 def populate_packages(container):
     """Populate RPM packages installed data from container image"""
@@ -34,13 +42,14 @@ def populate_upstreams(container):
     logger.debug('Populating upstream data for image: %s' % container)
     output = container.run(
         'python -c "import yum, json; yb = yum.YumBase(); '
-        'print json.dumps([(r.id,'
-        '\'https://mirrors.fedoraproject.org/mirrorlist?repo=epel-7&arch=x86_64\','
-        'r.baseurl) if r.id==\'epel\' else (r.id, r.mirrorlist, r.baseurl) '
+        'print json.dumps([(r.id, r.mirrorlist, r.baseurl) '
         'for r in yb.repos.listEnabled()])"')
     data = json.loads(output.splitlines()[-1])
     urls = set()
     for item in data:
+        if item[0] in alt_repos:
+            urls.add(alt_repos[item[0]])
+            continue
         urls.add(item[1])
         for url in item[2]:
             urls.add(url)
