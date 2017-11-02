@@ -53,10 +53,8 @@ class Build(models.Model):
     start_time = models.DateTimeField(default=None, blank=True, null=True)
     end_time = models.DateTimeField(default=None, blank=True, null=True)
 
-    trigger = models.CharField(max_length=20, default=None, blank=True,
-                               null=True)
-    trigger_details = models.TextField(max_length=100, default=None,
-                                       null=True, blank=True)
+    trigger = models.TextField(max_length=125, default=None,
+                               null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
