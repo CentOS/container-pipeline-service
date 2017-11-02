@@ -38,13 +38,16 @@ class BaseWorker(object):
         self.build_phase = BuildPhase.objects.get(
             build=self.build, phase=self.build_phase_name)
 
-    def set_buildphase_data(self, build_phase_status=None, build_phase_start_time=None, build_phase_end_time=None):
+    def set_buildphase_data(self, build_phase_status=None, build_phase_start_time=None, build_phase_end_time=None,
+                            build_phase_log_file=None):
         if build_phase_status:
             self.build_phase.status = build_phase_status
         if build_phase_start_time:
             self.build_phase.start_time = build_phase_start_time
         if build_phase_end_time:
             self.build_phase.end_time = build_phase_end_time
+        if build_phase_log_file:
+            self.build_phase.log_file_path = build_phase_log_file
         self.build_phase.save()
 
     def init_next_phase_data(self, next_phase_name):

@@ -88,6 +88,8 @@ class BuildPhase(models.Model):
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
                               db_index=True, blank=True)
+    log_file_path = models.CharField(max_length=100, blank=True, null=True,
+                                     default=None)
 
     start_time = models.DateTimeField(default=None, blank=True, null=True)
     end_time = models.DateTimeField(default=None, blank=True, null=True)
