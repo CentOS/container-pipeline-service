@@ -70,7 +70,6 @@ class TestWorker(BaseWorker):
     def handle_test_failure(self):
         """Handle test failure for job"""
         self.job["build_status"] = False
-        self.set_data(
         self.set_buildphase_data(
             build_phase_status='failed',
             build_phase_end_time=timezone.now()
