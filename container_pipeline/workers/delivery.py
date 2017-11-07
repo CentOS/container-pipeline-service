@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import Build as BuildTracker
+from container_pipeline.utils import BuildTracker
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.models import Build, BuildPhase
 
