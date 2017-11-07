@@ -80,6 +80,6 @@ class ScannerRPMVerify(object):
         data = {}
         data["scanner_name"] = self.scanner_name
         # TODO: More verifcation and validation on the data
-        data["msg"] = json_data["Summary"]
+        data["msg"] = json_data.get("Summary")
         data["logs"] = json_data
         return data
