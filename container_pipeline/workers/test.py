@@ -42,7 +42,7 @@ class TestWorker(BaseWorker):
         Build(namespace).start()
         test_status = self.openshift.wait_for_build_status(
             project, build_id, 'Complete', status_index=2)
-        logs = self.openshift.get_build_logs(project, build_id)
+        logs = self.openshift.get_build_logs(project, build_id, "test")
         test_logs_file = os.path.join(self.job['logs_dir'], 'test_logs.txt')
         self.export_logs(logs, test_logs_file)
         return test_status
