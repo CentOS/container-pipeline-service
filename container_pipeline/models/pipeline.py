@@ -59,6 +59,10 @@ class Build(models.Model):
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
 
+    # field to contain link for pipeline service code logs if build fails
+    service_debug_logs = models.CharField(
+        max_length=100, blank=True, null=True, default=None)
+
     class Meta:
         app_label = 'container_pipeline'
         db_table = 'builds'
