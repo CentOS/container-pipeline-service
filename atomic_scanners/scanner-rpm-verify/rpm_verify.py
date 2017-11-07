@@ -200,8 +200,8 @@ class RPMVerify(object):
             self.json_out["Summary"] = "Libraries and binaries in the image"\
                 " are intact."
         else:
-            self.json_out["Summary"] = "rpm -Va reported issues with some "\
-                "libraries/binaries."
+            self.json_out["Summary"] = "RPM verify scanner reported issues " \
+                "with some libraries/binaries."
         return {"rpmVa_issues": result}
 
     def export_results(self, data):
