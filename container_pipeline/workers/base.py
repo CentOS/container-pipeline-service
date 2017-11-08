@@ -62,6 +62,12 @@ class BaseWorker(object):
             self.build.end_time = build_end_time
         if build_trigger:
             self.build.trigger = build_trigger
+
+        # set pipeline service code logs file path in Build table field
+        self.build.service_debug_logs = os.path.join(
+            self.job["logs_dir"], "service_debug_logs.txt").replace(
+            "/srv/", "https://registry.centos.org/")
+        # save the data in Build table
         self.build.save()
 
     def notify(self, data):
