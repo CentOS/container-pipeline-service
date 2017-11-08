@@ -159,7 +159,7 @@ def export_new_project_names(projects_names):
         logger.error("Failed to export project names to file %s" %
                      projects_list)
         logger.error("I/O Error {0}:{1}".format(e.errno, e.strerror))
-    except:
+    except Exception as e:
         logger.error("Failed to export project names to file %s" %
                      projects_list)
         logger.error("Unexpected error:%s", sys.exc_info()[0])
@@ -183,51 +183,20 @@ def get_old_project_list():
                      projects_list)
         logger.error("I/O Error {0}:{1}".format(e.errno, e.strerror))
         return []
-    except:
+    except Exception as e:
         logger.error("Failed to read project names from file: %s",
                      projects_list)
         logger.error("Unexpected error: %s", sys.exc_info()[0])
         return []
 
 
-def find_stale_projects(old, new):
+def get_new_project_list(indexdlocation):
     """
-    This function diffs the old project list with new project
-    list. And returns the list of project names to be deleted
+    This function returns list of projects in the container-index. It's called
+    get_new_project_list because it takes a fresh look at container-index every
+    time. It requires a path to the directory containing container-index and
+    returns a list
     """
-    return list(set(old) - set(new))
-
-
-def delete_stale_projects_on_jenkins(stale_projects):
-    """
-    This function deletes the stale entries at jenkins that
-    are no longer valid. If there is any issue/exception, it
-    bypasses by printing the error.
-    """
-    for project in stale_projects:
-        myargs = ["jenkins-jobs", "delete", project]
-        # print either output or error
-        _, error = run_command(myargs)
-        if error:
-            logger.critical("Failed to delete project %s. Exiting..", project)
-            logger.critical(sys.exc_info()[0])
-            exit(1)
-            # if a job fails to be deleted from jenkins it will create issues
-            # cccp-index job at jenkins needs to fail and be notified
-    logger.info("Deleted stale projects successfully.")
-
-
-def run_command(command):
-    """
-    runs the given shell command using subprocess
-    """
-    proc = subprocess.Popen(command,
-                            stdout=subprocess.PIPE)
-
-    return proc.communicate()
-
-
-def main(indexdlocation):
     new_projects_names = []
     for project in get_projects_from_index(indexdlocation):
         try:
@@ -270,6 +239,48 @@ def main(indexdlocation):
             # if jenkins job update fails, the cccp-index job should fail
             logger.critical(sys.exc_info()[0])
             raise
+    return new_projects_names
+
+
+def find_stale_projects(old, new):
+    """
+    This function diffs the old project list with new project
+    list. And returns the list of project names to be deleted
+    """
+    return list(set(old) - set(new))
+
+
+def delete_stale_projects_on_jenkins(stale_projects):
+    """
+    This function deletes the stale entries at jenkins that
+    are no longer valid. If there is any issue/exception, it
+    bypasses by printing the error.
+    """
+    for project in stale_projects:
+        myargs = ["jenkins-jobs", "delete", project]
+        # print either output or error
+        _, error = run_command(myargs)
+        if error:
+            logger.critical("Failed to delete project %s. Exiting..", project)
+            logger.critical(sys.exc_info()[0])
+            exit(1)
+            # if a job fails to be deleted from jenkins it will create issues
+            # cccp-index job at jenkins needs to fail and be notified
+    logger.info("Deleted stale projects successfully.")
+
+
+def run_command(command):
+    """
+    runs the given shell command using subprocess
+    """
+    proc = subprocess.Popen(command,
+                            stdout=subprocess.PIPE)
+
+    return proc.communicate()
+
+
+def main(indexdlocation):
+    new_projects_names = get_new_project_list(indexdlocation)
 
     # get list of old projects
     old_projects = get_old_project_list()
@@ -288,6 +299,7 @@ def main(indexdlocation):
     # export the current projects_list in file
     logger.debug("Exporting current project names.")
     export_new_project_names(new_projects_names)
+
 
 if __name__ == '__main__':
     load_logger()
