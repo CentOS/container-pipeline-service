@@ -4,7 +4,6 @@ import os
 import time
 
 from container_pipeline.lib import dj  # noqa
-from django.utils import timezone
 from container_pipeline.lib import settings
 from container_pipeline.lib.queue import JobQueue
 from container_pipeline.lib.log import DynamicFileHandler
@@ -38,8 +37,11 @@ class BaseWorker(object):
         self.build_phase = BuildPhase.objects.get(
             build=self.build, phase=self.build_phase_name)
 
-    def set_buildphase_data(self, build_phase_status=None, build_phase_start_time=None, build_phase_end_time=None,
+    def set_buildphase_data(self, build_phase_status=None,
+                            build_phase_start_time=None,
+                            build_phase_end_time=None,
                             build_phase_log_file=None):
+
         if build_phase_status:
             self.build_phase.status = build_phase_status
         if build_phase_start_time:
@@ -51,11 +53,14 @@ class BaseWorker(object):
         self.build_phase.save()
 
     def init_next_phase_data(self, next_phase_name):
-        next_phase, created = BuildPhase.objects.get_or_create(build=self.build, phase=next_phase_name)
+        next_phase, created = BuildPhase.objects.get_or_create(
+            build=self.build, phase=next_phase_name)
         next_phase.status = 'queued'
         next_phase.save()
 
-    def set_build_data(self, build_status=None, build_end_time=None, build_trigger=None):
+    def set_build_data(self, build_status=None,
+                       build_end_time=None, build_trigger=None):
+
         if build_status:
             self.build.status = build_status
         if build_end_time:
