@@ -6,8 +6,22 @@ from django.db import models
 from container_pipeline.models import Package, RepoInfo
 from container_pipeline.utils import get_job_hash
 
+"""
+moduleauthor: The Container Pipeline Service Team
+
+This module containers the django models that are common for the entire
+service. Its purpose is to store data accross the entire service
+"""
+
+# TODO : Expand the models to include more metadata.
+
 
 class Project(models.Model):
+    """
+    This is the model of the project type. It relates to the project table,
+    which is used to store overall metadata of projects, created on the
+    service
+    """
     name = models.CharField(max_length=200, unique=True, db_index=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=True)
@@ -26,6 +40,12 @@ class Project(models.Model):
 
 
 class Build(models.Model):
+    """
+    This is a model used to store the metadata of every build triggered accross a
+    paticular project on the service. This includes information like its state,
+    when it was created/completed, where are the logs and so on.
+    """
+
     uuid = models.CharField(max_length=100, unique=True, db_index=True)
     project = models.ForeignKey(Project)
 
@@ -72,6 +92,10 @@ class Build(models.Model):
 
 
 class BuildPhase(models.Model):
+    """
+    This model is used to store information about every phase of any paticular build.
+    This includes information such as when the phase was created, started and so on.
+    """
     build = models.ForeignKey(Build)
     PHASE_CHOICES = (
         ('dockerlint', 'Docker lint'),
@@ -110,6 +134,11 @@ class BuildPhase(models.Model):
 
 
 class ContainerImage(models.Model):
+    """
+    This model is used to hold information about every container image
+    This includes metadata about a container such as what packages were
+    installed, when it was scanned and so on.
+    """
     name = models.CharField(max_length=200, db_index=True,
                             help_text="Image name", unique=True)
     packages = models.ManyToManyField(Package, related_name='images',

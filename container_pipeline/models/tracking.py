@@ -1,7 +1,20 @@
 from django.db import models
 
+"""
+moduleauthor: The Container Pipeline Service Team
+
+This module contains models used specifically by rpm repo
+tracking feature of the container pipeline service
+"""
+
+# TODO : Expand the models to include more metadata.
+
 
 class Package(models.Model):
+    """
+    This model contains information related to packages installed in the
+    individual containers on the pipeline.
+    """
     name = models.CharField(max_length=200, db_index=True,
                             help_text="Package name")
     arch = models.CharField(max_length=20, db_index=True,
@@ -23,6 +36,10 @@ class Package(models.Model):
 
 
 class RepoInfo(models.Model):
+    """
+    This model contains information about repositores from where, the
+    packages are installed.
+    """
     baseurls = models.TextField(max_length=2000, db_index=True,
                                 help_text="Repo urls", unique=True)
     basearch = models.CharField(max_length=20, db_index=True)
