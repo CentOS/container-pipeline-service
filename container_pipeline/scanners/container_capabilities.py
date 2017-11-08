@@ -64,7 +64,7 @@ class ContainerCapabilities(Scanner):
         """
         data = {}
         data["scanner_name"] = self.scanner_name
-        data["msg"] = logs[0]["Summary"]
+        data["msg"] = logs[0].get("Summary")
         data["logs"] = logs
 
         return data

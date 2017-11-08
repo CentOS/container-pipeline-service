@@ -61,7 +61,7 @@ class MiscPackageUpdates(Scanner):
         data["scanner_name"] = self.scanner_name
         data["msg"] = ""
         for i in logs:
-            data["msg"] += i["Summary"]
+            data["msg"] += i.get("Summary")
         data["logs"] = logs
 
         return data
