@@ -192,7 +192,7 @@ class Openshift(object):
                 empty_retry_count = 0
             time.sleep(retry_delay)
 
-    def get_build_logs(self, project, build_id):
+    def get_build_logs(self, project, build_id, build_type="build"):
         try:
             output = run_cmd(
                 'oc logs --namespace {project} build/{build_id} {suffix}'
@@ -203,9 +203,9 @@ class Openshift(object):
                 project, build_id, output))
         except subprocess.CalledProcessError as e:
             self.logger.error(
-                'Could not retrieve build logs for project build: '
-                '{}/{}\n{}'.format(project, build_id, e))
-            output = 'Could not retrieve build logs'
+                'Could not retrieve {} phase logs for project build: '
+                '{}/{}\n{}'.format(build_type, project, build_id, e))
+            output = 'Could not retrieve %s phase logs.' % build_type
         return output
 
     def delete_pods(self, project, build_id):
