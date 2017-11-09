@@ -199,6 +199,21 @@ def get_new_project_list(indexdlocation):
     """
     new_projects_names = []
     for project in get_projects_from_index(indexdlocation):
+        new_projects_names.append(
+            str(project[0]["project"]["appid"]) + "/" +
+            str(project[0]["project"]["jobid"]) + ":" +
+            str(project[0]["project"]["desired_tag"])
+        )
+    return new_projects_names
+
+
+def create_or_update_project_on_jenkins(indexdlocation):
+    """
+    This function creates new project(s) on Jenkins if it finds new entry added
+    to container-index. It requires a path to the directory container
+    container-index.
+    """
+    for project in get_projects_from_index(indexdlocation):
         try:
             t = tempfile.mkdtemp()
             generated_filename = os.path.join(
@@ -226,11 +241,6 @@ def get_new_project_list(indexdlocation):
                 logger.critical("Project details: %s ", str(project))
                 exit(1)
 
-            new_projects_names.append(
-                str(project[0]["project"]["appid"]) + "/" +
-                str(project[0]["project"]["jobid"]) + ":" +
-                str(project[0]["project"]["desired_tag"])
-            )
         except Exception as e:
             logger.critical("Error updating jenkins job via file %s",
                             generated_filename)
@@ -239,7 +249,6 @@ def get_new_project_list(indexdlocation):
             # if jenkins job update fails, the cccp-index job should fail
             logger.critical(sys.exc_info()[0])
             raise
-    return new_projects_names
 
 
 def find_stale_projects(old, new):
@@ -282,6 +291,7 @@ def run_command(command):
 
 def main(indexdlocation):
     new_projects_names = get_new_project_list(indexdlocation)
+    create_or_update_project_on_jenkins(indexdlocation)
 
     # get list of old projects
     old_projects = get_old_project_list()
