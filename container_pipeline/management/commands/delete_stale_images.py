@@ -19,6 +19,7 @@ class Command(BaseCommand):
         new_projects = cir.get_new_project_list(indexd_path)
 
         stale_projects = cir.find_stale_projects(old_projects, new_projects)
+        logger.info("List of stale projects: %s ", str(stale_projects))
 
         for project in stale_projects:
             try:
