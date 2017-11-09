@@ -32,7 +32,7 @@
       name: postgres
       image: registry.centos.org/sclo/postgresql-95-centos7
       volumes:
-          - /srv/pipeline-logs/db/cccp:/var/lib/postgresql/data
+          - "{{ db_backup_host_path }}":/var/lib/postgresql/data
       ports:
           - "{{ db_host }}:{{ db_port }}:5432"
       env:
