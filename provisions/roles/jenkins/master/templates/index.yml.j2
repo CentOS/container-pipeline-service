@@ -15,6 +15,8 @@
         - shell: |
             CWD=`pwd`
             export PYTHONPATH="/opt/cccp-service"
+            cd /opt/cccp-service
+            python manage.py delete_stale_images $CWD/index.d
             cd /opt/cccp-service/jenkinsbuilder
             python cccp_index_reader.py $CWD/index.d
             cd /opt/cccp-service/
