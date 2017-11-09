@@ -29,6 +29,8 @@ from glob import glob
 
 jjb_defaults_file = 'project-defaults.yml'
 
+logger = logging.getLogger('jenkins')
+
 # pathname of file having all project names
 # this file will be generated after first run
 # and will reside in same directory as of this python file
@@ -314,5 +316,4 @@ def main(indexdlocation):
 
 if __name__ == '__main__':
     load_logger()
-    logger = logging.getLogger('jenkins')
     main(sys.argv[1])
