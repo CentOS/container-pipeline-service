@@ -137,9 +137,11 @@ def template_json_data(scan_type):
         "UUID": UUID,
         "CVE Feed Last Updated": "NA",
         "Scanner": "Misc Package Updates",
-        "Scan Results": {"{} package updates".format(cli_arg): []}
+        "Scan Results": {"{} package updates".format(cli_arg): []},
+        "Summary": None
     }
     return json_out
+
 
 json_out = template_json_data(cli_arg)
 
@@ -183,12 +185,16 @@ try:
         json_out["Scan Results"] = \
             "Could not find {} executable in the image".format(cli_arg)
         json_out["Successful"] = "false"
+        json_out["Summary"] = "No updates for packages installed via {}. ".\
+            format(cli_arg)
     else:
         json_out["Scan Results"]["{} package updates".format(cli_arg)] = \
             format_response(cli_arg, response)
         json_out["Finished Time"] = \
             datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
         json_out["Successful"] = "true"
+        json_out["Summary"] = "Possible updates for packages installed via " \
+        "{}. ".format(cli_arg)
 
     # remove the container
     client.remove_container(container=container.get("Id"), force=True)

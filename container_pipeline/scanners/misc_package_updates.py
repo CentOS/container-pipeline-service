@@ -59,7 +59,9 @@ class MiscPackageUpdates(Scanner):
         """
         data = {}
         data["scanner_name"] = self.scanner_name
-        data["msg"] = "Results for miscellaneous package manager updates"
+        data["msg"] = ""
+        for i in logs:
+            data["msg"] += i.get("Summary")
         data["logs"] = logs
 
         return data
