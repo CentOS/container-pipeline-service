@@ -198,7 +198,7 @@ class PipelineScanner(object):
         data["scanner_name"] = self.scanner_name
         if json_data["Scan Results"]["Package Updates"]:
             data["logs"] = json_data
-            data["msg"] = "Container image requires update."
+            data["msg"] = "RPM updates available for the image."
         else:
             data["logs"] = {}
             data["msg"] = "No updates required."
