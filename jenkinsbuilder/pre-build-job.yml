@@ -1,19 +1,22 @@
 - job:
-    name: centos-container-pipeline-service-pre-build-{project_name}
+    name: centos-container-pipeline-service-pre-build-{appid}-{jobid}-{desired_tag}
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     ci_project: container
     properties:
         - github:
-            url: "{prebuild-source}"
+            url: "{prebuild_source}"
     scm:
         - git:
-            url: "{prebuild-source}"
+            url: "{prebuild_source}"
             skip-tag: True
             git-tool: ci-git
             branches:
                 - "{git_branch}"
+            remotes:
+              - prebuild-render:
+                  url: "{git_url}"
     builders:
         - shell: |
             export CICO_API_KEY=$(cat ~/duffy.key )
@@ -52,13 +55,12 @@
               curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid"
             fi
             rm -f .gitignore
-
-      publishers:
+    publishers:
         - git:
             push-only-if-success: true
             push-merge: true
             force-push: true
             branches:
               - branch:
-                  remote: "{git_url}"
+                  remote: "prebuild-render"
                   name: "{appid}-{jobid}-{desired_tag}"
