@@ -6,26 +6,26 @@ import os
 import subprocess
 import sys
 import tempfile
+from glob import glob
 
 import yaml
 
-from container_pipeline.model_tmp.containers import form_Dockerfile_link, ContainerLinksModel
+from container_pipeline.lib.log import load_logger
+from container_pipeline.model_tmp.containers import (ContainerLinksModel,
+                                                     form_Dockerfile_link)
 
 # Container Info Collector
 container_info = ContainerLinksModel()
 
 # populate container_pipeline module path
 cp_module_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "container_pipeline"
-        )
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "container_pipeline"
+)
 # add path of modules to system path for imports
 sys.path.append(os.path.dirname(cp_module_path))
 sys.path.append(cp_module_path)
 
-from container_pipeline.lib.log import load_logger
-
-from glob import glob
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -44,7 +44,8 @@ overwritten_attrs = ['jobid', 'git_url', 'appid', 'jobs']
 
 def projectify(
         new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
-        dependson_job, dependson_img, notifyemail, desiredtag):
+        dependson_job, dependson_img, notifyemail, desiredtag, prebuild_source,
+        prebuild_script):
 
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
@@ -67,6 +68,8 @@ def projectify(
     new_project[0]['project']['depends_on_img'] = dependson_img
     new_project[0]['project']['notify_email'] = notifyemail
     new_project[0]['project']['desired_tag'] = desiredtag
+    new_project[0]['project']['prebuild_source'] = prebuild_source
+    new_project[0]['project']['prebuild_script'] = prebuild_script
     return new_project
 
 
@@ -102,6 +105,7 @@ def get_projects_from_index(indexdlocation):
                             desiredtag = 'latest'
 
                         desiredtag = str(desiredtag)
+
                         new_proj = [{'project': {}}]
 
                         appid = appid.replace(
@@ -121,8 +125,17 @@ def get_projects_from_index(indexdlocation):
                             dependson_job = 'none'
 
                         container_name = appid + "/" + jobid + ":" + desiredtag
-                        dockerfile_link = form_Dockerfile_link(giturl, gitpath, gitbranch, targetfile)
-                        container_info.append_info(container_name, dockerfile_link)
+                        dockerfile_link = form_Dockerfile_link(
+                            giturl, gitpath, gitbranch, targetfile)
+                        container_info.append_info(
+                            container_name, dockerfile_link)
+
+                        # Set the pre-build data if available
+                        prebuild_source = 'none' if not project.get(
+                            'prebuild-source') else project['prebuild-source']
+
+                        prebuild_script = 'none' if not project.get(
+                            'prebuild-script') else project['prebuild-script']
 
                         # overwrite any attributes we care about see:
                         # projectify
@@ -130,7 +143,8 @@ def get_projects_from_index(indexdlocation):
                             projectify(
                                 new_proj, appid, jobid, giturl, gitpath,
                                 gitbranch, targetfile, dependson_job,
-                                dependson, notifyemail, desiredtag)
+                                dependson, notifyemail, desiredtag,
+                                prebuild_source, prebuild_script)
                         )
                     except Exception as e:
                         logger.critical("Failed to projectify %s" %
@@ -288,6 +302,7 @@ def main(indexdlocation):
     # export the current projects_list in file
     logger.debug("Exporting current project names.")
     export_new_project_names(new_projects_names)
+
 
 if __name__ == '__main__':
     load_logger()
