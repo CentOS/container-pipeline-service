@@ -76,7 +76,8 @@ class RPMVerify(object):
             "UUID": uuid,
             "CVE Feed Last Updated": "NA",
             "Scanner": scanner,
-            "Scan Results": {}
+            "Scan Results": {},
+            "Summary": None
         }
         return json_out
 
@@ -196,6 +197,11 @@ class RPMVerify(object):
         # print error
         if not result:
             result = ["No issues. Libraries and Binaries are intact."]
+            self.json_out["Summary"] = "Libraries and binaries in the image"\
+                " are intact."
+        else:
+            self.json_out["Summary"] = "RPM verify scanner reported issues "\
+                "with some libraries/binaries."
         return {"rpmVa_issues": result}
 
     def export_results(self, data):
