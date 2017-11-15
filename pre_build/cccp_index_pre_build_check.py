@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Create jenkins jobs from the container-index."""
 
-import logging
 import os
 import subprocess
 import sys
@@ -18,9 +17,8 @@ overwritten_attrs = ['jobid', 'git_url', 'appid', 'jobs']
 
 
 def projectify(
-        new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
-        dependson_job, dependson_img, notifyemail, desiredtag, prebuild_source,
-        prebuild_script):
+        new_project, appid, jobid, giturl, gitpath, gitbranch,
+        desiredtag, prebuild_source, prebuild_script):
 
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
@@ -38,10 +36,6 @@ def projectify(
     elif new_project[0]['project']['rundotshargs'] is None:
         new_project[0]['project']['rundotshargs'] = ''
 
-    new_project[0]['project']['target_file'] = targetfile
-    new_project[0]['project']['depends_on'] = dependson_job
-    new_project[0]['project']['depends_on_img'] = dependson_img
-    new_project[0]['project']['notify_email'] = notifyemail
     new_project[0]['project']['desired_tag'] = desiredtag
     new_project[0]['project']['prebuild_source'] = prebuild_source
     new_project[0]['project']['prebuild_script'] = prebuild_script
@@ -68,10 +62,6 @@ def get_projects_from_index(indexdlocation):
                         gitpath = project['git-path'] \
                             if (project['git-path'] is not None) else ''
                         gitbranch = project['git-branch']
-                        targetfile = project['target-file']
-                        dependson = project['depends-on']
-                        notifyemail = project['notify-email']
-
                         try:
                             desiredtag = project['desired-tag'] \
                                 if (project['desired-tag'] is not None) \
@@ -87,17 +77,6 @@ def get_projects_from_index(indexdlocation):
                             '_', '-').replace('/', '-').replace('.', '-')
                         jobid = jobid.replace(
                             '_', '-').replace('/', '-').replace('.', '-')
-                        dependson_job = ''
-                        if dependson is not None:
-                            if isinstance(dependson, list):
-                                dependson_job = ','.join(dependson)
-                            else:
-                                dependson_job = str(dependson)
-                            dependson_job = dependson_job.replace(
-                                ':', '-').replace('/', '-')
-
-                        if dependson_job == '':
-                            dependson_job = 'none'
 
                         # Set the pre-build data if available
                         prebuild_source = 'none' if not project.get(
@@ -106,15 +85,15 @@ def get_projects_from_index(indexdlocation):
                         prebuild_script = 'none' if not project.get(
                             'prebuild-script') else project['prebuild-script']
 
-                        # overwrite any attributes we care about see:
-                        # projectify
-                        projects.append(
-                            projectify(
-                                new_proj, appid, jobid, giturl, gitpath,
-                                gitbranch, targetfile, dependson_job,
-                                dependson, notifyemail, desiredtag,
-                                prebuild_source, prebuild_script)
-                        )
+                        # Check for the project only if it requires pre-build
+                        if(prebuild_source != 'none' and
+                           prebuild_script != 'none'):
+                            projects.append(
+                                projectify(
+                                    new_proj, appid, jobid, giturl, gitpath,
+                                    gitbranch, desiredtag,
+                                    prebuild_source, prebuild_script)
+                            )
                     except Exception as e:
                         print("Failed to projectify %s" %
                               str(project))
@@ -136,24 +115,14 @@ def run_command(command):
 def main(indexdlocation):
     for project in get_projects_from_index(indexdlocation):
         try:
-            t = tempfile.mkdtemp()
-            generated_filename = os.path.join(
-                t,
-                'cccp_GENERATED.yaml'
-            )
-            # overwrite any attributes we care about see:
-            # projectify
-            with open(generated_filename, 'w') as outfile:
-                yaml.dump(project, outfile)
             # run jenkins job builder
             print(
-                "Updating jenkins-job of project {0} via file {1}".format(
-                    project, outfile))
+                "Updating jenkins-job of project {0} via file ".format(
+                    project))
             myargs = ['jenkins-jobs',
                       '--ignore-cache',
                       'update',
-                      ':'.join(
-                          [jjb_defaults_file, generated_filename])
+                      jjb_defaults_file
                       ]
             _, error = run_command(myargs)
             if error:
@@ -163,8 +132,6 @@ def main(indexdlocation):
                 exit(1)
 
         except Exception as e:
-            print("Error updating jenkins job via file %s",
-                  generated_filename)
             print("Project details: %s", str(project))
             print(str(e))
             # if jenkins job update fails, the cccp-index job should fail
