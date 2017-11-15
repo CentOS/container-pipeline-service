@@ -43,28 +43,23 @@
             done
             sshopts="-t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
             ssh_cmd="ssh $sshopts $CICO_hostname"
-            $ssh_cmd yum -y install rsync
+            rsync -e "ssh $sshopts" -Ha .ssh/git_push_priv_key $CICO_hostname:.ssh
+            $ssh_cmd yum -y install rsync git
             rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
-            $ssh_cmd -t "cd payload && {prebuild_script}"
+            $ssh_cmd -t "cd payload && git checkout -b {prebuild-branch} && {prebuild_script}"
             rtn_code=$?
 
             if [ $rtn_code -eq 0 ]; then
-              rsync -e "ssh $sshopts" -Ha $CICO_hostname:payload $(pwd)/
+              $ssh_cmd -t "rm -f .gitignore && "
+              "git remote add prebuild-render {prebuild-render} && "
+              "git add -A && "
+              "git commit -am 'Added changes from pre-build' && "
+              "git push prebuild-render {prebuild-branch} && "
               cico node done $CICO_ssid
             else
               # fail mode gives us 12 hrs to debug the machine
               curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid"
             fi
-            rm -f .gitignore
-    publishers:
-        - git:
-            push-only-if-success: true
-            push-merge: true
-            force-push: true
-            branches:
-              - branch:
-                  remote: "prebuild-render"
-                  name: "{appid}-{jobid}-{desired_tag}"
 
 - job-group:
     name: cccp-rundotsh-job
