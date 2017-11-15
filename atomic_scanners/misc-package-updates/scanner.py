@@ -193,8 +193,8 @@ try:
         json_out["Finished Time"] = \
             datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
         json_out["Successful"] = "true"
-        json_out["Summary"] = "Possible updates for packages installed via "
-        "{}. ".format(cli_arg)
+        json_out["Summary"] = "Possible updates for packages installed via " \
+            "{}. ".format(cli_arg)
 
     # remove the container
     client.remove_container(container=container.get("Id"), force=True)
