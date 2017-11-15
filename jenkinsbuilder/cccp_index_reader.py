@@ -44,8 +44,7 @@ overwritten_attrs = ['jobid', 'git_url', 'appid', 'jobs']
 
 def projectify(
         new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
-        dependson_job, dependson_img, notifyemail, desiredtag, prebuild_source,
-        prebuild_script):
+        dependson_job, dependson_img, notifyemail, desiredtag):
 
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
@@ -68,8 +67,6 @@ def projectify(
     new_project[0]['project']['depends_on_img'] = dependson_img
     new_project[0]['project']['notify_email'] = notifyemail
     new_project[0]['project']['desired_tag'] = desiredtag
-    new_project[0]['project']['prebuild_source'] = prebuild_source
-    new_project[0]['project']['prebuild_script'] = prebuild_script
     return new_project
 
 
@@ -130,21 +127,13 @@ def get_projects_from_index(indexdlocation):
                         container_info.append_info(
                             container_name, dockerfile_link)
 
-                        # Set the pre-build data if available
-                        prebuild_source = 'none' if not project.get(
-                            'prebuild-source') else project['prebuild-source']
-
-                        prebuild_script = 'none' if not project.get(
-                            'prebuild-script') else project['prebuild-script']
-
                         # overwrite any attributes we care about see:
                         # projectify
                         projects.append(
                             projectify(
                                 new_proj, appid, jobid, giturl, gitpath,
                                 gitbranch, targetfile, dependson_job,
-                                dependson, notifyemail, desiredtag,
-                                prebuild_source, prebuild_script)
+                                dependson, notifyemail, desiredtag)
                         )
                     except Exception as e:
                         logger.critical("Failed to projectify %s" %
