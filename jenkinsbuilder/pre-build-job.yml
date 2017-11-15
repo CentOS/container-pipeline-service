@@ -1,4 +1,4 @@
-- job:
+- job-template:
     name: centos-container-pipeline-service-pre-build-{appid}-{jobid}-{desired_tag}
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
@@ -9,7 +9,6 @@
             url: "{prebuild_source}"
     scm:
         - git:
-            url: "{prebuild_source}"
             skip-tag: True
             git-tool: ci-git
             branches:
@@ -17,6 +16,8 @@
             remotes:
               - prebuild-render:
                   url: "{git_url}"
+              - prebuild-source:
+                  url: "{prebuild_source}"
     builders:
         - shell: |
             export CICO_API_KEY=$(cat ~/duffy.key )
@@ -44,7 +45,7 @@
             ssh_cmd="ssh $sshopts $CICO_hostname"
             $ssh_cmd yum -y install rsync
             rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
-            $ssh_cmd -t "cd payload && {prebuild-script}"
+            $ssh_cmd -t "cd payload && {prebuild_script}"
             rtn_code=$?
 
             if [ $rtn_code -eq 0 ]; then
@@ -64,3 +65,8 @@
               - branch:
                   remote: "prebuild-render"
                   name: "{appid}-{jobid}-{desired_tag}"
+
+- job-group:
+    name: cccp-rundotsh-job
+    jobs:
+        - centos-container-pipeline-service-pre-build-{appid}-{jobid}-{desired_tag}
