@@ -18,7 +18,7 @@ overwritten_attrs = ['jobid', 'git_url', 'appid', 'jobs']
 
 def projectify(
         new_project, appid, jobid, giturl, gitpath, gitbranch,
-        desiredtag, prebuild_source, prebuild_script):
+        desiredtag, prebuild_script):
 
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
@@ -37,7 +37,6 @@ def projectify(
         new_project[0]['project']['rundotshargs'] = ''
 
     new_project[0]['project']['desired_tag'] = desiredtag
-    new_project[0]['project']['prebuild_source'] = prebuild_source
     new_project[0]['project']['prebuild_script'] = prebuild_script
     return new_project
 
@@ -79,20 +78,16 @@ def get_projects_from_index(indexdlocation):
                             '_', '-').replace('/', '-').replace('.', '-')
 
                         # Set the pre-build data if available
-                        prebuild_source = 'none' if not project.get(
-                            'prebuild-source') else project['prebuild-source']
-
                         prebuild_script = 'none' if not project.get(
                             'prebuild-script') else project['prebuild-script']
 
                         # Check for the project only if it requires pre-build
-                        if(prebuild_source != 'none' and
-                           prebuild_script != 'none'):
+                        if(prebuild_script != 'none'):
                             projects.append(
                                 projectify(
                                     new_proj, appid, jobid, giturl, gitpath,
                                     gitbranch, desiredtag,
-                                    prebuild_source, prebuild_script)
+                                    prebuild_script)
                             )
                     except Exception as e:
                         print("Failed to projectify %s" %
