@@ -39,7 +39,8 @@ def template_json_data(scan_type, uuid, scanner):
         "UUID": uuid[1:],
         "CVE Feed Last Updated": "NA",
         "Scanner": scanner,
-        "Scan Results": {}
+        "Scan Results": {},
+        "Summary": None
     }
     return json_out
 
@@ -90,8 +91,10 @@ class ScanImageRootfs(object):
         resp, err = process.communicate()
 
         if resp != "":
+            self.json_out["Summary"] = "RPM updates available for the image."
             resp = self.parse_yum_check_update(resp)
         else:
+            self.json_out["Summary"] = "No RPM updates pending for the image."
             resp = []
 
         self.json_out['Scan Results']['Package Updates'] = resp
