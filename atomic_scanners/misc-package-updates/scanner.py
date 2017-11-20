@@ -138,7 +138,7 @@ def template_json_data(scan_type):
         "CVE Feed Last Updated": "NA",
         "Scanner": "Misc Package Updates",
         "Scan Results": {"{} package updates".format(cli_arg): []},
-        "Summary": None
+        "Summary": ""
     }
     return json_out
 

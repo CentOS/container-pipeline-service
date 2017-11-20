@@ -81,7 +81,7 @@ def template_json_data():
         # "Docker run command": "docker run -d {} tailf /dev/null".format(
         #     IMAGE_NAME),
         "Reference documentation": "http://www.projectatomic.io/blog/2016/01/how-to-run-a-more-secure-non-root-user-container/",
-        "Summary": None
+        "Summary": ""
     }
     return json_out
 

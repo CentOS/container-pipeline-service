@@ -77,7 +77,7 @@ class RPMVerify(object):
             "CVE Feed Last Updated": "NA",
             "Scanner": scanner,
             "Scan Results": {},
-            "Summary": None
+            "Summary": ""
         }
         return json_out
 
