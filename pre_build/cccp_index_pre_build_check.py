@@ -109,21 +109,34 @@ def run_command(command):
 
 
 def main(indexdlocation):
+    tempfiles = []
     for project in get_projects_from_index(indexdlocation):
         try:
             env = Environment(loader=FileSystemLoader(
                 './'), trim_blocks=True, lstrip_blocks=True)
-            template = env.get_template('jjb_defaults_file')
+            template = env.get_template(jjb_defaults_file)
             job_details = template.render(project)
+
+            t = tempfile.mkdtemp()
+            generated_filename = os.path.join(
+                t,
+                'cccp_GENERATED.yaml'
+            )
+            with open(generated_filename, 'w') as outfile:
+                outfile.write(job_details)
+
+            tempfiles.append(generated_filename)
             # run jenkins job builder
             print(
                 "Updating jenkins-job of project {0} via file ".format(
                     project))
+
             myargs = ['jenkins-jobs',
                       '--ignore-cache',
                       'update',
-                      job_details
+                      generated_filename
                       ]
+
             _, error = run_command(myargs)
             if error:
                 print("Error %s running command %s" % (
