@@ -127,6 +127,11 @@ def get_projects_from_index(indexdlocation):
                         container_info.append_info(
                             container_name, dockerfile_link)
 
+                        if project.get('prebuild-script'):
+                            giturl = "https://github.com/bamachrn/pre-build-code"
+                            gitbranch = "{}-{}-{}".format(appid,
+                                                          jobid, desiredtag)
+
                         # overwrite any attributes we care about see:
                         # projectify
                         projects.append(
