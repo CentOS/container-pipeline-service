@@ -53,7 +53,7 @@ def check_image_for_run_label(image):
     run_label = run_object.get_label("RUN")
 
     if run_label == "":
-        raise RunLabelException("Image doesn't have a RUN label")
+        raise RunLabelException("Dockerfile for the image doesn't have RUN label.")
     return run_label
 
 
@@ -80,9 +80,11 @@ def template_json_data():
         "Scan Results": {"Container capabilities": None},
         # "Docker run command": "docker run -d {} tailf /dev/null".format(
         #     IMAGE_NAME),
-        "Reference documentation": "http://www.projectatomic.io/blog/2016/01/how-to-run-a-more-secure-non-root-user-container/"
+        "Reference documentation": "http://www.projectatomic.io/blog/2016/01/how-to-run-a-more-secure-non-root-user-container/",
+        "Summary": ""
     }
     return json_out
+
 
 json_out = template_json_data()
 
@@ -105,20 +107,29 @@ try:
 
     if out is not None:
         json_out["Scan Results"]["Container capabilities"] = out
+
+        if out == "":
+            json_out["Summary"] = "No additional capabilities found."
+        else:
+            json_out["Summary"] = \
+                "Container image has few additional capabilities."
     else:
         json_out["Scan Results"]["Container capabilities"] = \
-            "This container image doesn't require any special capabilities"
+            "This container image doesn't have any special capabilities"
+        json_out["Summary"] = "No additional capabilities found."
 
     json_out["Successful"] = "true"
 
 except RunLabelException as e:
     json_out["Scan Results"]["Container capabilities"] = e.message
     json_out["Successful"] = "false"
+    json_out["Summary"] = "Dockerfile for the image doesn't have RUN label."
 except Exception as e:
     logger.log(
         level=logging.ERROR,
         msg="Scanner failed: {}".format(e)
     )
+    json_out["Summary"] = "Scanner failed."
 finally:
     json_out["Finished Time"] = \
         datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
