@@ -8,6 +8,7 @@ import tempfile
 from glob import glob
 
 import yaml
+from jinja2 import Environment, FileSystemLoader
 
 jjb_defaults_file = 'pre-build-job.yml'
 
@@ -110,6 +111,10 @@ def run_command(command):
 def main(indexdlocation):
     for project in get_projects_from_index(indexdlocation):
         try:
+            env = Environment(loader=FileSystemLoader(
+                './'), trim_blocks=True, lstrip_blocks=True)
+            template = env.get_template('jjb_defaults_file')
+            job_details = template.render(project)
             # run jenkins job builder
             print(
                 "Updating jenkins-job of project {0} via file ".format(
@@ -117,7 +122,7 @@ def main(indexdlocation):
             myargs = ['jenkins-jobs',
                       '--ignore-cache',
                       'update',
-                      jjb_defaults_file
+                      job_details
                       ]
             _, error = run_command(myargs)
             if error:
