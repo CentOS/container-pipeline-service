@@ -115,7 +115,7 @@ def main(indexdlocation):
             env = Environment(loader=FileSystemLoader(
                 './'), trim_blocks=True, lstrip_blocks=True)
             template = env.get_template(jjb_defaults_file)
-            job_details = template.render(project)
+            job_details = template.render(project[0]['project'])
 
             t = tempfile.mkdtemp()
             generated_filename = os.path.join(

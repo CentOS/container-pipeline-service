@@ -224,3 +224,24 @@
         - shell: |
             curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/cccp_ci_container_index.sh > cccp_ci_container_index.sh
             sh ./cccp_ci_container_index.sh
+
+- job:
+    name: centos-container-pipeline-service-pre-build-service-job
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-index
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-index.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+    builders:
+        - shell: |
+            git pull --rebase origin master
+            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/pre_build/cccp_index_pre_build_check.py > cccp_index_pre_build_check.py
+            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/pre_build/pre-build-job.yml > pre-build-job.yml
+            python cccp_index_pre_build_check.py index.d
