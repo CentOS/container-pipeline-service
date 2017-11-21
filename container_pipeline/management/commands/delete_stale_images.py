@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand  # CommandError
-from container_pipeline.models.tracking import ContainerImage
+from container_pipeline.models import ContainerImage
 import logging
 
 from jenkinsbuilder import cccp_index_reader as cir
