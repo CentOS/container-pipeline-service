@@ -112,37 +112,43 @@ def main(indexdlocation):
     tempfiles = []
     for project in get_projects_from_index(indexdlocation):
         try:
-            env = Environment(loader=FileSystemLoader(
-                './'), trim_blocks=True, lstrip_blocks=True)
-            template = env.get_template(jjb_defaults_file)
-            job_details = template.render(project[0]['project'])
+            print("Processing project with details: %s", str(project))
+            try:
+                env = Environment(loader=FileSystemLoader(
+                    './'), trim_blocks=True, lstrip_blocks=True)
+                template = env.get_template(jjb_defaults_file)
+                job_details = template.render(project[0]['project'])
+            except Exception as e:
+                print("Error template is not updated: %s", str(e))
 
-            t = tempfile.mkdtemp()
-            generated_filename = os.path.join(
-                t,
-                'cccp_GENERATED.yaml'
-            )
-            with open(generated_filename, 'w') as outfile:
-                outfile.write(job_details)
+            try:
+                t = tempfile.mkdtemp()
+                generated_filename = os.path.join(
+                    t,
+                    'cccp_GENERATED.yaml'
+                )
+                with open(generated_filename, 'w') as outfile:
+                    outfile.write(job_details)
 
-            tempfiles.append(generated_filename)
+                tempfiles.append(generated_filename)
+            except Exception as e:
+                print("Error job_details could not be updated %s", str(e))
+
             # run jenkins job builder
-            print(
-                "Updating jenkins-job of project {0} via file ".format(
-                    project))
+            try:
+                myargs = ['jenkins-jobs',
+                          '--ignore-cache',
+                          'update',
+                          generated_filename
+                          ]
 
-            myargs = ['jenkins-jobs',
-                      '--ignore-cache',
-                      'update',
-                      generated_filename
-                      ]
-
-            _, error = run_command(myargs)
-            if error:
-                print("Error %s running command %s" % (
-                    error, str(myargs)))
-                print("Project details: %s ", str(project))
-                exit(1)
+                _, error = run_command(myargs)
+                if error:
+                    print("Error %s running command %s" % (
+                        error, str(myargs)))
+                    exit(1)
+            except Exception as e:
+                print("Jobs could not be created in jenkins %s", str(e))
 
         except Exception as e:
             print("Project details: %s", str(project))
