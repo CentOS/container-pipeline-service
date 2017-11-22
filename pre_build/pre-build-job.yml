@@ -57,7 +57,7 @@
             done
             sshopts="-t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
             ssh_cmd="ssh $sshopts $CICO_hostname"
-            rsync -e "ssh $sshopts" -Ha .ssh/git_push_priv_key $CICO_hostname:.ssh
+            rsync -e "ssh $sshopts" -Ha .ssh/git_push_priv_key $CICO_hostname:.ssh/id_rsa
             $ssh_cmd yum -y install rsync git
             rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
             $ssh_cmd -t "cd payload && git checkout -b {prebuild_branch} && {prebuild_script}"
