@@ -6,26 +6,26 @@ import os
 import subprocess
 import sys
 import tempfile
+from glob import glob
 
 import yaml
 
-from container_pipeline.model_tmp.containers import form_Dockerfile_link, ContainerLinksModel
+from container_pipeline.lib.log import load_logger
+from container_pipeline.model_tmp.containers import (ContainerLinksModel,
+                                                     form_Dockerfile_link)
 
 # Container Info Collector
 container_info = ContainerLinksModel()
 
 # populate container_pipeline module path
 cp_module_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "container_pipeline"
-        )
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "container_pipeline"
+)
 # add path of modules to system path for imports
 sys.path.append(os.path.dirname(cp_module_path))
 sys.path.append(cp_module_path)
 
-from container_pipeline.lib.log import load_logger
-
-from glob import glob
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -104,6 +104,7 @@ def get_projects_from_index(indexdlocation):
                             desiredtag = 'latest'
 
                         desiredtag = str(desiredtag)
+
                         new_proj = [{'project': {}}]
 
                         appid = appid.replace(
@@ -123,8 +124,15 @@ def get_projects_from_index(indexdlocation):
                             dependson_job = 'none'
 
                         container_name = appid + "/" + jobid + ":" + desiredtag
-                        dockerfile_link = form_Dockerfile_link(giturl, gitpath, gitbranch, targetfile)
-                        container_info.append_info(container_name, dockerfile_link)
+                        dockerfile_link = form_Dockerfile_link(
+                            giturl, gitpath, gitbranch, targetfile)
+                        container_info.append_info(
+                            container_name, dockerfile_link)
+
+                        if project.get('prebuild-script'):
+                            giturl = "https://github.com/bamachrn/pre-build-code"
+                            gitbranch = "{}-{}-{}".format(appid,
+                                                          jobid, desiredtag)
 
                         # overwrite any attributes we care about see:
                         # projectify
