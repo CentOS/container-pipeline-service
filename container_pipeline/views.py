@@ -9,7 +9,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 
 class BuildViewSet(viewsets.ModelViewSet):
-    queryset = Build.project.all().order_by('start_time')
+    queryset = Build.objects.all().order_by('start_time')
     serializer_class = BuildSerializer
 
 
