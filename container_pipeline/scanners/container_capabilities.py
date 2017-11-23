@@ -64,7 +64,7 @@ class ContainerCapabilities(Scanner):
         """
         data = {}
         data["scanner_name"] = self.scanner_name
-        data["msg"] = "Results for container capabilities scanner"
+        data["msg"] = logs[0]["Summary"]
         data["logs"] = logs
 
         return data
