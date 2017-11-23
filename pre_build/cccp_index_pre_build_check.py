@@ -11,6 +11,7 @@ import random
 import string
 import subprocess
 import sys
+import time
 from glob import glob
 
 import yaml
@@ -101,6 +102,7 @@ def run_command(command):
     """
     runs the given shell command using subprocess
     """
+    print("Running command: %s" % str(command))
     proc = subprocess.Popen(command,
                             stdout=subprocess.PIPE)
 
@@ -128,9 +130,9 @@ def main(indexdlocation):
             try:
                 pre_text = ''.join(random.sample(
                     string.lowercase + string.digits, 10))
-                generated_filename = '_'.join(pre_text,
-                                              'cccp_GENERATED.yaml'
-                                              )
+                generated_filename = "%s_%s" % (pre_text,
+                                                'cccp_GENERATED.yaml'
+                                                )
                 with open(generated_filename, 'w') as outfile:
                     outfile.write(job_details)
 
@@ -141,13 +143,14 @@ def main(indexdlocation):
             # run jenkins job builder for creating prebuild jobs in ci.co
             # jenkins using generated jenkins
             try:
-                command = 'jenkins-jobs --ignore-cache \
-                --conf ~/jenkins_jobs.ini update %s' % generated_filename
+                time.sleep(5)
+                command = ['jenkins-jobs', '--ignore-cache', '--conf',
+                           '~/jenkins_jobs.ini', 'update', generated_filename]
 
                 _, error = run_command(command)
                 if error:
                     print("Error %s running command %s" % (
-                        error, command))
+                        error, str(command)))
                     exit(1)
             except Exception as e:
                 print("Jobs could not be created in jenkins %s" % str(e))
