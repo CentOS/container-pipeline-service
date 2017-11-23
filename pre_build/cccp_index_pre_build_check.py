@@ -143,6 +143,7 @@ def main(indexdlocation):
             try:
                 myargs = ['jenkins-jobs',
                           '--ignore-cache',
+                          '--conf ~/jenkins_jobs.ini',
                           'update',
                           generated_filename
                           ]
