@@ -1,7 +1,3 @@
-- default:
-    name: global
-    prebuild_render: "git@github.com:bamachrn/cccp-pre-build-code.git"
-
 - project:
     name: cccp-pre-build-job
     jobs:
@@ -11,6 +7,7 @@
             desired_tag: {{ desired_tag }}
             git_url: {{ git_url }}
             git_branch: {{ git_branch }}
+            prebuild_render: "git@github.com:bamachrn/cccp-pre-build-code.git"
             prebuild_branch: {{ appid }}-{{ jobid }}-{{ desired_tag }}
             prebuild_script: {{ prebuild_script }}
 
@@ -57,18 +54,22 @@
             done
             sshopts="-t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
             ssh_cmd="ssh $sshopts $CICO_hostname"
-            rsync -e "ssh $sshopts" -Ha .ssh/git_push_priv_key $CICO_hostname:.ssh/id_rsa
             $ssh_cmd yum -y install rsync git
+            $ssh_cmd "ssh-keyscan -t rsa,dsa github.com 2>/dev/null >.ssh/known_hosts"
+            rsync -e "ssh $sshopts" -Ha .ssh/git_push_priv_key $CICO_hostname:.ssh/id_rsa
             rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
-            $ssh_cmd -t "cd payload && git checkout -b {prebuild_branch} && {prebuild_script}"
+            $ssh_cmd -t "cd payload && sh {prebuild_script}"
             rtn_code=$?
 
             if [ $rtn_code -eq 0 ]; then
-              $ssh_cmd -t "rm -f .gitignore && "
-              "git remote add prebuild-render {prebuild_render} && "
-              "git add -A && "
-              "git commit -am 'Added changes from pre-build' && "
-              "git push prebuild-render {prebuild_branch} && "
+              $ssh_cmd -t "cd payload && rm -rf .gitignore .git .gitkeep||true && \
+              git init && git config --global user.name 'Container Pipeline' && \
+              git config --global user.email container@centos.org && \
+              git remote add prebuild-render {prebuild_render} && \
+              git checkout -b {prebuild_branch} && \
+              git add -A && \
+              git commit -am $GIT_COMMIT && \
+              git push prebuild-render {prebuild_branch} -f"
               cico node done $CICO_ssid
             else
               # fail mode gives us 12 hrs to debug the machine

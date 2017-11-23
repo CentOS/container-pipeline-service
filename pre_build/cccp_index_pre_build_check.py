@@ -7,10 +7,10 @@ Once entries with prebuild_script parameter found, this class generates one job 
 Then it runs the jenkins-job builder command for creating the job in ci.centos.org jenkins.
 """
 
-import os
+import random
+import string
 import subprocess
 import sys
-import tempfile
 from glob import glob
 
 import yaml
@@ -116,48 +116,44 @@ def main(indexdlocation):
     tempfiles = []
     for project in get_projects_from_index(indexdlocation):
         try:
-            print("Processing project with details: %s", str(project))
+            print("Processing project with details: %s" % str(project))
             try:
                 env = Environment(loader=FileSystemLoader(
                     './'), trim_blocks=True, lstrip_blocks=True)
                 template = env.get_template(jjb_defaults_file)
                 job_details = template.render(project[0]['project'])
             except Exception as e:
-                print("Error template is not updated: %s", str(e))
+                print("Error template is not updated: %s" % str(e))
 
             try:
-                t = tempfile.mkdtemp()
-                generated_filename = os.path.join(
-                    t,
-                    'cccp_GENERATED.yaml'
-                )
+                pre_text = ''.join(random.sample(
+                    string.lowercase + string.digits, 10))
+                generated_filename = '_'.join(pre_text,
+                                              'cccp_GENERATED.yaml'
+                                              )
                 with open(generated_filename, 'w') as outfile:
                     outfile.write(job_details)
 
                 tempfiles.append(generated_filename)
             except Exception as e:
-                print("Error job_details could not be updated %s", str(e))
+                print("Error job_details could not be updated %s" % str(e))
 
             # run jenkins job builder for creating prebuild jobs in ci.co
             # jenkins using generated jenkins
             try:
-                myargs = ['jenkins-jobs',
-                          '--ignore-cache',
-                          '--conf ~/jenkins_jobs.ini',
-                          'update',
-                          generated_filename
-                          ]
+                command = 'jenkins-jobs --ignore-cache \
+                --conf ~/jenkins_jobs.ini update %s' % generated_filename
 
-                _, error = run_command(myargs)
+                _, error = run_command(command)
                 if error:
                     print("Error %s running command %s" % (
-                        error, str(myargs)))
+                        error, command))
                     exit(1)
             except Exception as e:
-                print("Jobs could not be created in jenkins %s", str(e))
+                print("Jobs could not be created in jenkins %s" % str(e))
 
         except Exception as e:
-            print("Project details: %s", str(project))
+            print("Project details: %s" % str(project))
             print(str(e))
             # if jenkins job update fails, the cccp-index job should fail
             print(sys.exc_info()[0])
