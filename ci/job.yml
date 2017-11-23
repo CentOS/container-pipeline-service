@@ -238,7 +238,8 @@
             url: https://github.com/CentOS/container-index.git
             skip-tag: True
             git-tool: ci-git
-            branches: master
+            branches:
+              - "master"
     builders:
         - shell: |
             git pull --rebase origin master
