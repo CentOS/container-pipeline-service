@@ -8,7 +8,7 @@ RUN yum install epel-release -y && \
     yum remove epel-release -y && \
     yum clean all
 
-RUN pip install raven --upgrade && pip install django==1.11.2 psycopg2==2.7.3
+RUN pip install raven --upgrade && pip install django==1.11.2 psycopg2==2.7.3 djangorestframework
 
 RUN mkdir -p /opt/cccp-service
 ADD node.kubeconfig ca.crt /opt/cccp-service/

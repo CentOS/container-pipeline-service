@@ -17,6 +17,20 @@
 - name: Install latest docker and python-docker-py packages
   yum: name={{ item }} state=latest
   become: true
+
+- name: Install Django REST Framework
+  pip: name=djangorestframework
+  sudo: yes
+  tags: django
+
+- name: Install Docker
+  yum: name=docker state=installed
+  sudo: yes
+  tags: django
+
+- name: Install docker-py
+  yum: name=python-docker-py state=installed
+  sudo: yes
   with_items:
       - docker
       - python-docker-py

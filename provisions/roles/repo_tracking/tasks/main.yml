@@ -69,6 +69,7 @@
   become: true
   tags: repo_tracking
 
+
 - name: Copy fedmsg conf
   copy:
       src: "{{ role_path }}/../../../fedmsg.d/container_pipeline.py"
