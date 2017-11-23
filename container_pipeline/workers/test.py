@@ -2,11 +2,14 @@
 import json
 import logging
 import os
+from container_pipeline.lib import dj  # noqa
+from django.utils import timezone
 
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.utils import Build
+from container_pipeline.utils import BuildTracker
 from container_pipeline.workers.base import BaseWorker
+from container_pipeline.models import Build, BuildPhase
 
 
 class TestWorker(BaseWorker):
@@ -20,6 +23,7 @@ class TestWorker(BaseWorker):
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(TestWorker, self).__init__(logger, sub, pub)
+        self.build_phase_name = 'test'
         self.openshift = Openshift(logger=self.logger)
 
     def run_test(self):
@@ -27,6 +31,11 @@ class TestWorker(BaseWorker):
         defined tests."""
         namespace = self.job["namespace"]
         project = self.job["project_hash_key"]
+        self.setup_data()
+        self.set_buildphase_data(
+            build_phase_status='processing',
+            build_phase_start_time=timezone.now()
+        )
 
         try:
             self.openshift.login()
@@ -39,16 +48,22 @@ class TestWorker(BaseWorker):
             self.logger.error(e)
             return False
 
-        Build(namespace).start()
+        BuildTracker(namespace).start()
         test_status = self.openshift.wait_for_build_status(
             project, build_id, 'Complete', status_index=2)
         logs = self.openshift.get_build_logs(project, build_id, "test")
         test_logs_file = os.path.join(self.job['logs_dir'], 'test_logs.txt')
+        self.set_buildphase_data(build_phase_log_file=test_logs_file)
         self.export_logs(logs, test_logs_file)
         return test_status
 
     def handle_test_success(self):
         """Handle test success for job."""
+        self.set_buildphase_data(
+            build_phase_status='complete',
+            build_phase_end_time=timezone.now()
+        )
+        self.init_next_phase_data('scan')
         self.job['action'] = "start_scan"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.debug("Test is successful going for next job")
@@ -56,6 +71,10 @@ class TestWorker(BaseWorker):
     def handle_test_failure(self):
         """Handle test failure for job"""
         self.job["build_status"] = False
+        self.set_buildphase_data(
+            build_phase_status='failed',
+            build_phase_end_time=timezone.now()
+        )
         self.job['action'] = "notify_user"
         self.queue.put(json.dumps(self.job), 'master_tube')
         self.logger.warning(

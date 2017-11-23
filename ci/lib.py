@@ -151,6 +151,7 @@ scanner_worker
 {scanner_host}
 
 [all:vars]
+db_host= {jenkins_master_host}
 public_registry= {jenkins_slave_host}
 intranet_registry = {jenkins_slave_host}:5000
 copy_ssl_certs=True
@@ -166,6 +167,7 @@ log_level=DEBUG
 openshift_server_ip={openshift_host}
 deployment=ci
 cccp_index_repo=https://github.com/rtnpro/container-index.git
+db_backup_host_path=/srv/pipeline-logs/db/cccp/
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key

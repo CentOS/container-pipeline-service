@@ -3,9 +3,11 @@ import logging
 import os
 import time
 
+from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib import settings
 from container_pipeline.lib.queue import JobQueue
 from container_pipeline.lib.log import DynamicFileHandler
+from container_pipeline.models import Build, BuildPhase
 
 
 class BaseWorker(object):
@@ -14,6 +16,9 @@ class BaseWorker(object):
 
     def __init__(self, logger=None, sub=None, pub=None):
         self.job = None
+        self.build = None
+        self.build_phase_name = None
+        self.build_phase = None
         self.logger = logger or logging.getLogger('console')
         self.queue = JobQueue(host=settings.BEANSTALKD_HOST,
                               port=settings.BEANSTALKD_PORT,
@@ -26,6 +31,49 @@ class BaseWorker(object):
         This method is called to process job data from task queue.
         """
         raise NotImplementedError
+
+    def setup_data(self):
+        self.build = Build.objects.get(uuid=self.job['uuid'])
+        self.build_phase = BuildPhase.objects.get(
+            build=self.build, phase=self.build_phase_name)
+
+    def set_buildphase_data(self, build_phase_status=None,
+                            build_phase_start_time=None,
+                            build_phase_end_time=None,
+                            build_phase_log_file=None):
+
+        if build_phase_status:
+            self.build_phase.status = build_phase_status
+        if build_phase_start_time:
+            self.build_phase.start_time = build_phase_start_time
+        if build_phase_end_time:
+            self.build_phase.end_time = build_phase_end_time
+        if build_phase_log_file:
+            self.build_phase.log_file_path = build_phase_log_file
+        self.build_phase.save()
+
+    def init_next_phase_data(self, next_phase_name):
+        next_phase, created = BuildPhase.objects.get_or_create(
+            build=self.build, phase=next_phase_name)
+        next_phase.status = 'queued'
+        next_phase.save()
+
+    def set_build_data(self, build_status=None,
+                       build_end_time=None, build_trigger=None):
+
+        if build_status:
+            self.build.status = build_status
+        if build_end_time:
+            self.build.end_time = build_end_time
+        if build_trigger:
+            self.build.trigger = build_trigger
+
+        # set pipeline service code logs file path in Build table field
+        self.build.service_debug_logs = os.path.join(
+            self.job["logs_dir"], "service_debug_logs.txt").replace(
+            "/srv/", "https://registry.centos.org/")
+        # save the data in Build table
+        self.build.save()
 
     def notify(self, data):
         """

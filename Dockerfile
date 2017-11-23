@@ -2,13 +2,13 @@ FROM registry.centos.org/centos/centos:latest
 
 MAINTAINER CentOS Community Container Pipeline <centos-devel@centos.org>
 
-RUN yum update -y && \
-    yum install epel-release -y && \
-    yum install python PyYAML python-pip  -y && \
+#RUN yum update -y && \
+RUN yum install epel-release -y && \
+    yum install python PyYAML python-pip postgresql-devel  -y && \
     yum remove epel-release -y && \
     yum clean all
 
-RUN pip install raven --upgrade
+RUN pip install raven --upgrade && pip install django==1.11.2 psycopg2==2.7.3
 
 RUN mkdir -p /opt/cccp-service
 ADD node.kubeconfig ca.crt /opt/cccp-service/

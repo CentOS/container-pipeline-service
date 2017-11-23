@@ -64,7 +64,7 @@ def get_cause_of_build(jenkins_url, job_name, job_number):
 # In future, we can collate a lot of duplicate code from workers
 # to manage and track build, thereby providing a clean interface
 # to manage builds and prevent duplication of code.
-class Build:
+class BuildTracker:
     """Track image build status in the pipeline"""
     def __init__(self, name, datadir='/srv/pipeline-logs', logger=None):
         self.name = name

@@ -1,7 +1,7 @@
 from glob import glob
 
 import lib
-from container_pipeline.utils import Build
+from container_pipeline.utils import BuildTracker
 
 
 class GarbageCollector(object):
@@ -98,7 +98,7 @@ class GarbageCollector(object):
                     if container_name not in self.index_containers:
                         #
                         self.index_containers[container_name] = []
-                    if not Build(container_tag).is_running():
+                    if not BuildTracker(container_tag).is_running():
                         self.index_containers[container_name].append(desired_tag)
         # Match index data with registry metadata
         for r_name, r_info in self._registry_info.tags.iteritems():

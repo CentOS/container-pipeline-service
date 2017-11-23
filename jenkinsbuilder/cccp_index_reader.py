@@ -16,6 +16,8 @@ from container_pipeline.model_tmp.containers import (ContainerLinksModel,
 
 # Container Info Collector
 container_info = ContainerLinksModel()
+from container_pipeline.lib import dj  # noqa
+# Fix integration of django with other Python scripts.
 
 # populate container_pipeline module path
 cp_module_path = os.path.join(
@@ -26,6 +28,8 @@ cp_module_path = os.path.join(
 sys.path.append(os.path.dirname(cp_module_path))
 sys.path.append(cp_module_path)
 
+
+from container_pipeline.models import Project
 
 jjb_defaults_file = 'project-defaults.yml'
 
@@ -250,6 +254,11 @@ def create_or_update_project_on_jenkins(indexdlocation):
                     error, str(myargs)))
                 logger.critical("Project details: %s ", str(project))
                 exit(1)
+            Project.objects.get_or_create(
+                name='{}-{}-{}'.format(
+                    project[0]['project']['jobid'],
+                    project[0]['project']['appid'],
+                    project[0]['project']['desired_tag']))
 
         except Exception as e:
             logger.critical("Error updating jenkins job via file %s",
@@ -324,4 +333,5 @@ def main(indexdlocation):
 
 if __name__ == '__main__':
     load_logger()
+    logger = logging.getLogger('jenkins')
     main(sys.argv[1])

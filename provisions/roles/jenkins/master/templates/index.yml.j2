@@ -18,7 +18,7 @@
             cd /opt/cccp-service
             python manage.py delete_stale_images $CWD/index.d
             cd /opt/cccp-service/jenkinsbuilder
-            python cccp_index_reader.py $CWD/index.d
+            PYTHONPATH=/opt/cccp-service python cccp_index_reader.py $CWD/index.d
             cd /opt/cccp-service/
             python manage.py fetchimagelist $CWD/index.d
 

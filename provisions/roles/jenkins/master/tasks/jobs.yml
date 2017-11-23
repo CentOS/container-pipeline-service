@@ -26,12 +26,18 @@
 
 - name: Copy Job template
   template: src=index.yml.j2  dest={{ ansible_env.HOME }}/index.yml
+  tags:
+      - application
 
 - name: Push job to jenkins
   shell: "jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/index.yml"
+  tags:
+      - application
 
 - name: Ensure /opt/cccp-service/jenkinsbuilder dir exists on Jenkins master
   file: dest=/opt/cccp-service/jenkinsbuilder state=directory
+  tags:
+      - application
 
 - name: Get openshift build scripts
   copy:
@@ -43,15 +49,21 @@
     - ../jenkinsbuilder/weekly-scan.py
     - ../container_pipeline/vendors/beanstalkc.py
   when: not vagrant
+  tags:
+      - application
 
 - name: Replace Jenkins master with its FQDN for Weekly Scan job
   replace: >
       dest=/opt/cccp-service/jenkinsbuilder/weekly-scan.py
       regexp="JENKINS_SLAVE"
       replace='{{ groups['jenkins_slaves'][0] }}'
+  tags:
+      - application
 
 - name: Replace Beanstalk server with its FQDN for weekly scan job
   replace: >
       dest=/opt/cccp-service/jenkinsbuilder/weekly-scan.py
       regexp="BEANSTALK_SERVER"
       replace='{{ groups['openshift'][0] }}'
+  tags:
+      - application

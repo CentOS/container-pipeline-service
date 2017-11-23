@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand  # CommandError
-from container_pipeline.models.tracking import ContainerImage
+from container_pipeline.models import ContainerImage
 import logging
 
 from jenkinsbuilder import cccp_index_reader as cir
@@ -11,9 +11,12 @@ logger = logging.getLogger('tracking')
 class Command(BaseCommand):
     help = 'Delete stale images from database'
 
+    def add_arguments(self, parser):
+        parser.add_argument('indexd_path')
+
     def handle(self, *args, **options):
         logger.info("Checking for stale projects")
-        indexd_path = args[0]
+        indexd_path = options['indexd_path']
 
         old_projects = cir.get_old_project_list()
         new_projects = cir.get_new_project_list(indexd_path)
