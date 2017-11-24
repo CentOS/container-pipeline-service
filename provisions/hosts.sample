@@ -28,6 +28,8 @@ rsync_ssh_opts=""
 
 # update index repo URL per requirement
 cccp_index_repo=https://github.com/centos/container-index.git
+# branch of cccp_index_repo to poll for container projects, update as required
+cccp_index_repo_branch=master
 
 ## dev environment options, update following to true to configure NFS
 setup_nfs=False
