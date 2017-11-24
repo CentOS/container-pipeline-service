@@ -121,6 +121,10 @@ class IndexFormatValidator(IndexValidator):
                 else:
                     id_list.append(entry["id"])
 
+            # Check for pre-build script
+            if "prebuild-script" not in entry or ("prebuild-script" in entry and entry["prebuild-script"] is None):
+                self._summary_collector.add_warning("No pre-build script specified.")
+
             # Checking app-id field
             if "app-id" not in entry or ("app-id" in entry and entry["app-id"] is None):
                 self._mark_entry_invalid(entry)
@@ -314,8 +318,18 @@ class IndexProjectsValidator(IndexValidator):
 
             container_names[container_name].append(entry["id"])
 
+            # * Check for pre-build script
+            # TODO : Make a better implementation of pre-build script checking
+            prebuild_exists = False
+            if "prebuild-script" in entry:
+                prebuild_exists = True
+                prebuild_script = entry.get("prebuild-script")
+                if prebuild_script and not path.exists(git_path + "/" + str(prebuild_script)):
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("Invalid pre-build script path specified")
+
             # * Check for existence of target-file
-            if not path.exists(git_path + "/" + entry["target-file"]):
+            if not prebuild_exists and not path.exists(git_path + "/" + entry["target-file"]):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("The specified target-file does not exist at the git-path")
 
