@@ -167,6 +167,7 @@ log_level=DEBUG
 openshift_server_ip={openshift_host}
 deployment=ci
 cccp_index_repo=https://github.com/rtnpro/container-index.git
+cccp_index_repo_branch=ci
 db_backup_host_path=/srv/pipeline-logs/db/cccp/
 
 [jenkins_master:vars]
