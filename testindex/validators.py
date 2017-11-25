@@ -122,6 +122,7 @@ class IndexFormatValidator(IndexValidator):
                     id_list.append(entry["id"])
 
             # Check for pre-build script
+            # TODO: This should be updated soon to fail if prebuild-script is not in entry and warn if it is None
             if "prebuild-script" not in entry or ("prebuild-script" in entry and entry["prebuild-script"] is None):
                 self._summary_collector.add_warning("No pre-build script specified.")
 
@@ -320,11 +321,12 @@ class IndexProjectsValidator(IndexValidator):
 
             # * Check for pre-build script
             # TODO : Make a better implementation of pre-build script checking
+            # TODO : Ideally, if prebuild is not in entry, it wont reach here and this should happen if it is not None
             prebuild_exists = False
             if "prebuild-script" in entry:
                 prebuild_exists = True
                 prebuild_script = entry.get("prebuild-script")
-                if prebuild_script and not path.exists(git_path + "/" + str(prebuild_script)):
+                if prebuild_script and not path.exists(path.join(git_path, str(prebuild_script))):
                     self._mark_entry_invalid(entry)
                     self._summary_collector.add_error("Invalid pre-build script path specified")
 
