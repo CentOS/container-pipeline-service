@@ -9,6 +9,6 @@ router.register(r'builds', views.BuildViewSet)
 router.register(r'build-phases', views.BuildPhaseViewSet)
 
 urlpatterns = [
-    url(r'^', include(router.urls)),
+    url(r'^api/', include(router.urls)),
     url(r'^admin/', admin.site.urls)
 ]
