@@ -1,3 +1,4 @@
+import constants
 from os import path, getcwd, chdir, system
 
 from yaml import load
@@ -121,13 +122,13 @@ class IndexFormatValidator(IndexValidator):
                 else:
                     id_list.append(entry["id"])
 
-            # Check for pre-build script and pre-build path
-            if "prebuild-script" in entry and entry["prebuild-script"] is not None:
-                prebuild_path = entry.get("prebuild-path")
+            # Check for pre-build script and pre-build context
+            if constants.PREBUILD_SCRIPT in entry and entry[constants.PREBUILD_SCRIPT] is not None:
+                prebuild_path = entry.get(constants.PREBUILD_CONTEXT)
                 if not prebuild_path:
                     self._mark_entry_invalid(entry)
                     self._summary_collector.add_error("If pre-build script is specified,"
-                                                      " then prebuild-path should also "
+                                                      " then prebuild-context should also "
                                                       "be specified")
 
             # Checking app-id field
@@ -327,12 +328,12 @@ class IndexProjectsValidator(IndexValidator):
             # TODO : Make a better implementation of pre-build script checking
             # TODO : Ideally, if prebuild is not in entry, it wont reach here and this should happen if it is not None
             prebuild_exists = False
-            if "prebuild-script" in entry and "prebuild-path" in entry:
+            if constants.PREBUILD_SCRIPT in entry and constants.PREBUILD_CONTEXT in entry:
                 prebuild_exists = True
-                prebuild_script = entry.get("prebuild-script")
-                prebuild_path = entry.get("prebuild-path")
+                prebuild_script = entry.get(constants.PREBUILD_SCRIPT)
+                prebuild_context = entry.get(constants.PREBUILD_CONTEXT)
                 if (prebuild_script and not path.exists(path.join(git_path, prebuild_script))
-                    and prebuild_path and not path.exists(path.join(git_path, prebuild_path))):
+                    and prebuild_context and not path.exists(path.join(git_path, prebuild_context))):
                     self._mark_entry_invalid(entry)
                     self._summary_collector.add_error("Invalid pre-build script or path specified")
 
