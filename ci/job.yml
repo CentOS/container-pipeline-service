@@ -246,3 +246,6 @@
             curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/pre_build/cccp_index_pre_build_check.py > cccp_index_pre_build_check.py
             curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/pre_build/pre-build-job.yml > pre-build-job.yml
             python cccp_index_pre_build_check.py index.d
+            while read config_file; do
+              jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini update $config_file
+            done <job_template_list.txt

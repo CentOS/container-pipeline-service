@@ -10,6 +10,7 @@
             prebuild_render: "git@github.com:bamachrn/cccp-pre-build-code.git"
             prebuild_branch: {{ appid }}-{{ jobid }}-{{ desired_tag }}
             prebuild_script: {{ prebuild_script }}
+            prebuild_context: {{ prebuild_context }}
 
 - job-template:
     name: centos-container-pipeline-service-pre-build-{{ appid }}-{{ jobid }}-{{ desired_tag }}
@@ -58,7 +59,7 @@
             $ssh_cmd "ssh-keyscan -t rsa,dsa github.com 2>/dev/null >.ssh/known_hosts"
             rsync -e "ssh $sshopts" -Ha .ssh/git_push_priv_key $CICO_hostname:.ssh/id_rsa
             rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
-            $ssh_cmd -t "cd payload && sh {prebuild_script}"
+            $ssh_cmd -t "cd payload/{prebuild_context} && sh {prebuild_script}"
             rtn_code=$?
 
             if [ $rtn_code -eq 0 ]; then
