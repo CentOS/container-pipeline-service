@@ -1,3 +1,4 @@
+import constants
 from os import path, getcwd, chdir, system
 
 from yaml import load
@@ -120,6 +121,15 @@ class IndexFormatValidator(IndexValidator):
 
                 else:
                     id_list.append(entry["id"])
+
+            # Check for pre-build script and pre-build context
+            if constants.PREBUILD_SCRIPT in entry and entry[constants.PREBUILD_SCRIPT] is not None:
+                prebuild_path = entry.get(constants.PREBUILD_CONTEXT)
+                if not prebuild_path:
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("If pre-build script is specified,"
+                                                      " then prebuild-context should also "
+                                                      "be specified")
 
             # Checking app-id field
             if "app-id" not in entry or ("app-id" in entry and entry["app-id"] is None):
@@ -314,8 +324,21 @@ class IndexProjectsValidator(IndexValidator):
 
             container_names[container_name].append(entry["id"])
 
+            # * Check for pre-build script
+            # TODO : Make a better implementation of pre-build script checking
+            # TODO : Ideally, if prebuild is not in entry, it wont reach here and this should happen if it is not None
+            prebuild_exists = False
+            if constants.PREBUILD_SCRIPT in entry and constants.PREBUILD_CONTEXT in entry:
+                prebuild_exists = True
+                prebuild_script = entry.get(constants.PREBUILD_SCRIPT)
+                prebuild_context = entry.get(constants.PREBUILD_CONTEXT)
+                if (prebuild_script and not path.exists(path.join(git_path, prebuild_script))
+                    and prebuild_context and not path.exists(path.join(git_path, prebuild_context))):
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("Invalid pre-build script or path specified")
+
             # * Check for existence of target-file
-            if not path.exists(git_path + "/" + entry["target-file"]):
+            if not prebuild_exists and not path.exists(git_path + "/" + entry["target-file"]):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("The specified target-file does not exist at the git-path")
 
