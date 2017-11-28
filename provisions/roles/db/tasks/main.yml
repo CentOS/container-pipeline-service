@@ -6,7 +6,7 @@
 
 - name: Set selinux context for datadir for mounting in containers
   sefcontext:
-      target: '/var/lib/cccp/db(/.*)?'
+      target: '{{ db_backup_host_path }}'
       setype: svirt_sandbox_file_t
       state: present
   sudo: yes
