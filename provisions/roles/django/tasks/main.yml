@@ -23,6 +23,11 @@
   sudo: yes
   tags: django
 
+- name: Install Django REST Framework drfdocs
+  pip: name=drfdocs
+  sudo: yes
+  tags: django
+
 - name: Install Docker
   yum: name=docker state=installed
   sudo: yes
@@ -35,6 +40,7 @@
       - docker
       - python-docker-py
   tags: django
+  ignore_errors: yes
 
 - name: Install postgresql-devel
   yum: name=postgresql-devel state=installed
