@@ -22,7 +22,7 @@ jjb_defaults_file = 'pre-build-job.yml'
 
 def projectify(
         new_project, appid, jobid, giturl, gitpath, gitbranch,
-        desiredtag, prebuild_script):
+        desiredtag, prebuild_script, prebuild_context):
     """
     Projectifying container-index entry to be used for generating job template.
 
@@ -39,6 +39,7 @@ def projectify(
     new_project[0]['project']['rel_path'] = rel_path
     new_project[0]['project']['desired_tag'] = desiredtag
     new_project[0]['project']['prebuild_script'] = prebuild_script
+    new_project[0]['project']['prebuild_context'] = prebuild_context
     return new_project
 
 
@@ -84,11 +85,12 @@ def get_projects_from_index(indexdlocation):
 
                         # Check for the project only if it requires pre-build
                         if(prebuild_script != 'none'):
+                            prebuild_context = project['prebuild-context']
                             projects.append(
                                 projectify(
                                     new_proj, appid, jobid, giturl, gitpath,
                                     gitbranch, desiredtag,
-                                    prebuild_script)
+                                    prebuild_script, prebuild_context)
                             )
                     except Exception as e:
                         print("Failed to projectify %s" %
@@ -116,6 +118,7 @@ def main(indexdlocation):
     This function takes project dictionary generated from container-index as input, renders it to the prebuild-job config and creates jobtemplates to be used for creating the pre-build jobs in ci.centos.org.
     """
     tempfiles = []
+    job_template_list = open('job_template_list.txt', 'w')
     for project in get_projects_from_index(indexdlocation):
         try:
             print("Processing project with details: %s" % str(project))
@@ -135,32 +138,22 @@ def main(indexdlocation):
                                                 )
                 with open(generated_filename, 'w') as outfile:
                     outfile.write(job_details)
-
+                    outfile.flush()
                 tempfiles.append(generated_filename)
             except Exception as e:
                 print("Error job_details could not be updated %s" % str(e))
 
-            # run jenkins job builder for creating prebuild jobs in ci.co
-            # jenkins using generated jenkins
-            try:
-                time.sleep(5)
-                command = ['jenkins-jobs', '--ignore-cache', '--conf',
-                           '~/jenkins_jobs.ini', 'update', generated_filename]
-
-                _, error = run_command(command)
-                if error:
-                    print("Error %s running command %s" % (
-                        error, str(command)))
-                    exit(1)
-            except Exception as e:
-                print("Jobs could not be created in jenkins %s" % str(e))
-
+            # write the job template names to file so that these can be
+            # processed by jenkins builder to create jobs
+            job_template_list.write(generated_filename)
+            job_template_list.flush()
         except Exception as e:
             print("Project details: %s" % str(project))
             print(str(e))
             # if jenkins job update fails, the cccp-index job should fail
             print(sys.exc_info()[0])
             raise
+    job_template_list.close()
 
 
 if __name__ == '__main__':
