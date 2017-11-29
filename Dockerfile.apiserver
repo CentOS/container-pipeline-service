@@ -1,0 +1,18 @@
+FROM container-pipeline
+
+EXPOSE 8080
+
+RUN mkdir -p /opt/cccp-service/static
+
+ADD ./install-apiserver.sh ./run-apiserver.sh /opt/
+
+ADD container_pipeline/lib/settings.py /opt/cccp-service/container_pipeline/lib/settings.py
+
+ADD ./static/ /opt/cccp-service/static/
+
+RUN chmod -R +x /opt && sh /opt/install-apiserver.sh
+
+USER apache
+
+ENTRYPOINT ["/opt/run-apiserver.sh"]
+CMD ["apache"]
