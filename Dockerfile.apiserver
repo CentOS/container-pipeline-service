@@ -6,7 +6,8 @@ RUN mkdir -p /opt/cccp-service/static
 
 ADD ./install-apiserver.sh ./run-apiserver.sh /opt/
 
-ADD container_pipeline/lib/settings.py /opt/cccp-service/container_pipeline/lib/settings.py
+# For testing purpose. I want the settings to container correct allowed hosts here.
+#ADD container_pipeline/lib/settings.py /opt/cccp-service/container_pipeline/lib/settings.py
 
 ADD ./static/ /opt/cccp-service/static/
 
