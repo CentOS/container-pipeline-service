@@ -76,7 +76,8 @@ LOGS_DIR = LOGS_DIR_BASE = "/srv/pipeline-logs/"
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
 }
 
 LOGGING = dict(

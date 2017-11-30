@@ -9,7 +9,7 @@ router.register(r'builds', views.BuildViewSet)
 router.register(r'build-phases', views.BuildPhaseViewSet)
 
 urlpatterns = [
-    url(r'^api/', include(router.urls)),
+    url(r'^api/v1/', include(router.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^api/schema/', include('rest_framework_docs.urls')),
-    url(r'^admin/', admin.site.urls)
 ]
