@@ -11,11 +11,17 @@ PROJECT_DIR = os.path.abspath(
 
 
 def _print(msg):
+    """
+    Custom print function for printing instantly and not waiting on buffer
+    """
     print msg
     sys.stdout.flush()
 
 
 def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
+    """"
+    Run the shell command
+    """
     _print('=' * 30 + 'RUN COMMAND' + "=" * 30)
     _print({
         'cmd': cmd,
@@ -87,29 +93,45 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
 
 
 class ProvisionHandler(object):
+    """
+
+    Handle utilities for provisioning service on CI infrastructure.
+    """
 
     def __init__(self):
         self._provisioned = True if os.environ.get(
             'CCCP_CI_PROVISIONED', None) == 'true' else False
 
     def run(self, controller, force=False, extra_args="", stream=False):
+        """
+        Run ansible provisioning
+        """
         if not force and self._provisioned:
             return False, ''
 
         host = controller.get('host')
 
+        # find work directory to run commands from
         workdir = os.path.expanduser(controller.get('workdir') or '') or \
             os.path.join(
                 os.path.abspath(os.path.dirname(__file__)), '../')
+
+        # populate private key for password less ssh access
         private_key = os.path.expanduser(
             controller.get('private_key') or '') if not host else \
             controller.get('private_key')
 
+        # generate private key arguments to be used as is in commands
         private_key_args = (
             '--private-key=%s' % private_key if private_key else '')
 
+        # populate inventory file path
         inventory = os.path.join(workdir, controller.get('inventory_path'))
+
+        # user to run the ansible provisioning with
         user = controller.get('user', 'root')
+
+        # generate the ansible provisioning command
         cmd = (
             "cd {workdir} && "
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
@@ -119,10 +141,14 @@ class ProvisionHandler(object):
                  private_key_args=private_key_args,
                  extra_args=extra_args)
         _print('Provisioning command: %s' % cmd)
+
+        # run the command
         out = run_cmd(cmd, host=host, stream=stream)
+
         self._provisioned = True
         return True, out
 
+# alias the run method of class to be used later
 provision = ProvisionHandler().run
 
 
@@ -182,14 +208,20 @@ oc_slave={jenkins_slave_host}""").format(
     with open(os.path.join(PROJECT_DIR, 'hosts'), 'w') as f:
         f.write(ansible_inventory)
 
-    print test_nfs_share
-
 
 def setup_ssh_access(from_node, to_nodes):
+    """
+    Configures password less ssh access
+    """
+    # generate a new key for from_node
     run_cmd('rm -f ~/.ssh/id_rsa* && '
             'ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa',
             host=from_node)
+
+    # get the public key for from_node
     pub_key = run_cmd('cat ~/.ssh/id_rsa.pub', host=from_node).strip()
+
+    # copy the public key of from_node to to_node(s) authorized_keys file
     for node in to_nodes:
         run_cmd(
             'echo "%s" >> ~/.ssh/authorized_keys' % pub_key,
@@ -197,6 +229,9 @@ def setup_ssh_access(from_node, to_nodes):
 
 
 def sync_controller(controller, stream=False):
+    """
+    Syncs the controller host pipeline service code
+    """
     run_cmd(
         "rsync -auvr --delete "
         "-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' "
@@ -205,18 +240,27 @@ def sync_controller(controller, stream=False):
 
 
 def setup_controller(controller):
-    # provision controller
+    """
+    Install needed packages and utilities on controller node
+    """
+    # provision controller node, install required packages
     run_cmd(
         "yum install -y git && "
         "yum install -y rsync && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
         "yum install -y epel-release && "
         "yum install -y PyYAML python-networkx python-nose && "
-        "yum install -y http://cbs.centos.org/kojifiles/packages/ansible/2.2.1.0/2.el7/noarch/ansible-2.2.1.0-2.el7.noarch.rpm",
+        "yum install -y "
+        "http://cbs.centos.org/kojifiles/packages/ansible/2.2.1.0/"
+        "2.el7/noarch/ansible-2.2.1.0-2.el7.noarch.rpm",
         host=controller)
 
 
 def setup(nodes, options):
+    """
+    Setup CI
+    """
+    # remove any previously set environment variables
     os.environ.pop('CCCP_CI_PROVISIONED', None)
     os.environ.pop('CCCP_CI_HOSTS', None)
 
@@ -226,6 +270,7 @@ def setup(nodes, options):
     scanner_host = nodes[3]
     controller = nodes.pop()
 
+    # generate deployment nodes and hostnames text
     nodes_env = (
         "\nJENKINS_MASTER_HOST=%s\n"
         "JENKINS_SLAVE_HOST=%s\n"
@@ -235,9 +280,11 @@ def setup(nodes, options):
     ) % (jenkins_master_host, jenkins_slave_host,
          openshift_host, controller, scanner_host)
 
+    # export the nodes and hostname details in a file
     with open('env.properties', 'a') as f:
         f.write(nodes_env)
 
+    # Generate hosts_data dict to be printed on CI console
     hosts_data = {
         'openshift': {
             'host': openshift_host,
@@ -264,16 +311,21 @@ def setup(nodes, options):
         }
     }
 
+    # prints hosts details on CI console
     _print(hosts_data)
 
+    # generate the needed inventory file for provisioning
     generate_ansible_inventory(jenkins_master_host,
                                jenkins_slave_host,
                                openshift_host,
                                scanner_host,
                                options['nfs_share'])
 
+    # Flush iptables for openshift host
     run_cmd('iptables -F', host=openshift_host)
+    # Flush iptables for jenkins slave host
     run_cmd('iptables -F', host=jenkins_slave_host)
+    # configure SELinux Permissive mode for openshift host
     run_cmd('setenforce 0', host=openshift_host)
 
     setup_ssh_access(controller, nodes + [controller])
@@ -289,10 +341,17 @@ def setup(nodes, options):
 
 
 def test(data, path=None):
+    """
+    Run the tests using nosetests
+    """
     path = path or '~/container-pipeline-service/ci/tests'
     hosts_env = json.dumps(data['hosts']).replace('"', '\\"')
     provisioned_env = ('true' if data['provisioned'] else '')
+
+    # get the controller node for run_cmd
     controller = data['hosts']['controller']['host']
+
+    # run the nosetests from controller hosts
     run_cmd(
         'export CCCP_CI_HOSTS="%s" && '
         'export CCCP_CI_PROVISIONED=%s && '
