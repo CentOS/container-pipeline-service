@@ -50,7 +50,7 @@ overwritten_attrs = ['jobid', 'git_url', 'appid', 'jobs']
 
 def projectify(
         new_project, appid, jobid, giturl, gitpath, gitbranch, targetfile,
-        dependson_job, dependson_img, notifyemail, desiredtag):
+        dependson_job, dependson_img, notifyemail, desiredtag, build_context):
 
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
@@ -73,6 +73,7 @@ def projectify(
     new_project[0]['project']['depends_on_img'] = dependson_img
     new_project[0]['project']['notify_email'] = notifyemail
     new_project[0]['project']['desired_tag'] = desiredtag
+    new_project[0]['project']['build_context'] = build_context
     return new_project
 
 
@@ -106,6 +107,10 @@ def get_projects_from_index(indexdlocation):
                                 else 'latest'
                         except Exception:
                             desiredtag = 'latest'
+
+                        build_context = project.get("buld-context")
+                        if not build_context:
+                            build_context = "."
 
                         desiredtag = str(desiredtag)
 
@@ -144,7 +149,7 @@ def get_projects_from_index(indexdlocation):
                             projectify(
                                 new_proj, appid, jobid, giturl, gitpath,
                                 gitbranch, targetfile, dependson_job,
-                                dependson, notifyemail, desiredtag)
+                                dependson, notifyemail, desiredtag, build_context)
                         )
                     except Exception as e:
                         logger.critical("Failed to projectify %s" %

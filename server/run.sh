@@ -63,7 +63,7 @@ if [[ ${CONTAINER_NAME} =~ ^openshift\/(origin.*|node|openvswitch) ]]; then
 fi
 
 _ "Building the image in ${buildpath} with tag ${JOBID}:${TAG}"
-docker build --rm --no-cache -t $JOBID:$TAG -f $TARGET_FILE . || jumpto sendstatusmail
+docker build --rm --no-cache -t $JOBID:$TAG -f $TARGET_FILE ${BUILD_CONTEXT} || jumpto sendstatusmail
 
 #_ "Checking local files form container"
 #ls -a /set_env/

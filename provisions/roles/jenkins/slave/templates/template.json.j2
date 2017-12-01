@@ -83,6 +83,10 @@
       "name": "BEANSTALK_SERVER",
       "description": "An url for the server where beanstalkd runs",
       "value": "{{ beanstalk_server }}"
+    },
+    {
+      "name": "BUILD_CONTEXT",
+      "description": "The build context for the container build"
     }
   ],
   "objects": [
@@ -165,6 +169,10 @@
               {
                 "name": "NOTIFY_EMAIL",
                 "value": "${NOTIFY_EMAIL}"
+              },
+              {
+                "name": "BUILD_CONTEXT",
+                "value": "${BUILD_CONTEXT}"
               }
 
             ]
