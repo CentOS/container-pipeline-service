@@ -59,8 +59,6 @@ if __name__ == '__main__':
         teardown()
     except Exception as e:
         _print('Build failed: %s' % e)
-        _print(run_cmd('cat /srv/pipeline-logs/cccp.log',
-                       host=nodes[1]))
         if DEBUG:
             _print('Reserving nodes for debugging...')
             _print('=' * 10 + 'Node Info' + '=' * 10)
