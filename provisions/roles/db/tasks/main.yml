@@ -3,6 +3,7 @@
   file: path= "{{ db_backup_host_path }}" state=directory
   sudo: yes
   tags: db
+  when: not test
 
 - name: Set selinux context for datadir for mounting in containers
   sefcontext:
