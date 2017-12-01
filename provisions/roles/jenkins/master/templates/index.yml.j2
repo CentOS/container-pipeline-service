@@ -7,7 +7,7 @@
         - git:
             url: "{{ cccp_index_repo }}"
             branches:
-                - "origin/master"
+                - "origin/{{ cccp_index_repo_branch }}"
             skip-tag: True
     triggers:
         - pollscm: "H/10 * * * *"
@@ -30,6 +30,8 @@
     scm:
         - git:
             url: "{{ cccp_index_repo }}"
+            branches:
+                - "origin/{{ cccp_index_repo_branch }}"
             skip-tag: True
     triggers:
         - timed: "59 23 * * 6"
