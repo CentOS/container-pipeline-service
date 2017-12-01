@@ -3,3 +3,9 @@
 *.pyc
 .vagrant
 *.sqlite3
+*.retry
+hosts
+hosts.preprod
+hosts.devcloud
+hosts.prod
+sentry.hosts
