@@ -11,3 +11,10 @@
   sudo: yes
   ignore_errors: yes
   shell: docker rmi $(docker images -f "dangling=true" -q)
+
+- name: Stop and remove postgresql container
+  sudo: yes
+  ignore_errors: yes
+  docker_container:
+    name: postgres
+    state: absent
