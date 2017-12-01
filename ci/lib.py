@@ -94,7 +94,6 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
 
 class ProvisionHandler(object):
     """
-
     Handle utilities for provisioning service on CI infrastructure.
     """
 
