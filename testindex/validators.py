@@ -190,6 +190,13 @@ class IndexFormatValidator(IndexValidator):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing desired-tag")
 
+            # Check for build-context
+            # Ideally, build-context will be a compulsory field but for now im just checking its None
+            # TODO : Need to update this to make it compulsory
+            if constants.BUILD_CONTEXT not in entry and not (constants.BUILD_CONTEXT in entry and
+                                                             entry[constants.BUILD_CONTEXT] is None):
+                pass
+
             # Check notify-email
             if "notify-email" not in entry or ("notify-email" in entry and entry["notify-email"] is None):
                 self._mark_entry_invalid(entry)
@@ -323,6 +330,13 @@ class IndexProjectsValidator(IndexValidator):
                 container_names[container_name] = []
 
             container_names[container_name].append(entry["id"])
+
+            # * Check for build-context
+            if constants.BUILD_CONTEXT in entry:
+                build_context = entry.get(constants.BUILD_CONTEXT)
+                if build_context and not path.exists(path.join(clone_path, git_path, build_context)):
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("Specified build context does not exist.")
 
             # * Check for pre-build script
             # TODO : Make a better implementation of pre-build script checking
