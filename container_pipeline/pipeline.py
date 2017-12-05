@@ -60,7 +60,8 @@ def create_new_job():
         "test_tag",      # temporary tag to be applied to image
         "msg",           # to capture message in case of exception in
                          # triggering linter
-        "delivery_log_file",     # log file for delivery worker
+        "delivery_log_file",     # log file for delivery worker,
+        "build_context", # The build context of the build
     ])
 
     return job
@@ -72,7 +73,7 @@ def main(args):
 
     (appid, jobid, repo_url, repo_branch, repo_build_path,
      target_file, notify_email, desired_tag, depends_on,
-     test_tag, jenkins_build_number) = args
+     test_tag, jenkins_build_number, build_context) = args
 
     if repo_build_path == "/":
         pass
@@ -111,6 +112,7 @@ def main(args):
     job['beanstalk_server'] = settings.BEANSTALKD_HOST
     job['image_under_test'] = "{}/{}/{}:{}".format(
                 settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
+    job['build_context'] = build_context
 
     # Create a build entry for project to track build
     project, created = Project.objects.get_or_create(name=project_name)
