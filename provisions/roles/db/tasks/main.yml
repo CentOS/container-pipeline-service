@@ -1,6 +1,8 @@
 ---
 - name: Ensure cccp data dir exists
-  file: path= "{{ db_backup_host_path }}" state=directory
+  file:
+    path: '{{ db_backup_host_path }}'
+    state: directory
   sudo: yes
   tags: db
   when: not test
