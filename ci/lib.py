@@ -13,6 +13,9 @@ PROJECT_DIR = os.path.abspath(
 def _print(msg):
     """
     Custom print function for printing instantly and not waiting on buffer
+
+    Args:
+        msg (str): Message to print message on stdout.
     """
     print msg
     sys.stdout.flush()
@@ -21,6 +24,23 @@ def _print(msg):
 def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
     """"
     Run the shell command
+
+    Args:
+        cmd (str): Shell command to run on the given node.
+        user (str): User with which to run command. Defaults to root.
+        host (str):
+            Host to run command upon, this could be hostname or IP address.
+            Defaults to None, which means run command on local host.
+        private_key (str):
+            private key for the authentication purpose. Defaults to ''.
+        stream (bool):
+            Whether stream output of command back. Defaults to False.
+
+    Returns:
+        str: The output of command.
+
+    Note:
+        If stream=True, the function writes to stdout.
     """
     _print('=' * 30 + 'RUN COMMAND' + "=" * 30)
     _print({
@@ -95,6 +115,11 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
 class ProvisionHandler(object):
     """
     Handle utilities for provisioning service on CI infrastructure.
+
+    This __init__ method for this class sets object property self._provisioned
+    to a bool value. The value is retrieved from envrionment variable
+    CCP_CI_PROVISONED during class intialization, if env variable is not found,
+    defaults to False.
     """
 
     def __init__(self):
@@ -103,7 +128,24 @@ class ProvisionHandler(object):
 
     def run(self, controller, force=False, extra_args="", stream=False):
         """
-        Run ansible provisioning
+        Run ansible provisioning.
+
+        Args:
+            controller (str): Hostname of the controller node.
+            force (bool): Whether to provision forcefully. Defaults to False.
+            extra_args (str):
+                Extra arguments to pass during provisioning.
+                Defaults to empty string "".
+            stream (bool):
+                Whether to stream output of provisioning on stdout.
+                Defaults to False.
+
+        Returns:
+            tuple:
+                (bool, str)
+                bool - whether provisioning succeed
+                str -  output if any
+
         """
         if not force and self._provisioned:
             return False, ''
@@ -153,6 +195,20 @@ provision = ProvisionHandler().run
 
 def generate_ansible_inventory(jenkins_master_host, jenkins_slave_host,
                                openshift_host, scanner_host, nfs_share):
+    """Generates ansible inventory text for provisioning nodes.
+
+    Args:
+        jenkins_master_host (str): Hostanme of Jenkins master
+        jenkins_slave_host (str): Hostname of Jenkins slave
+        openshift_host (str): Hostname of OpenShift node
+        scanner_host (str): Hostname of scanner node
+        nfs_share (str): NFS mount path to be configured on all nodes
+
+    Note:
+        This function writes ansible inventory file to "hosts" file
+        inside project directory. This inventory is then used for
+        provisioning.
+    """
 
     test_nfs_share = scanner_host + ":" + nfs_share
 
@@ -211,6 +267,11 @@ oc_slave={jenkins_slave_host}""").format(
 def setup_ssh_access(from_node, to_nodes):
     """
     Configures password less ssh access
+
+    Args:
+        from_node (str): The source node to have ssh access from
+        to_nodes (list):
+            List of target nodes to configure ssh access from from_node.
     """
     # generate a new key for from_node
     run_cmd('rm -f ~/.ssh/id_rsa* && '
@@ -230,6 +291,10 @@ def setup_ssh_access(from_node, to_nodes):
 def sync_controller(controller, stream=False):
     """
     Syncs the controller host pipeline service code
+
+    Args:
+        controller (str): Hostname of controller node
+        strem (bool): Whether to stream output of syncing
     """
     run_cmd(
         "rsync -auvr --delete "
@@ -241,6 +306,9 @@ def sync_controller(controller, stream=False):
 def setup_controller(controller):
     """
     Install needed packages and utilities on controller node
+
+    Args:
+        controller (str): Hostname of controller node
     """
     # provision controller node, install required packages
     run_cmd(
@@ -258,6 +326,21 @@ def setup_controller(controller):
 def setup(nodes, options):
     """
     Setup CI
+
+    Args:
+        nodes (list): List of nodes to setup pipeline service upon
+        options (dict):
+            Dictionary of additional options to provison service with.
+            For example, options{"nfs_share": "/srv/pipeline-logs"}.
+
+    Returns:
+        dict:
+            Dictionary with details about deployment.
+            {
+                "provisoned": True,
+                "host": {<details about hosts configured>}
+            }
+
     """
     # remove any previously set environment variables
     os.environ.pop('CCCP_CI_PROVISIONED', None)
@@ -342,6 +425,16 @@ def setup(nodes, options):
 def test(data, path=None):
     """
     Run the tests using nosetests
+
+    Args:
+        data (dict):
+            Details about hosts configured. Output from setup function
+        path (str):
+            Path of tests directory to run tests.
+            Defaults to None
+
+    Note: If explicity path argument is not provided.
+    "~/container-pipeline-service/ci/tests" is used.
     """
     path = path or '~/container-pipeline-service/ci/tests'
     hosts_env = json.dumps(data['hosts']).replace('"', '\\"')
