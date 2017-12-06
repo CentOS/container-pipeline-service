@@ -7,11 +7,16 @@
   tags: db
   when: not test
 
-- name: Set selinux context for datadir for mounting in containers
-  sefcontext:
-      target: '{{ db_backup_host_path }}'
-      setype: svirt_sandbox_file_t
-      state: present
+- name: Set ACL for data dir on host
+  acl:
+    path: '{{ db_backup_host_path }}'
+    default: yes
+    entity: '{{ postgresql_uid }}'
+    etype: user
+    follow: no
+    permissions: wx
+    recursive: yes
+    state: present
   sudo: yes
   tags: db
 
@@ -35,7 +40,7 @@
       name: postgres
       image: registry.centos.org/sclo/postgresql-95-centos7
       volumes:
-          - "{{ db_backup_host_path }}:/var/lib/pgsql/data"
+          - "{{ db_backup_host_path }}:/var/lib/pgsql/data:Z"
       ports:
           - "{{ db_host }}:{{ db_port }}:5432"
       env:
