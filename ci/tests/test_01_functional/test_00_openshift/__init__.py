@@ -42,7 +42,10 @@ class TestOpenshift(BaseTestCase):
             except Exception:
                 success = False
             retry_count += 1
-        self.assertTrue(success)
+
+        # TODO: Uncomment following
+        #self.assertTrue(success)
+        self.assertTrue(False)
 
     def test_00_openshift_builds_are_complete(self):
         self.provision()
