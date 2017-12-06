@@ -42,6 +42,8 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
     Note:
         If stream=True, the function writes to stdout.
     """
+
+    """ # NOTE: Stop printing run command on CI console, uncomment if needed
     _print('=' * 30 + 'RUN COMMAND' + "=" * 30)
     _print({
         'cmd': cmd,
@@ -50,6 +52,7 @@ def run_cmd(cmd, user='root', host=None, private_key='', stream=False):
         'private_key': private_key,
         'stream': stream
     })
+    """
     if host:
         private_key_args = ''
         if private_key:
