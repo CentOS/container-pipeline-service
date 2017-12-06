@@ -12,7 +12,8 @@ import json
 import os
 import sys
 
-from ci.lib import _print, setup, test, teardown, run_cmd
+from ci.lib import _print, setup, test, teardown, run_cmd, DEPLOY_LOGS_PATH
+
 
 DEBUG = os.environ.get('ghprbCommentBody', None) == '#dotests-debug'
 ver = "7"
@@ -112,9 +113,10 @@ if __name__ == '__main__':
         })
     except Exception as e:
         _print('Build failed in either deployment or running builds: %s' % e)
-        # TODO: cat deployment logs
-        _print(run_cmd('cat /srv/pipeline-logs/cccp.log',
-                       host=nodes[1]))
+        # first cat the deployment logs, nodes[4] = controller node
+        _print(run_cmd('cat %s' % DEPLOY_LOGS_PATH, host=nodes[4]))
+        # then cat the cccp.log, nodes[1] = jenkins slave
+        _print(run_cmd('cat /srv/pipeline-logs/cccp.log', host=nodes[1]))
         _if_debug()
         sys.exit(1)
 
