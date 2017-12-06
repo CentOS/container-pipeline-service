@@ -17,7 +17,7 @@ openshift
 scanner_worker
 
 [sentry]
-jenkins_master
+jenkins-master
 
 [all:vars]
 # update as needed
@@ -50,7 +50,7 @@ allowed_hosts = "['127.0.0.1']"
 # postgresql database related configurations
 # ==========================================
 # needed variables for deployments
-db_host=jenkins_master
+db_host=jenkins-master
 # default:/srv/db/cccp/, update as required
 db_backup_host_path=/srv/db/cccp
 # the postgresql image we are using have uid:26, update as required
