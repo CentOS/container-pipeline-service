@@ -114,9 +114,9 @@ if __name__ == '__main__':
     except Exception as e:
         _print('Build failed in either deployment or running builds: %s' % e)
         # TODO: cat deployment logs
-        _if_debug()
         _print(run_cmd('cat /srv/pipeline-logs/cccp.log',
                        host=nodes[1]))
+        _if_debug()
         sys.exit(1)
 
     try:
