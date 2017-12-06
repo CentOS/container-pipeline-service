@@ -45,14 +45,16 @@ deployment=production
 # Set log level
 log_level = DEBUG
 
-# postgresql database related configurations
-
-# Needed variable for deployments, default:/srv/pipeline-logs/db/cccp/, update as required
-db_backup_host_path=/srv/pipeline-logs/db/cccp/
-
-db_host=jenkins_master
-
 allowed_hosts = "['127.0.0.1']"
+
+# postgresql database related configurations
+# ==========================================
+# needed variables for deployments
+db_host=jenkins_master
+# default:/srv/db/cccp/, update as required
+db_backup_host_path=/srv/db/cccp
+# the postgresql image we are using have uid:26, update as required
+postgresql_uid=26
 
 [jenkins_master:vars]
 # update as needed
