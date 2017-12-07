@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from container_pipeline.models.pipeline import Project, Build, BuildPhase
 
+# API Version V1
+
 
 class ProjectSerializerV1(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -18,3 +20,5 @@ class BuildPhaseSerializerV1(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = BuildPhase
         fields = "__all__"
+
+# API version V1 ends
