@@ -96,15 +96,17 @@
   tags: scanner
 
 
-- name: Install misc-package-updates container
+- name: Install container-capabilities-scanner container
   docker_container:
       image: registry.centos.org/pipeline-images/container-capabilities-scanner:latest
-      name: misc-package-updates
+      name: container-capabilities-scanner
       privileged: true
       volumes:
         - /etc/atomic.d/:/host/etc/atomic.d/
       command: sh /install.sh
       state: started
+      pull: yes
+  tags: scanner
 
 - name: Ensure log path exists
   file: path=/srv/pipeline-logs/cccp.log state=touch
