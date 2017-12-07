@@ -124,6 +124,7 @@ if __name__ == '__main__':
         test(data)
     except Exception as e:
         _print('Build failed as tests failed: %s' % e)
+        _if_debug()
         sys.exit(1)
 
     # tear down after running tests
