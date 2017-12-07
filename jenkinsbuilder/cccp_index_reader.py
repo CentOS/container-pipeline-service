@@ -108,7 +108,7 @@ def get_projects_from_index(indexdlocation):
                         except Exception:
                             desiredtag = 'latest'
 
-                        build_context = project.get("buld-context")
+                        build_context = project.get("build-context")
                         if not build_context:
                             build_context = "."
 
