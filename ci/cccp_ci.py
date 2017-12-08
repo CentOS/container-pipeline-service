@@ -28,6 +28,28 @@ NFS_SHARE = "/nfsshare"
 
 
 def get_nodes(ver="7", arch="x86_64", count=4):
+    """ Utility function to get nodes from CICO infrastructure.
+
+    Request given count of CentOS of particular version and architecture.
+    CICO returns JSON, with hostnames of nodes provisioned.
+    duffy.key is need for requesting nodes.
+
+    Args:
+        ver (str):
+            Version of CentOS to be installed on node
+            viz ["6", "7"]. Defaults to "7".
+        arch (str): Architecture of CentOS to be install on node.
+            Defaults to "x86_64".
+        count (int): Number of CentOS nodes to be requested. Defaults to 4.
+
+    Returns:
+        List of hostnames received from CICO.
+
+    Note:
+        This function also appends DUFFY_SSID to a local file
+        env.properties .
+        Also prints the output received from CICO.
+    """
     out = run_cmd(
         'export CICO_API_KEY=`cat ~/duffy.key` && '
         'cico node get --arch %s --release %s --count %s '
@@ -43,36 +65,66 @@ def get_nodes(ver="7", arch="x86_64", count=4):
 
 
 def print_nodes():
+    """
+    Function to print nodes from a local file env.properties.
+    """
     with open('env.properties') as f:
         s = f.read()
 
     _print('\n'.join(s.splitlines()[3:]))
 
 
+def _if_debug():
+    """
+    If whitelisted github user has added "dotests-debug" string as comment
+    on a given PR, the nodes are kept for 2 hours for debugging, once
+    time lapses the nodes are returned to CICO infrastructure.
+    """
+    if DEBUG:
+        _print('Reserving nodes for debugging...')
+        _print('=' * 10 + 'Node Info' + '=' * 10)
+        print_nodes()
+        try:
+            _print('Sleeping for %s seconds for debugging...'
+                   % 7200)
+            import time
+            time.sleep(int(7200))
+        except Exception as e:
+            _print(e)
+        with open('env.properties', 'a') as f:
+            f.write('\nBUILD_FAILED=true\n')
+
+
 if __name__ == '__main__':
     try:
+        # get nodes from CICO infra
         nodes = get_nodes(count=5)
+    except Exception as e:
+        _print('Build failed while receiving nodes from CICO: %s' % e)
+        _if_debug()
+        sys.exit(1)
+
+    try:
+        # deploy service on given set of nodes
+        # TODO: export deployment logs in a file
         data = setup(nodes, options={
             'nfs_share': NFS_SHARE
         })
-        test(data)
-        teardown()
     except Exception as e:
-        _print('Build failed: %s' % e)
+        _print('Build failed in either deployment or running builds: %s' % e)
+        # TODO: cat deployment logs
         _print(run_cmd('cat /srv/pipeline-logs/cccp.log',
                        host=nodes[1]))
-        if DEBUG:
-            _print('Reserving nodes for debugging...')
-            _print('=' * 10 + 'Node Info' + '=' * 10)
-            print_nodes()
-            try:
-                _print('Sleeping for %s seconds for debugging...'
-                       % 7200)
-                import time
-                time.sleep(int(7200))
-            except Exception as e:
-                _print(e)
-                pass
-            with open('env.properties', 'a') as f:
-                f.write('\nBUILD_FAILED=true\n')
+        _if_debug()
         sys.exit(1)
+
+    try:
+        # run the given tests
+        test(data)
+    except Exception as e:
+        _print('Build failed as tests failed: %s' % e)
+        _if_debug()
+        sys.exit(1)
+
+    # tear down after running tests
+    teardown()
