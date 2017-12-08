@@ -9,7 +9,7 @@ PROJECT_DIR = os.path.abspath(
                  '..')
 )
 
-DEPLOY_LOGS_PATH = "/tmp/deploy.logs"
+DEPLOY_LOGS_PATH = "/root/deploy.logs"
 
 
 def _print(msg):
@@ -182,7 +182,7 @@ class ProvisionHandler(object):
             "cd {workdir} && "
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
             "-u {user} -s {private_key_args} {extra_args} "
-            "provisions/main.yml >> {deploy_logs_path}"
+            "provisions/main.yml > {deploy_logs_path}"
         ).format(workdir=workdir, inventory=inventory, user=user,
                  private_key_args=private_key_args,
                  extra_args=extra_args, deploy_logs_path=DEPLOY_LOGS_PATH)
