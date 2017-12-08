@@ -93,7 +93,6 @@ def _if_debug():
             _print(e)
         with open('env.properties', 'a') as f:
             f.write('\nBUILD_FAILED=true\n')
-    sys.exit(1)
 
 
 if __name__ == '__main__':
