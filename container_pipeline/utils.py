@@ -32,7 +32,7 @@ def parse_json_response(response):
                 response['actions'][2]['lastBuiltRevision']['SHA1']
             )
         elif 'Started by upstream project' in cause:
-            return 'Change in upsream project {}'.format(
+            return 'Change in upstream project {}'.format(
                 response['actions'][0]['causes'][0]['shortDescription'].split(
                     '"')[1]
             )
