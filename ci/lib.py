@@ -355,7 +355,7 @@ def setup(nodes, options):
     jenkins_slave_host = nodes[1]
     openshift_host = nodes[2]
     scanner_host = nodes[3]
-    controller = nodes.pop()
+    controller = nodes[4]
 
     # generate deployment nodes and hostnames text
     nodes_env = (
@@ -415,7 +415,8 @@ def setup(nodes, options):
     # configure SELinux Permissive mode for openshift host
     run_cmd('setenforce 0', host=openshift_host)
 
-    setup_ssh_access(controller, nodes + [controller])
+    # setup controller to rest nodes ssh access
+    setup_ssh_access(controller, nodes[:-1])
     setup_controller(controller)
     sync_controller(controller)
 

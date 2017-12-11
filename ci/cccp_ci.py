@@ -115,7 +115,7 @@ if __name__ == '__main__':
     except Exception as e:
         _print('Build failed in either deployment or running builds: %s' % e)
         # first cat the deployment logs, nodes[4] = controller node
-        _print(run_cmd('cat %s' % DEPLOY_LOGS_PATH, host=nodes[-1]))
+        _print(run_cmd('cat %s' % DEPLOY_LOGS_PATH, host=nodes[4]))
         # then cat the cccp.log, nodes[1] = jenkins slave
         _print(run_cmd('cat /srv/pipeline-logs/cccp.log', host=nodes[1]))
         _if_debug()
