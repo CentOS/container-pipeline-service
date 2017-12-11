@@ -399,7 +399,7 @@ def setup(nodes, options):
     }
 
     # prints hosts details on CI console
-    _print(hosts_data)
+    _print("=" * 30 + "Hosts data" + "=" * 30 + "\n%s" % hosts_data)
 
     # generate the needed inventory file for provisioning
     generate_ansible_inventory(jenkins_master_host,
