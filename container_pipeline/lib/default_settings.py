@@ -77,10 +77,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGINATE_BY_PARAM': 'page_size',
-    'PAGE_SIZE': 40,
-    'MAX_PAGINATE_BY': 100
+    'DEFAULT_PAGINATION_CLASS': 'container_pipeline.pagination.ModelAPIPagination',
 }
 
 LOGGING = dict(
