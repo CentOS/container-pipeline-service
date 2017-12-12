@@ -6,16 +6,12 @@ import sys
 
 from time import sleep
 
-
-PROJECT_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__),
-                 '..')
-)
-
-DEPLOY_LOGS_PATH = "/root/deploy.logs"
-JENKINS_HOSTNAME = "localhost"
-JENKINS_HTTP_PORT = 8080
-JENKINS_JAR_LOCATION = "/opt/jenkins-cli.jar"
+from constants import PROJECT_DIR,\
+                      DEPLOY_LOGS_PATH,\
+                      JENKINS_HOSTNAME,\
+                      JENKINS_HTTP_PORT,\
+                      JENKINS_JAR_LOCATION,\
+                      CI_TEST_JOB_NAME
 
 
 def _print(msg):
@@ -453,10 +449,10 @@ def run_cccp_index_job(jenkins_master):
     # build command for running cccp-index job
     cmd = ("java -jar {jar_location} -s http://{jenkins_hostname}:{http_port} "
            "build cccp-index -f -v").format(
-            jar_location=JENKINS_JAR_LOCATION,
-            jenkins_hostname=JENKINS_HOSTNAME,
-            http_port=JENKINS_HTTP_PORT
-            )
+        jar_location=JENKINS_JAR_LOCATION,
+        jenkins_hostname=JENKINS_HOSTNAME,
+        http_port=JENKINS_HTTP_PORT
+    )
     # run the command store the results to check further
     out = run_cmd(cmd, host=jenkins_master)
 
@@ -465,14 +461,13 @@ def run_cccp_index_job(jenkins_master):
         raise Exception("Failed running cccp-index job. Exiting!")
 
     # check if test job is created
-    CI_TEST_JOB_NAME = "bamachrn-python"
-
     cmd = ("java -jar {jar_location} -s http://{jenkins_hostname}:{http_port} "
            "list-jobs").format(
-            jar_location=JENKINS_JAR_LOCATION,
-            jenkins_hostname=JENKINS_HOSTNAME,
-            http_port=JENKINS_HTTP_PORT
-            )
+        jar_location=JENKINS_JAR_LOCATION,
+        jenkins_hostname=JENKINS_HOSTNAME,
+        http_port=JENKINS_HTTP_PORT
+    )
+    # retry 50 times with 10 seconds interval
     for i in range(50):
         jenkins_jobs = run_cmd(cmd, host=jenkins_master)
         if CI_TEST_JOB_NAME not in jenkins_jobs:
@@ -489,10 +484,10 @@ def run_cccp_index_job(jenkins_master):
     # now finally disable the jenkins jobs, since we need one time run only
     cmd = ("java -jar {jar_location} -s http://{jenkins_hostname}:{http_port} "
            " disable-job").format(
-           jar_location=JENKINS_JAR_LOCATION,
-           jenkins_hostname=JENKINS_HOSTNAME,
-           http_port=JENKINS_HTTP_PORT
-           )
+        jar_location=JENKINS_JAR_LOCATION,
+        jenkins_hostname=JENKINS_HOSTNAME,
+        http_port=JENKINS_HTTP_PORT
+    )
     # disable the jobs one by one
     for job in jenkins_jobs:
         # append the job name at the end of command and execute
