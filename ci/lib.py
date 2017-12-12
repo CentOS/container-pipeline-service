@@ -9,6 +9,8 @@ PROJECT_DIR = os.path.abspath(
                  '..')
 )
 
+DEPLOY_LOGS_PATH = "/root/deploy.logs"
+
 
 def _print(msg):
     """
@@ -180,10 +182,10 @@ class ProvisionHandler(object):
             "cd {workdir} && "
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
             "-u {user} -s {private_key_args} {extra_args} "
-            "provisions/main.yml"
+            "provisions/main.yml > {deploy_logs_path}"
         ).format(workdir=workdir, inventory=inventory, user=user,
                  private_key_args=private_key_args,
-                 extra_args=extra_args)
+                 extra_args=extra_args, deploy_logs_path=DEPLOY_LOGS_PATH)
         _print('Provisioning command: %s' % cmd)
 
         # run the command
@@ -353,7 +355,7 @@ def setup(nodes, options):
     jenkins_slave_host = nodes[1]
     openshift_host = nodes[2]
     scanner_host = nodes[3]
-    controller = nodes.pop()
+    controller = nodes[4]
 
     # generate deployment nodes and hostnames text
     nodes_env = (
@@ -397,7 +399,7 @@ def setup(nodes, options):
     }
 
     # prints hosts details on CI console
-    _print(hosts_data)
+    _print("=" * 30 + "Hosts data" + "=" * 30 + "\n%s" % hosts_data)
 
     # generate the needed inventory file for provisioning
     generate_ansible_inventory(jenkins_master_host,
@@ -413,7 +415,8 @@ def setup(nodes, options):
     # configure SELinux Permissive mode for openshift host
     run_cmd('setenforce 0', host=openshift_host)
 
-    setup_ssh_access(controller, nodes + [controller])
+    # setup controller to rest nodes ssh access
+    setup_ssh_access(controller, nodes[:-1])
     setup_controller(controller)
     sync_controller(controller)
 
