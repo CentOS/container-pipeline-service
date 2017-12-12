@@ -12,7 +12,8 @@ import json
 import os
 import sys
 
-from ci.lib import _print, setup, test, teardown, run_cmd, DEPLOY_LOGS_PATH
+from ci.lib import _print, setup, test, teardown, \
+        run_cmd, DEPLOY_LOGS_PATH, run_cccp_index_job
 
 
 DEBUG = os.environ.get('ghprbCommentBody', None) == '#dotests-debug'
@@ -102,7 +103,7 @@ if __name__ == '__main__':
         nodes = get_nodes(count=5)
         _print(str(nodes))
     except Exception as e:
-        _print('Build failed while receiving nodes from CICO: %s' % e)
+        _print('Build failed while receiving nodes from CICO:\n%s' % e)
         _if_debug()
         sys.exit(1)
 
@@ -113,10 +114,19 @@ if __name__ == '__main__':
             'nfs_share': NFS_SHARE
         })
     except Exception as e:
-        _print('Build failed in either deployment or running builds: %s' % e)
-        # first cat the deployment logs, nodes[4] = controller node
+        _print('Build failed during deployment:\n%s' % e)
+        # first cat the deployment logs, nodes[4]=controller node
         _print(run_cmd('cat %s' % DEPLOY_LOGS_PATH, host=nodes[4]))
-        # then cat the cccp.log, nodes[1] = jenkins slave
+        _if_debug()
+        sys.exit(1)
+
+    try:
+        # run cccp-index job and run test CI projects, nodes[0]=jenkins_master
+        run_cccp_index_job(jenkins_master=nodes[0])
+    except Exception as e:
+        _print("Error running cccp-index job and test builds:\n%s" % e)
+
+        # then cat the cccp.log, nodes[1]=jenkins slave
         _print(run_cmd('cat /srv/pipeline-logs/cccp.log', host=nodes[1]))
         _if_debug()
         sys.exit(1)
