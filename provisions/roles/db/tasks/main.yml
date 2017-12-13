@@ -5,15 +5,6 @@
     state: directory
   sudo: yes
   tags: db
-  when: not test
-
-- name: Set selinux context for datadir for mounting in containers
-  sefcontext:
-      target: '{{ db_backup_host_path }}'
-      setype: svirt_sandbox_file_t
-      state: present
-  sudo: yes
-  tags: db
 
 - name: Reload docker systemd service
   sudo: yes
@@ -33,9 +24,7 @@
 - name: Run postgres container
   docker_container:
       name: postgres
-      image: registry.centos.org/sclo/postgresql-95-centos7
-      volumes:
-          - "{{ db_backup_host_path }}:/var/lib/pgsql/data"
+      image: '{{ postgresql_image }}'
       ports:
           - "{{ db_host }}:{{ db_port }}:5432"
       env:
@@ -46,25 +35,25 @@
       restart_policy: on-failure
   sudo: yes
   tags: db
-  when: not test
-
-- name: Run postgres container in CI environment
-  docker_container:
-    name: postgres
-    image: registry.centos.org/sclo/postgresql-95-centos7
-    ports:
-      - "{{ db_host }}:{{ db_port }}:5432"
-    env:
-      POSTGRESQL_USER: '{{ db_user }}'
-      POSTGRESQL_PASSWORD: '{{ db_pass }}'
-      POSTGRESQL_DATABASE: '{{ db_name }}'
-    state: started
-    restart_policy: on-failure
-  sudo: yes
-  tags: db
-  when: test
 
 - name: Wait for 20 seconds for the db to come up
   pause:
       seconds: 20
   tags: db
+
+- name: Copy cron script to have postgresql db backups
+  sudo: yes
+  template: src=cccp_db_pg_dump_cron.sh.j2 dest=/root/cccp_db_pg_dump_cron.sh mode=0755
+  tags:
+    - db
+    - cron
+
+- name: Cron job for postgresql db backups hourly
+  sudo: yes
+  cron:
+      name: "Postgresql cccp db hourly backup"
+      job: "/root/cccp_db_pg_dump_cron.sh"
+      special_time: hourly
+  tags:
+    - db
+    - cron
