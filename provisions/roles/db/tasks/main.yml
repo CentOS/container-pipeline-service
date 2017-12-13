@@ -40,3 +40,20 @@
   pause:
       seconds: 20
   tags: db
+
+- name: Copy cron script to have postgresql db backups
+  sudo: yes
+  template: src=cccp_db_pg_dump_cron.sh.j2 dest=/root/cccp_db_pg_dump_cron.sh mode=0755
+  tags:
+    - db
+    - cron
+
+- name: Cron job for postgresql db backups hourly
+  sudo: yes
+  cron:
+      name: "Postgresql cccp db hourly backup"
+      job: "/root/cccp_db_pg_dump_cron.sh"
+      special_time: hourly
+  tags:
+    - db
+    - cron
