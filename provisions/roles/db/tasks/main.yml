@@ -5,13 +5,17 @@
     state: directory
   sudo: yes
   tags: db
-  when: not test
 
-- name: Set selinux context for datadir for mounting in containers
-  sefcontext:
-      target: '{{ db_backup_host_path }}'
-      setype: svirt_sandbox_file_t
-      state: present
+- name: Set ACL for data dir on host
+  acl:
+    path: '{{ db_backup_host_path }}'
+    default: yes
+    entity: '{{ postgresql_uid }}'
+    etype: user
+    follow: no
+    permissions: wx
+    recursive: yes
+    state: present
   sudo: yes
   tags: db
 
@@ -35,7 +39,7 @@
       name: postgres
       image: registry.centos.org/sclo/postgresql-95-centos7
       volumes:
-          - "{{ db_backup_host_path }}:/var/lib/pgsql/data"
+          - "{{ db_backup_host_path }}:/var/lib/pgsql/data:Z"
       ports:
           - "{{ db_host }}:{{ db_port }}:5432"
       env:
@@ -46,23 +50,6 @@
       restart_policy: on-failure
   sudo: yes
   tags: db
-  when: not test
-
-- name: Run postgres container in CI environment
-  docker_container:
-    name: postgres
-    image: registry.centos.org/sclo/postgresql-95-centos7
-    ports:
-      - "{{ db_host }}:{{ db_port }}:5432"
-    env:
-      POSTGRESQL_USER: '{{ db_user }}'
-      POSTGRESQL_PASSWORD: '{{ db_pass }}'
-      POSTGRESQL_DATABASE: '{{ db_name }}'
-    state: started
-    restart_policy: on-failure
-  sudo: yes
-  tags: db
-  when: test
 
 - name: Wait for 20 seconds for the db to come up
   pause:
