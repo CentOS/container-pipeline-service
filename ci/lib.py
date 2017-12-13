@@ -433,7 +433,7 @@ def setup(nodes, options):
 def run_cccp_index_job(jenkins_master):
     """Run cccp-index job configured in Jenkins
 
-    Running this job on jenkins populates projects in jenkins.
+    Running this job on jenkins master populates projects in jenkins.
     The populated projects job details are listed in cccp-index
     pointed by service.
     This function uses java commands and jenkins master end point
