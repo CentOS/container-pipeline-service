@@ -2,27 +2,3 @@
 - name: Enable cccp-index job
   shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} enable-job cccp-index
   when: test
-
-- name: Run cccp-index job
-  shell: java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} build cccp-index -f -v
-  when: test
-  register: result
-
-- name: cccp-index job build output
-  debug: msg="{{ result['stdout'] }}"
-  failed_when: "'Finished: ERROR' in result['stdout']"
-  when: test
-
-- name: Wait for test job to create
-  shell:  java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} list-jobs
-  register: result
-  until: result.stdout.find("bamachrn-python") != -1
-  retries: 50
-  delay: 10
-  when: test
-
-- name: Disable jenkins jobs
-  shell: |
-      for job in `java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} list-jobs`; do
-          java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} disable-job $job;
-      done

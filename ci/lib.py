@@ -4,12 +4,14 @@ import select
 import subprocess
 import sys
 
-PROJECT_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__),
-                 '..')
-)
+from time import sleep
 
-DEPLOY_LOGS_PATH = "/root/deploy.logs"
+from constants import PROJECT_DIR,\
+                      DEPLOY_LOGS_PATH,\
+                      JENKINS_HOSTNAME,\
+                      JENKINS_HTTP_PORT,\
+                      JENKINS_JAR_LOCATION,\
+                      CI_TEST_JOB_NAME
 
 
 def _print(msg):
@@ -426,6 +428,70 @@ def setup(nodes, options):
         'provisioned': True,
         'hosts': hosts_data
     }
+
+
+def run_cccp_index_job(jenkins_master):
+    """Run cccp-index job configured in Jenkins
+
+    Running this job on jenkins master populates projects in jenkins.
+    The populated projects job details are listed in cccp-index
+    pointed by service.
+    This function uses java commands and jenkins master end point
+    to run the job.
+
+    Args:
+        jenkins_master (str): Jenkins master hostname for deployed service
+
+    Raises:
+        ExceptionError: If cccp-index job running fails.
+    """
+
+    # build command for running cccp-index job
+    cmd = ("java -jar {jar_location} -s http://{jenkins_hostname}:{http_port} "
+           "build cccp-index -f -v").format(
+        jar_location=JENKINS_JAR_LOCATION,
+        jenkins_hostname=JENKINS_HOSTNAME,
+        http_port=JENKINS_HTTP_PORT
+    )
+    # run the command store the results to check further
+    out = run_cmd(cmd, host=jenkins_master)
+
+    # if there is error in running cccp-index job, fail
+    if "Finished:Error" in out:
+        raise Exception("Failed running cccp-index job. Exiting!")
+
+    # check if test job is created
+    cmd = ("java -jar {jar_location} -s http://{jenkins_hostname}:{http_port} "
+           "list-jobs").format(
+        jar_location=JENKINS_JAR_LOCATION,
+        jenkins_hostname=JENKINS_HOSTNAME,
+        http_port=JENKINS_HTTP_PORT
+    )
+    # retry 50 times with 10 seconds interval
+    for i in range(50):
+        jenkins_jobs = run_cmd(cmd, host=jenkins_master)
+        if CI_TEST_JOB_NAME not in jenkins_jobs:
+            # wait for test 10 seconds to let jenkins populate the jobs
+            sleep(10)
+            continue
+        else:
+            _print("Test jobs are created successfully!")
+            break
+
+    # get the job names in a list
+    jenkins_jobs = jenkins_jobs.strip().split()
+
+    # now finally disable the jenkins jobs, since we need one time run only
+    cmd = ("java -jar {jar_location} -s http://{jenkins_hostname}:{http_port} "
+           " disable-job").format(
+        jar_location=JENKINS_JAR_LOCATION,
+        jenkins_hostname=JENKINS_HOSTNAME,
+        http_port=JENKINS_HTTP_PORT
+    )
+    # disable the jobs one by one
+    for job in jenkins_jobs:
+        # append the job name at the end of command and execute
+        run_cmd(cmd + " " + job, host=jenkins_master)
 
 
 def test(data, path=None):
