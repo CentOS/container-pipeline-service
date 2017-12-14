@@ -110,7 +110,7 @@ def get_projects_from_index(indexdlocation):
 
                         build_context = project.get("build-context")
                         if not build_context:
-                            build_context = "."
+                            build_context = "./"
 
                         desiredtag = str(desiredtag)
 
