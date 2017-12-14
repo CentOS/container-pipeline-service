@@ -25,16 +25,8 @@
   tags: db
 
 - name: Set ACL for local dir for volumen sharing
-  acl:
-    path: '{{ db_local_volume }}'
-    default: yes
-    entity: '{{ postgresql_uid }}'
-    etype: user
-    follow: no
-    permissions: wx
-    recursive: yes
-    state: present
   sudo: yes
+  shell: "setfacl -m u:{{ postgresql_uid }}:-wx {{ db_local_volume }}"
   tags: db
 
 - name: Reload docker systemd service
