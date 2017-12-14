@@ -48,8 +48,8 @@ log_level = DEBUG
 # postgresql database related configurations
 
 # Needed variable for deployments, default:/srv/pipeline-logs/db/cccp/, update as required
-db_backup_host_path=/srv/pipeline-logs/db/cccp/
-
+db_backup_nfs_path=/srv/db/cccp
+db_local_volume=/srv/local-db-volume/cccp
 db_host=jenkins_master
 
 allowed_hosts = "['127.0.0.1']"
