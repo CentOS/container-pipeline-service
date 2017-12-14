@@ -20,6 +20,8 @@ db_pass: cccp
 db_host: '0.0.0.0'
 db_port: 5432
 postgresql_image: registry.centos.org/sclo/postgresql-95-centos7
+postgresql_uid: 26
+
 allowed_hosts: "['127.0.0.1']"
 
 sentry_enabled: false

@@ -256,7 +256,8 @@ openshift_server_ip={openshift_host}
 deployment=ci
 cccp_index_repo=https://github.com/centos/container-index.git
 cccp_index_repo_branch=ci
-db_backup_host_path=/srv/db/cccp/
+db_backup_host_nfs_path=/srv/db/cccp
+db_local_volume=/srv/local-db-volume/cccp
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key

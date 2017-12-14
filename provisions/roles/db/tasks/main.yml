@@ -1,8 +1,33 @@
 ---
-- name: Ensure cccp data dir exists
+- name: Check if NFS backup directory exists on node
+  stat:
+    path: '{{db_backup_nfs_path}}'
+  register: nfs_dir_mounted
+  when: not test
+
+- name: Fail if NFS share is not mounted on node for db backup
+  fail:
+    msg: "NFS share is not mounted on node for db backup."
+  when: not test && not nfs_dir_mounted
+
+- name: Ensure local dir exists on node for db volume sharing
   file:
-    path: '{{ db_backup_host_path }}'
+    path: '{{ db_local_volume }}'
     state: directory
+    mode: 0766
+  sudo: yes
+  tags: db
+
+- name: Set ACL for local dir for volumen sharing
+  acl:
+    path: '{{ db_local_volume }}'
+    default: yes
+    entity: '{{ postgresql_uid }}'
+    etype: user
+    follow: no
+    permissions: wx
+    recursive: yes
+    state: present
   sudo: yes
   tags: db
 
@@ -25,8 +50,10 @@
   docker_container:
       name: postgres
       image: '{{ postgresql_image }}'
+      volumes:
+        - "{{ db_local_volume }}:/var/lib/pgsql/data:Z"
       ports:
-          - "{{ db_host }}:{{ db_port }}:5432"
+        - "{{ db_host }}:{{ db_port }}:5432"
       env:
           POSTGRESQL_USER: '{{ db_user }}'
           POSTGRESQL_PASSWORD: '{{ db_pass }}'
