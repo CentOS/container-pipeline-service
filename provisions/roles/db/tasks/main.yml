@@ -1,14 +1,20 @@
 ---
 - name: Check if NFS backup directory exists on node
+  sudo: yes
   stat:
     path: '{{db_backup_nfs_path}}'
   register: nfs_dir_mounted
   when: not test
+  tags: db
 
 - name: Fail if NFS share is not mounted on node for db backup
+  sudo: yes
   fail:
     msg: "NFS share is not mounted on node for db backup."
-  when: not test && not nfs_dir_mounted
+  when:
+    - not test
+    - not nfs_dir_mounted
+  tags: db
 
 - name: Ensure local dir exists on node for db volume sharing
   file:
