@@ -9,7 +9,9 @@ WSGI_PATH="${CODE_PATH}/wsgi.py"
 PIDFILE="${APACHE_RUNTIME_DIR}/httpd.pid"
 STATIC_FILES="${CODE_BASE_PATH}/static/"
 
-yum -y install httpd mod_wsgi;
+yum -y install epel-release;
+yum -y install httpd mod_wsgi python PyYAML python-pip postgresql-devel;
+yum -y remove epel-release;
 mkdir -p ${APACHE_RUNTIME_DIR};
 chown -R apache:apache ${CODE_BASE_PATH};
 chown -R apache:apache ${APACHE_RUNTIME_DIR};

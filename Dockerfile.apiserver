@@ -1,13 +1,20 @@
-FROM container-pipeline
+FROM registry.centos.org/centos/centos:latest
 
-EXPOSE 8080
+MAINTAINER CentOS Community Container Pipeline <centos-devel@centos.org>
 
 RUN mkdir -p /opt/cccp-service/static
 
+ADD node.kubeconfig ca.crt /opt/cccp-service/
+
+ADD container_pipeline /opt/cccp-service/container_pipeline
+
+ADD oc /usr/bin/oc
+
+EXPOSE 8080
+
 ADD ./install-apiserver.sh ./run-apiserver.sh /opt/
 
-# For testing purpose. I want the settings to container correct allowed hosts here.
-#ADD container_pipeline/lib/settings.py /opt/cccp-service/container_pipeline/lib/settings.py
+ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
 
 ADD ./static/ /opt/cccp-service/static/
 
