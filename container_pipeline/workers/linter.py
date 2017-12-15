@@ -99,6 +99,7 @@ class DockerfileLintWorker(BaseWorker):
         self.build_phase_name = 'dockerlint'
         self.status_file_path = ""
         self.project_name = None
+        self.MAX_RETRY = 10
 
     def handle_job(self, job):
         """
@@ -155,13 +156,29 @@ class DockerfileLintWorker(BaseWorker):
                 self.logger.info(
                     "Docker file linting successful going for job creation")
                 if not response["job_created"]:
-                    self.logger.info(
+                    self.logger.warning(
                         "Openshift project is not created putting it back to tube")
+                    if self.job.get("retry") is None:
+                        self.job["retry"] = 1
+                    else:
+                        self.job["retry"] = self.job.get("retry") + 1
                     self.job["action"] = "start_linter"
+                else:
+                    self.logger.info("Deleting 'dockerfile' data from job")
+                    self.job["dockerfile"] = None
+                    self.job["retry"] = None
             else:
                 response = self.handle_lint_failure(err)
                 self.job["dockerfile"] = None
                 self.job["action"] = "notify_user"
+
+            if self.job.get("retry") > self.MAX_RETRY:
+                self.job["dockerfile"] = None
+                self.job["action"] = "notify_user"
+                self.job["notify_email"] = "container-status-report@centos.org"
+                self.job["msg"] = "Openshift project {} is not getting deleted".format(
+                    self.job.get("project_name"))
+
             self.queue.put(json.dumps(self.job), 'master_tube')
         except Exception as e:
             self.logger.warning(
@@ -221,11 +238,6 @@ class DockerfileLintWorker(BaseWorker):
             build_phase_status='complete',
             build_phase_end_time=timezone.now()
         )
-
-        # remove Dockerfile from the job data as it's not needed anymore
-        if "dockerfile" in self.job:
-            self.logger.info("Deleting 'dockerfile' data from job")
-            self.job["dockerfile"] = None
 
         response["job_created"] = create_project(
             self.queue, self.job, self.logger)
