@@ -49,7 +49,7 @@
 - name: Copy OpenShift template file
   template:
     src: template.json.j2
-    dest: /opt/cccp-service/container_pipeline/template.json
+    dest: /opt/cccp-service/container_pipeline/workers/template.json
   tags: application
 
 - name: Ensure jenkins is owner of /opt/cccp-service/client dir in slave
