@@ -152,30 +152,29 @@ class DockerfileLintWorker(BaseWorker):
         try:
             out, err = run_cmd_out_err(command)
             if err == "":
-                response = self.handle_lint_success(out)
                 self.logger.info(
-                    "Docker file linting successful going for job creation")
+                    "Dockerfile linting successful going for openshift job creation")
+                response = self.handle_lint_success(out)
                 if not response["job_created"]:
                     self.logger.warning(
-                        "Openshift project is not created putting it back to tube")
+                        "Openshift project is not created putting it back to linter tube")
                     if self.job.get("retry") is None:
-                        self.job["retry"] = 1
+                        self.job["lint_retry"] = 1
                     else:
-                        self.job["retry"] = self.job.get("retry") + 1
+                        self.job["lint_retry"] = self.job.get("lint_retry") + 1
                     self.job["action"] = "start_linter"
                 else:
                     self.logger.info("Deleting 'dockerfile' data from job")
                     self.job["dockerfile"] = None
-                    self.job["retry"] = None
+                    self.job["lint_retry"] = None
             else:
                 response = self.handle_lint_failure(err)
                 self.job["dockerfile"] = None
                 self.job["action"] = "notify_user"
 
-            if self.job.get("retry") > self.MAX_RETRY:
+            if self.job.get("lint_retry") > self.MAX_RETRY:
                 self.job["dockerfile"] = None
                 self.job["action"] = "notify_user"
-                self.job["notify_email"] = "container-status-report@centos.org"
                 self.job["msg"] = "Openshift project {} is not getting deleted".format(
                     self.job.get("project_name"))
 
