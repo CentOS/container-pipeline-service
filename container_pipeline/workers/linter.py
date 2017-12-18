@@ -5,13 +5,13 @@ import logging
 import os
 import time
 
+import container_pipeline.utils as utils
 from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib import settings
 from container_pipeline.lib.command import run_cmd_out_err
 from container_pipeline.lib.log import load_logger
+from container_pipeline.lib.openshift import Openshift, OpenshiftError
 from container_pipeline.models import Build, BuildPhase
-from container_pipeline.trigger_build import create_project
-from container_pipeline.utils import get_project_name
 from container_pipeline.workers.base import BaseWorker
 from django.utils import timezone
 
@@ -45,7 +45,7 @@ def create_project(queue, job, logger):
         if openshift.get_project(project_name_hash):
             logger.error("OpenShift is not able to delete project: {}"
                          .format(job_name))
-            raise
+            return False
         else:
             openshift.create(project_name_hash)
     except OpenshiftError:
@@ -53,7 +53,7 @@ def create_project(queue, job, logger):
             openshift.delete(project_name_hash)
         except OpenshiftError as e:
             logger.error(e)
-        return
+        return False
 
     try:
         template_path = os.path.join(
@@ -74,17 +74,9 @@ def create_project(queue, job, logger):
             openshift.delete(project_name_hash)
         except OpenshiftError as e:
             logger.error(e)
-        return
+        return False
 
-    job["action"] = "start_build"
-
-    build = Build.objects.get(uuid=job['uuid'])
-    build_phase, created = BuildPhase.objects.get_or_create(
-        build=build, phase='build')
-
-    queue.put(json.dumps(job), 'master_tube')
-    build_phase.status = 'queued'
-    build_phase.save()
+    return True
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -164,9 +156,16 @@ class DockerfileLintWorker(BaseWorker):
                         self.job["lint_retry"] = self.job.get("lint_retry") + 1
                     self.job["action"] = "start_linter"
                 else:
-                    self.logger.info("Deleting 'dockerfile' data from job")
+                    self.logger.info(
+                        "OpenShift project created, deleting 'dockerfile' data from job")
                     self.job["dockerfile"] = None
                     self.job["lint_retry"] = None
+                    self.job["action"] = "start_build"
+                    build = Build.objects.get(uuid=job['uuid'])
+                    build_phase, created = BuildPhase.objects.get_or_create(
+                        build=build, phase='build')
+                    build_phase.status = 'queued'
+                    build_phase.save()
             else:
                 response = self.handle_lint_failure(err)
                 self.job["dockerfile"] = None
