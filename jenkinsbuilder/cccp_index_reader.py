@@ -10,6 +10,7 @@ from glob import glob
 
 import yaml
 
+from container_pipeline.lib.settings import LOGS_BASE_DIR
 from container_pipeline.lib.log import load_logger
 from container_pipeline.model_tmp.containers import (ContainerLinksModel,
                                                      form_Dockerfile_link)
@@ -37,9 +38,9 @@ logger = logging.getLogger('jenkins')
 
 # pathname of file having all project names
 # this file will be generated after first run
-# and will reside in same directory as of this python file
+# and will reside in NFS logs directory to persist across redeployments
 projects_list = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)),
+    LOGS_BASE_DIR,
     "all_projects_names.txt"
 )
 
@@ -327,9 +328,12 @@ def main(indexdlocation):
     )
     logger.info("List of stale projects: %s ", str(stale_projects))
 
-    # delete stale entries at jenkins
-    logger.debug("Deleting stale projects.")
-    delete_stale_projects_on_jenkins(stale_projects)
+    if stale_projects:
+        # delete stale entries at jenkins
+        logger.debug("Deleting stale projects.")
+        delete_stale_projects_on_jenkins(stale_projects)
+    else:
+        logger.info("No stale projects in Jenkins.")
 
     # export the current projects_list in file
     logger.debug("Exporting current project names.")
