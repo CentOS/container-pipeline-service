@@ -74,9 +74,13 @@ class Openshift(object):
     def delete(self, project):
         self.logger.debug('Delete openshift project: {}'.format(project))
         try:
-            run_cmd(
-                'oc delete project {project} {suffix}'
-                .format(project=project, suffix=self.oc_cmd_suffix))
+            if self.get_project(project):
+                run_cmd(
+                    'oc delete --force project {project} {suffix}'
+                    .format(project=project, suffix=self.oc_cmd_suffix))
+            else:
+                self.logger.debug(
+                    "OpenShift project {} not found".format(project))
         except subprocess.CalledProcessError as e:
             raise OpenshiftError(
                 'Error during deleting openshift project {}: {}'.format(
