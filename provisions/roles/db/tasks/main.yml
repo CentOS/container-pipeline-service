@@ -82,3 +82,20 @@
   tags:
     - db
     - cron
+
+- name: Copy cron script to check if the pg-dump exported latest tar file is readable
+  sudo: yes
+  template: src=cron_cccp_db_read_check.sh.j2 dest=/root/cron_cccp_db_read_check.sh mode=0755
+  tags:
+    - db
+    - cron
+
+- name: Cron job for postgresql db backups hourly
+  sudo: yes
+  cron:
+      name: "Postgresql cccp database tar readability check"
+      job: "/root/cron_cccp_db_read_check.sh"
+      special_time: daily
+  tags:
+    - db
+    - cron

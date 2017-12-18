@@ -1,0 +1,58 @@
+#!/bin/bash
+
+INPUT_DIR="{{ db_backup_nfs_path }}"
+
+DBUSER="{{ db_user }}"
+DBNAME="{{ db_name }}"
+DBPASS="{{ db_pass }}"
+
+PGIMAGE="{{ postgresql_image }}"
+
+# find latest tar file in $INPUT_DIR first
+LATEST=$(ls -Art $INPUT_DIR | grep cccp-pgdump.tar | tail -n 1)
+# find its absolute path
+LATEST_DUMP=$(find $INPUT_DIR -name $LATEST)
+
+PGSERVERNAME="postgresql_restore"
+
+AUTH_LING="PGUSER=$PGUSER PGDATABASE=$DBUSER PGPASSWORD=$DBPASS"
+
+echo "==================================================================="
+echo "`date +'%F %T'` Starting restore test for  $LATEST_DUMP"
+echo "-------------------------------------------------------------------"
+echo "File to be tested is $LATEST_DUMP"
+
+# run the server
+echo "Running the postgresql server.."
+RUN_CMD="docker run -d -v $INPUT_DIR:$INPUT_DIR --name $PGSERVERNAME -e 'POSTGRESQL_DATABASE=$DBNAME' -e 'POSTGRESQL_USER=$DBUSER' -e 'POSTGRESQL_PASSWORD=$DBPASS' $PGIMAGE"
+echo "Docker run command for running postgresql_container: "
+echo "$RUN_CMD"
+eval $RUN_CMD
+rc=$?; if [[ $rc != 0 ]]; then echo "Failed to run postgresql_server. Exiting!"; exit $rc;
+echo "Wait for server to start up.."
+sleep 5
+
+echo "Restore $LATEST_DUMP dump file into $DBNAME database"
+RESTORE_CMD="docker exec $PGSERVERNAME bash -c 'exec pg_restore --exit-on-error --clean -d $DBNAME $LATEST_DUMP'"
+echo "Restore command: "
+echo "$RESTORE_CMD"
+# restore a database dump file
+eval $RESTPRE_CMD
+rc=$?; if [[ $rc != 0 ]]; then echo "Failed to restore database. Exiting!"; exit $rc;
+echo "Wait for restore to complete.."
+sleep 5
+
+echo "Check if tables exists in $DBNAME database after restore"
+# check tables of restored database
+docker exec -t $PGSERVERNAME bash -c "exec psql -U $DBNAME -c 'SELECT * FROM projects'";\
+  docker exec -t $PGSERVERNAME bash -c "SELECT * FROM container_images'";\
+  docker exec -t $PGSERVERNAME bash -c "SELECT * FROM builds"
+rc=$?; if [[ $rc != 0 ]]; then echo "Failed to run postgresql_server. Exiting!"; exit $rc;
+
+# stop and remove the restore container
+echo "Removing $PGSERVERNAME container"
+docker stop $PGSERVERNAME && docker rm $PGSERVERNAME
+
+echo "-------------------------------------------------------------------"
+echo "`date +'%F %T'` Tested restoring $LATEST_DUMP."
+echo "==================================================================="
