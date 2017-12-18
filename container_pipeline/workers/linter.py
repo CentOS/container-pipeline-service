@@ -6,15 +6,14 @@ import os
 import time
 
 from container_pipeline.lib import dj  # noqa
-import container_pipeline.utils as utils
-from django.utils import timezone
-
 from container_pipeline.lib import settings
 from container_pipeline.lib.command import run_cmd_out_err
 from container_pipeline.lib.log import load_logger
-from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.workers.base import BaseWorker
 from container_pipeline.models import Build, BuildPhase
+from container_pipeline.trigger_build import create_project
+from container_pipeline.utils import get_project_name
+from container_pipeline.workers.base import BaseWorker
+from django.utils import timezone
 
 
 def create_project(queue, job, logger):
@@ -80,7 +79,8 @@ def create_project(queue, job, logger):
     job["action"] = "start_build"
 
     build = Build.objects.get(uuid=job['uuid'])
-    build_phase, created = BuildPhase.objects.get_or_create(build=build, phase='build')
+    build_phase, created = BuildPhase.objects.get_or_create(
+        build=build, phase='build')
 
     queue.put(json.dumps(job), 'master_tube')
     build_phase.status = 'queued'
@@ -152,15 +152,21 @@ class DockerfileLintWorker(BaseWorker):
             out, err = run_cmd_out_err(command)
             if err == "":
                 response = self.handle_lint_success(out)
+                self.logger.info(
+                    "Docker file linting successful going for job creation")
+                if not response["job_created"]:
+                    self.logger.info(
+                        "Openshift project is not created putting it back to tube")
+                    self.job["action"] = "start_linter"
             else:
                 response = self.handle_lint_failure(err)
                 self.job["dockerfile"] = None
                 self.job["action"] = "notify_user"
-                self.queue.put(json.dumps(self.job), 'master_tube')
+            self.queue.put(json.dumps(self.job), 'master_tube')
         except Exception as e:
             self.logger.warning(
-                "Dockerfile Lint check command failed",
-                extra={'locals': locals()})
+                "Dockerfile Lint check command failed", extra={'locals':
+                                                               locals()})
             response = self.handle_lint_failure(str(e))
 
             self.job["dockerfile"] = None
@@ -221,7 +227,8 @@ class DockerfileLintWorker(BaseWorker):
             self.logger.info("Deleting 'dockerfile' data from job")
             self.job["dockerfile"] = None
 
-        create_project(self.queue, self.job, self.logger)
+        response["job_created"] = create_project(
+            self.queue, self.job, self.logger)
         return response
 
     def handle_lint_failure(self, error):
