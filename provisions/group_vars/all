@@ -21,6 +21,8 @@ db_host: '0.0.0.0'
 db_port: 5432
 postgresql_image: registry.centos.org/centos/postgresql-95-centos7
 postgresql_uid: 26
+# expire the cccp database pg_dump tar files after given number of days
+expire_tar_after: 4
 
 allowed_hosts: "['127.0.0.1']"
 
