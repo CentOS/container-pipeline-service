@@ -99,3 +99,20 @@
   tags:
     - db
     - cron
+
+- name: Copy cron script to delete old pg_dump tar files
+  sudo: yes
+  template: src=cron_delete_pg_dump_tars.sh.j2 dest=/root/cron_delete_pg_dump_tars.sh mode=0755
+  tags:
+    - db
+    - cron
+
+- name: Cron job to delete old pg_dump tar files daily
+  sudo: yes
+  cron:
+      name: "Cron to delete old pg_dump tar files daily"
+      job: "/root/cron_delete_pg_dump_tars.sh"
+      special_time: daily
+  tags:
+    - db
+    - cron
