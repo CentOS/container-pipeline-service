@@ -28,7 +28,7 @@ RUN_CMD="docker run -d -v $INPUT_DIR:$INPUT_DIR --name $PGSERVERNAME -e 'POSTGRE
 echo "Docker run command for running postgresql_container: "
 echo "$RUN_CMD"
 eval $RUN_CMD
-rc=$?; if [[ $rc != 0 ]]; then echo "Failed to run postgresql_server. Exiting!"; exit $rc;
+rc=$?; if [[ $rc != 0 ]]; then echo "Failed to run postgresql_server. Exiting!"; exit $rc; fi
 echo "Wait for server to start up.."
 sleep 5
 
@@ -38,7 +38,7 @@ echo "Restore command: "
 echo "$RESTORE_CMD"
 # restore a database dump file
 eval $RESTPRE_CMD
-rc=$?; if [[ $rc != 0 ]]; then echo "Failed to restore database. Exiting!"; exit $rc;
+rc=$?; if [[ $rc != 0 ]]; then echo "Failed to restore database. Exiting!"; exit $rc; fi
 echo "Wait for restore to complete.."
 sleep 5
 
@@ -47,7 +47,7 @@ echo "Check if tables exists in $DBNAME database after restore"
 docker exec -t $PGSERVERNAME bash -c "exec psql -U $DBNAME -c 'SELECT * FROM projects'";\
   docker exec -t $PGSERVERNAME bash -c "SELECT * FROM container_images'";\
   docker exec -t $PGSERVERNAME bash -c "SELECT * FROM builds"
-rc=$?; if [[ $rc != 0 ]]; then echo "Failed to run postgresql_server. Exiting!"; exit $rc;
+rc=$?; if [[ $rc != 0 ]]; then echo "Failed to run postgresql_server. Exiting!"; exit $rc; fi
 
 # stop and remove the restore container
 echo "Removing $PGSERVERNAME container"
