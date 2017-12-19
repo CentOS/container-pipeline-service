@@ -56,6 +56,7 @@ docker exec -t $PGSERVERNAME bash -c "psql -U $DBUSER -c 'SELECT uuid FROM build
 exit_on_non_zero $? "Table builds does not exist in $LATEST_DUMP"
 
 #if all is well, stop and remove the postgres container
+echo "Removing $PGSERVERNAME container"
 docker stop $PGSERVERNAME && docker rm $PGSERVERNAME
 
 echo "-------------------------------------------------------------------"
