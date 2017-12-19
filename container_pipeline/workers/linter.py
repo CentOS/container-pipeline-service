@@ -161,7 +161,7 @@ class DockerfileLintWorker(BaseWorker):
                     self.job["dockerfile"] = None
                     self.job["lint_retry"] = None
                     self.job["action"] = "start_build"
-                    build = Build.objects.get(uuid=job['uuid'])
+                    build = Build.objects.get(uuid=self.job['uuid'])
                     build_phase, created = BuildPhase.objects.get_or_create(
                         build=build, phase='build')
                     build_phase.status = 'queued'
