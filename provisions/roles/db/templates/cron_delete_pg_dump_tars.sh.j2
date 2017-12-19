@@ -1,0 +1,10 @@
+#!/bin/bash
+BACKUPDIR="{{ db_backup_nfs_path}}"
+DAYS=3
+
+echo "-----------------------------------------------------------------------------------------------"
+echo "`date +'%F %T'` Removing the repetitve postgresql cccp database tar files older than $DAYS days"
+
+find $BACKUPDIR -type f -name "*cccp-pgdump.tar" -atime +$DAYS -delete
+echo "Deleted postgresql cccp database tar dump files older than $DAYS days."
+echo "-----------------------------------------------------------------------------------------------"
