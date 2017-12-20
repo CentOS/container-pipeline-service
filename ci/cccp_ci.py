@@ -22,7 +22,10 @@ ver = "7"
 arch = "x86_64"
 count = 4
 NFS_SHARE = "/nfsshare"
+# number of retries if failed receiving nodes from CICO
 CICO_GET_RETRY_COUNT = 3
+# number of seconds to helo VMs if #dotests-debug is commented on PR
+DEBUG_SECONDS = 7200
 
 # repo_url = os.environ.get('ghprbAuthorRepoGitUrl') or \
 #     os.environ.get('GIT_URL')
@@ -89,8 +92,8 @@ def _if_debug():
         print_nodes()
         try:
             _print('Sleeping for %s seconds for debugging...'
-                   % 7200)
-            sleep(int(7200))
+                   % str(DEBUG_SECONDS))
+            sleep(DEBUG_SECONDS)
         except Exception as e:
             _print(e)
         with open('env.properties', 'a') as f:
