@@ -7,7 +7,9 @@ and provides a layer of abstraction around config loading.
 import os
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'DEBUG'
-LOG_PATH = '/srv/pipeline-logs/cccp.log'
+LOGS_BASE_DIR = '/srv/pipeline-logs'
+LOG_PATH = os.path.join(LOGS_BASE_DIR, 'cccp.log')
+
 SERVICE_LOGFILE = "service_debug_log.txt"
 
 # Django specific configuration
