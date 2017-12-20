@@ -5,16 +5,15 @@ import logging
 import os
 import time
 
-from container_pipeline.lib import dj  # noqa
 import container_pipeline.utils as utils
-from django.utils import timezone
-
+from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib import settings
 from container_pipeline.lib.command import run_cmd_out_err
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.openshift import Openshift, OpenshiftError
-from container_pipeline.workers.base import BaseWorker
 from container_pipeline.models import Build, BuildPhase
+from container_pipeline.workers.base import BaseWorker
+from django.utils import timezone
 
 
 def create_project(queue, job, logger):
@@ -46,7 +45,7 @@ def create_project(queue, job, logger):
         if openshift.get_project(project_name_hash):
             logger.error("OpenShift is not able to delete project: {}"
                          .format(job_name))
-            raise
+            return False
         else:
             openshift.create(project_name_hash)
     except OpenshiftError:
@@ -54,7 +53,7 @@ def create_project(queue, job, logger):
             openshift.delete(project_name_hash)
         except OpenshiftError as e:
             logger.error(e)
-        return
+        return False
 
     try:
         template_path = os.path.join(
@@ -75,16 +74,9 @@ def create_project(queue, job, logger):
             openshift.delete(project_name_hash)
         except OpenshiftError as e:
             logger.error(e)
-        return
+        return False
 
-    job["action"] = "start_build"
-
-    build = Build.objects.get(uuid=job['uuid'])
-    build_phase, created = BuildPhase.objects.get_or_create(build=build, phase='build')
-
-    queue.put(json.dumps(job), 'master_tube')
-    build_phase.status = 'queued'
-    build_phase.save()
+    return True
 
 
 class DockerfileLintWorker(BaseWorker):
@@ -99,6 +91,7 @@ class DockerfileLintWorker(BaseWorker):
         self.build_phase_name = 'dockerlint'
         self.status_file_path = ""
         self.project_name = None
+        self.MAX_RETRY = 10
 
     def handle_job(self, job):
         """
@@ -151,16 +144,44 @@ class DockerfileLintWorker(BaseWorker):
         try:
             out, err = run_cmd_out_err(command)
             if err == "":
+                self.logger.info(
+                    "Dockerfile linting successful going for openshift job creation")
                 response = self.handle_lint_success(out)
+                if not response["job_created"]:
+                    self.logger.warning(
+                        "Openshift project is not created putting it back to linter tube")
+                    if self.job.get("retry") is None:
+                        self.job["lint_retry"] = 1
+                    else:
+                        self.job["lint_retry"] = self.job.get("lint_retry") + 1
+                    self.job["action"] = "start_linter"
+                else:
+                    self.logger.info(
+                        "OpenShift project created, deleting 'dockerfile' data from job")
+                    self.job["dockerfile"] = None
+                    self.job["lint_retry"] = None
+                    self.job["action"] = "start_build"
+                    build = Build.objects.get(uuid=self.job['uuid'])
+                    build_phase, created = BuildPhase.objects.get_or_create(
+                        build=build, phase='build')
+                    build_phase.status = 'queued'
+                    build_phase.save()
             else:
                 response = self.handle_lint_failure(err)
                 self.job["dockerfile"] = None
                 self.job["action"] = "notify_user"
-                self.queue.put(json.dumps(self.job), 'master_tube')
+
+            if self.job.get("lint_retry") > self.MAX_RETRY:
+                self.job["dockerfile"] = None
+                self.job["action"] = "notify_user"
+                self.job["msg"] = "Openshift project {} is not getting deleted".format(
+                    self.job.get("project_name"))
+
+            self.queue.put(json.dumps(self.job), 'master_tube')
         except Exception as e:
             self.logger.warning(
-                "Dockerfile Lint check command failed",
-                extra={'locals': locals()})
+                "Dockerfile Lint check command failed", extra={'locals':
+                                                               locals()})
             response = self.handle_lint_failure(str(e))
 
             self.job["dockerfile"] = None
@@ -216,12 +237,8 @@ class DockerfileLintWorker(BaseWorker):
             build_phase_end_time=timezone.now()
         )
 
-        # remove Dockerfile from the job data as it's not needed anymore
-        if "dockerfile" in self.job:
-            self.logger.info("Deleting 'dockerfile' data from job")
-            self.job["dockerfile"] = None
-
-        create_project(self.queue, self.job, self.logger)
+        response["job_created"] = create_project(
+            self.queue, self.job, self.logger)
         return response
 
     def handle_lint_failure(self, error):

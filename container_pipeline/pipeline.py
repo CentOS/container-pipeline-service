@@ -3,14 +3,12 @@ import sys
 import uuid
 
 from container_pipeline.lib import dj  # noqa
-
-from django.utils import timezone
-
 from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
+from container_pipeline.models import Build, Project
+from container_pipeline.utils import get_job_hash, get_project_name
+from django.utils import timezone
 from trigger_dockerfile_lint import trigger_dockerfile_linter
-from container_pipeline.utils import get_project_name, get_job_hash
-from container_pipeline.models import Project, Build
 
 
 def create_new_job():
@@ -61,7 +59,8 @@ def create_new_job():
         "msg",           # to capture message in case of exception in
                          # triggering linter
         "delivery_log_file",     # log file for delivery worker,
-        "build_context", # The build context of the build
+        "build_context",  # The build context of the build
+        "lint_retry"    # this is for checking number of retries in dockerfile lint
     ])
 
     return job
@@ -111,7 +110,7 @@ def main(args):
         "registry.centos.org/{}/{}:{}".format(appid, jobid, desired_tag)
     job['beanstalk_server'] = settings.BEANSTALKD_HOST
     job['image_under_test'] = "{}/{}/{}:{}".format(
-                settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
+        settings.REGISTRY_ENDPOINT[0], appid, jobid, test_tag)
     job['build_context'] = build_context
 
     # Create a build entry for project to track build
