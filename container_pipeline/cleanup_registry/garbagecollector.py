@@ -71,7 +71,7 @@ class GarbageCollector(object):
             # If no more tags, delete namespace
             subs = glob(tags + "/*")
             if len(subs) <= 0:
-                lib.rm(namespace_path) 
+                lib.rm(namespace_path)
 
     def collect(self):
         """Initiate the garbage collection."""

@@ -2,7 +2,7 @@ from os import path, devnull
 import urllib2
 import subprocess
 from urlparse import urlparse, urlunparse
-from yaml import load
+import yaml
 from shutil import rmtree
 import json
 
@@ -18,7 +18,7 @@ def load_yaml(yaml_path):
     if not path.exists(yaml_path):
         raise Exception("The yaml file does not exist at " + yaml_path)
     with open(yaml_path, "r") as yaml_file:
-        return load(yaml_file)
+        return yaml.load(yaml_file, Loader=yaml.BaseLoader)
 
 
 def run_cmd(cmd, check_call=True, no_shell=False):
