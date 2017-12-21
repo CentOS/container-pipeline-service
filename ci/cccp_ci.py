@@ -11,6 +11,7 @@
 import json
 import os
 import sys
+from time import sleep
 
 from ci.lib import _print, setup, test, teardown, \
         run_cmd, DEPLOY_LOGS_PATH, run_cccp_index_job
@@ -21,7 +22,10 @@ ver = "7"
 arch = "x86_64"
 count = 4
 NFS_SHARE = "/nfsshare"
-
+# number of retries if failed receiving nodes from CICO
+CICO_GET_RETRY_COUNT = 3
+# number of seconds to helo VMs if #dotests-debug is commented on PR
+DEBUG_SECONDS = 7200
 
 # repo_url = os.environ.get('ghprbAuthorRepoGitUrl') or \
 #     os.environ.get('GIT_URL')
@@ -88,9 +92,8 @@ def _if_debug():
         print_nodes()
         try:
             _print('Sleeping for %s seconds for debugging...'
-                   % 7200)
-            import time
-            time.sleep(int(7200))
+                   % str(DEBUG_SECONDS))
+            sleep(DEBUG_SECONDS)
         except Exception as e:
             _print(e)
         with open('env.properties', 'a') as f:
@@ -100,8 +103,19 @@ def _if_debug():
 if __name__ == '__main__':
     try:
         # get nodes from CICO infra
-        nodes = get_nodes(count=5)
-        _print(str(nodes))
+        while CICO_GET_RETRY_COUNT > 0:
+            try:
+                nodes = get_nodes(count=5)
+            except Exception as e:
+                _print("Failed to get nodes from CICO. Error %s" % str(e))
+                CICO_GET_RETRY_COUNT -= 1
+                _print("Retrying get nodes from CICO, count=%d" %
+                       CICO_GET_RETRY_COUNT)
+                # sleep for one minute
+                sleep(int(60))
+            else:
+                _print(str(nodes))
+                break
     except Exception as e:
         _print('Build failed while receiving nodes from CICO:\n%s' % e)
         _if_debug()
