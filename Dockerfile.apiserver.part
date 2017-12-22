@@ -1,0 +1,18 @@
+# Stuff for API Server starts here.
+
+EXPOSE 8080
+
+ADD ./install-apiserver.sh ./run-apiserver.sh /opt/
+
+ADD ./static/ /opt/cccp-service/static/
+
+RUN chmod -R +x /opt && sh /opt/install-apiserver.sh
+
+USER apache
+
+ENTRYPOINT ["/opt/run-apiserver.sh"]
+CMD ["apache"]
+
+
+ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
+WORKDIR /opt/cccp-service
