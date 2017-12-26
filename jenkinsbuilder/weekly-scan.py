@@ -7,6 +7,9 @@ import os
 import subprocess
 import sys
 import yaml
+import uuid
+from container_pipeline.models.pipeline import Project, Build, BuildPhase
+from django.utils import timezone
 
 
 # Logs base URL
@@ -73,11 +76,13 @@ for f in files:
 
         # Scan an image only if it exists in the catalog!
         if entry_short_name in json_catalog:
+            job_uuid = str(uuid.uuid4())
+            project_name = str(app_id) + "-" + str(job_id) + "-" + str(desired_tag)
             data = {
                 "action": "start_scan",
                 "tag": desired_tag,
-                "namespace": str(app_id) + "-" + str(job_id) + "-" +
-                str(desired_tag),
+                "project_name": project_name,
+                "namespace": project_name,
                 "image_under_test": "%s:5000/%s/%s:%s" %
                 (registry, app_id, job_id, desired_tag),
                 "output_image": "registry.centos.org/%s/%s:%s" %
@@ -86,9 +91,23 @@ for f in files:
                 "weekly": True,
                 "logs_dir": LOGS_DIR,
                 "test_tag": test_tag,
-                "job_name": job_id
+                "job_name": job_id,
+                "uuid": job_uuid
             }
 
             job = bs.put(json.dumps(data))
+
+            # Initializing Database entries
+            project, created = Project.objects.get_or_create(name=project_name)
+            build = Build.objects.create(uuid=job_uuid, project=project,
+                                         status='queued',
+                                         start_time=timezone.now(),
+                                         weekly_scan=True
+                                         )
+            scan_phase, created = BuildPhase.objects.get_or_create(
+                build=build, phase='scan')
+            scan_phase.status = 'queued'
+            scan_phase.save()
+
             print "Image %s sent for weekly scan with data %s" % \
                 (entry_short_name, data)
