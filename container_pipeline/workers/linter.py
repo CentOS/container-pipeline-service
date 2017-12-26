@@ -134,11 +134,11 @@ class DockerfileLintWorker(BaseWorker):
         """
         Lint the Dockerfile received
         """
-        command = ("docker",
+        command = ("sudo",
+                   "docker",
                    "run",
                    "--rm",
-                   "-v",
-                   "/tmp/scan:/root/scan:Z",
+                   "--volumes-from=`hostname`"
                    "registry.centos.org/pipeline-images/dockerfile-lint")
 
         try:
