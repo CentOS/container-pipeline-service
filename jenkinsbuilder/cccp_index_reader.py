@@ -262,8 +262,8 @@ def create_or_update_project_on_jenkins(indexdlocation):
                 exit(1)
             Project.objects.get_or_create(
                 name='{}-{}-{}'.format(
-                    project[0]['project']['jobid'],
                     project[0]['project']['appid'],
+                    project[0]['project']['jobid'],
                     project[0]['project']['desired_tag']))
 
         except Exception as e:
