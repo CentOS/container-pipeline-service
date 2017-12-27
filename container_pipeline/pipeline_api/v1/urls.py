@@ -11,10 +11,14 @@ def get_v1_urls():
     router1.register(r'builds', views.BuildViewSet)
     router1.register(r'build-phases', views.BuildPhaseViewSet)
     router1.register(r'container-image', views.ContainerImageViewSet)
-    urls += url(constants.V1_ENDPOINT, include(router1.urls))
+    urls += [
+            url(constants.V1_ENDPOINT, include(router1.urls))
+        ]
 
     router2 = routers.DefaultRouter()
     router2.register(r'package', views.PackageViewSet)
     router2.register(r'repo-info', views.RepoInfoViewSet)
-    urls += url(constants.V1_RPM_ENDPOINT, include(router2.urls))
+    urls += [
+            url(constants.V1_RPM_ENDPOINT, include(router2.urls))
+        ]
     return urls
