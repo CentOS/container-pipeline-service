@@ -138,7 +138,7 @@ class DockerfileLintWorker(BaseWorker):
                    "docker",
                    "run",
                    "--rm",
-                   "--volumes-from=`hostname`"
+                   "--volumes-from={}".format(os.uname()[1]),
                    "registry.centos.org/pipeline-images/dockerfile-lint")
 
         try:
