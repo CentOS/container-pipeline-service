@@ -71,7 +71,9 @@ class ScanWorker(BaseWorker):
             scanners_data["action"] = "notify_user"
             self.queue.put(json.dumps(scanners_data), 'master_tube')
             self.init_next_phase_data('delivery')
-            self.logger.debug("Put job for delivery on master tube")
+            self.logger.debug("Weekly scan for {project} is complete.", 
+                        project=self.job.get("namespace")
+                    )
         else:
             # now scanning is complete, relay job for delivery
             # all other details about job stays same
