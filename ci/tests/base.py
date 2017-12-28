@@ -98,7 +98,7 @@ class BaseTestCase(unittest.TestCase):
     def cleanup_beanstalkd(self):
         print self.run_cmd('sudo systemctl stop cccp_imagescanner',
                            host=self.hosts['jenkins_master']['host'])
-        print self.run_cmd('sudo systemctl stop cccp-dockerfile-lint-worker',
+        print self.run_cmd('sudo docker stop lint-worker',
                            host=self.hosts['jenkins_slave']['host'])
         print self.run_cmd('sudo systemctl stop cccp-scan-worker',
                            host=self.hosts['scanner']['host'])
@@ -115,7 +115,7 @@ class BaseTestCase(unittest.TestCase):
                            'sudo docker start delivery-worker; '
                            'sudo docker start dispatcher-worker',
                            host=self.hosts['jenkins_slave']['host'])
-        print self.run_cmd('sudo systemctl start cccp-dockerfile-lint-worker',
+        print self.run_cmd('sudo docker start lint-worker',
                            host=self.hosts['jenkins_slave']['host'])
         print self.run_cmd('sudo systemctl start cccp-scan-worker',
                            host=self.hosts['scanner']['host'])
