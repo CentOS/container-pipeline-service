@@ -10,6 +10,7 @@
     - build-worker
     - test-worker
     - delivery-worker
+    - lint-worker
 
 - name: Remove /opt/cccp-service directory
   sudo: yes
