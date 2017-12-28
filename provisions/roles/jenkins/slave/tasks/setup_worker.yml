@@ -88,20 +88,21 @@
   tags:
       - application
 
-- name: Copy Dockerfile linter worker
-  copy:
-      src: ../../scripts/cccp-dockerfile-lint-worker.service
-      dest: /etc/systemd/system/cccp-dockerfile-lint-worker.service
-  tags:
-      - application
+- name: Pull Dockerfile Lint worker image
+  docker_image:
+      name: registry.centos.org/pipeline-images/dockerfile-lint-worker
+      state: present
+      force: yes
 
-- name: Reload Dockerfile linter worker systemd service
-  sudo: yes
-  systemd: name=cccp-dockerfile-lint-worker daemon_reload=yes
-  tags:
-      - application
-
-- name: Enable and start Dockerfile linter worker
-  systemd: name=cccp-dockerfile-lint-worker enabled=yes state=restarted
-  tags:
-      - application
+- name: Start Dockerfile Lint worker container
+  docker_container:
+      image: registry.centos.org/pipeline-images/dockerfile-lint-worker
+      name: lint-worker
+      state: started
+      restart: yes
+      detach: True
+      volumes:
+          - /opt/cccp-service:/opt/cccp-service:rw
+          - /usr/bin/oc:/usr/bin/oc
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /srv/pipeline-logs/:/srv/pipeline-logs:rw
