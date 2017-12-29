@@ -93,6 +93,8 @@
       name: registry.centos.org/pipeline-images/dockerfile-lint-worker
       state: present
       force: yes
+  tags:
+      - application
 
 - name: Start Dockerfile Lint worker container
   docker_container:
@@ -106,3 +108,5 @@
           - /usr/bin/oc:/usr/bin/oc
           - /var/run/docker.sock:/var/run/docker.sock
           - /srv/pipeline-logs/:/srv/pipeline-logs:rw
+  tags:
+      - application
