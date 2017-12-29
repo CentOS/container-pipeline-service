@@ -1,12 +1,16 @@
 # module to test linter functionality
 
+import json
+import os
+import time
 import uuid
 
+from random import randint
 from ci.tests.base import BaseTestCase
-from ci.lib import _print
 from container_pipeline.models import Project
 from container_pipeline.utils import get_job_hash
-from random import randint
+from ci.constants import LINTER_RESULT_FILE,\
+    LINTER_STATUS_FILE
 
 BUILD_FAIL_PROJECT_NAME = "nshaikh-build-fail-test-latest"
 
@@ -23,7 +27,7 @@ class TestLinter(BaseTestCase):
         Initialize the beanstalkd queue with queues respective to linter.
         """
         super(BaseTestCase, self).setUp(
-            sub="start_linter",
+            sub="master_tube",
             pub="master_tube")
         # project name generated from appid-jobid-tag
         self.project_under_test = BUILD_FAIL_PROJECT_NAME
@@ -39,6 +43,8 @@ class TestLinter(BaseTestCase):
         self.depends_on = "centos/centos:latest"
         self.test_tag = "latest"
         self.build_context = "./"
+        self.cleanup_beanstalkd()
+        self.cleanup_openshift()
 
     def job_data(self):
         """
@@ -68,19 +74,53 @@ class TestLinter(BaseTestCase):
         job["image_name"] = "{}/{}:{}".format(
             self.appid, self.jobid, self.desired_tag)
         job["output_image"] = "registry.centos.org/{}".format(
-                job["image_name"])
+            job["image_name"])
         job["beanstalk_server"] = self.hosts["openshift"]["host"]
         job["image_under_test"] = job["output_image"]
         job["build_context"] = self.build_context
+        return job
 
-    def run_job_on_jenkins(self):
+    def start_build(self):
         """
+        Starts the build of a project
         """
         self.provision()
-        self.cleanup_beanstalkd()
+        self.queue.put(json.dumps(self.job_data()))
 
-    def test_01_linter_results(self):
+    def check_if_linter_exported_results(self, path):
+        """
+        Checks if linter results exists
+        """
+        retry_count = 0
+        is_present = False
+        while retry_count < 10:
+            retry_count += 1
+            if os.path.isfile(path):
+                is_present = True
+                break
+            time.sleep(60)
+        return is_present
+
+    def test_00_linter_results(self):
         """
         Test if linter is exporting the results as expected.
         """
-        pass
+        self.start_build()
+        self.assertTrue(self.check_if_linter_exported_results(
+            path=os.path.join(self.job["logs_dir"], LINTER_RESULT_FILE)
+        ))
+
+    def test_01_linter_execution_status(self):
+        """
+        Test if linter execution status file is exported
+        """
+        self.assertTrue(self.check_if_linter_exported_results(
+            path=os.path.join(self.job["logs_dir"], LINTER_STATUS_FILE)
+        ))
+
+    def tearDown(self):
+        """
+        Tear down tests artifacts
+        """
+        self.cleanup_beanstalkd()
+        self.cleanup_openshift()
