@@ -1,6 +1,6 @@
-import os
 import copy
 import json
+import os
 import time
 import unittest
 from xml.dom.minidom import parseString
@@ -51,6 +51,10 @@ class BaseTestCase(unittest.TestCase):
                 sub=sub,
                 pub=pub
                 )
+        os.environ.setdefault(
+            "DJANGO_SETTINGS_MODULE", "container_pipeline.lib.settings")
+        _print("Environment variables:")
+        _print(os.environ)
 
     def provision(self, force=False, extra_args=""):
         """
