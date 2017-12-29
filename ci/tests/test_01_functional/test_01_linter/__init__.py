@@ -1,14 +1,11 @@
 # module to test linter functionality
 
-import json
 import os
 import time
-import uuid
 
 from random import randint
 from ci.tests.base import BaseTestCase
-from container_pipeline.models import Project
-from container_pipeline.utils import get_job_hash
+# from container_pipeline.models import Project
 from ci.constants import LINTER_RESULT_FILE,\
     LINTER_STATUS_FILE
 
@@ -32,7 +29,7 @@ class TestLinter(BaseTestCase):
         # project name generated from appid-jobid-tag
         self.project_under_test = BUILD_FAIL_PROJECT_NAME
         # initialize projects model, to simulate cccp-index job
-        Project.objects.get_or_create(name=self.project_under_test)
+        # Project.objects.get_or_create(name=self.project_under_test)
         self.appid = "nshaikh"
         self.jobid = "build-fail-test"
         self.desired_tag = "latest"
@@ -41,51 +38,42 @@ class TestLinter(BaseTestCase):
         self.repo_build_path = "fail-test"
         self.target_file = "Dockerfile"
         self.depends_on = "centos/centos:latest"
-        self.test_tag = "latest"
+        self.test_tag = "LINTER_TEST"
+        self.logs_dir = "/srv/pipeline-logs/" + self.test_tag
         self.build_context = "./"
+        self.build_number = randint(11, 99)
+        self.notify_email = "container-status-report@centos.org"
         self.cleanup_beanstalkd()
         self.cleanup_openshift()
-
-    def job_data(self):
-        """
-        Populate job data needed to put on tube
-        """
-        self.test_tag = self.run_cmd(
-            "date +%s%N | md5sum | base64 | head -c 14")
-        job = {}
-        job["uuid"] = str(uuid.uuid4())
-        job["appid"] = "nshaikh"
-        job["jobid"] = "build-fail-test"
-        job["notify_email"] = "container-status-report@centos.org"
-        job["logs_dir"] = "/srv/pipeline-logs/{}".format(self.test_tag)
-        job["action"] = "start_linter"
-        job["job_id"] = self.jobid
-        job["repo_url"] = self.repo_url
-        job["repo_branch"] = self.repo_branch
-        job["repo_build_path"] = self.repo_build_path
-        job["target_file"] = self.target_file
-        job["desired-tag"] = self.desired_tag
-        job["depends_on"] = self.depends_on
-        job["jenkins_build_number"] = randint(11, 99)
-        job["project_name"] = self.project_under_test
-        job["namespace"] = self.project_under_test
-        job["project_hash_key"] = get_job_hash(self.project_under_test)
-        job["job_name"] = self.project_under_test
-        job["image_name"] = "{}/{}:{}".format(
-            self.appid, self.jobid, self.desired_tag)
-        job["output_image"] = "registry.centos.org/{}".format(
-            job["image_name"])
-        job["beanstalk_server"] = self.hosts["openshift"]["host"]
-        job["image_under_test"] = job["output_image"]
-        job["build_context"] = self.build_context
-        return job
 
     def start_build(self):
         """
         Starts the build of a project
         """
         self.provision()
-        self.queue.put(json.dumps(self.job_data()))
+        # self.queue.put(json.dumps(self.job_data()))
+        workspace_dir = os.path.join(
+            "/srv/jenkins/workspace/",
+            self.project_under_test)
+
+        print self.run_cmd(
+            "mkdir -p {0} && "
+            "git clone {1} {0} &&"
+            "cd {0} && "
+            "export DOCKERFILE_DIR={0} && "
+            "export PYTHONPATH=/opt/cccp-service && "
+            "mkdir -p /srv/pipeline-logs/{2} && ".format(
+                workspace_dir, self.repo_url, self.test_tag),
+            host=self.hosts["jenkins_slave"]["host"])
+
+        # run the container_pipeline/pipeline.py module
+        args = self.appid + self.jobid + self.repo_url + self.repo_branch + \
+            self.repo_build_path + self.target_file + self.notify_email + \
+            self.desired_tag + self.depends_on + self.test_tag + \
+            self.build_number + self.build_context
+        print self.run_cmd(
+            "cd /opt/cccp-service && "
+            "python container_pipeline/pipeline.py {}".format(args))
 
     def check_if_linter_exported_results(self, path):
         """
