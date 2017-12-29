@@ -10,3 +10,5 @@ JENKINS_HOSTNAME = "localhost"
 JENKINS_HTTP_PORT = 8080
 JENKINS_JAR_LOCATION = "/opt/jenkins-cli.jar"
 CI_TEST_JOB_NAME = "bamachrn-python"
+LINTER_RESULT_FILE = "linter_results.txt"
+LINTER_STATUS_FILE = "linter_status.json"
