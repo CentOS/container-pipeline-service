@@ -6,14 +6,13 @@ import unittest
 from xml.dom.minidom import parseString
 
 from ci.lib import provision, run_cmd, _print
-from container_pipeline.lib.queue import JobQueue
 from container_pipeline.lib import settings
 
 
 class BaseTestCase(unittest.TestCase):
     """Base test case to extend test cases from"""
 
-    def setUp(self, sub=None, pub=None):
+    def setUp(self):
         self.hosts = json.loads(os.environ.get('CCCP_CI_HOSTS') or "{}") or {
             'openshift': {
                 'host': '192.168.100.200',
@@ -44,17 +43,10 @@ class BaseTestCase(unittest.TestCase):
                 'inventory_path': 'provisions/hosts.vagrant'
             }
         }
-        # initialize beanstalkd queue
-        self.queue = JobQueue(
-                host=self.hosts["openshift"]["host"],
-                port=settings.BEANSTALKD_PORT,
-                sub=sub,
-                pub=pub
-                )
         os.environ.setdefault(
             "DJANGO_SETTINGS_MODULE", "container_pipeline.lib.settings")
-        _print("Environment variables:")
-        _print(os.environ)
+        print "Environment variables:"
+        print os.environ
 
     def provision(self, force=False, extra_args=""):
         """

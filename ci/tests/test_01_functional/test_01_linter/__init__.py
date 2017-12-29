@@ -23,9 +23,7 @@ class TestLinter(BaseTestCase):
         Set Up needed environment for testing.
         Initialize the beanstalkd queue with queues respective to linter.
         """
-        super(BaseTestCase, self).setUp(
-            sub="master_tube",
-            pub="master_tube")
+        super(TestLinter, self).setUp()
         # project name generated from appid-jobid-tag
         self.project_under_test = BUILD_FAIL_PROJECT_NAME
         # initialize projects model, to simulate cccp-index job
