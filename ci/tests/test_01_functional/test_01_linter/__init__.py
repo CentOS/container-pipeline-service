@@ -56,11 +56,10 @@ class TestLinter(BaseTestCase):
 
         print self.run_cmd(
             "mkdir -p {0} && "
-            "git clone {1} {0} &&"
-            "cd {0} && "
+            "git clone {1} {0} && "
             "export DOCKERFILE_DIR={0} && "
             "export PYTHONPATH=/opt/cccp-service && "
-            "mkdir -p /srv/pipeline-logs/{2} && ".format(
+            "mkdir -p /srv/pipeline-logs/{2}".format(
                 workspace_dir, self.repo_url, self.test_tag),
             host=self.hosts["jenkins_slave"]["host"])
 
