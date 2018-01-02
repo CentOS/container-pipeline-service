@@ -40,7 +40,7 @@ class TestRepoMonitoring(BaseTestCase):
         # In the real world, it will be created automatically by
         # fetch-scan-image job which gets run after cccp-index job
         self.run_dj_script(
-            'from container_pipeline.models.tracking import ContainerImage; '
+            'from container_pipeline.models.pipeline import ContainerImage; '
             'ContainerImage.objects.create('
             'name=\\"bamachrn/python:release\\")')
 
@@ -57,10 +57,10 @@ class TestRepoMonitoring(BaseTestCase):
             retries += 1
             # Assert that image got scanned
             scanned = self.run_dj_script(
-                    'from container_pipeline.models.tracking import '
-                    'ContainerImage; '
-                    'print ContainerImage.objects.get('
-                    'name=\\"bamachrn/python:release\\").scanned').strip()
+                'from container_pipeline.models.pipeline import '
+                'ContainerImage; '
+                'print ContainerImage.objects.get('
+                'name=\\"bamachrn/python:release\\").scanned').strip()
             if scanned == 'True':
                 is_scanned = True
                 break
@@ -73,7 +73,7 @@ class TestRepoMonitoring(BaseTestCase):
         self.assertTrue(
             int(
                 self.run_dj_script(
-                    'from container_pipeline.models.tracking import '
+                    'from container_pipeline.models.pipeline import '
                     'ContainerImage; '
                     'print ContainerImage.objects.get('
                     'name=\\"bamachrn/python:release\\").packages.count()'
@@ -83,8 +83,9 @@ class TestRepoMonitoring(BaseTestCase):
 
     def test_02_pkg_change_handler(self):
         repoinfo_id = self.run_dj_script(
-            'from container_pipeline.models.tracking import ContainerImage, '
-            'Package, RepoInfo; '
+            'from container_pipeline.models.pipeline import ContainerImage; '
+            'from container_pipeline.models.tracking import Package, '
+            'RepoInfo; '
             'repo = RepoInfo.objects.create('
             'baseurls=\\"foo\\", basearch=\\"x86_64\\", releasever=\\"7\\", '
             'infra=\\"container\\"); '
@@ -102,7 +103,7 @@ class TestRepoMonitoring(BaseTestCase):
             % repoinfo_id)
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from container_pipeline.models.tracking '
+            self.run_dj_script('from container_pipeline.models.pipeline '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
@@ -115,7 +116,7 @@ class TestRepoMonitoring(BaseTestCase):
             % repoinfo_id)
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from container_pipeline.models.tracking '
+            self.run_dj_script('from container_pipeline.models.pipeline '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
@@ -128,7 +129,7 @@ class TestRepoMonitoring(BaseTestCase):
             % repoinfo_id + '1')
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from container_pipeline.models.tracking '
+            self.run_dj_script('from container_pipeline.models.pipeline '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
@@ -141,7 +142,7 @@ class TestRepoMonitoring(BaseTestCase):
             % repoinfo_id)
         time.sleep(2)
         self.assertEqual(
-            self.run_dj_script('from container_pipeline.models.tracking '
+            self.run_dj_script('from container_pipeline.models.pipeline '
                                'import ContainerImage; '
                                'print ContainerImage.objects.get('
                                'name=\\"bamachrn/python:release\\")'
@@ -174,8 +175,9 @@ class TestRepoMonitoring(BaseTestCase):
                                image5 {pkg1, pkg2, pkg4, pkg5}
         """
         repoinfo_id = self.run_dj_script(
-            'from container_pipeline.models.tracking import ContainerImage, '
-            'Package, RepoInfo; '
+            'from container_pipeline.models.pipeline import ContainerImage; '
+            'from container_pipeline.models.tracking import Package, '
+            'RepoInfo; '
             'repo = RepoInfo.objects.create('
             'baseurls=\\"foo\\", basearch=\\"x86_64\\", releasever=\\"7\\", '
             'infra=\\"container\\"); '
@@ -240,7 +242,7 @@ class TestRepoMonitoring(BaseTestCase):
         time.sleep(2)
         self.assertEqual(
             self.run_dj_script(
-                'from container_pipeline.models.tracking import '
+                'from container_pipeline.models.pipeline import '
                 'ContainerImage; '
                 'print ContainerImage.objects.filter(to_build=True)'
                 '.order_by(\\"name\\")').strip(),
@@ -253,7 +255,7 @@ class TestRepoMonitoring(BaseTestCase):
         time.sleep(40)
         self.assertEqual(
             self.run_dj_script(
-                'from container_pipeline.models.tracking import '
+                'from container_pipeline.models.pipeline import '
                 'ContainerImage; '
                 'print ContainerImage.objects.filter(to_build=True)'
                 '.order_by(\\"name\\")').strip(),
