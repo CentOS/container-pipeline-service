@@ -39,7 +39,7 @@ class TestLinter(BaseTestCase):
         self.test_tag = "LINTER_TEST"
         self.logs_dir = "/srv/pipeline-logs/" + self.test_tag
         self.build_context = "./"
-        self.build_number = randint(11, 99)
+        self.build_number = str(randint(11, 99))
         self.notify_email = "container-status-report@centos.org"
         self.cleanup_beanstalkd()
         self.cleanup_openshift()
