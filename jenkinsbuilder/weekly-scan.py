@@ -8,6 +8,7 @@ import subprocess
 import sys
 import yaml
 import uuid
+import container_pipeline.lib.dj
 from container_pipeline.models.pipeline import Project, Build, BuildPhase
 from django.utils import timezone
 
