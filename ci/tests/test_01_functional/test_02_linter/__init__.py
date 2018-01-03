@@ -5,7 +5,6 @@ import time
 
 from random import randint
 from ci.tests.base import BaseTestCase
-# from container_pipeline.models import Project
 from ci.constants import LINTER_RESULT_FILE,\
     LINTER_STATUS_FILE
 
@@ -27,7 +26,6 @@ class TestLinter(BaseTestCase):
         # project name generated from appid-jobid-tag
         self.project_under_test = BUILD_FAIL_PROJECT_NAME
         # initialize projects model, to simulate cccp-index job
-        # Project.objects.get_or_create(name=self.project_under_test)
         self.appid = "nshaikh"
         self.jobid = "build-fail-test"
         self.desired_tag = "latest"
@@ -44,12 +42,29 @@ class TestLinter(BaseTestCase):
         self.cleanup_beanstalkd()
         self.cleanup_openshift()
 
+    def run_dj_script(self, script):
+        _script = (
+            'import os, django; '
+            'os.environ.setdefault(\\"DJANGO_SETTINGS_MODULE\\", '
+            '\\"container_pipeline.lib.settings\\"); '
+            'django.setup(); '
+            '{}'
+        ).format(script)
+        return self.run_cmd(
+            'cd /opt/cccp-service && '
+            'python -c "{}"'.format(_script))
+
     def start_build(self):
         """
         Starts the build of a project
         """
         self.provision()
-        # self.queue.put(json.dumps(self.job_data()))
+        # create database entry for Project model for project under test
+        self.run_dj_script(
+            'from container_pipeline.models import Project; '
+            'Project.objects.get_or_create('
+            'name=\\"nshaikh-build-fail-test-latest\\")'
+        )
         workspace_dir = os.path.join(
             "/srv/jenkins/workspace/",
             self.project_under_test)
