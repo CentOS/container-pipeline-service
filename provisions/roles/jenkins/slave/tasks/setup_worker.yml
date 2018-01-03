@@ -81,6 +81,7 @@
       - application
 
 - name: Pull Linter image
+  sudo: yes
   docker_image:
       name: registry.centos.org/pipeline-images/dockerfile-lint
       state: present
@@ -89,6 +90,7 @@
       - application
 
 - name: Pull Dockerfile Lint worker image
+  sudo: yes
   docker_image:
       name: registry.centos.org/pipeline-images/dockerfile-lint-worker
       state: present
@@ -97,6 +99,7 @@
       - application
 
 - name: Start Dockerfile Lint worker container
+  sudo: yes
   docker_container:
       image: registry.centos.org/pipeline-images/dockerfile-lint-worker
       name: lint-worker
