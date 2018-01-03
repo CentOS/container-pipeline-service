@@ -139,7 +139,7 @@ class DockerfileLintWorker(BaseWorker):
                    "run",
                    "--rm",
                    "--volumes-from={}".format(os.uname()[1]),
-                   "registry.centos.org/pipeline-images/dockerfile-lint")
+                   "registry.centos.org/pipeline-images/dockerfile-lint-2")
 
         try:
             out, err = run_cmd_out_err(command)

@@ -83,7 +83,7 @@
 - name: Pull Linter image
   sudo: yes
   docker_image:
-      name: registry.centos.org/pipeline-images/dockerfile-lint
+      name: registry.centos.org/pipeline-images/dockerfile-lint-2
       state: present
       force: yes
   tags:
