@@ -64,10 +64,14 @@ class TestLinter(BaseTestCase):
             host=self.hosts["jenkins_slave"]["host"])
 
         # run the container_pipeline/pipeline.py module
-        args = self.appid + self.jobid + self.repo_url + self.repo_branch + \
-            self.repo_build_path + self.target_file + self.notify_email + \
-            self.desired_tag + self.depends_on + self.test_tag + \
-            self.build_number + self.build_context
+        args = " ".join([
+            self.appid, self.jobid, self.repo_url,
+            self.repo_branch, self.repo_build_path,
+            self.target_file, self.notify_email,
+            self.desired_tag, self.depends_on,
+            self.test_tag, self.build_number,
+            self.build_context])
+
         print self.run_cmd(
             "cd /opt/cccp-service && "
             "python container_pipeline/pipeline.py {}".format(args))
