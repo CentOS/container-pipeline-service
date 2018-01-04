@@ -111,7 +111,7 @@ class TestLinter(BaseTestCase):
         """
         self.start_build()
         self.assertTrue(self.check_if_linter_exported_results(
-            path=os.path.join(self.job["logs_dir"], LINTER_RESULT_FILE)
+            path=os.path.join(self.logs_dir, LINTER_RESULT_FILE)
         ))
 
     def test_01_linter_execution_status(self):
@@ -119,7 +119,7 @@ class TestLinter(BaseTestCase):
         Test if linter execution status file is exported
         """
         self.assertTrue(self.check_if_linter_exported_results(
-            path=os.path.join(self.job["logs_dir"], LINTER_STATUS_FILE)
+            path=os.path.join(self.logs_dir, LINTER_STATUS_FILE)
         ))
 
     def tearDown(self):
