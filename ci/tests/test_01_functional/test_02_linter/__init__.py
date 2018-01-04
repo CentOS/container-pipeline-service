@@ -99,10 +99,12 @@ class TestLinter(BaseTestCase):
         is_present = False
         while retry_count < 10:
             retry_count += 1
+            print "Check if file %s exists: " % path
             if os.path.isfile(path):
                 is_present = True
                 break
             time.sleep(60)
+            print "File not found, waiting and retrying.. "
         return is_present
 
     def test_00_linter_results(self):
