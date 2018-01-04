@@ -328,8 +328,7 @@ def setup_controller(controller):
         "yum install -y PyYAML python-networkx python-nose && "
         "yum install -y "
         "http://cbs.centos.org/kojifiles/packages/ansible/2.2.1.0/"
-        "2.el7/noarch/ansible-2.2.1.0-2.el7.noarch.rpm && "
-        "yum install -y python-pip && pip install django==1.11.2",
+        "2.el7/noarch/ansible-2.2.1.0-2.el7.noarch.rpm",
         host=controller)
 
 
