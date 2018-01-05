@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 
+"""
+moduleauthor: The Container Pipeline Service Team
+
+This module iniializes the weekly scan by finding out the list of images
+on the registry and initializing the scan tasks for the workers.
+"""
+
 import beanstalkc
+import container_pipeline.lib.dj
+from container_pipeline.models.pipeline import Project, Build, BuildPhase
+from django.utils import timezone
 import glob
 import json
 import os
 import subprocess
 import sys
-import yaml
 import uuid
-import container_pipeline.lib.dj
-from container_pipeline.models.pipeline import Project, Build, BuildPhase
-from django.utils import timezone
+import yaml
 
 
 # Logs base URL
@@ -78,7 +85,12 @@ for f in files:
         # Scan an image only if it exists in the catalog!
         if entry_short_name in json_catalog:
             job_uuid = str(uuid.uuid4())
-            project_name = str(app_id) + "-" + str(job_id) + "-" + str(desired_tag)
+            project_name = str.format(
+                "{app_id}-{job_id}-{desired_tag}",
+                app_id=str(app_id),
+                job_id=str(job_id),
+                desired_tag=str(desired_tag)
+            )
             data = {
                 "action": "start_scan",
                 "tag": desired_tag,
@@ -100,13 +112,17 @@ for f in files:
 
             # Initializing Database entries
             project, created = Project.objects.get_or_create(name=project_name)
-            build = Build.objects.create(uuid=job_uuid, project=project,
-                                         status='queued',
-                                         start_time=timezone.now(),
-                                         weekly_scan=True
-                                         )
+            build = Build.objects.create(
+                uuid=job_uuid,
+                project=project,
+                status='queued',
+                start_time=timezone.now(),
+                weekly_scan=True
+            )
             scan_phase, created = BuildPhase.objects.get_or_create(
-                build=build, phase='scan')
+                build=build,
+                phase='scan'
+            )
             scan_phase.status = 'queued'
             scan_phase.save()
 

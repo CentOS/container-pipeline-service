@@ -1,19 +1,22 @@
 #!/usr/bin/python
-"""Scan Base Worker."""
 
+"""
+moduleauthor: The Container Pipeline Service Team
+
+This module contains the worker that handles the scanning on the
+Container Pipeline Service
+"""
+
+from container_pipeline.lib import dj  # noqa
+from container_pipeline.lib import settings
+import container_pipeline.lib.log as log
+from container_pipeline.models import Build, BuildPhase
+from container_pipeline.workers.base import BaseWorker
+from container_pipeline.scanners.runner import ScannerRunner
+from django.utils import timezone
 import json
 import logging
 import os
-
-from container_pipeline.lib import dj  # noqa
-from django.utils import timezone
-
-import container_pipeline.lib.log as log
-from container_pipeline.workers.base import BaseWorker
-from container_pipeline.scanners.runner import ScannerRunner
-from container_pipeline.lib import settings
-
-from container_pipeline.models import Build, BuildPhase
 
 
 class ScanWorker(BaseWorker):
