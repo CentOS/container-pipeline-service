@@ -147,6 +147,7 @@ if __name__ == '__main__':
 
     try:
         # run the given tests
+        _print("Running the tests..")
         test(data)
     except Exception as e:
         _print('Build failed as tests failed: %s' % e)
