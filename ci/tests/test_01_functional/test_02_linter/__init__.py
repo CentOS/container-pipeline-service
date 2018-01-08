@@ -97,7 +97,7 @@ class TestLinter(BaseTestCase):
         """
         retry_count = 0
         is_present = False
-        while retry_count < 10:
+        while retry_count < 20:
             retry_count += 1
             print "Check if file %s exists: " % path
             if os.path.isfile(path):
