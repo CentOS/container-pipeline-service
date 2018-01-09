@@ -69,15 +69,6 @@ class TestLinter(BaseTestCase):
             "/srv/jenkins/workspace/",
             self.project_under_test)
 
-        print self.run_cmd(
-            "mkdir -p {0} && "
-            "git clone {1} {0} && "
-            "export DOCKERFILE_DIR={0} && "
-            "export PYTHONPATH=/opt/cccp-service && "
-            "mkdir -p /srv/pipeline-logs/{2}".format(
-                workspace_dir, self.repo_url, self.test_tag),
-            host=self.hosts["jenkins_slave"]["host"])
-
         # run the container_pipeline/pipeline.py module
         args = " ".join([
             self.appid, self.jobid, self.repo_url,
@@ -87,9 +78,16 @@ class TestLinter(BaseTestCase):
             self.test_tag, self.build_number,
             self.build_context])
 
-        print self.run_cmd(
-            "cd /opt/cccp-service && "
-            "python container_pipeline/pipeline.py {}".format(args))
+        command = ("mkdir -p {0} && "
+                   "git clone {1} {0} && "
+                   "export DOCKERFILE_DIR={0} && "
+                   "export PYTHONPATH=/opt/cccp-service && "
+                   "mkdir -p /srv/pipeline-logs/{2} && "
+                   "cd /opt/cccp-service && "
+                   "python container_pipeline/pipeline.py {3}").format(
+            workspace_dir, self.repo_url, self.test_tag, args)
+        print "Starting a test build with command: \n%s" % command
+        print self.run_cmd(command, host=self.hosts["jenkins_slave"]["host"])
 
     def check_if_linter_exported_results(self, path):
         """
