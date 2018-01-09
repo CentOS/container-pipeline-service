@@ -321,10 +321,12 @@ def setup_controller(controller):
     """
     # provision controller node, install required packages
     run_cmd(
+        "yum clean all &&"
         "yum install -y git && "
         "yum install -y rsync && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
         "yum install -y epel-release && "
+        "yum clean all &&"
         "yum install -y PyYAML python-networkx python-nose && "
         "yum install -y "
         "http://cbs.centos.org/kojifiles/packages/ansible/2.2.1.0/"
