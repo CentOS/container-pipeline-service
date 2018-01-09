@@ -13,6 +13,8 @@ from container_pipeline.scanners.misc_package_updates import \
     MiscPackageUpdates
 from container_pipeline.scanners.pipeline import PipelineScanner
 from container_pipeline.scanners.rpm_verify import ScannerRPMVerify
+from container_pipeline.scanners.analytics_integration import \
+    AnalyticsIntegration
 
 
 class ScannerRunner(object):
@@ -54,7 +56,10 @@ class ScannerRunner(object):
             MiscPackageUpdates,
             "registry.centos.org/pipeline-images/"
             "container-capabilities-scanner":
-            ContainerCapabilities
+            ContainerCapabilities,
+            "registry.centos.org/pipeline-images/"
+            "scanner-analytics-integration":
+            AnalyticsIntegration
         }
 
     def pull_image_under_test(self, image_under_test):
