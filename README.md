@@ -1,57 +1,131 @@
-# CentOS Community Container Pipeline
+![CentOS Community Container Pipeline](docs/logos/logo.png)
 
-| Last PR Build | [![Build Status](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/badge/icon)](https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/) |
-|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+[![Build Status Widget]][Build Status]
 
-CentOS Community Container Pipeline is a service, to provide any Open Source developer(s), a platform for containerising their application(s). This process builds the application(s) from any arbitary git repository/repositories, package the built application along with its runtime in a container image, tests the image with help of test script and delivers to a publicly available registry. A user can anytime pull the tested image from that registry.
+----
 
-## User Story
+CentOS Community Container Pipeline (CCCP) is an open-source platform to containerize applications based on CentOS.
 
-As an application developer, I want to develop applications on a stack (django, golang, nodejs, redis, rabbitmq, etc.) of my choice using CentOS as the base platform. I want to make sure that the application is packaged into a container and updated  automatically every time I push changes to my Git (GitHub, BitBucket, Gitlab, etc.) repository; the resulting container image is scanned for updates, fixes, capabilities, and delivered to a public registry from where the users can pull the image and run the application. I also want the container image to be automatically rebuilt when an RPM package is updated in the repository or base image (`FROM` in Dockerfile) is updated.
+**CCCP:** Builds the application (from a git repository) → Packages with the appropriate runtime → Tests and analyzes the image → Pushes image to a public registry
 
-## How does it work?
+----
 
-A developer working on an open-source project opens a pull request (PR) on [Container Index](https://github.com/CentOS/container-index/) to use Container Pipeline Service for building container images. Once the PR is merged, Container Pipeline Service lints the Dockerfile, builds the image for his/her project, scans it, pushes it to registry.centos.org (Web UI coming soon!), and finally notifies the developer via email.
+## Use Case
 
-Once a project is in the Container Index, the Container Pipeline Service service automatically tracks project's Git repo + branch for changes and rebuilds it every time there is a change.
+I have a certain stack I develop with (be it Django, Golang, NodeJS, Redis, RabbitMQ, etc.) using my favourite OS (CentOS) as a base platform. 
 
-**NOTE:** It might take some time for the build to finish as it depends on the number of jobs in the queue. If it's taking long, [contact us](#get-in-touch).
+How do I package that application into a container that's updated automatically every time I push changes? What about security and updates, how do I automate that each time I push any changes?
 
-The entire flow can be summarized as below
+That's where CCCP comes in. 
 
-![Container Pipeline Diagram](docs/diagrams/architecture.png)
+CCCP will:
 
-1. **Project onboarding**
+  - Scan the image for updates, fixes, capabilities and push it to a public registry (by default, http://registry.centos.org)
+  - Automatically rebuild when a change is detected within the repository. Such as an RPM package or base image (`FROM` in Dockerfile) update
+  - Notifications / alerts regarding scan results (by e-mail)
 
-    Refer the [Container Index](https://github.com/CentOS/container-index).
-    
-2. **Jenkins based tracking**
+## How do I host my application?
 
-    Tracks the developer's Git repository + branch for any change and triggers a new build on OpenShift when a change is pushed. Along with developer's repo, an update in base image or any of the RPMs which are a part of the image, also trigger a fresh build.
+Similar to projects such as [Homebrew](https://github.com/Homebrew/homebrew-core) it's as easy as opening up a pull request.
 
-3. **Build the image**
+A developer wishing to host their container image will open up a pull request to the [CentOS Container Index](https://github.com/CentOS/container-index). 
 
-    Build the container image using the targetfile (Dockerfile) and push it to OpenShift's internal registry. Result: image tagged as `:test` pushed to internal registry.
+Once the pull request is merged, CCCP:
+
+  1. Links the Dockerfile
+  2. Builds the image
+  3. Scans / analyzes it
+  4. Pushes to [registry.centos.org](https://registry.centos.org)
+  5. Notifies the developer (email)
+
+Once a project is in the [CentOS Container Index](https://github.com/CentOS/container-index), the CentOS Container Pipeline Service service automatically tracks the project's Git repo and branch and rebuilds it every time there is a future change.
+
+## How everything works
+
+1. **Project onboard / the main "index"**
+
+First off, the pipeline points to an index. For the CentOS community and in our example, this refers to the: [CentOS Container Index](https://github.com/CentOS/container-index). 
+
+2. **Jenkins and OpenShift tracking**
+
+Jenkins is utilized in order to track each application's Git repository as well as branch for any changes. This triggers a new build on **OpenShift** when a change is pushed.
+
+Changes to the application's repository, update to the base image or any RPMs that are part of the image will trigger a new build
+
+3. **Building the image**
+
+The container image is built within OpenShift and then pushed to an internal registry. This results in an image tagged `image:test`.
 
 4. **Test the application**
 
-     Can be a script (mentioned in the [yaml file](https://github.com/CentOS/container-index)) which runs tests on above image. Result: image tagged with a [hash based on date & time](https://github.com/CentOS/container-pipeline-service/blob/master/jenkinsbuilder/project-defaults.yml#L20) pushed to internal registry.
- 
-5. **Scan the image**
-    
-    Scan uses [atomic scan](https://github.com/projectatomic/atomic) tooling. Multiple atomic scanners are run on the built image and different checks are done - check if image has outdated RPM, npm, pip, gem packages and if image has tampered files present, etc. More details about the scanners can be found in `atomic_scanners` directory of this repo. Result: image tagged as `:rc` pushed to internal registry.
-    
-6. **Deliver to public registry**
+Tests as well as any scripts may be specified within the `yaml` file. For example, the `JenkinsBuilder` image uses a test to "tag" the resulting image (https://github.com/CentOS/container-pipeline-service/blob/master/jenkinsbuilder/project-defaults.yml#L20).
 
-    A simple script to re-tag image to it's final name based on value in the yaml file on Container Index. Result: image tagged with `:<desired_tag>` pushed to https://registry.centos.org. You can refer to [Container Pipeline Wiki page](https://wiki.centos.org/ContainerPipeline) to find currently available container images. This page is automatically updated when a new image is built in the Pipeline.
+5. **Scan and analyze the image**
 
-7. **Email to the Developer**
+Scanning and analysis is done by using [Atomic](https://github.com/projectatomic/atomic).
 
-    An email is sent out the developer mentioning the status of the lint, build and scan processes and a link (s)he can use to read the detailed logs.
- 
-All the communication between the stages mentioned above happens via [beanstalkd](http://kr.github.io/beanstalkd/) tubes.   
+Multiple [Atomic Scanners](/atomic_scanners) are ran on the built image:
 
-## Contribute to Container Pipeline Service
+- [pipeline-scanner](atomic_scanners/pipeline-scanner): Scans for any outdated yum packages
+- [container-capabilities-scanner](atomic_scanners/container-capabilities-scanner): Scans for any security vulnerabitlies in the `RUN` command
+- [atomic_scanners](atomic_scanners/misc-package-updates): Scans for outdated npm, pip and gem packages
+
+After scanning and analysis, the resulting image is tagged and pushed to the registry as `image:rc`
+
+6. **Push to the public registry (https://registry.centos.org)**
+
+Finally, the image is re-tagged to its final name based on the value within the `yaml` file and pushed to https://registry.centos.org 
+
+7. **Notification**
+
+An email is sent out the developer mentioning the status of the build and scan process as well as a link to read the detailed logs.
+
+**Notes:**
+
+All the communication between the stages mentioned above happens via [beanstalkd](http://kr.github.io/beanstalkd/) tubes.
+
+## Architecture
+
+Here's the graphical representation of what is going on underneath-the-hood:
+
+![Container Pipeline Diagram](docs/diagrams/architecture.png)
+
+## Want to deploy your own pipeline?
+
+This will allow you to bring up a single or multi-node setup of the Container Pipeline Service.
+
+We use Ansible Playbooks in order to provision the service. As long as your OS is accesible over SSH, you can set up the host(s):
+
+```sh
+$ git clone https://github.com/CentOS/container-pipeline-service/
+$ cd container-pipeline-service/provisions
+
+# Copy sample hosts file and edit as needed
+$ cp hosts.sample hosts
+```
+
+You can either have this span multiple-hosts or you can have an all-in-one setup by using the same host value in the `hosts` file.
+
+**An SSL certificate is required on the host running the registry:**
+
+Replace `registry.domain.com` with your own.
+
+```bash
+$ export REGISTRY=registry.domain.com
+$ cd /etc/pki/tls/
+$ openssl genrsa -out private/$REGISTRY.key 2048
+$ openssl req -x509 -days 366 -new -key private/$REGISTRY.key -out certs/$REGISTRY.pem
+```
+
+**Provision using Ansible:**
+
+```sh
+# Provision the hosts. This assumes that you have added the usernames,
+# passwords or private keys used to access the hosts in the hosts file
+$ ansible-playbook -i hosts main.yml
+```
+
+## Contribute to the CentOS Community Container Pipeline Service
 
 We're always looking for ideas and improvements for the service! If you're interested in contributing to this repository, follow these simple steps:
 
@@ -66,39 +140,13 @@ Before a PR is merged, it must:
 - be code reviewed by the maintainers
 - have maintainers' LGTM (Looks Good To Me)
 
+## Community
 
-## Setting up the Pipeline Service
+__Chat (Mattermost):__ Our prefered method to reach the main developers is through Mattermost at [chat.openshift.io](https://chat.openshift.io/developers/channels/container-apps).
 
-This will allow you to bring up a single or multi-node setup of Container Pipeline
-on various kinds of hosts (baremetal, a VPS, cloud or local VM, etc.) as long as they are accessible over SSH. This method uses Ansible for provisioning the hosts.
+__IRC:__ If you prefer IRC, we can reached at **#centos-devel** on Freenode.
 
-```bash
-$ git clone https://github.com/CentOS/container-pipeline-service/
-$ cd container-pipeline-service/provisions
+__Email:__ You could always e-mail us as well at centos-devel@centos.org 
 
-# Copy sample hosts file and edit as needed
-$ cp hosts.sample hosts
-```
-
-You can have an all-in-one setup by using same value for all hosts in the `hosts` file or, use different hosts for each service.
-
-The system that's going to host the registry needs to have SSL certificate. Use appropriate value in place of `registry.yourorg.com` in below commands:
-
-```bash
-$ cd /etc/pki/tls/
-$ openssl genrsa -out private/registry.yourorg.com.key 2048
-$ openssl req -x509 -days 366 -new -key private/registry.yourorg.com.key -out certs/registry.yourorg.com.pem
-```
-
-Provision using Ansible:
-
-```bash
-# Provision the hosts. This assumes that you have added the usernames,
-# passwords or private keys used to access the hosts in the hosts file
-# above
-$ ansible-playbook -i hosts vagrant.yml
-```
-
-## <a href="contact"></a>Get in touch
-
-For any queries get in touch with us on **#centos-devel** IRC channel on Freenode or send a mail to centos-devel@centos.org.
+[Build Status]: https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/
+[Build Status Widget]: https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/badge/icon
