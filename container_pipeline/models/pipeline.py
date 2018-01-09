@@ -66,6 +66,7 @@ class Build(models.Model):
         ('sent', 'Sent'),
         ('failed', 'Failed')
     )
+    weekly_scan = models.BooleanField(default=False)
     notification_status = models.CharField(
         max_length=20, choices=NOTIFICATION_STATUS_CHOICES, db_index=True,
         default='', blank=True)
