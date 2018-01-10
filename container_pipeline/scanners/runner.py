@@ -25,6 +25,10 @@ class ScannerRunner(object):
 
     def __init__(self, job_info):
         """Initialize runner."""
+        # initializing logger
+        load_logger()
+        self.logger = logging.getLogger('scan-worker')
+
         self.job_info = job_info
 
         DOCKER_HOST = "127.0.0.1"
@@ -38,10 +42,6 @@ class ScannerRunner(object):
             self.logger.fatal(
                 "Error connecting to Docker daemon. Error {}".format(e),
                 exc_info=True)
-
-        # initializing logger
-        load_logger()
-        self.logger = logging.getLogger('scan-worker')
 
         # Receive and send `namespace` key-value as is
         self.job_namespace = job_info.get('namespace')
