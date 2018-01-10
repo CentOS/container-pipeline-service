@@ -10,14 +10,15 @@ from glob import glob
 
 import yaml
 
-from container_pipeline.lib.settings import LOGS_BASE_DIR
+from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib.log import load_logger
+from container_pipeline.lib.settings import LOGS_BASE_DIR
 from container_pipeline.model_tmp.containers import (ContainerLinksModel,
                                                      form_Dockerfile_link)
+from container_pipeline.models import Project
 
 # Container Info Collector
 container_info = ContainerLinksModel()
-from container_pipeline.lib import dj  # noqa
 # Fix integration of django with other Python scripts.
 
 # populate container_pipeline module path
@@ -28,12 +29,7 @@ cp_module_path = os.path.join(
 # add path of modules to system path for imports
 sys.path.append(os.path.dirname(cp_module_path))
 sys.path.append(cp_module_path)
-
-
-from container_pipeline.models import Project
-
 jjb_defaults_file = 'project-defaults.yml'
-
 logger = logging.getLogger('jenkins')
 
 # pathname of file having all project names
@@ -140,7 +136,8 @@ def get_projects_from_index(indexdlocation):
                             container_name, dockerfile_link)
 
                         if project.get('prebuild-script'):
-                            giturl = "https://github.com/bamachrn/pre-build-code"
+                            giturl = "https://github.com/bamachrn/"\
+                                "cccp-pre-build-code"
                             gitbranch = "{}-{}-{}".format(appid,
                                                           jobid, desiredtag)
 
@@ -150,7 +147,8 @@ def get_projects_from_index(indexdlocation):
                             projectify(
                                 new_proj, appid, jobid, giturl, gitpath,
                                 gitbranch, targetfile, dependson_job,
-                                dependson, notifyemail, desiredtag, build_context)
+                                dependson, notifyemail, desiredtag,
+                                build_context)
                         )
                     except Exception as e:
                         logger.critical("Failed to projectify %s" %

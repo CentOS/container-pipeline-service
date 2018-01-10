@@ -3,15 +3,16 @@
 This class is for generating pre-build jobs in ci.centos.org.
 
 It takes contianer-index as input, parses through all the YMLs.
-Once entries with prebuild_script parameter found, this class generates one job config to be used for setting up prebuild-jobs in ci.centos.org.
-Then it runs the jenkins-job builder command for creating the job in ci.centos.org jenkins.
+Once entries with prebuild_script parameter found, this class generates
+one job config to be used for setting up prebuild-jobs in ci.centos.org.
+Then it runs the jenkins-job builder command for creating the job in
+ci.centos.org jenkins.
 """
 
 import random
 import string
 import subprocess
 import sys
-import time
 from glob import glob
 
 import yaml
@@ -26,7 +27,9 @@ def projectify(
     """
     Projectifying container-index entry to be used for generating job template.
 
-    This function puts all the parameter from container-index entry to a dictory named project. this dictionary later used for rendering the job template.
+    This function puts all the parameter from container-index entry to a
+    dictory named project. this dictionary later used for rendering the job
+    template.
     """
     new_project[0]['project']['appid'] = appid
     new_project[0]['project']['jobid'] = jobid
@@ -47,7 +50,8 @@ def get_projects_from_index(indexdlocation):
     """
     Reading all the entries of contianer-index.
 
-    This function reads all the entry from container-index ymls and puts them in array if it has parameter prebuild_script.
+    This function reads all the entry from container-index ymls and puts
+    them in array if it has parameter prebuild_script.
     """
     projects = []
     for yamlfile in glob(indexdlocation + "/*.yml"):
@@ -115,7 +119,9 @@ def main(indexdlocation):
     """
     Conververting index entries to jenkins job configs.
 
-    This function takes project dictionary generated from container-index as input, renders it to the prebuild-job config and creates jobtemplates to be used for creating the pre-build jobs in ci.centos.org.
+    This function takes project dictionary generated from container-index as
+    input, renders it to the prebuild-job config and creates jobtemplates to
+    be used for creating the pre-build jobs in ci.centos.org.
     """
     tempfiles = []
     job_template_list = open('job_template_list.txt', 'w')
@@ -145,7 +151,7 @@ def main(indexdlocation):
 
             # write the job template names to file so that these can be
             # processed by jenkins builder to create jobs
-            job_template_list.write(generated_filename)
+            job_template_list.write("%s\n" % generated_filename)
             job_template_list.flush()
         except Exception as e:
             print("Project details: %s" % str(project))
