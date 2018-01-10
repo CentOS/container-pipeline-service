@@ -53,7 +53,8 @@ def check_image_for_run_label(image):
     run_label = run_object.get_label("RUN")
 
     if run_label == "":
-        raise RunLabelException("Dockerfile for the image doesn't have RUN label.")
+        raise RunLabelException(
+            "Dockerfile for the image doesn't have RUN label.")
     return run_label
 
 
@@ -80,7 +81,8 @@ def template_json_data():
         "Scan Results": {"Container capabilities": None},
         # "Docker run command": "docker run -d {} tailf /dev/null".format(
         #     IMAGE_NAME),
-        "Reference documentation": "http://www.projectatomic.io/blog/2016/01/how-to-run-a-more-secure-non-root-user-container/",
+        "Reference documentation": "http://www.projectatomic.io/blog/2016/01/"
+        "how-to-run-a-more-secure-non-root-user-container/",
         "Summary": ""
     }
     return json_out
