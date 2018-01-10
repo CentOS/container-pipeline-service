@@ -11,7 +11,25 @@ from constants import PROJECT_DIR,\
                       JENKINS_HOSTNAME,\
                       JENKINS_HTTP_PORT,\
                       JENKINS_JAR_LOCATION,\
-                      CI_TEST_JOB_NAME
+                      CI_TEST_JOB_NAME, \
+                      CONTROLLER_WORK_DIR
+
+
+"""
+Notes:
+    1 - We receive 5 nodes from duffy
+        - jenkins master node
+        - jenkins slave node
+        - openshift node
+        - scanner node
+        - controller node
+    2 - Following is the order in which we assign nodes to roles
+        jenkins_master_host = nodes[0]
+        jenkins_slave_host = nodes[1]
+        openshift_host = nodes[2]
+        scanner_host = nodes[3]
+        controller = nodes[4]
+"""
 
 
 def _print(msg):
@@ -309,8 +327,8 @@ def sync_controller(controller, stream=False):
     run_cmd(
         "rsync -auvr --delete "
         "-e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' "
-        "%s/ root@%s:/root/container-pipeline-service" % (
-            PROJECT_DIR, controller), stream=stream)
+        "%s/ root@%s:%s" % (
+            PROJECT_DIR, controller, CONTROLLER_WORK_DIR), stream=stream)
 
 
 def setup_controller(controller):
@@ -326,7 +344,7 @@ def setup_controller(controller):
         "yum install -y rsync && "
         "yum install -y gcc libffi-devel python-devel openssl-devel && "
         "yum install -y epel-release && "
-        "yum install -y PyYAML python-networkx python-nose && "
+        "yum install -y PyYAML python-networkx python-nose python-pep8 && "
         "yum install -y "
         "http://cbs.centos.org/kojifiles/packages/ansible/2.2.1.0/"
         "2.el7/noarch/ansible-2.2.1.0-2.el7.noarch.rpm",
@@ -397,7 +415,7 @@ def setup(nodes, options):
         'controller': {
             'host': controller,
             'user': 'root',
-            'workdir': '/root/container-pipeline-service',
+            'workdir': CONTROLLER_WORK_DIR,
             # relative to this workdir
             'inventory_path': 'hosts'
         }
@@ -422,8 +440,6 @@ def setup(nodes, options):
 
     # setup controller to rest nodes ssh access
     setup_ssh_access(controller, nodes[:-1])
-    setup_controller(controller)
-    sync_controller(controller)
 
     provision(hosts_data['controller'], stream=True)
 
@@ -525,6 +541,29 @@ def test(data, path=None):
         'nosetests %s' % (
             hosts_env, provisioned_env, path),
         host=controller, stream=True)
+
+
+def run_pep8_gate(nodes):
+    """
+    Run pep8 on controller node before running actual nodes
+    Fails CI if there are pep8 issues with the code
+
+    Args:
+        nodes (list): List of nodes received from duffy for CI
+    """
+    # get the controller node hostname, check note at the top of file
+    controller = nodes[4]
+
+    # setup node and install necessary packages
+    setup_controller(controller)
+
+    # sync controller with service code and patches applied on top
+    sync_controller(controller)
+
+    # CONTROLLER_WORK_DIR constant is the path where source code
+    # on controller is synced at, check constants.py and constant references
+    # run pep8 gate on pipeline service code
+    run_cmd("pep8 %s" % CONTROLLER_WORK_DIR, host=controller, stream=True)
 
 
 def teardown():
