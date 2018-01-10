@@ -14,7 +14,7 @@ import sys
 from time import sleep
 
 from ci.lib import _print, setup, test, teardown, \
-        run_cmd, DEPLOY_LOGS_PATH, run_cccp_index_job
+        run_cmd, DEPLOY_LOGS_PATH, run_cccp_index_job, run_pep8_gate
 
 
 DEBUG = os.environ.get('ghprbCommentBody', None) == '#dotests-debug'
@@ -124,6 +124,9 @@ if __name__ == '__main__':
         _print('Build failed while receiving nodes from CICO:\n%s' % e)
         # _if_debug is not needed, since we dont have even nodes to debug
         sys.exit(1)
+
+    # run pep8 checks on controller node before running actual tests
+    run_pep8_gate(nodes)
 
     try:
         # deploy service on given set of nodes
