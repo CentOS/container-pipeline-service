@@ -87,7 +87,7 @@ class TestLinter(BaseTestCase):
                    "python container_pipeline/pipeline.py {3}").format(
             workspace_dir, self.repo_url, self.test_tag, args)
         print "Starting a test build with command: \n%s" % command
-        print self.run_cmd(command, host=self.hosts["jenkins_slave"]["host"])
+        print self.run_cmd(command)
 
     def check_if_linter_exported_results(self, path):
         """
@@ -95,14 +95,16 @@ class TestLinter(BaseTestCase):
         """
         retry_count = 0
         is_present = False
-        while retry_count < 20:
+        while retry_count < 10:
             retry_count += 1
             print "Check if file %s exists: " % path
-            if os.path.isfile(path):
+            if self.run_cmd(
+                    "[ ! -f {0} ] || echo 'Yes';".format(
+                        path)).strip() == "Yes":
                 is_present = True
                 break
-            time.sleep(60)
             print "File not found, waiting and retrying.. "
+            time.sleep(60)
         return is_present
 
     def test_00_linter_results(self):

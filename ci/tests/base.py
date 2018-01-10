@@ -43,10 +43,6 @@ class BaseTestCase(unittest.TestCase):
                 'inventory_path': 'provisions/hosts.vagrant'
             }
         }
-        os.environ.setdefault(
-            "DJANGO_SETTINGS_MODULE", "container_pipeline.lib.settings")
-        print "Environment variables:"
-        print os.environ
 
     def provision(self, force=False, extra_args=""):
         """
