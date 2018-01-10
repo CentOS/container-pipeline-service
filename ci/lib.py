@@ -12,7 +12,8 @@ from constants import PROJECT_DIR,\
                       JENKINS_HTTP_PORT,\
                       JENKINS_JAR_LOCATION,\
                       CI_TEST_JOB_NAME, \
-                      CONTROLLER_WORK_DIR
+                      CONTROLLER_WORK_DIR, \
+                      PEP8_CONF
 
 
 """
@@ -563,7 +564,10 @@ def run_pep8_gate(nodes):
     # CONTROLLER_WORK_DIR constant is the path where source code
     # on controller is synced at, check constants.py and constant references
     # run pep8 gate on pipeline service code
-    run_cmd("pep8 %s" % CONTROLLER_WORK_DIR, host=controller, stream=True)
+    pep8_conf = os.path.join(CONTROLLER_WORK_DIR, PEP8_CONF)
+    run_cmd("pep8 --config={0} {1}".format(
+        pep8_conf, CONTROLLER_WORK_DIR),
+        host=controller, stream=True)
 
 
 def teardown():
