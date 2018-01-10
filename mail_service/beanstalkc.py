@@ -31,12 +31,24 @@ DEFAULT_PRIORITY = 2 ** 31
 DEFAULT_TTR = 120
 
 
-class BeanstalkcException(Exception): pass
-class UnexpectedResponse(BeanstalkcException): pass
-class CommandFailed(BeanstalkcException): pass
-class DeadlineSoon(BeanstalkcException): pass
+class BeanstalkcException(Exception):
+    pass
+
+
+class UnexpectedResponse(BeanstalkcException):
+    pass
+
+
+class CommandFailed(BeanstalkcException):
+    pass
+
+
+class DeadlineSoon(BeanstalkcException):
+    pass
+
 
 class SocketError(BeanstalkcException):
+
     @staticmethod
     def wrap(wrapped_function, *args, **kwargs):
         try:
@@ -47,6 +59,7 @@ class SocketError(BeanstalkcException):
 
 
 class Connection(object):
+
     def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT, parse_yaml=True,
                  connect_timeout=socket.getdefaulttimeout()):
         if parse_yaml is True:
@@ -140,9 +153,9 @@ class Connection(object):
         """Put a job into the current tube. Returns job id."""
         assert isinstance(body, str), 'Job body must be a str instance'
         jid = self._interact_value('put %d %d %d %d\r\n%s\r\n' % (
-                                       priority, delay, ttr, len(body), body),
-                                   ['INSERTED'],
-                                   ['JOB_TOO_BIG', 'BURIED', 'DRAINING'])
+            priority, delay, ttr, len(body), body),
+            ['INSERTED'],
+            ['JOB_TOO_BIG', 'BURIED', 'DRAINING'])
         return int(jid)
 
     def reserve(self, timeout=None):
@@ -264,6 +277,7 @@ class Connection(object):
 
 
 class Job(object):
+
     def __init__(self, conn, jid, body, reserved=True):
         self.conn = conn
         self.jid = jid
