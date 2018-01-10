@@ -10,7 +10,6 @@ Container Pipeline Service
 from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib import settings
 import container_pipeline.lib.log as log
-from container_pipeline.models import Build, BuildPhase
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.scanners.runner import ScannerRunner
 from django.utils import timezone
@@ -23,7 +22,7 @@ class ScanWorker(BaseWorker):
     """Scan Base worker."""
     NAME = 'Scanner worker'
 
-    def __init__(self, logger=None,sub=None, pub=None):
+    def __init__(self, logger=None, sub=None, pub=None):
         super(ScanWorker, self).__init__(logger=logger, sub=sub, pub=pub)
         self.build_phase_name = 'scan'
 
@@ -75,11 +74,11 @@ class ScanWorker(BaseWorker):
             self.queue.put(json.dumps(scanners_data), 'master_tube')
             self.init_next_phase_data('delivery')
             self.logger.debug(
-                        str.format(
-                            "Weekly scan for {project} is complete.", 
-                             project=self.job.get("namespace")
-                        )
-                    )
+                str.format(
+                    "Weekly scan for {project} is complete.",
+                    project=self.job.get("namespace")
+                )
+            )
         else:
             # now scanning is complete, relay job for delivery
             # all other details about job stays same
