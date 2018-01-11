@@ -178,6 +178,9 @@ SCANNERS_OUTPUT = {
         ],
         "registry.centos.org/pipeline-images/container-capabilities-scanner": [
             "container_capabilities_scanner_results.json"
+        ],
+        "registry.centos.org/pipeline-images/analytics-integration-scanner": [
+            "analytics_integration.json"
         ]
 }
 SCANNERS_RESULTFILE = {
