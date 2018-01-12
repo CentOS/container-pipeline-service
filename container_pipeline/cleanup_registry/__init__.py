@@ -3,7 +3,8 @@ import argparse
 
 
 def get_args_parser():
-    parser = argparse.ArgumentParser(description="Collect the images that do not match the index.")
+    parser = argparse.ArgumentParser(
+        description="Collect the images that do not match the index.")
     parser.add_argument(
         "-r",
         "--registryhost",
@@ -27,7 +28,8 @@ def get_args_parser():
     parser.add_argument(
         "-l",
         "--localindex",
-        help="Set if you want to use locally available index. Note the index.d should be in ./c_i directory",
+        help=("Set if you want to use locally available index."
+              " Note the index.d should be in ./c_i directory"),
         action="store_true"
     )
     parser.add_argument(
@@ -39,7 +41,8 @@ def get_args_parser():
     parser.add_argument(
         "-c",
         "--collect",
-        help="Enable this to make garbage collection work. Otherwise, it does a dry run",
+        help=("Enable this to make garbage collection work. "
+              "Otherwise, it does a dry run"),
         action="store_true"
     )
 
@@ -56,8 +59,10 @@ def main():
     index_url = parser.indexurl
     collect = True if parser.collect else False
 
-    gc = GarbageCollector(registry_host=registry_host, registry_port=registry_port, registry_secure=registry_secure,
-                          local_index=local_index, index_git=index_url, collect=collect)
+    gc = GarbageCollector(
+        registry_host=registry_host, registry_port=registry_port,
+        registry_secure=registry_secure,
+        local_index=local_index, index_git=index_url, collect=collect)
     gc.collect()
 
 

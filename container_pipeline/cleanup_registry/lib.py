@@ -1,7 +1,6 @@
 from os import path, devnull
 import urllib2
 import subprocess
-from urlparse import urlparse, urlunparse
 import yaml
 from shutil import rmtree
 import json
@@ -25,12 +24,14 @@ def run_cmd(cmd, check_call=True, no_shell=False):
     """
     Run a specfied linux command
     :param cmd: The command to run
-    :param check_call: If true, check call is used. Recommendedif no data is needed
+    :param check_call: If true, check call is used.
+                       Recommended if no data is needed.
     :param no_shell: If true, then command output is redirected to devnull
     """
     stdout = FNULL if no_shell else subprocess.PIPE
     if not check_call:
-        process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=stdout, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            cmd, stdin=subprocess.PIPE, stdout=stdout, stderr=subprocess.PIPE)
         process.communicate()
         if process.returncode > 0:
             raise Exception("Failed to execute command")
@@ -86,7 +87,7 @@ class RegistryInfo(object):
         self.tags = {}
         self.manifests = []
         self._load_info()
-    
+
     def _load_info(self):
         """
         Loads the information about the registry to refer later.
