@@ -196,6 +196,7 @@ class ProvisionHandler(object):
         self._provisioned = True
         return True, out
 
+
 # alias the run method of class to be used later
 provision = ProvisionHandler().run
 

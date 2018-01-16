@@ -1,11 +1,12 @@
-import os
 import copy
 import json
+import os
 import time
 import unittest
 from xml.dom.minidom import parseString
 
 from ci.lib import provision, run_cmd, _print
+from container_pipeline.lib import settings
 
 
 class BaseTestCase(unittest.TestCase):
