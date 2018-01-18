@@ -116,9 +116,13 @@ if __name__ == '__main__':
             else:
                 _print(str(nodes))
                 break
+        if CICO_GET_RETRY_COUNT == 0:
+            _print('Build failed while receiving nodes from CICO:\n%s' % e)
+            # _if_debug is not needed, since we dont have even nodes to debug
+            sys.exit(1)
     except Exception as e:
         _print('Build failed while receiving nodes from CICO:\n%s' % e)
-        _if_debug()
+        # _if_debug is not needed, since we dont have even nodes to debug
         sys.exit(1)
 
     try:
