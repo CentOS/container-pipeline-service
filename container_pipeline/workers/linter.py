@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import sys
 import time
 
 import container_pipeline.utils as utils
@@ -15,6 +16,8 @@ from container_pipeline.models import Build, BuildPhase
 from container_pipeline.workers.base import BaseWorker
 from django.utils import timezone
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 def create_project(queue, job, logger):
     """
