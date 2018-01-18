@@ -111,6 +111,7 @@ class TestScanners(BaseTestCase):
                 break
             print "File not found, waiting and retrying.. "
             time.sleep(60)
+        print self.run_cmd("ls {0}".format(os.path.dirname(path)))
         return is_present
 
     def test_00_rpm_verify_scanner_results(self):
@@ -170,7 +171,6 @@ class TestScanners(BaseTestCase):
         """
         Test if scanner is exporting the execution status file.
         """
-        print self.run_cmd("ls -la {0}".format(self.logs_dir))
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, SCANNERS_STATUS_FILE)
         ))
