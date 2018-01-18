@@ -130,8 +130,12 @@ class DockerfileLintWorker(BaseWorker):
         else:
             os.makedirs("/tmp/scan")
 
-        with open("/tmp/scan/Dockerfile", "w") as f:
-            f.write(dockerfile)
+        try:
+            with open("/tmp/scan/Dockerfile", "w") as f:
+                f.write(dockerfile)
+        except Exception as e:
+            self.logger.warning("Failed to write Dockerfile.")
+            self.logger.error(e)
 
     def lint(self):
         """
