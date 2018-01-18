@@ -13,7 +13,8 @@ LOGGING_CONF = dict(
     level=LOG_LEVEL,
     formatters=dict(
         bare={
-            "format": '[%(asctime)s] %(name)s p%(process)s %(lineno)d %(levelname)s - %(message)s'
+            "format": ('[%(asctime)s] %(name)s p%(process)s '
+                       '%(lineno)d %(levelname)s - %(message)s')
         },
     ),
     handlers=dict(

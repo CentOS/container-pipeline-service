@@ -113,8 +113,8 @@ def gem_list_of_outdated_packages(response):
 
 def format_response(cli_arg, response):
     """
-    Based on the CLI argument provided, check for the package updates related to
-    the package manager
+    Based on the CLI argument provided, check for the
+    package updates related to the package manager
     """
     if cli_arg == 'pip':
         return pip_list_of_outdated_packages(response)

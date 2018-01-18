@@ -55,7 +55,8 @@ class BuildWorker(BaseWorker):
         self.job['last_run_timestamp'] = None
 
         for parent in parents:
-            is_build_running = BuildTracker(parent, logger=self.logger).is_running()
+            is_build_running = BuildTracker(
+                    parent, logger=self.logger).is_running()
             if is_build_running:
                 parents_in_build.append(parent)
             parent_build_running = parent_build_running or \

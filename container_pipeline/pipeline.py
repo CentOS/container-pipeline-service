@@ -60,7 +60,7 @@ def create_new_job():
                          # triggering linter
         "delivery_log_file",     # log file for delivery worker,
         "build_context",  # The build context of the build
-        "lint_retry"    # this is for checking number of retries in dockerfile lint
+        "lint_retry"    # to check number of retries in dockerfile lint
     ])
 
     return job

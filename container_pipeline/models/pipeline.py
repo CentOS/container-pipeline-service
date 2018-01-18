@@ -41,9 +41,9 @@ class Project(models.Model):
 
 class Build(models.Model):
     """
-    This is a model used to store the metadata of every build triggered accross a
-    paticular project on the service. This includes information like its state,
-    when it was created/completed, where are the logs and so on.
+    This is a model used to store the metadata of every build triggered accross
+    a paticular project on the service. This includes information like its
+    state, when it was created/completed, where are the logs and so on.
     """
 
     uuid = models.CharField(max_length=100, unique=True, db_index=True)
@@ -94,8 +94,9 @@ class Build(models.Model):
 
 class BuildPhase(models.Model):
     """
-    This model is used to store information about every phase of any paticular build.
-    This includes information such as when the phase was created, started and so on.
+    This model is used to store information about every phase of
+    any paticular build. This includes information such as when
+    the phase was created, started and so on.
     """
     build = models.ForeignKey(Build)
     PHASE_CHOICES = (
