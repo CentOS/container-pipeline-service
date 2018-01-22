@@ -27,7 +27,26 @@ class Command(BaseCommand):
         for project in stale_projects:
             try:
                 container_image = ContainerImage.objects.get(name=project)
-                container_image.delete()
             except Exception as e:
-                logger.critical("Error deleting image {}".format(container_image))
-                logger.error(e)
+                logger.critical(
+                    "Error querying database ContainerImage "
+                    "table with project name {}.".format(project))
+                logger.error(str(e))
+            else:
+                if not container_image:
+                    logger.warning(
+                        "{0} project entry mapping container image does "
+                        "not exist in ContainerImage table".format(project))
+                else:
+                    try:
+                        container_image.delete()
+                    except Exception as e:
+                        logger.error("Error deleting container {0} "
+                                     "for project {1}".format(
+                                         container_image.name, project))
+                        logger.error(str(e))
+                    else:
+                        logger.info(
+                            "Deleted entry {0} for project {1} from "
+                            "ContainerImage table.".format(
+                                container_image.name, project))
