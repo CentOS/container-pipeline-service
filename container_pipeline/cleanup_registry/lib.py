@@ -1,11 +1,17 @@
-from os import path, devnull
-import urllib2
-import subprocess
-import yaml
-from shutil import rmtree
 import json
+import subprocess
+import urllib2
+from os import path, devnull
+from shutil import rmtree
+
+import yaml
 
 FNULL = open(devnull, "w")
+
+
+def print_msg(msg, verbose=False):
+    if verbose:
+        print(msg)
 
 
 def load_yaml(yaml_path):
@@ -24,14 +30,18 @@ def run_cmd(cmd, check_call=True, no_shell=False):
     """
     Run a specfied linux command
     :param cmd: The command to run
-    :param check_call: If true, check call is used.
-                       Recommended if no data is needed.
+    :param check_call: If true, check call is used. Recommendedif no data is
+    needed
     :param no_shell: If true, then command output is redirected to devnull
     """
     stdout = FNULL if no_shell else subprocess.PIPE
     if not check_call:
         process = subprocess.Popen(
-            cmd, stdin=subprocess.PIPE, stdout=stdout, stderr=subprocess.PIPE)
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=stdout,
+            stderr=subprocess.PIPE
+        )
         process.communicate()
         if process.returncode > 0:
             raise Exception("Failed to execute command")
