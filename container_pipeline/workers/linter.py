@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import sys
 import time
 
 import container_pipeline.utils as utils
@@ -15,6 +16,8 @@ from container_pipeline.models import Build, BuildPhase
 from container_pipeline.workers.base import BaseWorker
 from django.utils import timezone
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 def create_project(queue, job, logger):
     """
@@ -127,8 +130,12 @@ class DockerfileLintWorker(BaseWorker):
         else:
             os.makedirs("/tmp/scan")
 
-        with open("/tmp/scan/Dockerfile", "w") as f:
-            f.write(dockerfile)
+        try:
+            with open("/tmp/scan/Dockerfile", "w") as f:
+                f.write(dockerfile)
+        except Exception as e:
+            self.logger.warning("Failed to write Dockerfile.")
+            self.logger.error(e)
 
     def lint(self):
         """
