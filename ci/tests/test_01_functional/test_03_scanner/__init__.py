@@ -150,7 +150,9 @@ class TestScanners(BaseTestCase):
         result_file = SCANNERS_RESULTFILE.get(
                 "registry.centos.org/pipeline-images/pipeline-scanner"
                 )[0]
-        self.assertTrue(self.check_if_file_exists(
+        # since pipeline scanner will fail to execute for containers with
+        # minimal golang executables and images without yum installed
+        self.assertFalse(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
 
