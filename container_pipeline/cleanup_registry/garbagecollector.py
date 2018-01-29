@@ -41,19 +41,22 @@ class GarbageCollector(object):
         self._gc_exceptions = []
         self._gc_match_only = []
         # Formulate the registry url
-        self._registry_url = str.format("{schema}://{host}{port}/v2",
-                                        schema="https" if registry_secure else
-                                        "http",
-                                        host=registry_host,
-                                        port="" if not registry_port else ":" +
-                                                                          registry_port
-                                        )
+        self._registry_url = str.format(
+            "{schema}://{host}{port}/v2",
+            schema="https" if registry_secure else "http",
+            host=registry_host,
+            port="" if not registry_port else ":" +
+                                              registry_port
+        )
         self._index_d_location = self._index_location + "/index.d"
         # Setup reg info object to query the registry and cache metadata.
         self._index_containers = {}
         self._mismatched = {}
 
     def _query_registry(self):
+        """
+        Collect metadata from the registry, if provided
+        """
         lib.print_msg("Gathering registry metadata...", self._verbose)
         self._registry_info = lib.RegistryInfo(self._registry_url)
 
@@ -63,28 +66,33 @@ class GarbageCollector(object):
         """
         index_files = glob(self._index_d_location + "/*.yml")
         for index_file in index_files:
+            # Go through every index file
             if "index_template" not in index_file:
                 data = lib.load_yaml(index_file)
                 if "Projects" not in data:
-                    raise Exception("Invalid index file")
+                    # If file is not formatted correctly, come out
+                    raise Exception(
+                        str.format(
+                            "Invalid index file {}, please fix the same",
+                            index_file
+                        )
+                    )
+                # Go through every entry in the file
                 for entry in data["Projects"]:
                     app_id = entry["app-id"]
                     job_id = entry["job-id"]
                     desired_tag = entry["desired-tag"]
                     container_name = str.format(
                         "{namespace}{name}",
-                        namespace=(str(app_id) + "/") if str(app_id) !=
-                                                         "library" else "",
+                        namespace="" if str(app_id) == "library"
+                        else str(app_id) + "/",
                         name=str(job_id)
                     )
-                    container_tag = container_name + ":" + str(desired_tag)
                     if container_name not in self._index_containers:
-                        #
                         self._index_containers[container_name] = []
-                        if not BuildTracker(container_tag).is_running():
-                            self._index_containers[container_name].append(
-                                desired_tag
-                            )
+                    self._index_containers[container_name].append(
+                        desired_tag
+                    )
 
     def _prep_index(self):
         """
@@ -124,15 +132,17 @@ class GarbageCollector(object):
                     re.compile(exp)
                 )
 
-    def _gcollect(self):
-        """Deletes the mismatched images from registry."""
-        lib.print_msg("Removing mismatched containers...", self._verbose)
+    def _mark_for_removal(self):
+        """Orphans mismatched images from registry."""
+        lib.print_msg("Marking mismatched containers for removal...",
+                      self._verbose)
         registry_storage_path = "/var/lib/registry/docker/registry/v2"
         registry_blobs = registry_storage_path + "/blobs"
         registry_repositories = registry_storage_path + "/repositories"
         for container_full_name, tag_list in self._mismatched.iteritems():
-            # For every entry in mismatched
-            ## Formulate nessasary data
+            # For every entry in mismatched, if a build is not currently running
+            # remove it
+            ## Formulate necessary data
             namespace = container_full_name.split("/")[0] \
                 if "/" in container_full_name else container_full_name
             namespace_path = registry_repositories + "/" + namespace
@@ -141,19 +151,41 @@ class GarbageCollector(object):
             tags = manifests + "/tags"
             # Delete the tag
             for item in tag_list:
-                del_tag = tags + "/" + item
-                lib.rm(del_tag)
+                container_tag = str.format(
+                    "{container_name}/{container_tag}",
+                    container_name=container_full_name,
+                    container_tag=item
+                )
+                if not BuildTracker(container_tag).is_running():
+                    del_tag = tags + "/" + item
+                    lib.rm(del_tag)
             # If no more tags, delete namespace
             subs = glob(tags + "/*")
             if len(subs) <= 0:
                 lib.rm(namespace_path)
+
+    def _delete_from_registry(self):
+        """
+        Deletes marked images from registry by invoking inbuild docker
+        distribution gc.
+        """
+        cmd = [
+            "registry",
+            "garbage-collect",
+            "/etc/docker-distribution/registry/config.yml"
+        ]
+        lib.run_cmd(cmd, no_shell=not self._verbose)
+
+    def _gcollect(self):
+        """Deletes the mismatched images from registry."""
+        self._mark_for_removal()
+        self._delete_from_registry()
 
     def _identify_mismatched(self):
         """
         Identify's images to be removed, by looking at registry, index, and any
         exceptions / match lists
         Note: Match list takes priority over exception list.
-        :return:
         """
         # Check if we need to check, index, match list and exception list
         index_check = True if len(self._index_containers) > 0 else False
@@ -204,13 +236,26 @@ class GarbageCollector(object):
                                 break
 
                     # Do the actual matching now
-                    if index_check:
-                        if match_only_list_found and index_mismatched and not \
-                                exception_list_found:
-                            self._mismatched[registry_name].append(registry_tag)
+                    if index_check and index_mismatched:
+                        if not exception_list_found:
+                            if match_only_check and not \
+                                    match_only_list_found:
+                                continue
+                            self._mismatched[registry_name].append(
+                                registry_tag
+                            )
+
+                        else:
+                            if match_only_list_found and not \
+                                    exception_list_found:
+                                self._mismatched[registry_name].append(
+                                    registry_tag
+                                )
                     else:
                         if match_only_list_found and not exception_list_found:
-                            self._mismatched[registry_name].append(registry_tag)
+                            self._mismatched[registry_name].append(
+                                registry_tag
+                            )
 
     def run(self):
         """Initiate the garbage collection."""
