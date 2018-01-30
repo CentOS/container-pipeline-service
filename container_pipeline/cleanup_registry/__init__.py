@@ -1,10 +1,12 @@
-from garbagecollector import GarbageCollector
 import argparse
+
+from garbagecollector import GarbageCollector
 
 
 def get_args_parser():
     parser = argparse.ArgumentParser(
-        description="Collect the images that do not match the index.")
+        description="Collect the images that do not match the index."
+    )
     parser.add_argument(
         "-r",
         "--registryhost",
@@ -26,23 +28,36 @@ def get_args_parser():
         action="store_true"
     )
     parser.add_argument(
+        "--indexlocation",
+        help="Specify location where you want to either clone index, or where"
+             " you have already cloned it. Defaults to ./c_i",
+        default="./c_i"
+    )
+    parser.add_argument(
         "-l",
         "--localindex",
-        help=("Set if you want to use locally available index."
-              " Note the index.d should be in ./c_i directory"),
+        help="Set if you want to use locally available index. Note the index.d "
+             "should be in index location",
         action="store_true"
     )
     parser.add_argument(
         "-i",
-        "--indexurl",
-        help="The git url of index to be cloned.",
-        default="https://github.com/centos/container-index"
+        "--indexgiturl",
+        help="Specify the index git url to clone. If it is not specified, then "
+             "no repo will be cloned.",
+        default=None
     )
     parser.add_argument(
         "-c",
         "--collect",
-        help=("Enable this to make garbage collection work. "
-              "Otherwise, it does a dry run"),
+        help="Enable this to make garbage collection work. Otherwise, it does a"
+             " dry run",
+        action="store_true"
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Enable verbose for detailed messages",
         action="store_true"
     )
 
@@ -55,15 +70,21 @@ def main():
     registry_host = parser.registryhost
     registry_port = parser.registryport
     registry_secure = True if parser.secure else False
+    index_location = parser.indexlocation
     local_index = True if parser.localindex else False
-    index_url = parser.indexurl
+    index_git_url = parser.indexgiturl
     collect = True if parser.collect else False
-
-    gc = GarbageCollector(
-        registry_host=registry_host, registry_port=registry_port,
+    verbose = True if parser.verbose else False
+    GarbageCollector(
+        registry_host=registry_host,
+        registry_port=registry_port,
         registry_secure=registry_secure,
-        local_index=local_index, index_git=index_url, collect=collect)
-    gc.collect()
+        index_git=index_git_url,
+        index_location=index_location,
+        local_index=local_index,
+        collect=collect,
+        verbose=verbose
+    ).run()
 
 
 if __name__ == '__main__':
