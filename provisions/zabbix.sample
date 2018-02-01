@@ -1,0 +1,14 @@
+[localhost]
+localhost ansible_connection=local
+
+[all:vars]
+# Create Zabbix maintenance window
+zabbix_name="Maintenance window for re-deployment on pre-prod"
+# update as required, default create=False
+zabbix_create=True
+zabbix_server_url=https://mon.centos.org/zabbix
+zabbix_login_user=yourusername
+zabbix_login_password=yourpassword
+# create maintenance window for 90 minutes
+zabbix_minutes=5
+zabbix_host_groups="Centos CCCP group - PreProd"
