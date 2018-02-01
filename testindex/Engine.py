@@ -39,7 +39,7 @@ class Engine:
 
         if self._context.environment.verbose:
             print "\nPreparing the test bench from the index files\n"
-        potential_files = glob(index_path + "/*.yml")
+        potential_files = glob(index_path + "/*.yaml")
 
         if len(potential_files) == 0 or (len(potential_files) == 1 and "index_template.yml" in potential_files):
             if self._context.environment.environment.verbose:
