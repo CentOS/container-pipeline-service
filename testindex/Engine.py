@@ -41,7 +41,9 @@ class Engine:
             print "\nPreparing the test bench from the index files\n"
         potential_files = glob(index_path + "/*.yaml")
 
-        if len(potential_files) == 0 or (len(potential_files) == 1 and "index_template.yml" in potential_files):
+        if len(potential_files) == 0 or (len(potential_files) == 1 and
+                                         any(s.startswith('index_template')
+                                             for s in potential_files)):
             if self._context.environment.environment.verbose:
                 print "\nThe index.d format directory does not contain potential index files, exiting...\n"
             exit(1)
