@@ -127,7 +127,7 @@ class Engine:
         success = True
         if self._context.environment.verbose:
             print "Processing the data, please wait a while...\n"
-        for index_path in glob(self._context.environment.indexd_test_bench + "/*.yml"):
+        for index_path in glob(self._context.environment.indexd_test_bench + "/*.yaml"):
             success_list.append(validators.LightWeightValidator(self._context, index_path).run())
 
         if False in success_list:

@@ -42,7 +42,7 @@ str_catalog = subprocess.check_output(
 json_catalog = json.loads(str_catalog).values()[0]
 
 # have a list of files in the index_dir
-files = glob.glob("%s/*.yml" % index_dir)
+files = glob.glob("%s/*.yaml" % index_dir)
 
 # index dir will always have yml files only; but just in case
 for f in files:

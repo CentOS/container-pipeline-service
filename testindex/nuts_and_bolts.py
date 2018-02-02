@@ -111,7 +111,7 @@ class Context(object):
 class StatusIterator(object):
     def __init__(self, generator_ref_dir):
         self._current = -1
-        self._src = glob(generator_ref_dir + "/*.yml")
+        self._src = glob(generator_ref_dir + "/*.yaml")
         self._src_count = len(self._src)
 
     def __iter__(self):
