@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Remove maintenance window at Zabbix after (re)deployments
+      when: zabbix_create
+      zabbix_maintenance:
+        name: "{{ zabbix_name }}"
+        server_url: "{{ zabbix_server_url }}"
+        state: absent
+        login_user: "{{ zabbix_login_user }}"
+        login_password: "{{ zabbix_login_password }}"
+        host_groups:
+          - "{{ zabbix_host_groups }}"
+      tags:
+        - zabbix
