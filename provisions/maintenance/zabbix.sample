@@ -10,5 +10,7 @@ zabbix_server_url=https://mon.centos.org/zabbix
 zabbix_login_user=yourusername
 zabbix_login_password=yourpassword
 # create maintenance window for 90 minutes
-zabbix_minutes=5
+zabbix_minutes=90
+# for pre prod use:  "Centos CCCP group - PreProd"
+# for prod use: "Centos CCCP group"
 zabbix_host_groups="Centos CCCP group - PreProd"
