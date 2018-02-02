@@ -18,7 +18,8 @@ logger = logging.getLogger('tracking')
 # which contain mirrorlist that doesn't yield repomd.xml or repodata dir from
 # the URL itself
 alt_repos = {
-    "epel": "https://mirrors.fedoraproject.org/mirrorlist?repo=epel-7&arch=x86_64",
+    "epel": "https://mirrors.fedoraproject.org/mirrorlist?"
+            "repo=epel-7&arch=x86_64",
     "remi-safe": "http://rpms.remirepo.net/enterprise/7/safe/x86_64/"
 }
 

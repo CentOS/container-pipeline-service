@@ -146,7 +146,7 @@ for d in dirs:
     # os_release = image_scan.return_os_release()
 
     # if "CentOS Linux" not in os_release:
-    #     print "Sorry, we can't help you scan non CentOS images at this point."
+    #     print "Sorry, we can't help you scan non CentOS images at this point"
     #     sys.exit(1)
 
     # container_scan = ScanImageContainer(d)

@@ -7,6 +7,7 @@ from container_pipeline.lib import settings
 from container_pipeline.lib.queue import JobQueue
 from container_pipeline.models import Build, BuildPhase
 
+
 def trigger_dockerfile_linter(job):
     queue = JobQueue(
         host=settings.BEANSTALKD_HOST,
@@ -14,11 +15,10 @@ def trigger_dockerfile_linter(job):
         sub="master_tube")
 
     try:
-        dockerfile_location = \
-            os.path.join(
-                os.environ['DOCKERFILE_DIR'],
-                "" if job["repo_build_path"] == "/" else job["repo_build_path"],
-                job["target_file"])
+        dockerfile_location = os.path.join(
+            os.environ['DOCKERFILE_DIR'],
+            "" if job["repo_build_path"] == "/" else job["repo_build_path"],
+            job["target_file"])
         with open(dockerfile_location) as f:
             dockerfile = f.read()
         job["dockerfile"] = dockerfile
@@ -48,9 +48,9 @@ def trigger_dockerfile_linter(job):
         return False
     except BaseException as e:
         print e
-        print "==> Encountered unexpected error. Dockerfile lint trigger failed"
-        print "==> Error: %s" % str(e)
-        print "==> Sending Dockerfile linter failure email"
+        print "=> Encountered unexpected error. Dockerfile lint trigger failed"
+        print "=> Error: %s" % str(e)
+        print "=> Sending Dockerfile linter failure email"
         # response = {
         #     "action": "notify_user",
         #     "namespace": job["appid"],

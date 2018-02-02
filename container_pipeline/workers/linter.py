@@ -152,11 +152,13 @@ class DockerfileLintWorker(BaseWorker):
             out, err = run_cmd_out_err(command)
             if err == "":
                 self.logger.info(
-                    "Dockerfile linting successful going for openshift job creation")
+                    "Dockerfile linting successful going "
+                    "for openshift job creation")
                 response = self.handle_lint_success(out)
                 if not response["job_created"]:
                     self.logger.warning(
-                        "Openshift project is not created putting it back to linter tube")
+                        "Openshift project is not created "
+                        "putting it back to linter tube")
                     if self.job.get("retry") is None:
                         self.job["lint_retry"] = 1
                     else:
@@ -164,7 +166,8 @@ class DockerfileLintWorker(BaseWorker):
                     self.job["action"] = "start_linter"
                 else:
                     self.logger.info(
-                        "OpenShift project created, deleting 'dockerfile' data from job")
+                        "OpenShift project created, "
+                        "deleting 'dockerfile' data from job")
                     self.job["dockerfile"] = None
                     self.job["lint_retry"] = None
                     self.job["action"] = "start_build"
@@ -181,7 +184,8 @@ class DockerfileLintWorker(BaseWorker):
             if self.job.get("lint_retry") > self.MAX_RETRY:
                 self.job["dockerfile"] = None
                 self.job["action"] = "notify_user"
-                self.job["msg"] = "Openshift project {} is not getting deleted".format(
+                self.job["msg"] = ("Openshift project {} "
+                                   "is not getting deleted").format(
                     self.job.get("project_name"))
 
             self.queue.put(json.dumps(self.job), 'master_tube')

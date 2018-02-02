@@ -4,16 +4,18 @@
 import json
 import os
 
-DATA_FILE_DIR_DEFAULT="/srv/pipeline-logs"
+DATA_FILE_DIR_DEFAULT = "/srv/pipeline-logs"
 
-# TODO : Change implementation into proper model and move this class into model package.
+# TODO : Change implementation into proper model and move this class into
+# model package.
 
 
 def form_Dockerfile_link(git_URL, git_path, git_branch, target_file):
     """
     Helper function to generate Dockerfile link.
     :param git_URL: The url of the git repository.
-    :param git_path: The path, relative to the git repository root, where the file resides.
+    :param git_path: The path, relative to the git repository root,
+                     where the file resides.
     :param git_branch: The repository branch where the file resides.
     :param target_file: The name of the target file.
     :return: The reachable link to the dockerfile.
@@ -39,7 +41,8 @@ class ContainerLinksModel(object):
     def __init__(self, data_dir=DATA_FILE_DIR_DEFAULT):
         """
         Intialize the Model
-        :param data_dir: The directory to which we need to dump the data file to.
+        :param data_dir: The directory to which we need
+                         to dump the data file to.
         """
         self._data_dir = data_dir
         self.data_file = data_dir + "/container_info.json"
