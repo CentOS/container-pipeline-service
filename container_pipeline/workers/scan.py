@@ -9,6 +9,7 @@ Container Pipeline Service
 
 from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib import settings
+from container_pipeline.lib.command import run_cmd_out_err
 import container_pipeline.lib.log as log
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.scanners.runner import ScannerRunner
@@ -89,9 +90,40 @@ class ScanWorker(BaseWorker):
             self.init_next_phase_data('delivery')
             self.logger.debug("Put job for delivery on master tube")
 
+        # run the image and volume cleanup
+        self.clean_up()
+
         # remove per file build log handler from logger
         if 'dfh' in locals():
             dfh.remove()
+
+    def clean_up(self):
+        """
+        Clean up the system after scan is done.
+        This cleans up any unused/dangling images and volumes.
+        This is using `docker image prune -f` and `docker volume prune -f`
+        commands under the hood. The `-f` option will help avoid the prompt
+        for confirmation.
+        """
+        command = ["docker", "image", "prune", "-f"]
+        self.logger.debug("Removing unused/dangling images..")
+        try:
+            out, error = run_cmd_out_err(command)
+        except Exception as e:
+            self.logger.critical("Failing to remove dangling images.")
+            self.logger.critical("Error %s:%s", str(e), str(error))
+        else:
+            self.logger.debug("Cleaned unsued images: %s", str(out))
+
+        command = ["docker", "volume", "prune", "-f"]
+        self.logger.debug("Removing unused/dangling volumes..")
+        try:
+            out, error = run_cmd_out_err(command)
+        except Exception as e:
+            self.logger.critical("Failing to remove dangling volume.")
+            self.logger.critical("Error %s:%s", str(e), str(error))
+        else:
+            self.logger.debug("Cleaned unsued volumes: %s", str(out))
 
 
 if __name__ == '__main__':
