@@ -11,7 +11,7 @@
   sudo: yes
   shell: rm -rf /var/lib/docker/volumes/*
 
-- name: Remove images with no name or tag
+- name: Run docker system prune
   sudo: yes
   ignore_errors: yes
-  shell: docker rmi $(docker images -f "dangling=true" -q)
+  shell: docker system prune -f
