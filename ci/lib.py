@@ -565,6 +565,9 @@ def run_pep8_gate(nodes):
     # on controller is synced at, check constants.py and constant references
     # run pep8 gate on pipeline service code
     pep8_conf = os.path.join(CONTROLLER_WORK_DIR, PEP8_CONF)
+    _print("Pep8 config:")
+    print run_cmd("cat %s" % pep8_conf, host=controller)
+
     run_cmd("pep8 --config={0} {1}".format(
         pep8_conf, CONTROLLER_WORK_DIR),
         host=controller, stream=True)
