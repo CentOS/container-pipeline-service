@@ -5,8 +5,7 @@ import time
 
 from random import randint
 from ci.tests.base import BaseTestCase
-from container_pipeline.lib.settings import SCANNERS_RESULTFILE,\
-        SCANNERS_STATUS_FILE
+from container_pipeline.lib.settings import SCANNERS_RESULTFILE
 
 BUILD_FAIL_PROJECT_NAME = "nshaikh-go-helloworld-latest"
 
@@ -167,14 +166,6 @@ class TestScanners(BaseTestCase):
                 )[0]
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
-        ))
-
-    def test_04_scanner_execution_status(self):
-        """
-        Test if scanner is exporting the execution status file.
-        """
-        self.assertTrue(self.check_if_file_exists(
-            path=os.path.join(self.logs_dir, SCANNERS_STATUS_FILE)
         ))
 
     def tearDown(self):
