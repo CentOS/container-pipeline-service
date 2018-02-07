@@ -1,11 +1,12 @@
 from container_pipeline.lib.index_registry_diff import diff
 import re
+from container_pipeline.lib.registry import mark_removal_from_local_registry
 from glob import glob
 
 import config
 import lib
 from container_pipeline.lib.registry import RegistryInfo
-from container_pipeline.utils import BuildTracker
+from container_pipeline.utils import BuildTracker, get_container_name
 
 
 class GarbageCollector(object):
@@ -90,29 +91,31 @@ class GarbageCollector(object):
         """Orphans mismatched images from registry."""
         lib.print_msg("Marking mismatched containers for removal...",
                       self._verbose)
-        registry_storage_path = "/var/lib/registry/docker/registry/v2"
-        registry_blobs = registry_storage_path + "/blobs"
-        registry_repositories = registry_storage_path + "/repositories"
         for container_full_name, tag_list in self._mismatched.iteritems():
             # For every entry in mismatched, if a build is not currently running
             # remove it
             ## Formulate necessary data
-            namespace = container_full_name.split("/")[0] \
-                if "/" in container_full_name else container_full_name
-            namespace_path = registry_repositories + "/" + namespace
-            container_name = registry_repositories + "/" + container_full_name
-            manifests = container_name + "/_manifests"
-            tags = manifests + "/tags"
-            # Delete the tag
-            for item in tag_list:
-                container_tag = str.format(
-                    "{container_name}/{container_tag}",
-                    container_name=container_full_name,
-                    container_tag=item
+            for tag in tag_list:
+                if "/" in container_full_name:
+                    container_namespace, container_name = container_full_name.split(
+                        "/"
+                    )
+                else:
+                    container_namespace = None
+                    container_name = container_full_name
+                mark_removal_from_local_registry(
+                    self._verbose,
+                    container_namespace,
+                    container_name,
+                    tag,
+                    BuildTracker(
+                        get_container_name(
+                            container_namespace,
+                            container_name,
+                            tag
+                        )
+                    ).is_running()
                 )
-                if not BuildTracker(container_tag).is_running():
-                    del_tag = tags + "/" + item
-                    lib.rm(del_tag)
 
     def _delete_from_registry(self):
         """

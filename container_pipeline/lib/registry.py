@@ -1,4 +1,4 @@
-from container_pipeline.utils import request_url, rm
+from container_pipeline.utils import request_url, rm, print_msg
 import json
 from os import path
 
@@ -40,7 +40,19 @@ class RegistryInfo(object):
                 self.tags[item] = json.load(tags_data)
 
 
-def delete_from_local_registry(container_namespace, container_name, container_tag):
+def mark_removal_from_local_registry(verbose, container_namespace,
+                                     container_name, container_tag,
+                                     build_running = False):
+    print_msg("Marking mismatched containers for removal...",
+               verbose)
     registry_storage_path = "/var/lib/registry/docker/registry/v2"
-    registry_blobs = path.join(registry_storage_path, "blobs")
-    registry_repositories = path.join(registry_storage_path, "repositories")
+    registry_repositories = registry_storage_path + "/repositories"
+
+    namespace_path = path.join(registry_repositories, container_namespace)
+    name_path = path.join(namespace_path, container_name)
+    manifests = name_path + "/_manifests"
+    tags = manifests + "/tags"
+    # Delete the tag
+    if not build_running:
+        del_tag = path.join(tags, container_tag)
+        rm(del_tag)

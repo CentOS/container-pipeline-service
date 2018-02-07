@@ -91,13 +91,14 @@ def clone_repo(git_url, clone_location):
     run_cmd(cmd)
 
 
-def get_container_name(app_id, job_id, desired_tag):
+def get_container_name(namespace, name, tag=None):
     return str.format(
-        "{app_id}/{job_id}:{desired_tag}",
-        app_id=app_id,
-        job_id=job_id,
-        desired_tag=desired_tag
+        "{namespace}{name}{tag}",
+        namespace=namespace + "/" if namespace else "",
+        name=name,
+        tag=(":" + str(tag)) if tag else ""
     )
+
 
 def get_job_name(job_details):
     """Get jenkins job name from job_detials"""

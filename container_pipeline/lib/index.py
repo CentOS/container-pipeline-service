@@ -14,7 +14,7 @@ class IndexEntry(object):
             data.get(container_pipeline.constants.index.ID),
             data.get(container_pipeline.constants.index.APP_ID),
             data.get(container_pipeline.constants.index.JOB_ID),
-            data.get(container_pipeline.constants.index.DESIRED_TAG),
+            str(data.get(container_pipeline.constants.index.DESIRED_TAG)),
             data.get(container_pipeline.constants.index.GIT_URL),
             data.get(container_pipeline.constants.index.GIT_PATH),
             data.get(container_pipeline.constants.index.GIT_BRANCH),
