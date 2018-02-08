@@ -39,7 +39,7 @@ class Engine:
 
         if self._context.environment.verbose:
             print "\nPreparing the test bench from the index files\n"
-        potential_files = glob(index_path + "/*.yaml")
+        potential_files = glob(index_path + "/*.y*ml")
 
         if len(potential_files) == 0 or (len(potential_files) == 1 and
                                          any(s.startswith('index_template')
@@ -68,7 +68,7 @@ class Engine:
         if self._context.environment.verbose:
             print "Processing the data, please wait a while...\n"
 
-        for index_path in glob(self._context.environment.test_index + "/*.yaml"):
+        for index_path in glob(self._context.environment.test_index + "/*.y*ml"):
             index_file = path.basename(index_path)
 
             status1, status_sublist1 = validators.IndexFormatValidator(self._context, index_path).run()
@@ -127,7 +127,7 @@ class Engine:
         success = True
         if self._context.environment.verbose:
             print "Processing the data, please wait a while...\n"
-        for index_path in glob(self._context.environment.indexd_test_bench + "/*.yml"):
+        for index_path in glob(self._context.environment.indexd_test_bench + "/*.y*ml"):
             success_list.append(validators.LightWeightValidator(self._context, index_path).run())
 
         if False in success_list:
