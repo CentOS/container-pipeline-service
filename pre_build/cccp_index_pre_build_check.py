@@ -54,7 +54,7 @@ def get_projects_from_index(indexdlocation):
     them in array if it has parameter prebuild_script.
     """
     projects = []
-    for yamlfile in glob(indexdlocation + "/*.yaml"):
+    for yamlfile in glob(indexdlocation + "/*.y*ml"):
         if "index_template" not in yamlfile:
             stream = open(yamlfile, 'r')
             index_yaml = yaml.load(stream, Loader=yaml.BaseLoader)
