@@ -9,7 +9,7 @@ Container Pipeline Service
 
 from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib import settings
-from container_pipeline.lib.command import run_cmd_out_err
+from container_pipeline.lib.command import run_cmd
 import container_pipeline.lib.log as log
 from container_pipeline.workers.base import BaseWorker
 from container_pipeline.scanners.runner import ScannerRunner
@@ -105,25 +105,25 @@ class ScanWorker(BaseWorker):
         commands under the hood. The `-f` option will help avoid the prompt
         for confirmation.
         """
-        command = ["docker", "image", "prune", "-f"]
+        command = "docker rmi -f `docker images -f dangling=true -q`"
         self.logger.debug("Removing unused/dangling images..")
         try:
-            out, error = run_cmd_out_err(command)
+            run_cmd(command)
         except Exception as e:
             self.logger.critical("Failing to remove dangling images.")
-            self.logger.critical("Error %s:%s", str(e), str(error))
+            self.logger.critical("Error: %s", str(e))
         else:
-            self.logger.debug("Cleaned unsued images: %s", str(out))
+            self.logger.debug("Cleaned unsued images post scan.")
 
-        command = ["docker", "volume", "prune", "-f"]
+        command = "docker volume rm `docker volume ls -f dangling=true -q`"
         self.logger.debug("Removing unused/dangling volumes..")
         try:
-            out, error = run_cmd_out_err(command)
+            run_cmd(command)
         except Exception as e:
             self.logger.critical("Failing to remove dangling volume.")
-            self.logger.critical("Error %s:%s", str(e), str(error))
+            self.logger.critical("Error: %s", str(e))
         else:
-            self.logger.debug("Cleaned unsued volumes: %s", str(out))
+            self.logger.debug("Cleaned unsued volumes post scan.")
 
 
 if __name__ == '__main__':
