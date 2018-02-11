@@ -48,9 +48,9 @@ class ScanWorker(BaseWorker):
         status, scanners_data = scan_runner_obj.scan()
         if not status:
             self.logger.warning(
-                "Failed to run scanners on image under test, moving on!",
-                extra=self.job
-            )
+                "Failed to run scanners on image under test, moving on!")
+            self.logger.warning("Job data %s", str(self.job))
+
             self.set_buildphase_data(
                 build_phase_status='complete',
                 build_phase_end_time=timezone.now()
