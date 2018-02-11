@@ -19,6 +19,7 @@ from django.utils import timezone
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+
 def create_project(queue, job, logger):
     """
     Creates a new project in OpenShift. This function expects a queue on which
@@ -70,7 +71,8 @@ def create_project(queue, job, logger):
             'TARGET_FILE': job.get("target_file"),
             'NOTIFY_EMAIL': job.get("notify_email"),
             'DESIRED_TAG': job.get("desired_tag"),
-            'TEST_TAG': job.get("test_tag")
+            'TEST_TAG': job.get("test_tag"),
+            'BUILD_CONTEXT': job.get("build_context")
         })
     except OpenshiftError:
         try:
