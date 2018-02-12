@@ -23,4 +23,4 @@
       restart_policy: always
       pull: yes
       published_ports: "9000:8080"
-      command: "--registry {{ public_registry }}"
+      command: "--insecure --registry {{ public_registry }}"
