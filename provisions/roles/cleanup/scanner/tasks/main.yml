@@ -11,7 +11,12 @@
   sudo: yes
   shell: rm -rf /var/lib/docker/volumes/*
 
-- name: Remove images with no name or tag
+- name: Remove dangling images
   sudo: yes
   ignore_errors: yes
-  shell: docker rmi $(docker images -f "dangling=true" -q)
+  shell: docker rmi -f `docker images -q -f dangling=true`
+
+- name: Remove dangling volumes
+  sudo: yes
+  ignore_errors: yes
+  shell: docker volume rm `docker volume ls -q -f dangling=true`
