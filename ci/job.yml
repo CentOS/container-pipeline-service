@@ -37,6 +37,7 @@
               - dharmit
               - navidshaikh
               - mohammedzee1000
+              - cdrage
             white-list:
               - rtnpro
               - kbsingh
@@ -44,6 +45,7 @@
               - dharmit
               - navidshaikh
               - mohammedzee1000
+              - cdrage
             build-desc-template: "build description"
             trigger-phrase: '#dotests'
             only-trigger-phrase: false
