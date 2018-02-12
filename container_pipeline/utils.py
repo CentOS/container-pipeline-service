@@ -22,7 +22,7 @@ def load_yaml(yaml_file):
     try:
         if os.path.exists(yaml_file):
             with open(yaml_file) as f:
-                data = yaml.load(f)
+                data = yaml.load(f, Loader=yaml.BaseLoader)
     except Exception:
         logger.error(
             str.format(
@@ -95,6 +95,22 @@ def get_container_name(namespace, name, tag=None):
     return str.format(
         "{namespace}{name}{tag}",
         namespace=namespace + "/" if namespace else "",
+        name=name,
+        tag=(":" + str(tag)) if tag else ""
+    )
+
+
+def get_gc_container_name(namespace, name, tag=None):
+    if namespace:
+        if namespace == "library":
+            ns = ""
+        else:
+            ns = namespace + "/"
+    else:
+        ns = ""
+    return str.format(
+        "{namespace}{name}{tag}",
+        namespace=ns,
         name=name,
         tag=(":" + str(tag)) if tag else ""
     )

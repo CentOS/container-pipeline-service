@@ -1,12 +1,12 @@
 from container_pipeline.lib.index import get_entries
 from container_pipeline.lib.registry import RegistryInfo
-from container_pipeline.utils import get_container_name
+from container_pipeline.utils import get_gc_container_name
 
 
 def _is_in_index(registry_entry, index_entries):
     for entry in index_entries:
-        index_fullname = get_container_name(entry.app_id, entry.job_id,
-                                            entry.desired_tag)
+        index_fullname = get_gc_container_name(entry.app_id, entry.job_id,
+                                               entry.desired_tag)
         if index_fullname == registry_entry:
             return True
 

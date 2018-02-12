@@ -48,7 +48,10 @@ def mark_removal_from_local_registry(verbose, container_namespace,
     registry_storage_path = "/var/lib/registry/docker/registry/v2"
     registry_repositories = registry_storage_path + "/repositories"
 
-    namespace_path = path.join(registry_repositories, container_namespace)
+    if container_namespace:
+        namespace_path = path.join(registry_repositories, container_namespace)
+    else:
+        namespace_path = registry_repositories
     name_path = path.join(namespace_path, container_name)
     manifests = name_path + "/_manifests"
     tags = manifests + "/tags"
