@@ -155,6 +155,10 @@ def get_project_name(job):
     return '{}-{}-{}'.format(job['appid'], job['jobid'], job['desired_tag'])
 
 
+def get_project_name_with_params(app_id, job_id, desired_tag):
+    """Get project name from job data"""
+    return '{}-{}-{}'.format(app_id, job_id, desired_tag)
+
 def parse_json_response(response):
     """Parses the json response provided to it to determin"""
     try:
