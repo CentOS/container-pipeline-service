@@ -111,6 +111,20 @@
       - jenkins/slaves
       - jenkins/master
 
+- name: Setup API Server
+  hosts: jenkins_slaves
+  roles:
+      - django
+      - db
+      - api
+  tags:
+      - db
+      - django
+      - repo_tracking
+      - api
+      - jenkins
+      - jenkins/slave
+
 - name: Setup Scanner Worker
   hosts: scanner_worker
   roles:
