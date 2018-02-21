@@ -77,6 +77,15 @@ def populate_upstreams(container):
 
 def scan_image(image):
     """Scan the given container image"""
+
+    # if image in question is a centos base image (centos/centos:*), don't scan
+    # it for repo tracking.
+    if image.name.startswith("centos/centos:"):
+        image.scanned = True
+        image.last_scanned = timezone.now()
+        image.save()
+        return
+
     image.pull()
     populate_packages(image)
     populate_upstreams(image)
