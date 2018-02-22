@@ -25,6 +25,7 @@
     restart: yes
     image: pipeline-apiserver
     restart_policy: always
+    volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
     published_ports: "9001:8080"
   tags:
       - api
