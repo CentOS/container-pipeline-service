@@ -3,6 +3,7 @@ import os
 import select
 import subprocess
 import sys
+import requests
 
 from time import sleep
 
@@ -31,6 +32,17 @@ Notes:
         scanner_host = nodes[3]
         controller = nodes[4]
 """
+
+
+def request_json(url):
+    data = None
+    if url:
+        try:
+            r = requests.get(url)
+            data = r.json()
+        except Exception:
+            pass
+    return data
 
 
 def _print(msg):
