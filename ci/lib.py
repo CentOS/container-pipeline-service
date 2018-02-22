@@ -3,7 +3,7 @@ import os
 import select
 import subprocess
 import sys
-import requests
+import urllib2
 
 from time import sleep
 
@@ -38,8 +38,8 @@ def request_json(url):
     data = None
     if url:
         try:
-            r = requests.get(url)
-            data = r.json()
+            r = urllib2.urlopen(url)
+            data = json.loads(r.read())
         except Exception:
             pass
     return data
