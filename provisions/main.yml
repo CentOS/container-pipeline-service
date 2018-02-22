@@ -152,10 +152,8 @@
   hosts: jenkins_slaves
   roles:
       - django
-      - db
       - api
   tags:
-      - db
       - django
       - repo_tracking
       - api
