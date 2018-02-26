@@ -2,22 +2,39 @@
   tags:
   - jenkins/master
 
+# Stop Jenkins so no files are overriden by a running Jenkins instance
+- name: Stop jenkins before configuration
+  service: name=jenkins state=stopped
+  sudo: yes
+  tags:
+  - jenkins/master
+
 - include: config.yml
   tags:
   - jenkins/master
 
-- name: Restart jenkins
-  service: name=jenkins state=restarted
+# Start Jenkins again
+- name: Start jenkins
+  service: name=jenkins state=started
   sudo: yes
   tags:
   - jenkins/master
 
 - name: Wait for Jenkins to come up
-  shell: curl --head --silent http://localhost:8080/cli/
+  wait_for:
+    host: '{{ansible_default_ipv4.address}}'
+    port: 8080
+    delay: 5
+    timeout: 300
+  tags:
+    - jenkins/master
+
+- name: Wait for Jenkins UI to come up
+  shell: curl --head --silent http://{{ ansible_default_ipv4.address }}:8080/cli/
   register: result
   until: result.stdout.find("200 OK") != -1
   retries: 50
-  delay: 10
+  delay: 5
   tags:
     - jenkins/master
 
@@ -31,11 +48,20 @@
     - jenkins/master
 
 - name: Wait for Jenkins to come up
-  shell: curl --head --silent http://localhost:8080/cli/
+  wait_for:
+    host: '{{ ansible_default_ipv4.address }}'
+    port: 8080
+    delay: 5
+    timeout: 300
+  tags:
+    - jenkins/master
+
+- name: Wait for Jenkins UI to come up
+  shell: curl --head --silent http://{{ ansible_default_ipv4.address }}:8080/cli/
   register: result
   until: result.stdout.find("200 OK") != -1
   retries: 50
-  delay: 10
+  delay: 5
   tags:
     - jenkins/master
 
