@@ -48,7 +48,6 @@
     - ../jenkinsbuilder/project-defaults.yml
     - ../jenkinsbuilder/weekly-scan.py
     - ../container_pipeline/vendors/beanstalkc.py
-  when: not vagrant
   tags:
       - application
 
