@@ -34,6 +34,11 @@
   sudo: yes
   tags: django
 
+- name: Install raven
+  pip: name=raven version=6.5.0
+  sudo: yes
+  tags: django
+
 - name: Ensure docker group exists
   group: name=docker state=present
   sudo: yes
