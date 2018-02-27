@@ -1,9 +1,12 @@
+from container_pipeline.lib.index_registry_diff import diff
 import re
+from container_pipeline.lib.registry import mark_removal_from_local_registry
 from glob import glob
 
 import config
 import lib
-from container_pipeline.utils import BuildTracker
+from container_pipeline.lib.registry import RegistryInfo
+from container_pipeline.utils import BuildTracker, get_container_name
 
 
 class GarbageCollector(object):
@@ -40,59 +43,13 @@ class GarbageCollector(object):
         self._index_git = index_git
         self._gc_exceptions = []
         self._gc_match_only = []
-        # Formulate the registry url
-        self._registry_url = str.format(
-            "{schema}://{host}{port}/v2",
-            schema="https" if registry_secure else "http",
-            host=registry_host,
-            port="" if not registry_port else ":" +
-                                              registry_port
-        )
+        self._registry_host = registry_host
+        self._registry_port = registry_port
+        self._registry_secure = registry_secure
         self._index_d_location = self._index_location + "/index.d"
         # Setup reg info object to query the registry and cache metadata.
-        self._index_containers = {}
+        self._index_check = False
         self._mismatched = {}
-
-    def _query_registry(self):
-        """
-        Collect metadata from the registry, if provided
-        """
-        lib.print_msg("Gathering registry metadata...", self._verbose)
-        self._registry_info = lib.RegistryInfo(self._registry_url)
-
-    def _query_index(self):
-        """
-        Query a cloned or local container index.
-        """
-        index_files = glob(self._index_d_location + "/*.yml")
-        for index_file in index_files:
-            # Go through every index file
-            if "index_template" not in index_file:
-                data = lib.load_yaml(index_file)
-                if "Projects" not in data:
-                    # If file is not formatted correctly, come out
-                    raise Exception(
-                        str.format(
-                            "Invalid index file {}, please fix the same",
-                            index_file
-                        )
-                    )
-                # Go through every entry in the file
-                for entry in data["Projects"]:
-                    app_id = entry["app-id"]
-                    job_id = entry["job-id"]
-                    desired_tag = entry["desired-tag"]
-                    container_name = str.format(
-                        "{namespace}{name}",
-                        namespace="" if str(app_id) == "library"
-                        else str(app_id) + "/",
-                        name=str(job_id)
-                    )
-                    if container_name not in self._index_containers:
-                        self._index_containers[container_name] = []
-                    self._index_containers[container_name].append(
-                        desired_tag
-                    )
 
     def _prep_index(self):
         """
@@ -111,9 +68,7 @@ class GarbageCollector(object):
             lib.clone_repo(self._index_git, self._index_location)
             index_preped = True
 
-        if index_preped:
-            # If there is an index to query, query it and populate image list
-            self._query_index()
+        return index_preped
 
     def _prep_lists(self):
         """
@@ -136,33 +91,31 @@ class GarbageCollector(object):
         """Orphans mismatched images from registry."""
         lib.print_msg("Marking mismatched containers for removal...",
                       self._verbose)
-        registry_storage_path = "/var/lib/registry/docker/registry/v2"
-        registry_blobs = registry_storage_path + "/blobs"
-        registry_repositories = registry_storage_path + "/repositories"
         for container_full_name, tag_list in self._mismatched.iteritems():
             # For every entry in mismatched, if a build is not currently running
             # remove it
             ## Formulate necessary data
-            namespace = container_full_name.split("/")[0] \
-                if "/" in container_full_name else container_full_name
-            namespace_path = registry_repositories + "/" + namespace
-            container_name = registry_repositories + "/" + container_full_name
-            manifests = container_name + "/_manifests"
-            tags = manifests + "/tags"
-            # Delete the tag
-            for item in tag_list:
-                container_tag = str.format(
-                    "{container_name}/{container_tag}",
-                    container_name=container_full_name,
-                    container_tag=item
+            for tag in tag_list:
+                if "/" in container_full_name:
+                    container_namespace, container_name = container_full_name.split(
+                        "/"
+                    )
+                else:
+                    container_namespace = None
+                    container_name = container_full_name
+                mark_removal_from_local_registry(
+                    self._verbose,
+                    container_namespace,
+                    container_name,
+                    tag,
+                    BuildTracker(
+                        get_container_name(
+                            container_namespace,
+                            container_name,
+                            tag
+                        )
+                    ).is_running()
                 )
-                if not BuildTracker(container_tag).is_running():
-                    del_tag = tags + "/" + item
-                    lib.rm(del_tag)
-            # If no more tags, delete namespace
-            subs = glob(tags + "/*")
-            if len(subs) <= 0:
-                lib.rm(namespace_path)
 
     def _delete_from_registry(self):
         """
@@ -181,88 +134,119 @@ class GarbageCollector(object):
         self._mark_for_removal()
         self._delete_from_registry()
 
+    def _add_mismatched(self, k, v):
+        """
+        Adds the passed k and v to mismatched list.
+        :param k: The k, which will be the container name
+        :param v: The value, which will be the container tag
+        """
+        self._mismatched[k].append(v)
+
+    def _update_mismatched(self, k, v, match=False,
+                           match_found=False, exceptions=False,
+                           exception_found=False):
+        """
+        Update mismatched entries, deciding if k, and v passed,
+        need to be added to mismatched list, based on conditions
+        :param k: The k, which will be the container name
+        :param v: The value, which will be the container tag
+        :param match: If true, it means match exception needs to be checked
+        :param match_found: If true, it means k,v were found in match list.
+        :param exceptions: If true, it means k, v were found in exception list,
+        :param exception_found: If true, it means k,v was found in exception
+        list
+        """
+        # initialize mismatched list, if not already initialized by adding k.
+        if k not in self._mismatched:
+            self._mismatched[k] = []
+        # If matched and not in exceptions, then add to v to mismatched.
+        if match and match_found:
+            if not (exceptions and exception_found):
+                self._add_mismatched(k, v)
+        # If no match needed, still check for exception list and then add
+        # to mismatched.
+        elif not (exceptions and exception_found):
+            self._add_mismatched(k, v)
+
     def _identify_mismatched(self):
         """
         Identify's images to be removed, by looking at registry, index, and any
         exceptions / match lists
         Note: Match list takes priority over exception list.
         """
-        # Check if we need to check, index, match list and exception list
-        index_check = True if len(self._index_containers) > 0 else False
         exception_list_check = True if len(self._gc_exceptions) > 0 else False
         match_only_check = True if len(self._gc_match_only) > 0 else False
 
-        # Go through every container name and tag info pulled from registry
-        for registry_name, registry_info in \
-                self._registry_info.tags.iteritems():
-            registry_tags = registry_info["tags"]
-            if registry_name not in self._mismatched:
-                self._mismatched[registry_name] = []
-                for registry_tag in registry_tags:
+        if self._index_check:
+            diff_entries, _, _ = diff(
+                self._registry_host,
+                self._registry_port,
+                self._registry_secure,
+                self._index_location
+            )
+            for k, v in diff_entries.iteritems():
+                for item in v:
+                    match_only_list_found = False
+                    exception_list_found = False
                     image_name = str.format(
                         "{name}:{tag}",
-                        name=registry_name,
-                        tag=registry_tag
+                        name=k,
+                        tag=item
                     )
-                    # Assume nothing matched
-                    index_mismatched = False
-                    exception_list_found = False
-                    match_only_list_found = False
-
-                    # If index needs to be checked
-                    if index_check:
-                        index_tags_list = self._index_containers.get(
-                            registry_name
-                        )
-                        # If there are no tags in index to match with or
-                        # registry tag not in the index, then its mismatch.
-                        if not index_tags_list or (
-                                index_tags_list and registry_tag not in
-                                index_tags_list):
-                            index_mismatched = True
-
-                    # If we need to check the exception list
+                    if match_only_check:
+                        for exp in self._gc_match_only:
+                            if exp.match(image_name):
+                                match_only_list_found = True
+                                break
                     if exception_list_check:
                         for exp in self._gc_exceptions:
                             if exp.match(image_name):
                                 exception_list_found = True
                                 break
 
-                    # If we need to check match only list
-                    if match_only_check:
-                        for exp in self._gc_match_only:
-                            if exp.match(image_name):
-                                match_only_list_found = True
-                                break
+                    self._update_mismatched(
+                        k, item, match_only_check,
+                        match_only_list_found, exception_list_check,
+                        exception_list_found
+                    )
 
-                    # Do the actual matching now
-                    if index_check and index_mismatched:
-                        if not exception_list_found:
-                            if match_only_check and not \
-                                    match_only_list_found:
-                                continue
-                            self._mismatched[registry_name].append(
-                                registry_tag
-                            )
-
-                        else:
-                            if match_only_list_found and not \
-                                    exception_list_found:
-                                self._mismatched[registry_name].append(
-                                    registry_tag
-                                )
-                    else:
-                        if match_only_list_found and not exception_list_found:
-                            self._mismatched[registry_name].append(
-                                registry_tag
-                            )
+        else:
+            registry_info = RegistryInfo(
+                registry_host=self._registry_host,
+                registry_port=self._registry_port,
+                registry_secure=self._registry_secure
+            )
+            for registry_name, registry_tags in registry_info.tags.iteritems():
+                if registry_tags:
+                    for tag in registry_tags:
+                        match_only_list_found = False
+                        exception_list_found = False
+                        image_name = str.format(
+                            "{name}:{tag}",
+                            name=registry_name,
+                            tag=tag
+                        )
+                        if match_only_check:
+                            for exp in self._gc_match_only:
+                                if exp.match(image_name):
+                                    match_only_list_found = True
+                                    break
+                        if exception_list_check:
+                            for exp in self._gc_exceptions:
+                                if exp.match(image_name):
+                                    exception_list_found = True
+                                    break
+                        self._update_mismatched(
+                            registry_name, tag, match_only_check,
+                            match_only_list_found, exception_list_check,
+                            exception_list_found
+                        )
 
     def run(self):
         """Initiate the garbage collection."""
 
         self._prep_lists()
-        self._query_registry()
-        self._prep_index()
+        self._index_check = self._prep_index()
         self._identify_mismatched()
 
         end_msg = "Images to Remove"

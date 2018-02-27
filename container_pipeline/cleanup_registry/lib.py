@@ -82,36 +82,3 @@ def clone_repo(git_url, clone_location):
     if path.exists(clone_location):
         rmtree(clone_location)
     run_cmd(cmd)
-
-
-class RegistryInfo(object):
-    """Stores/Caches metadata from specified registry"""
-
-    def __init__(self, registry_url):
-        """
-        Initialize the info object
-        :param registry_url: The URL of registry
-        """
-        self._registry_url = registry_url
-        self.catalog = None
-        self.tags = {}
-        self.manifests = []
-        self._load_info()
-
-    def _load_info(self):
-        """
-        Loads the information about the registry to refer later.
-        """
-        # Get the catalog
-        catalog_url = self._registry_url + "/_catalog"
-        tags_info = "/tags/list"
-        c = request_url(catalog_url)
-        if c:
-            self.catalog = json.load(c)["repositories"]
-        else:
-            raise Exception("Could not get registry catalog.")
-        for item in self.catalog:
-            tags_url = self._registry_url + "/" + item + tags_info
-            tags_data = request_url(tags_url)
-            if tags_data:
-                self.tags[item] = json.load(tags_data)
