@@ -27,7 +27,7 @@
       line: "            self.mount_paths[chroot_scan_dir] = chroot_scan_dir"
 
 - name: Install docker
-  yum: name=docker state=present
+  yum: name=docker state=latest
   sudo: yes
   tags: scanner
 
