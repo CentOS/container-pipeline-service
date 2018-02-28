@@ -108,7 +108,7 @@ class ScanWorker(BaseWorker):
         command = "docker rmi -f `docker images -f dangling=true -q`"
         self.logger.debug("Removing unused/dangling images..")
         try:
-            run_cmd(command)
+            run_cmd(command, shell=True)
         except Exception as e:
             self.logger.critical("Failing to remove dangling images.")
             self.logger.critical("Error: %s", str(e))
@@ -118,7 +118,7 @@ class ScanWorker(BaseWorker):
         command = "docker volume rm `docker volume ls -f dangling=true -q`"
         self.logger.debug("Removing unused/dangling volumes..")
         try:
-            run_cmd(command)
+            run_cmd(command, shell=True)
         except Exception as e:
             self.logger.critical("Failing to remove dangling volume.")
             self.logger.critical("Error: %s", str(e))
