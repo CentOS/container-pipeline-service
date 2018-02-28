@@ -1,5 +1,6 @@
 from ci.tests.base import BaseTestCase
 from ci.lib import _print, request_json
+from ci.constantss.host_keys import *
 from container_pipeline.utils import get_project_name_with_params
 
 
@@ -20,11 +21,10 @@ class ApiTestCase(BaseTestCase):
         self.depends_on = "centos/centos:latest"
         self.notify_email = "container-status-report@centos.org"
         self.logs_dir = "/srv/pipeline-logs/" + self.test_tag
-        self.provision()
-        run_host = self.hosts['jenkins_slave']
-        self.run_host = run_host['host']
-        self.run_host_key = run_host['private_key']
-        self.run_host_user = run_host['remote_user']
+        run_host = self.hosts[JENKINS_SLAVE_NODE]
+        self.run_host = run_host.get(HOSTS_HOST)
+        self.run_host_key = run_host.get(HOSTS_PRIVATE_KEY)
+        self.run_host_user = run_host.get(HOSTS_REMOTE_USER)
         self.config_endpoints()
 
     def config_endpoints(self):
@@ -36,7 +36,7 @@ class ApiTestCase(BaseTestCase):
         )
         self.projects_endpoint = str.format(
             "{apiendpoint}/projects/?format=json",
-            self.api_endpoint
+            apiendpoint=self.api_endpoint
         )
 
     def run_dj_script(self, script):
@@ -58,9 +58,11 @@ class ApiTestCase(BaseTestCase):
 
     def test_00_setup_database(self):
         _print("Setting up for tests...")
+        self.provision()
         self.setUpAPITests()
 
     def test_01_project_created_matches_in_api(self):
+        self.setUpAPITests()
         _print("Test if created project details are retrieved correctly by API")
         self.project_name = get_project_name_with_params(
             self.app_id,
