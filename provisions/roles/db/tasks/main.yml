@@ -37,13 +37,6 @@
   sudo: yes
   systemd: name=docker state=started enabled=yes
 
-- name: Pull CentOS postgres container
-  docker_image:
-      name: registry.centos.org/sclo/postgresql-95-centos7
-      tag: latest
-  sudo: yes
-  tags: db
-
 - name: Run postgres container
   docker_container:
       name: postgres
