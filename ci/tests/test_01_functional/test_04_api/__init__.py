@@ -5,6 +5,7 @@ from container_pipeline.utils import get_project_name_with_params
 
 
 class ApiTestCase(BaseTestCase):
+    node = JENKINS_SLAVE_NODE
 
     def setUpAPITests(self):
         super(ApiTestCase, self)

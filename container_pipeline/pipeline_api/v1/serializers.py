@@ -17,7 +17,11 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
     """
     class Meta:
         model = Project
-        fields = "__all__"
+        fields = (
+            'name',
+            'created',
+            'last_updated'
+        )
 
 
 class BuildSerializer(serializers.HyperlinkedModelSerializer):
@@ -26,7 +30,19 @@ class BuildSerializer(serializers.HyperlinkedModelSerializer):
     """
     class Meta:
         model = Build
-        fields = "__all__"
+        fields = (
+            'project',
+            'status',
+            'logs',
+            'weekly_scan',
+            'notification_status',
+            'start_time',
+            'end_time',
+            'trigger',
+            'created',
+            'last_updated',
+            'service_debug_logs'
+        )
 
 
 class BuildPhaseSerializer(serializers.HyperlinkedModelSerializer):
@@ -35,7 +51,16 @@ class BuildPhaseSerializer(serializers.HyperlinkedModelSerializer):
     """
     class Meta:
         model = BuildPhase
-        fields = "__all__"
+        fields = (
+            'build',
+            'phase',
+            'status',
+            'log_file_path',
+            'start_time',
+            'end_time',
+            'created',
+            'last_updated'
+        )
 
 
 class RepoInfoSerializer(serializers.HyperlinkedModelSerializer):
@@ -44,7 +69,12 @@ class RepoInfoSerializer(serializers.HyperlinkedModelSerializer):
     """
     class Meta:
         model = RepoInfo
-        fields = "__all__"
+        fields = (
+            'baseurls',
+            'basearch',
+            'releasever',
+            'infra'
+        )
 
 
 class PackageSerializer(serializers.HyperlinkedModelSerializer):
@@ -53,7 +83,14 @@ class PackageSerializer(serializers.HyperlinkedModelSerializer):
     """
     class Meta:
         model = Package
-        fields = "__all__"
+        fields = (
+            'name',
+            'arch',
+            'version',
+            'release',
+            'created',
+            'last_updated'
+        )
 
 
 class ContainerImageSerializer(serializers.HyperlinkedModelSerializer):
@@ -62,4 +99,14 @@ class ContainerImageSerializer(serializers.HyperlinkedModelSerializer):
     """
     class Meta:
         model = ContainerImage
-        fields = "__all__"
+        fields = (
+            'name',
+            'packages',
+            'parents',
+            'repo_info',
+            'to_build',
+            'scanned',
+            'last_scanned',
+            'created',
+            'last_updated'
+        )
