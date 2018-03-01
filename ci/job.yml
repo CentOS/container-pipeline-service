@@ -31,7 +31,6 @@
     triggers:
         - github-pull-request:
             admin-list:
-              - rtnpro
               - kbsingh
               - bamachrn
               - dharmit
@@ -39,7 +38,6 @@
               - mohammedzee1000
               - cdrage
             white-list:
-              - rtnpro
               - kbsingh
               - bamachrn
               - dharmit
