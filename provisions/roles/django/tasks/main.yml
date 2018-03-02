@@ -37,6 +37,13 @@
     - django
     - api
 
+- name: Install Django REST Framework Filtering Backends
+  pip: name=django-filter
+  sudo: yes
+  tags:
+    - django
+    - api
+
 - name: Install Docker
   yum: name=docker state=installed
   sudo: yes
