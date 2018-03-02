@@ -41,6 +41,7 @@
   docker_image:
       name: '{{ postgresql_image }}'
       tag: latest
+      state: present
       force: yes
   sudo: yes
   tags: db
