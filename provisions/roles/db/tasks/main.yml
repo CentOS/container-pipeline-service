@@ -37,6 +37,14 @@
   sudo: yes
   systemd: name=docker state=started enabled=yes
 
+- name: Pull CentOS postgres container
+  docker_image:
+      name: '{{ postgresql_image }}'
+      tag: latest
+      force: yes
+  sudo: yes
+  tags: db
+
 - name: Run postgres container
   docker_container:
       name: postgres
