@@ -1,19 +1,17 @@
 ---
+
+# vagrant is no more supported, keep it False
 vagrant: False
-rsync_ssh_opts: ""
-test: false
-setup_nfs: false
 
-cccp_source_repo: https://github.com/centos/container-pipeline-service
-cccp_source_branch: master
+# test: True variable indicates provisioning service in CI
+test: False
 
-public_registry: registry.centos.org
+# Whether to enable epel repo for packages
+enable_epel: True
 
-enable_epel: true
+rsync_ssh_opts: ''
 
-intranet_registry: registry.centos.org:5000
-log_level: INFO
-
+# database related configurations
 db_user: cccp
 db_name: cccp
 db_pass: cccp
@@ -21,11 +19,16 @@ db_host: '0.0.0.0'
 db_port: 5432
 postgresql_image: registry.centos.org/centos/postgresql-95-centos7
 postgresql_uid: 26
+# dir where the pg_dump will be exported every hour using cron
+db_backup_nfs_path: /srv/db/cccp
+# local volume shared to postgresql container for data
+db_local_volume: /srv/local-db-volume/cccp
+allowed_hosts: "['127.0.0.1']"
+
 # expire the cccp database pg_dump tar files after given number of days
 expire_tar_after: 4
 
-allowed_hosts: "['127.0.0.1']"
-
+# sentry related configurations
 sentry_enabled: false
 sentry_log_level: 'WARNING'
 # sentry_dsn must be defined in hosts file if you enable sentry
