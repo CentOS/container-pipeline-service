@@ -4,7 +4,19 @@
   when: enable_epel
 
 - name: Ensure JJB is installed
-  yum: name=python2-jenkins-job-builder state=latest
+  yum: name={{ item }} state=present
+  with_items:
+    - python-setuptools
+    - python-virtualenv
+
+- name: Create virtualenv
+  shell: "virtualenv /opt/cccp-service/venv"
+
+- name: Install jenkins-job-builder in venv
+  shell: "/opt/cccp-service/venv/bin/pip install jenkins-job-builder"
+
+- name: Link jjb binary to /usr/bin
+  file: src="/opt/cccp-service/venv/bin/jenkins-jobs" dest=/usr/bin/jenkins-jobs state=link mode=a+x
 
 - name: Ensure JJB conf dir exists
   file: dest=/etc/jenkins_jobs state=directory
