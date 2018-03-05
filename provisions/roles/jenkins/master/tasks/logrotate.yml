@@ -1,6 +1,6 @@
 ---
 - name: Enable logrotate to run hourly
-  file: src=/etc/cron.daily/logrotate dest=/etc/cron.hourly/logrotate state=link
+  file: src=/etc/cron.daily/logrotate dest=/etc/cron.hourly/logrotate state=link force=yes
   sudo: yes
 
 - name: Enable logrotate for /srv/pipeline-logs/cccp.log
