@@ -1,0 +1,102 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "master-job-template"
+objects:
+  - apiVersion: "v1"
+    kind: "BuildConfig"
+    metadata:
+      name: ${PIPELINE_NAME}
+    spec:
+      source:
+        type: Git
+        git:
+          uri: ${JENKINSFILE_GIT_URL}
+          ref: ${JENKINSFILE_GIT_BRANCH}
+        contextDir: ${CONTEXT_DIR}
+      strategy:
+        type: "JenkinsPipeline"
+        jenkinsPipelineStrategy: 
+          jenkinsfilePath: "Jenkinsfile"
+          env:
+          - name: GIT_URL
+            value: ${GIT_URL}
+          - name: GIT_BRANCH
+            value: ${GIT_BRANCH}
+          - name: GIT_PATH
+            value: ${GIT_PATH}
+          - name: TARGET_FILE
+            value: ${TARGET_FILE}
+          - name: DESIRED_TAG
+            value: ${DESIRED_TAG}
+          - name: NOTIFY_EMAIL
+            value: ${NOTIFY_EMAIL}
+          - name: DEPENDS_ON
+            value: ${DEPENDS_ON}
+          - name: BUILD_CONTEXT
+            value: ${BUILD_CONTEXT}
+          - name: PIPELINE_NAME
+            value: ${PIPELINE_NAME}
+          - name: APP_ID
+            value: ${APP_ID}
+          - name: JOB_ID
+            value: ${JOB_ID}
+parameters:
+- description: "Path to a directory containing a Dockerfile"
+  displayName: "Git Path"
+  name: GIT_PATH
+  required: true
+- description: "Name of the dockerfile to be built"
+  displayName: Dockerfile
+  name: TARGET_FILE
+  required: true
+- description: Tag for the resulting image
+  displayName: Desired Tag
+  name: DESIRED_TAG
+  required: true
+- description: Email to send notification to
+  displayName: Notification email
+  name: NOTIFY_EMAIL
+  required: true
+- description: Parent image for the project
+  displayName: Parent image
+  name: DEPENDS_ON
+- description: URL to the Git Repo
+  displayName: Git URL
+  name: GIT_URL
+- description: Git branch to build off
+  displayName: Git Branch
+  name: GIT_BRANCH
+  required: true
+- description: Docker build context
+  displayName: Build Context
+  name: BUILD_CONTEXT
+  required: true
+  value: "./"
+- description: Name of the Pipeline as we want to show up on OpenShift console
+  displayName: Pipeline Name
+  name: PIPELINE_NAME
+  required: true
+- description: Git repo containing the Jenkinsfile
+  displayName: Jenkinsfile repo
+  name: JENKINSFILE_GIT_URL
+  required: true
+  value: https://github.com/dharmit/ccp-openshift
+- description: Git repo branch containing the Jenkinsfile
+  displayName: Jenkinsfile repo branch
+  name: JENKINSFILE_GIT_BRANCH
+  required: true
+  value: master-job
+- description: Context dir is base path to find Jenkinsfile
+  displayName: Context dir
+  name: CONTEXT_DIR
+  required: true
+- description: app_id is analogoues to username in Docker Hub
+  displayName: App ID
+  name: APP_ID
+  required: true
+- description: job_id is analogoues to repo name in Docker Hub
+  displayName: Job ID
+  name: JOB_ID
+  required: true
+

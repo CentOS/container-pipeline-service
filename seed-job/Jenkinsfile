@@ -1,0 +1,47 @@
+pipeline {
+  agent {
+    kubernetes {
+        label 'seed-slave'
+        cloud 'openshift'
+        serviceAccount 'jenkins'
+        containerTemplate {
+          name 'jnlp'
+          image "registry.centos.org/dharmit/ccp-openshift-slave"
+          alwaysPullImage true
+          workingDir '/tmp'
+          args '${computer.jnlpmac} ${computer.name}'
+          ttyEnabled false
+       }
+    }
+  }
+  stages {
+    stage('Checkout SCM') {
+      steps {
+        checkout scm
+      }
+    }
+    stage('Checkout sources') {
+      steps {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "${CONTAINER_INDEX_BRANCH}"]],
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [
+            [$class: 'RelativeTargetDirectory', relativeTargetDir: "${PIPELINE_TARGET_DIR}"]
+          ],
+          submoduleCfg: [],
+          userRemoteConfigs: [
+            [url: "${CONTAINER_INDEX_LOCATION}"]
+          ]
+        ])
+         }
+    }
+        stage('Parse index') {
+      steps {
+          sh "python seed-job/parser.py"
+          sh "cat projects.sh"
+          sh "sh projects.sh"
+      }
+    }
+  }
+}

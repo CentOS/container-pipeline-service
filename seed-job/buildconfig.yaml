@@ -1,0 +1,24 @@
+kind: "BuildConfig"
+apiVersion: "v1"
+metadata:
+  name: "container-index-seed-pipeline"
+spec:
+  source:
+    type: Git
+    git:
+      uri: "https://github.com/dharmit/ccp-openshift"
+      ref: "master-job"
+    contextDir: "seed-job"
+  strategy:
+    type: "JenkinsPipeline"
+    jenkinsPipelineStrategy:
+      jenkinsfilePath: "Jenkinsfile"
+      env:
+      - name: CONTAINER_INDEX_LOCATION
+        value: https://github.com/dharmit/ccp-openshift-index
+      - name: CONTAINER_INDEX_BRANCH
+        value: master
+      - name: PIPELINE_TARGET_DIR
+        value: "source"
+  triggers:
+      - type: ConfigChange

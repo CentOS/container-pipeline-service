@@ -1,0 +1,45 @@
+podTemplate(
+  cloud: 'openshift',
+  name: 'ccp-pipeline',
+  label: 'ccp-pipeline',
+  serviceAccount: 'jenkins',
+  containers: [
+    containerTemplate(
+      name: 'jnlp',
+      image: 'registry.centos.org/dharmit/ccp-openshift-slave',
+      ttyEnabled: true,
+      alwaysPullImage: true,
+      workingDir: '/tmp',
+      privileged: true,
+      args: '${computer.jnlpmac} ${computer.name}'
+    )
+  ],
+  volumes: [
+    hostPathVolume(
+      hostPath: '/var/run/docker.sock',
+      mountPath: '/var/run/docker.sock'
+    )
+  ]
+)
+{
+  node('ccp-pipeline') {
+    stage('Checkout Source') {
+      dir("${PIPELINE_NAME}"){
+        git url: '${GIT_URL}', branch: '${GIT_BRANCH}'
+      }
+    }
+    stage('Build Docker image') {
+      dir("${PIPELINE_NAME}/${GIT_PATH}"){
+        sh "docker build -t ${APP_ID}/${JOB_ID}:${DESIRED_TAG} -f ${TARGET_FILE} ."
+        sh "docker images"
+      }
+    }
+    stage('Push image to registry') {
+      sh '''
+      docker login -u openshift -p `oc whoami -t` 172.30.1.1:5000 &&
+      docker tag ${APP_ID}/${JOB_ID}:${DESIRED_TAG} 172.30.1.1:5000/${APP_ID}/${JOB_ID}:${DESIRED_TAG} &&
+      docker push 172.30.1.1:5000/${APP_ID}/${JOB_ID}:${DESIRED_TAG}
+      '''
+    }
+  }
+}
