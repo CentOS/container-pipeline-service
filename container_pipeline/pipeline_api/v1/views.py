@@ -19,6 +19,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = serializers.ProjectSerializer
 
+    def get_queryset(self):
+        projects = Project.objects.all()
+        p_name = self.request.QUERY_PARAMS.get('name', None)
+        if p_name:
+            projects = projects.filter(name=p_name)
+        return projects
+
 
 class BuildViewSet(viewsets.ModelViewSet):
     """
