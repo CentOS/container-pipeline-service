@@ -63,7 +63,7 @@ class Command(BaseCommand):
                                 '%s' % (c, e), exc_info=True)
                 except Exception as e:
                     logger.error(
-                         'Error in trigger build loop: %s' % e, exc_info=True)
+                        'Error in trigger build loop: %s' % e, exc_info=True)
                 finally:
                     time.sleep(settings.CONTAINER_BUILD_TRIGGER_DELAY)
         except Exception as e:

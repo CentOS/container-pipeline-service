@@ -167,29 +167,29 @@ OC_CONFIG = os.environ.get('OC_CONFIG') or \
 OC_CERT = os.environ.get('OC_CERT') or '/opt/cccp-service/client/ca.crt'
 
 SCANNERS_OUTPUT = {
-        "registry.centos.org/pipeline-images/pipeline-scanner": [
-            "image_scan_results.json"
-        ],
-        "registry.centos.org/pipeline-images/misc-package-updates": [
-            "image_scan_results.json"
-        ],
-        "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-            "RPMVerify.json"
-        ],
-        "registry.centos.org/pipeline-images/container-capabilities-scanner": [
-            "container_capabilities_scanner_results.json"
-        ]
+    "registry.centos.org/pipeline-images/pipeline-scanner": [
+        "image_scan_results.json"
+    ],
+    "registry.centos.org/pipeline-images/misc-package-updates": [
+        "image_scan_results.json"
+    ],
+    "registry.centos.org/pipeline-images/scanner-rpm-verify": [
+        "RPMVerify.json"
+    ],
+    "registry.centos.org/pipeline-images/container-capabilities-scanner": [
+        "container_capabilities_scanner_results.json"
+    ]
 }
 SCANNERS_RESULTFILE = {
-        "registry.centos.org/pipeline-images/pipeline-scanner": [
-            "pipeline_scanner_results.json"],
-        "registry.centos.org/pipeline-images/misc-package-updates": [
-            "misc_package_updates_scanner_results.json"],
-        "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-            "RPMVerify_scanner_results.json"],
-        "registry.centos.org/pipeline-images/container-capabilities-scanner": [
-            "container-capabilities-results.json"
-        ]
+    "registry.centos.org/pipeline-images/pipeline-scanner": [
+        "pipeline_scanner_results.json"],
+    "registry.centos.org/pipeline-images/misc-package-updates": [
+        "misc_package_updates_scanner_results.json"],
+    "registry.centos.org/pipeline-images/scanner-rpm-verify": [
+        "RPMVerify_scanner_results.json"],
+    "registry.centos.org/pipeline-images/container-capabilities-scanner": [
+        "container-capabilities-results.json"
+    ]
 
 }
 SCANNERS_STATUS_FILE = "scanners_status.json"

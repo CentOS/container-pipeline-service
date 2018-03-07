@@ -68,7 +68,7 @@ class DeliveryWorker(BaseWorker):
         delivery_status = self.openshift.wait_for_build_status(
             project_hash_key, delivery_id, 'Complete', status_index=2)
         logs = self.openshift.get_build_logs(
-                project_hash_key, delivery_id, "delivery")
+            project_hash_key, delivery_id, "delivery")
         delivery_logs_file = os.path.join(
             self.job['logs_dir'], 'delivery_logs.txt')
         self.set_buildphase_data(build_phase_log_file=delivery_logs_file)

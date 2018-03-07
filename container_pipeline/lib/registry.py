@@ -12,8 +12,8 @@ class RegistryInfo(object):
                 "{schema}://{registry_host}{registry_port}/v2",
                 schema="https" if registry_secure else "http",
                 registry_host=registry_host,
-                registry_port="" if not registry_port else ":"
-                                                           + str(registry_port)
+                registry_port="" if not registry_port else ":" +
+                str(registry_port)
             )
         )
         self.catalog = None
@@ -42,9 +42,9 @@ class RegistryInfo(object):
 
 def mark_removal_from_local_registry(verbose, container_namespace,
                                      container_name, container_tag,
-                                     build_running = False):
+                                     build_running=False):
     print_msg("Marking mismatched containers for removal...",
-               verbose)
+              verbose)
     registry_storage_path = "/var/lib/registry/docker/registry/v2"
     registry_repositories = registry_storage_path + "/repositories"
 

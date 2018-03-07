@@ -14,7 +14,7 @@ import sys
 from time import sleep
 
 from ci.lib import _print, setup, test, teardown, \
-        run_cmd, DEPLOY_LOGS_PATH, run_cccp_index_job, run_pep8_gate
+    run_cmd, DEPLOY_LOGS_PATH, run_cccp_index_job, run_pep8_gate
 
 
 DEBUG = os.environ.get('ghprbCommentBody', None) == '#dotests-debug'
