@@ -103,7 +103,7 @@ class ContainerImageSerializer(serializers.HyperlinkedModelSerializer):
             'name',
             'packages',
             'parents',
-            'repo_info',
+            'repoinfo',
             'to_build',
             'scanned',
             'last_scanned',
