@@ -9,3 +9,4 @@ hosts.preprod
 hosts.devcloud
 hosts.prod
 sentry.hosts
+zabbix
