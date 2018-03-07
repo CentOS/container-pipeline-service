@@ -564,14 +564,8 @@ def run_pep8_gate(nodes):
     # CONTROLLER_WORK_DIR constant is the path where source code
     # on controller is synced at, check constants.py and constant references
     # run pep8 gate on pipeline service code
-    _print("Pep8 config:")
-    _print(run_cmd("cd {0} && cat {1}".format(
-        CONTROLLER_WORK_DIR,
-        PEP8_CONF),
-        host=controller)
-    )
 
-    run_cmd("cd {0} && pep8 --config {1} . ".format(
+    run_cmd("cd {0} && pep8 --config {1} . && cd -".format(
         CONTROLLER_WORK_DIR, PEP8_CONF),
         host=controller, stream=True)
 

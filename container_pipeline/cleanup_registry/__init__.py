@@ -36,22 +36,22 @@ def get_args_parser():
     parser.add_argument(
         "-l",
         "--localindex",
-        help="Set if you want to use locally available index. Note the index.d "
-             "should be in index location",
+        help="Set if you want to use locally available index. "
+             "Note the index.d should be in index location",
         action="store_true"
     )
     parser.add_argument(
         "-i",
         "--indexgiturl",
-        help="Specify the index git url to clone. If it is not specified, then "
-             "no repo will be cloned.",
+        help="Specify the index git url to clone. If it is not specified, then"
+             " no repo will be cloned.",
         default=None
     )
     parser.add_argument(
         "-c",
         "--collect",
-        help="Enable this to make garbage collection work. Otherwise, it does a"
-             " dry run",
+        help="Enable this to make garbage collection work. Otherwise, "
+             "it does a dry run",
         action="store_true"
     )
     parser.add_argument(

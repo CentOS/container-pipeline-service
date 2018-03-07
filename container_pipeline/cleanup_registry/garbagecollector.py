@@ -11,7 +11,7 @@ from container_pipeline.utils import BuildTracker, get_container_name
 
 class GarbageCollector(object):
     """
-    Matches index with registry and cleans up mismatched data from the registry.
+    Matches index with registry and cleans up mismatched data from the registry
     """
 
     def __init__(self, registry_host="127.0.0.1", registry_port="5000",
@@ -22,18 +22,19 @@ class GarbageCollector(object):
 
         :param registry_host: The ip or host name of registry to query. Default
          is 127.0.0.1.
-        :param registry_port: The port of the registry to query. Default is 5000
+        :param registry_port: The port of the registry to query. Default
+         is 5000
         :param registry_secure: Is the registry secure or insecure (https or
         http)
         :param local_index: Is the index to query locally available. This means
          no cloning.
         :param index_git: If the index is on a git repo, the url of that repo.
-        :param index_location: The path where the index is available or needs to
-         be cloned.
+        :param index_location: The path where the index is available or needs
+         to be cloned.
         :param verbose: If set then steps are displayed on screen as they
         happen.
-        :param collect: If set. then the garbage collection takes place, else it
-         does dry run.
+        :param collect: If set. then the garbage collection takes place, else
+         it does dry run.
         """
 
         self._verbose = verbose
@@ -92,14 +93,13 @@ class GarbageCollector(object):
         lib.print_msg("Marking mismatched containers for removal...",
                       self._verbose)
         for container_full_name, tag_list in self._mismatched.iteritems():
-            # For every entry in mismatched, if a build is not currently running
-            # remove it
-            ## Formulate necessary data
+            # For every entry in mismatched, if a build is not currently
+            # running remove it
+            # Formulate necessary data
             for tag in tag_list:
                 if "/" in container_full_name:
-                    container_namespace, container_name = container_full_name.split(
-                        "/"
-                    )
+                    container_namespace, container_name = \
+                        container_full_name.split("/")
                 else:
                     container_namespace = None
                     container_name = container_full_name

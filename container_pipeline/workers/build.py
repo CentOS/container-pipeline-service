@@ -56,7 +56,7 @@ class BuildWorker(BaseWorker):
 
         for parent in parents:
             is_build_running = BuildTracker(
-                    parent, logger=self.logger).is_running()
+                parent, logger=self.logger).is_running()
             if is_build_running:
                 parents_in_build.append(parent)
             parent_build_running = parent_build_running or \
