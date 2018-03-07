@@ -11,10 +11,10 @@ jenkins-master
 jenkins-slave
 
 [openshift]
-openshift
+open-shift
 
 [scanner_worker]
-scanner_worker
+scanner-worker
 
 [jenkins_master:vars]
 # update as needed
@@ -32,7 +32,8 @@ log_level = DEBUG
 public_registry=jenkins-slave
 intranet_registry=jenkins-slave:5000
 # configure beanstalkd server node
-beanstalk_server=openshift
+beanstalk_server=open-shift
+db_host=jenkins-master
 
 
 ## Container Index related config
@@ -47,8 +48,8 @@ cccp_index_repo_branch=master
 #======================================
 # update following to true to configure NFS, needed for dev environment
 setup_nfs=False
-# replace scanner_worker below with its FQDN / IP, needed if setup_nfs=True
-#test_nfs_share=scanner_worker:/nfsshare
+# replace scanner-worker below with its FQDN / IP, needed if setup_nfs=True
+#test_nfs_share=scanner-worker:/nfsshare
 
 
 ## Email related config
