@@ -31,9 +31,12 @@ def retry(delay=30):
                     time.sleep(delay)
                     if func != obj._initialize:
                         obj._initialize()
-                except (beanstalkc.DeadlineSoon, QueueEmptyException) as e:
+                except beanstalkc.DeadlineSoon as e:
                     obj = args[0]
                     obj.logger.debug(e)
+                    time.sleep(30)
+                except QueueEmptyException as e:
+                    # do not log "No job in queue message"
                     time.sleep(30)
         return wrapper
     return _retry
