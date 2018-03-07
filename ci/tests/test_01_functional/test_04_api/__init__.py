@@ -47,7 +47,7 @@ class ApiTestCase(BaseTestCase):
             '\\"container_pipeline.lib.settings\\"); '
             'django.setup(); '
             'from container_pipeline.models.pipeline import Project, Build, \\'
-            'BuildPhase;'
+            '\nBuildPhase;'
             '{}'
         ).format(script)
         return self.run_cmd(
