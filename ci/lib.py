@@ -204,9 +204,10 @@ class ProvisionHandler(object):
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
             "-u {user} {private_key_args} {extra_args} "
             "provisions/main.yml --become-method=sudo --become "
+            "> {deploy_logs_path}"
         ).format(workdir=workdir, inventory=inventory, user=user,
                  private_key_args=private_key_args,
-                 extra_args=extra_args)
+                 extra_args=extra_args, deploy_logs_path=DEPLOY_LOGS_PATH)
         _print('Provisioning command: %s' % cmd)
 
         # run the command
@@ -288,8 +289,9 @@ oc_slave={jenkins_slave_host}""").format(
         scanner_host=scanner_host,
         test_nfs_share=test_nfs_share)
 
-    _print("ansible_inventory file: \n%s" % ansible_inventory)
-    with open(os.path.join(PROJECT_DIR, 'hosts'), 'w') as f:
+    inventory_export_path = os.path.join(PROJECT_DIR, 'hosts')
+    _print("Generating ansible inventory file: %s" % inventory_export_path)
+    with open(inventory_export_path, 'w') as f:
         f.write(ansible_inventory)
 
 
@@ -432,6 +434,10 @@ def setup(nodes, options):
                                scanner_host,
                                options['nfs_share'])
 
+    # sync controller with service code and patches applied on top
+    _print("Sync controler node with ansible inventory file")
+    sync_controller(controller)
+
     # Flush iptables for openshift host
     run_cmd('iptables -F', host=openshift_host)
     # Flush iptables for jenkins slave host
@@ -552,23 +558,22 @@ def run_pep8_gate(controller):
     Args:
         controller: String - hostname for controller node
     """
-    # setup node and install necessary packages
-    _print("Set up controller node with required packages ")
-    setup_controller(controller)
-
-    # sync controller with service code and patches applied on top
-    _print("Sync controler node with source code.")
-    sync_controller(controller)
-
     # CONTROLLER_WORK_DIR constant is the path where source code
     # on controller is synced at, check constants.py and constant references
     # run pep8 gate on pipeline service code
+
+    _print("Set up controller node with required packages..")
+    setup_controller(controller)
+
+    # sync controller with service code and patches applied on top
+    _print("Sync controler node with source code..")
+    sync_controller(controller)
 
     _print("Running pep8 checks on source code..")
     run_cmd("cd {0} && pep8 --config {1} . && cd -".format(
         CONTROLLER_WORK_DIR, PEP8_CONF),
         host=controller, stream=True)
-    _print("============PEP8 checks passed======================")
+    _print("=" * 30 + "PEP8 checks passed!" + "=" * 30)
 
 
 def teardown():
