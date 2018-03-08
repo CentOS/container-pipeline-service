@@ -73,7 +73,7 @@ class ApiTestCase(BaseTestCase):
 
         # Create project data entry for test project
         script = str.format(
-            "p, c = Project.objects.get_or_create(name={})",
+            "p, c = Project.objects.get_or_create(name='{}')",
             self.project_name
         )
         self.run_dj_script(script)
