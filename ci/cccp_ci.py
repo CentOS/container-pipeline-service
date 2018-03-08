@@ -86,7 +86,7 @@ def _if_debug():
     on a given PR, the nodes are kept for 2 hours for debugging, once
     time lapses the nodes are returned to CICO infrastructure.
     """
-    if DEBUG:
+    if True:
         _print('Reserving nodes for debugging...')
         _print('=' * 10 + 'Node Info' + '=' * 10)
         print_nodes()
@@ -126,7 +126,14 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # run pep8 checks on controller node before running actual tests
-    run_pep8_gate(nodes)
+
+    try:
+        # run the given tests
+        run_pep8_gate(nodes[4])
+    except Exception as e:
+        _print('Build failed as pep8 checks failed tests failed.')
+        _if_debug()
+        sys.exit(1)
 
     try:
         # deploy service on given set of nodes
