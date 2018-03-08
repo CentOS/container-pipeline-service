@@ -29,6 +29,7 @@ class TestRepoMonitoring(BaseTestCase):
             'import os, django; '
             'os.environ.setdefault(\\"DJANGO_SETTINGS_MODULE\\", '
             '\\"container_pipeline.lib.settings\\"); '
+            'django.setup(); '
             '{}'
         ).format(script)
         return self.run_cmd(
