@@ -22,6 +22,12 @@ class ApiTestCase(BaseTestCase):
         self.depends_on = "centos/centos:latest"
         self.notify_email = "container-status-report@centos.org"
         self.logs_dir = "/srv/pipeline-logs/" + self.test_tag
+        self.project_name = get_project_name_with_params(
+            self.app_id,
+            self.job_id,
+            self.desired_tag
+        )
+
         run_host = self.hosts[JENKINS_SLAVE_NODE]
         self.run_host = run_host.get(HOSTS_HOST)
         self.run_host_key = run_host.get(HOSTS_PRIVATE_KEY)
@@ -65,11 +71,6 @@ class ApiTestCase(BaseTestCase):
     def test_01_project_created_matches_in_api(self):
         self.setUpAPITests()
         _print("Test if created project details are retrieved correctly by API")
-        self.project_name = get_project_name_with_params(
-            self.app_id,
-            self.job_id,
-            self.desired_tag
-        )
 
         # Create project data entry for test project
         script = str.format(
@@ -95,3 +96,9 @@ class ApiTestCase(BaseTestCase):
                     found = True
         self.assertTrue(found)
 
+    def test_01_build_created_matches_api(self):
+        self.setUpAPITests()
+        _print("Test if created build matches in API")
+        script = str.format(
+            "b, c = Build.objects.get_or_create()"
+        )
