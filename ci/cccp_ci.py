@@ -136,9 +136,9 @@ if __name__ == '__main__':
         })
     except Exception as e:
         _print('Build failed during deployment:\n%s' % e)
+        _if_debug()
         # first cat the deployment logs, nodes[4]=controller node
         _print(run_cmd('cat %s' % DEPLOY_LOGS_PATH, host=nodes[4]))
-        _if_debug()
         sys.exit(1)
 
     try:
@@ -146,10 +146,9 @@ if __name__ == '__main__':
         run_cccp_index_job(jenkins_master=nodes[0])
     except Exception as e:
         _print("Error running cccp-index job and test builds:\n%s" % e)
-
+        _if_debug()
         # then cat the cccp.log, nodes[1]=jenkins slave
         _print(run_cmd('cat /srv/pipeline-logs/cccp.log', host=nodes[1]))
-        _if_debug()
         sys.exit(1)
 
     try:
