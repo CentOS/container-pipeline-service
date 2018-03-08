@@ -61,8 +61,18 @@ class TestScanners(BaseTestCase):
         # create database entry for Project model for project under test
         self.run_dj_script(
             'from container_pipeline.models import Project; '
+            'from container_pipeline.utils import form _targetfile_link;'
             'Project.objects.get_or_create('
-            'name=\\"nshaikh-go-helloworld-latest\\")'
+            'name=\\"nshaikh-go-helloworld-latest\\",'
+            'target_file_link=form_targetfile_link('
+            '{}, {}, {}, {}'
+            ')'
+            ')'.format(
+                self.repo_url,
+                self.repo_build_path,
+                self.repo_branch,
+                self.target_file
+            )
         )
         workspace_dir = os.path.join(
             "/srv/jenkins/workspace/",

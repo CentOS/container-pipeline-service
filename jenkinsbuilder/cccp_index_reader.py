@@ -126,7 +126,6 @@ def get_projects_from_index(indexdlocation):
                         if dependson_job == '':
                             dependson_job = 'none'
 
-
                         if project.get('prebuild-script'):
                             giturl = "https://github.com/bamachrn/"\
                                 "cccp-pre-build-code"
