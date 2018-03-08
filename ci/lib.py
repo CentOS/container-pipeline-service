@@ -204,10 +204,9 @@ class ProvisionHandler(object):
             "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i {inventory} "
             "-u {user} {private_key_args} {extra_args} "
             "provisions/main.yml --become-method=sudo --become "
-            "> {deploy_logs_path}"
         ).format(workdir=workdir, inventory=inventory, user=user,
                  private_key_args=private_key_args,
-                 extra_args=extra_args, deploy_logs_path=DEPLOY_LOGS_PATH)
+                 extra_args=extra_args)
         _print('Provisioning command: %s' % cmd)
 
         # run the command
@@ -289,6 +288,7 @@ oc_slave={jenkins_slave_host}""").format(
         scanner_host=scanner_host,
         test_nfs_share=test_nfs_share)
 
+    _print("ansible_inventory file: \n%s" % ansible_inventory)
     with open(os.path.join(PROJECT_DIR, 'hosts'), 'w') as f:
         f.write(ansible_inventory)
 
@@ -544,30 +544,31 @@ def test(data, path=None):
         host=controller, stream=True)
 
 
-def run_pep8_gate(nodes):
+def run_pep8_gate(controller):
     """
     Run pep8 on controller node before running actual nodes
     Fails CI if there are pep8 issues with the code
 
     Args:
-        nodes (list): List of nodes received from duffy for CI
+        controller: String - hostname for controller node
     """
-    # get the controller node hostname, check note at the top of file
-    controller = nodes[4]
-
     # setup node and install necessary packages
+    _print("Set up controller node with required packages ")
     setup_controller(controller)
 
     # sync controller with service code and patches applied on top
+    _print("Sync controler node with source code.")
     sync_controller(controller)
 
     # CONTROLLER_WORK_DIR constant is the path where source code
     # on controller is synced at, check constants.py and constant references
     # run pep8 gate on pipeline service code
 
+    _print("Running pep8 checks on source code..")
     run_cmd("cd {0} && pep8 --config {1} . && cd -".format(
         CONTROLLER_WORK_DIR, PEP8_CONF),
         host=controller, stream=True)
+    _print("============PEP8 checks passed======================")
 
 
 def teardown():
