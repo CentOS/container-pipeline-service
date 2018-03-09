@@ -37,6 +37,19 @@
   systemd: name=docker state=restarted enabled=yes
   tags: scanner
 
+- name: Pull atomic scanners container images
+  become: true
+  docker_image:
+    name: "{{ item }}"
+    force: yes
+    state: present
+  with_items:
+    - "registry.centos.org/pipeline-images/pipeline-scanner:latest"
+    - "registry.centos.org/pipeline-images/scanner-rpm-verify:latest"
+    - "registry.centos.org/pipeline-images/misc-package-updates:latest"
+    - "registry.centos.org/pipeline-images/container-capabilities-scanner:latest"
+  tags: scanner
+
 - name: Install pipeline-scanner container
   shell: atomic install registry.centos.org/pipeline-images/pipeline-scanner:latest
   tags: scanner
