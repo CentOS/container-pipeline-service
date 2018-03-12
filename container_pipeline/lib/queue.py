@@ -56,8 +56,6 @@ class JobQueue:
     @retry()
     def get(self):
         """Get job from subscribed tube"""
-        self.logger.debug('Waiting to get data from tube: {}...'
-                          .format(self.sub))
         if self._conn.stats_tube(self.sub)['current-jobs-ready'] > 0:
             return self._conn.reserve()
         raise QueueEmptyException('No job in queue')
