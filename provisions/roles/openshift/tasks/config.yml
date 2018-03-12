@@ -41,7 +41,6 @@
     volumes: "{{ openshift_volumes }}"
     command: start --master=https://"{{ansible_default_ipv4.address}}":8443
     restart_policy: always
-    restart_retries: 2
 
 - name: Wait for Openshift to come up
   pause: seconds={{ openshift_startup_delay }}
