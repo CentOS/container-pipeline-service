@@ -33,11 +33,21 @@ def retry(delay=30):
                         obj._initialize()
                 except beanstalkc.DeadlineSoon as e:
                     obj = args[0]
-                    obj.logger.debug(e)
-                    time.sleep(30)
+                    obj.logger.warning(e)
+                    time.sleep(delay)
                 except QueueEmptyException as e:
                     # do not log "No job in queue message"
-                    time.sleep(30)
+                    time.sleep(delay)
+                except AttributeError as ae:
+                    # this is to log issues where methods
+                    # on object self._conn reports attribute error
+                    obj = args[0]
+                    obj.logger.warning(str(ae))
+                    time.sleep(delay)
+                    # the attribute error is not valid for _initialize method
+                    if func != obj._initialize:
+                        # re-initialize the connection
+                        obj._initialize()
         return wrapper
     return _retry
 
