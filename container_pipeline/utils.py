@@ -137,10 +137,10 @@ def get_gc_container_name(namespace, name, tag=None):
 def get_job_name(job_details):
     """Get jenkins job name from job_detials"""
     namespace = str.format(
-        "{}-{}-{}",
-        str(job_details['appid']),
-        str(job_details['jobid']),
-        str(job_details['desired_tag'])
+        "{app_id}-{job_id}-{desired_tag}",
+        app_id=str(job_details['appid']),
+        job_id=str(job_details['jobid']),
+        desired_tag=str(job_details['desired_tag'])
     )
     return namespace
 
@@ -158,6 +158,7 @@ def get_project_name(job):
 def get_project_name_with_params(app_id, job_id, desired_tag):
     """Get project name from job data"""
     return '{}-{}-{}'.format(app_id, job_id, desired_tag)
+
 
 def parse_json_response(response):
     """Parses the json response provided to it to determin"""

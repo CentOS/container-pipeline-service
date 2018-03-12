@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from container_pipeline.models.pipeline import Project, Build, BuildPhase, ContainerImage
+
+from container_pipeline.models.pipeline import Project, Build, BuildPhase, \
+    ContainerImage
 from container_pipeline.models.tracking import RepoInfo, Package
 
 """
@@ -15,6 +17,7 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
     """
     This class serializes the Project model.
     """
+
     class Meta:
         model = Project
         fields = (
@@ -28,6 +31,7 @@ class BuildSerializer(serializers.HyperlinkedModelSerializer):
     """
     This class serializes the Build model.
     """
+
     class Meta:
         model = Build
         fields = (
@@ -49,6 +53,7 @@ class BuildPhaseSerializer(serializers.HyperlinkedModelSerializer):
     """
     This class serializes the BuildPhase model.
     """
+
     class Meta:
         model = BuildPhase
         fields = (
@@ -67,6 +72,7 @@ class RepoInfoSerializer(serializers.HyperlinkedModelSerializer):
     """
     This class serializes the RepoInfo model.
     """
+
     class Meta:
         model = RepoInfo
         fields = (
@@ -81,6 +87,7 @@ class PackageSerializer(serializers.HyperlinkedModelSerializer):
     """
     This class serializes the Package model.
     """
+
     class Meta:
         model = Package
         fields = (
@@ -97,6 +104,7 @@ class ContainerImageSerializer(serializers.HyperlinkedModelSerializer):
     """
     This class serializes the ContainerImage model.
     """
+
     class Meta:
         model = ContainerImage
         fields = (

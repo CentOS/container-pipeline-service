@@ -77,7 +77,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
-    'DEFAULT_PAGINATION_CLASS': 'container_pipeline.pagination.ModelAPIPagination',
+    'DEFAULT_PAGINATION_CLASS':
+    'container_pipeline.pagination.ModelAPIPagination'
 }
 
 LOGGING = dict(
@@ -85,8 +86,11 @@ LOGGING = dict(
     level=LOG_LEVEL,
     formatters=dict(
         bare={
-            "format": ('[%(asctime)s] %(name)s p%(process)s %(lineno)d '
-                       '%(levelname)s - %(message)s')
+            "format":
+            (
+                '[%(asctime)s] %(name)s p%(process)s %(lineno)d '
+                '%(levelname)s - %(message)s'
+            )
         },
     ),
     handlers=dict(

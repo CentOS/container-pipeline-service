@@ -1,6 +1,8 @@
-from container_pipeline.models.pipeline import Project, Build, BuildPhase, ContainerImage
-from container_pipeline.models.tracking import RepoInfo, Package
 from rest_framework import viewsets
+
+from container_pipeline.models.pipeline import Project, Build, BuildPhase, \
+    ContainerImage
+from container_pipeline.models.tracking import RepoInfo, Package
 from container_pipeline.pipeline_api.v1 import serializers
 
 """
