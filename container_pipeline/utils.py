@@ -132,8 +132,12 @@ def get_gc_container_name(namespace, name, tag=None):
 
 def get_job_name(job_details):
     """Get jenkins job name from job_detials"""
-    namespace = str(job_details['appid']) + "-" + str(job_details['jobid']) + \
-                "-" + str(job_details['desired_tag'])
+    namespace = str.format(
+        "{}-{}-{}",
+        str(job_details['appid']),
+        str(job_details['jobid']),
+        str(job_details['desired_tag'])
+    )
     return namespace
 
 

@@ -17,11 +17,13 @@ MANIFESTS_WITHOUT_TAGS=$(comm -23 <(find . -type f -name "link" | grep "_manifes
 find . > ${MANIFEST_LIST};
 
 echo "Finding and removing all occourences of the manifests ... ";
+echo "";
 
 for manifest in ${MANIFESTS_WITHOUT_TAGS}; do
     repos=$(grep "_manifests/revisions/sha256/${manifest}/link" ${MANIFEST_LIST} | awk -F "_manifest"  '{print $(NF-1)}' | sed 's#^./\(.*\)/#\1#');
     for repo in ${repos}; do
-        rm -rf "${repo}/_manifests/revisions/sha256/${manifest}"
+        echo "Deleting manifest repo ${repo}";
+        rm -rf "${repo}/_manifests/revisions/sha256/${manifest}";
     done
 done
 
