@@ -1,7 +1,12 @@
-from container_pipeline.utils import request_url, rm, print_msg
+from container_pipeline.utils import request_url, rm, print_msg, run_cmd
 import json
 from os import path
 from time import sleep
+
+REGISTRY_STORAGE_PATH = "/var/lib/registry/docker/registry/v2"
+REGISTRY_REPOSITORIES = REGISTRY_STORAGE_PATH + "/repositories"
+MANIFESTS = "/_manifests"
+TAGS = "/tags"
 
 
 class RegistryInfo(object):
@@ -78,21 +83,28 @@ class RegistryInfo(object):
         self._load_tags()
 
 
+def delete_revision_tags_from_local():
+    del_script = str.format(
+        "{}/shell/registry_delete_revision_tags.sh",
+        path.dirname(path.realpath(__file__))
+    )
+    cmd = ["/bin/sh", del_script]
+    run_cmd(cmd, check_call=False)
+
+
 def mark_removal_from_local_registry(verbose, container_namespace,
                                      container_name, container_tag,
                                      build_running=False):
     print_msg("Marking mismatched containers for removal...",
               verbose)
-    registry_storage_path = "/var/lib/registry/docker/registry/v2"
-    registry_repositories = registry_storage_path + "/repositories"
 
     if container_namespace:
-        namespace_path = path.join(registry_repositories, container_namespace)
+        namespace_path = path.join(REGISTRY_REPOSITORIES, container_namespace)
     else:
-        namespace_path = registry_repositories
+        namespace_path = REGISTRY_REPOSITORIES
     name_path = path.join(namespace_path, container_name)
-    manifests = name_path + "/_manifests"
-    tags = manifests + "/tags"
+    manifests = name_path + MANIFESTS
+    tags = manifests + TAGS
     # Delete the tag
     if not build_running:
         del_tag = path.join(tags, container_tag)
