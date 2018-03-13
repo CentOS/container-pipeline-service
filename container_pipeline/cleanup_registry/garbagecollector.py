@@ -1,11 +1,10 @@
 from container_pipeline.lib.index_registry_diff import diff
 import re
-from container_pipeline.lib.registry import mark_removal_from_local_registry
-from glob import glob
+from container_pipeline.lib.registry import mark_removal_from_local_registry, \
+    RegistryInfo, delete_revision_tags_from_local
 
 import config
 import lib
-from container_pipeline.lib.registry import RegistryInfo
 from container_pipeline.utils import BuildTracker, get_container_name
 
 
@@ -117,6 +116,12 @@ class GarbageCollector(object):
                     ).is_running()
                 )
 
+    def _delete_revision_tags(self):
+        """
+        Deletes the revision tags.
+        """
+        delete_revision_tags_from_local()
+
     def _delete_from_registry(self):
         """
         Deletes marked images from registry by invoking inbuild docker
@@ -129,10 +134,17 @@ class GarbageCollector(object):
         ]
         lib.run_cmd(cmd, no_shell=not self._verbose)
 
+    def _cleanup(self):
+        """
+        Does the actual removal of images from registry
+        """
+        self._delete_from_registry()
+        self._delete_revision_tags()
+
     def _gcollect(self):
         """Deletes the mismatched images from registry."""
         self._mark_for_removal()
-        self._delete_from_registry()
+        self._cleanup()
 
     def _add_mismatched(self, k, v):
         """
