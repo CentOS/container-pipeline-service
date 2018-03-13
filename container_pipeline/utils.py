@@ -1,12 +1,12 @@
 import hashlib
 import json
-import yaml
 import logging
 import os
-import urllib2
 import subprocess
+import urllib2
 from shutil import rmtree
 
+import yaml
 
 FNULL = open(os.devnull, "w")
 
@@ -33,27 +33,41 @@ def load_yaml(yaml_file):
     return data
 
 
-def run_cmd(cmd, check_call=True, no_shell=False):
+def run_cmd(cmd, check_call=True, no_shell=False, use_shell=False):
     """
     Run a specfied linux command
     :param cmd: The command to run
     :param check_call: If true, check call is used. Recommendedif no data is
     needed
     :param no_shell: If true, then command output is redirected to devnull
+    :param use_shell: If true, then shell=True is passed as param to popen
     """
     stdout = FNULL if no_shell else subprocess.PIPE
     if not check_call:
-        process = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE,
-            stdout=stdout,
-            stderr=subprocess.PIPE
-        )
-        process.communicate()
+        if not use_shell:
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=stdout,
+                stderr=subprocess.PIPE,
+            )
+        else:
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=stdout,
+                stderr=subprocess.PIPE,
+                shell=True
+            )
+        out = process.communicate()
         if process.returncode > 0:
             raise Exception("Failed to execute command")
+        if out:
+            return out
+        return None
     else:
         subprocess.check_call(cmd)
+        return None
 
 
 def rm(p):
@@ -119,7 +133,7 @@ def get_gc_container_name(namespace, name, tag=None):
 def get_job_name(job_details):
     """Get jenkins job name from job_detials"""
     namespace = str(job_details['appid']) + "-" + str(job_details['jobid']) + \
-        "-" + str(job_details['desired_tag'])
+                "-" + str(job_details['desired_tag'])
     return namespace
 
 
@@ -177,6 +191,7 @@ def get_cause_of_build(jenkins_url, job_name, job_number):
 # to manage builds and prevent duplication of code.
 class BuildTracker:
     """Track image build status in the pipeline"""
+
     def __init__(self, name, datadir='/srv/pipeline-logs', logger=None):
         self.name = name
         self._path = os.path.join(datadir, name)
