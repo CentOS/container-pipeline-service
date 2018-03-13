@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+#!/bin/bash
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+
 REG_PATH="/var/lib/registry/docker/registry/v2/repositories/";
 MANIFEST_LIST="/tmp/registry_manifests.txt"
 
@@ -15,7 +21,7 @@ echo "Finding and removing all occourences of the manifests ... ";
 for manifest in ${MANIFESTS_WITHOUT_TAGS}; do
     repos=$(grep "_manifests/revisions/sha256/${manifest}/link" ${MANIFEST_LIST} | awk -F "_manifest"  '{print $(NF-1)}' | sed 's#^./\(.*\)/#\1#');
     for repo in ${repos}; do
-        sudo rm -rf "${repo}/_manifests/revisions/sha256/${manifest}"
+        rm -rf "${repo}/_manifests/revisions/sha256/${manifest}"
     done
 done
 
