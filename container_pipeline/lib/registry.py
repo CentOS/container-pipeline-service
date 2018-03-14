@@ -88,7 +88,7 @@ def delete_revision_tags_from_local():
         "{}/shell/registry_delete_revision_tags.sh",
         path.dirname(path.realpath(__file__))
     )
-    cmd = ["/bin/sh", del_script]
+    cmd = ["/bin/bash", del_script]
     run_cmd(cmd, check_call=False)
 
 

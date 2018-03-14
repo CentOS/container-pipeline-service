@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#!/bin/bash
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root"
    exit 1
@@ -28,4 +27,5 @@ for manifest in ${MANIFESTS_WITHOUT_TAGS}; do
 done
 
 popd;
+
 
