@@ -103,7 +103,12 @@ class ScanImageRootfs(object):
             self.json_out["Summary"] = "RPM updates available for the image."
             resp = self.parse_yum_check_update(resp)
         else:
-            self.json_out["Summary"] = "No RPM updates pending for the image."
+            if "file not found in $PATH" in err:
+                self.json_out["Summary"] = \
+                    "yum binary is not available in image under test."
+            else:
+                self.json_out["Summary"] = \
+                    "No RPM updates pending for the image."
             resp = []
 
         self.json_out['Scan Results']['Package Updates'] = resp
