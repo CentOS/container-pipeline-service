@@ -34,7 +34,7 @@ def template_json_data(scan_type, uuid, scanner):
     current_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
     json_out = {
         "Start Time": current_time,
-        "Successful": "true",
+        "Successful": False,
         "Scan Type": scan_type,
         "UUID": uuid[1:],
         "CVE Feed Last Updated": "NA",
@@ -71,12 +71,12 @@ class ScanImageRootfs(object):
         env_vars_dict = dict()
         etc_os_release = os.path.join(self.in_path, "etc/os-release")
 
+        # check if at all /etc/os-release exist even before opening it
         if not os.path.isfile(etc_os_release):
             self.json_out["Scan Results"]["OS Release"] = \
                 "Could not find OS release of image under test " \
                 "as /etc/os-release file does not exist."
             return
-        # check if at all /etc/os-release exist even before opening it
 
         with open(etc_os_release) as f:
             env_vars = f.readlines()
@@ -101,6 +101,7 @@ class ScanImageRootfs(object):
 
         if resp != "":
             self.json_out["Summary"] = "RPM updates available for the image."
+            self.json_out["Successful"] = True
             resp = self.parse_yum_check_update(resp)
         else:
             if "rpmdb open failed" in err:
@@ -111,6 +112,7 @@ class ScanImageRootfs(object):
             else:
                 self.json_out["Summary"] = \
                     "No RPM updates pending for the image." % str(err)
+                self.json_out["Successful"] = True
             resp = []
 
         self.json_out['Scan Results']['Package Updates'] = resp
