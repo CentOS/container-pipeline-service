@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM registry.centos.org/centos/centos
 
 LABEL INSTALL='docker run --rm --privileged -v /etc/atomic.d:/host/etc/atomic.d/ $IMAGE sh /install.sh'
 
