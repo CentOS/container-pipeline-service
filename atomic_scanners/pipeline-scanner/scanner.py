@@ -69,7 +69,16 @@ class ScanImageRootfs(object):
 
     def scan_release(self):
         env_vars_dict = dict()
-        with open(os.path.join(self.in_path, "etc/os-release")) as f:
+        etc_os_release = os.path.join(self.in_path, "etc/os-release")
+
+        if not os.path.isfile(etc_os_release):
+            self.json_out["Scan Results"]["OS Release"] = \
+                "Could not find OS release of image under test " \
+                "as /etc/os-release file does not exist."
+            return
+        # check if at all /etc/os-release exist even before opening it
+
+        with open(etc_os_release) as f:
             env_vars = f.readlines()
 
         for var in env_vars:
