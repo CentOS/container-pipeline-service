@@ -89,7 +89,7 @@ def delete_revision_tags_from_local():
         path.dirname(path.realpath(__file__))
     )
     cmd = ["/bin/bash", del_script]
-    run_cmd(cmd, check_call=False)
+    run_cmd(cmd, check_call=False, wait_for_completion=True)
 
 
 def mark_removal_from_local_registry(verbose, container_namespace,

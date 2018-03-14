@@ -33,7 +33,8 @@ def load_yaml(yaml_file):
     return data
 
 
-def run_cmd(cmd, check_call=True, no_shell=False, use_shell=False):
+def run_cmd(cmd, check_call=True, no_shell=False, use_shell=False,
+            wait_for_completion=False):
     """
     Run a specfied linux command
     :param cmd: The command to run
@@ -41,6 +42,7 @@ def run_cmd(cmd, check_call=True, no_shell=False, use_shell=False):
     needed
     :param no_shell: If true, then command output is redirected to devnull
     :param use_shell: If true, then shell=True is passed as param to popen
+    :param wait_for_completion: If True, does a process.wait
     """
     stdout = FNULL if no_shell else subprocess.PIPE
     if not check_call:
@@ -59,6 +61,8 @@ def run_cmd(cmd, check_call=True, no_shell=False, use_shell=False):
                 stderr=subprocess.PIPE,
                 shell=True
             )
+        if wait_for_completion:
+            process.wait()
         out = process.communicate()
         if process.returncode > 0:
             raise Exception("Failed to execute command")
