@@ -34,21 +34,21 @@ registry = "JENKINS_SLAVE"
 index_dir = sys.argv[1]
 
 # string representation of the catalog on r.c.o
-str_catalog = subprocess.check_output(
-    ["curl", "%s:5000/v2/_catalog" % registry]
-)
+# str_catalog = subprocess.check_output(
+#    ["curl", "%s:5000/v2/_catalog" % registry]
+# )
 
 # convert string into a list to use for comparison
-json_catalog = json.loads(str_catalog).values()[0]
+# json_catalog = json.loads(str_catalog).values()[0]
 
 # have a list of files in the index_dir
 files = glob.glob("%s/*.y*ml" % index_dir)
 
 # index dir will always have yml files only; but just in case
-for f in files:
-    if f.endswith(".yml"):
-        continue
-    files.remove(f)
+# for f in files:
+#    if f.endswith(".yml"):
+#        continue
+#    files.remove(f)
 
 # parse the yml file
 for f in files:
@@ -83,48 +83,47 @@ for f in files:
             os.makedirs(LOGS_DIR)
 
         # Scan an image only if it exists in the catalog!
-        if entry_short_name in json_catalog:
-            job_uuid = str(uuid.uuid4())
-            project_name = str.format(
-                "{app_id}-{job_id}-{desired_tag}",
-                app_id=str(app_id),
-                job_id=str(job_id),
-                desired_tag=str(desired_tag)
-            )
-            data = {
-                "action": "start_scan",
-                "tag": desired_tag,
-                "project_name": project_name,
-                "namespace": project_name,
-                "image_under_test": "%s:5000/%s/%s:%s" %
-                (registry, app_id, job_id, desired_tag),
-                "output_image": "registry.centos.org/%s/%s:%s" %
-                (app_id, job_id, desired_tag),
-                "notify_email": email,
-                "weekly": True,
-                "logs_dir": LOGS_DIR,
-                "test_tag": test_tag,
-                "job_name": job_id,
-                "uuid": job_uuid
-            }
+        # if entry_short_name in json_catalog:
+        job_uuid = str(uuid.uuid4())
+        project_name = str.format(
+            "{app_id}-{job_id}-{desired_tag}",
+            app_id=str(app_id),
+            job_id=str(job_id),
+            desired_tag=str(desired_tag)
+        )
+        data = {
+            "action": "start_scan",
+            "tag": desired_tag,
+            "project_name": project_name,
+            "namespace": project_name,
+            "image_under_test": "%s:5000/%s/%s:%s" %
+            (registry, app_id, job_id, desired_tag),
+            "output_image": "registry.centos.org/%s/%s:%s" %
+            (app_id, job_id, desired_tag),
+            "notify_email": email,
+            "weekly": True,
+            "logs_dir": LOGS_DIR,
+            "test_tag": test_tag,
+            "job_name": job_id,
+            "uuid": job_uuid
+        }
 
-            job = bs.put(json.dumps(data))
+        job = bs.put(json.dumps(data))
+        # Initializing Database entries
+        project, created = Project.objects.get_or_create(name=project_name)
+        build = Build.objects.create(
+            uuid=job_uuid,
+            project=project,
+            status='queued',
+            start_time=timezone.now(),
+            weekly_scan=True
+        )
+        scan_phase, created = BuildPhase.objects.get_or_create(
+            build=build,
+            phase='scan'
+        )
+        scan_phase.status = 'queued'
+        scan_phase.save()
 
-            # Initializing Database entries
-            project, created = Project.objects.get_or_create(name=project_name)
-            build = Build.objects.create(
-                uuid=job_uuid,
-                project=project,
-                status='queued',
-                start_time=timezone.now(),
-                weekly_scan=True
-            )
-            scan_phase, created = BuildPhase.objects.get_or_create(
-                build=build,
-                phase='scan'
-            )
-            scan_phase.status = 'queued'
-            scan_phase.save()
-
-            print "Image %s sent for weekly scan with data %s" % \
-                (entry_short_name, data)
+        print "Image %s sent for weekly scan with data %s" % \
+            (entry_short_name, data)
