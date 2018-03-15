@@ -8,7 +8,7 @@ on the registry and initializing the scan tasks for the workers.
 """
 
 import beanstalkc
-# import container_pipeline.lib.dj
+import container_pipeline.lib.dj
 from container_pipeline.models.pipeline import Project, Build, BuildPhase
 from django.utils import timezone
 import glob
