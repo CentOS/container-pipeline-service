@@ -325,14 +325,13 @@ class IndexProjectsValidator(IndexValidator):
             cccp_yml_path = None
 
             # * Check if cccp.yml file exists
-
             for item in ["cccp.yml", ".cccp.yml", "cccp.yaml", ".cccp.yaml"]:
                 check_path = git_path + "/" + item
                 if path.exists(check_path):
                     cccp_yml_path = check_path
                     break
 
-            if cccp_yml_path is None:
+            if not prebuild_exists and cccp_yml_path is None:
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("Missing cccp yml file, please check your git-path")
                 continue
