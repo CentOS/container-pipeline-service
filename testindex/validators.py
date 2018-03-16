@@ -297,8 +297,26 @@ class IndexProjectsValidator(IndexValidator):
             # Else clone was success, check the git path
             git_path = clone_path + "/" + str(entry["git-path"])
 
+            # * Check for pre-build script
+            # TODO : Make a better implementation of pre-build script checking
+            # TODO : Ideally, if prebuild is not in entry, it wont reach here and this should happen if it is not None
+            prebuild_exists = False
+            if constants.PREBUILD_SCRIPT in entry and constants.PREBUILD_CONTEXT in entry:
+                prebuild_exists = True
+                prebuild_script = entry.get(constants.PREBUILD_SCRIPT)
+                prebuild_context = entry.get(constants.PREBUILD_CONTEXT)
+                if (prebuild_script and not path.exists(path.join(git_path, prebuild_script))
+                        and prebuild_context and not path.exists(path.join(git_path, prebuild_context))):
+                    self._mark_entry_invalid(entry)
+                    self._summary_collector.add_error("Invalid pre-build script or path specified")
+
+            # * Check for existence of target-file
+            if not prebuild_exists and not path.exists(git_path + "/" + entry["target-file"]):
+                self._mark_entry_invalid(entry)
+                self._summary_collector.add_error("The specified target-file does not exist at the git-path")
+
             # Check if specified path exists
-            if not path.exists(git_path):
+            if not prebuild_exists and  not path.exists(git_path):
                 self._mark_entry_invalid(entry)
                 self._summary_collector.add_error("The specified git-path does not exist in git repo.")
                 continue
@@ -338,26 +356,9 @@ class IndexProjectsValidator(IndexValidator):
                     self._mark_entry_invalid(entry)
                     self._summary_collector.add_error("Specified build context does not exist.")
 
-            # * Check for pre-build script
-            # TODO : Make a better implementation of pre-build script checking
-            # TODO : Ideally, if prebuild is not in entry, it wont reach here and this should happen if it is not None
-            prebuild_exists = False
-            if constants.PREBUILD_SCRIPT in entry and constants.PREBUILD_CONTEXT in entry:
-                prebuild_exists = True
-                prebuild_script = entry.get(constants.PREBUILD_SCRIPT)
-                prebuild_context = entry.get(constants.PREBUILD_CONTEXT)
-                if (prebuild_script and not path.exists(path.join(git_path, prebuild_script))
-                    and prebuild_context and not path.exists(path.join(git_path, prebuild_context))):
-                    self._mark_entry_invalid(entry)
-                    self._summary_collector.add_error("Invalid pre-build script or path specified")
-
-            # * Check for existence of target-file
-            if not prebuild_exists and not path.exists(git_path + "/" + entry["target-file"]):
-                self._mark_entry_invalid(entry)
-                self._summary_collector.add_error("The specified target-file does not exist at the git-path")
-
             # * Validate the cccp yml file
-            self._cccp_yml_check(git_path, cccp_yml_path, entry)
+            if not prebuild_exists:
+                self._cccp_yml_check(git_path, cccp_yml_path, entry)
 
         return self._success, self._status_list
 
