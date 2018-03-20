@@ -351,7 +351,7 @@ class IndexProjectsValidator(IndexValidator):
             # * Check for build-context
             if constants.BUILD_CONTEXT in entry:
                 build_context = entry.get(constants.BUILD_CONTEXT)
-                if build_context and not path.exists(path.join(clone_path, git_path, build_context)):
+                if not prebuild_exists and build_context and not path.exists(path.join(clone_path, git_path, build_context)):
                     self._mark_entry_invalid(entry)
                     self._summary_collector.add_error("Specified build context does not exist.")
 
