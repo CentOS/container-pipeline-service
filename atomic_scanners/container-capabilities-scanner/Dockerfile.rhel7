@@ -1,0 +1,10 @@
+FROM registry.access.redhat.com/rhel7
+
+LABEL INSTALL='docker run --rm --privileged -v /etc/atomic.d:/host/etc/atomic.d/ $IMAGE sh /install.sh'
+
+RUN yum -y update && \
+    yum-config-manager -q -y --enable rhel-7-server-extras-rpms && \
+    yum -y install atomic python-docker-py && \
+    yum clean all
+
+ADD container-capabilities-scanner run_scanner.py scanner.py install.sh /
