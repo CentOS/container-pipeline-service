@@ -245,8 +245,9 @@ class TestRepoMonitoring(BaseTestCase):
             self.run_dj_script(
                 'from container_pipeline.models.pipeline import '
                 'ContainerImage; '
-                'print ContainerImage.objects.filter(to_build=True)'
-                '.order_by(\\"name\\")').strip(),
+                'tb=ContainerImage.objects.filter(to_build=True)'
+                '.order_by(\\"name\\"); '
+                'print [i for i in tb]').strip(),
             '[<ContainerImage: image2>, <ContainerImage: image3>, '
             '<ContainerImage: image4>, <ContainerImage: image5>]')
 
@@ -258,8 +259,9 @@ class TestRepoMonitoring(BaseTestCase):
             self.run_dj_script(
                 'from container_pipeline.models.pipeline import '
                 'ContainerImage; '
-                'print ContainerImage.objects.filter(to_build=True)'
-                '.order_by(\\"name\\")').strip(),
+                'tb=ContainerImage.objects.filter(to_build=True)'
+                '.order_by(\\"name\\"); '
+                'print [i for i in tb]').strip(),
             '[<ContainerImage: image2>, <ContainerImage: image3>]')
 
     def test_04_process_upstream_repo(self):
