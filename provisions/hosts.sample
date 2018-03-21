@@ -33,6 +33,7 @@ public_registry=jenkins-slave
 intranet_registry=jenkins-slave:5000
 # configure beanstalkd server node
 beanstalk_server=open-shift
+rsync_ssh_opts=""
 db_host=jenkins-master
 
 

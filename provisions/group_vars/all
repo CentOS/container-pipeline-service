@@ -9,8 +9,6 @@ test: False
 # Whether to enable epel repo for packages
 enable_epel: True
 
-rsync_ssh_opts: ''
-
 # database related configurations
 db_user: cccp
 db_name: cccp
