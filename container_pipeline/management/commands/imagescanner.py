@@ -87,6 +87,10 @@ def scan_image(image):
         return
 
     image.pull()
+    if not image.is_image_pulled():
+        print "Image can not be pulled."
+        import sys
+        sys.exit(1)
     populate_packages(image)
     populate_upstreams(image)
     image.scanned = True

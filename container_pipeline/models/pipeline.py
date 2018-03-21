@@ -179,6 +179,10 @@ class ContainerImage(models.Model):
         docker_cmd = 'docker pull {name}'.format(name=self.fullname)
         return subprocess.check_output(docker_cmd, shell=True)
 
+    def is_image_pulled(self):
+        docker_cmd = "docker images -q {name}".format(name=self.fullname)
+        return subprocess.check_output(docker_cmd, shell=True)
+
     def run(self, cmd):
         docker_cmd = (
             'docker run --rm --entrypoint "/bin/bash" {name} -c "{cmd}"'.
