@@ -1,24 +1,24 @@
 ---
 - name: Remove all running and exited other containers
-  sudo: yes
+  become: true
   shell: docker rm -f `docker ps -a -q`
   ignore_errors: yes
 
 - name: Remove all images
-  sudo: yes
+  become: true
   shell: docker rmi -f `docker images -a -q`
   ignore_errors: yes
 
 - name: Remove mounts
-  sudo: yes
+  become: true
   shell: for f in `mount | grep origin | cut -f3 -d\ `; do umount $f ; done
   ignore_errors: yes
 
 - name: Remove /var/lib/origin/* directory contents
-  sudo: yes
+  become: true
   shell: rm -rf /var/lib/origin/*
 
 - name: Remove images with no name or tag
-  sudo: yes
+  become: true
   ignore_errors: yes
   shell: docker rmi $(docker images -f "dangling=true" -q)

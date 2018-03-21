@@ -1,6 +1,6 @@
 ---
   - name: Enable epel repo
-    sudo: yes
+    become: true
     yum: name=epel-release state=present
     when: enable_epel
     tags:
@@ -8,14 +8,14 @@
       - jenkins/slave
 
   - name: Install nginx
-    sudo: yes
+    become: true
     yum: name=nginx state=present
     tags:
       - nginx
       - jenkins/slave
 
   - name: Copy SSL certs
-    sudo: yes
+    become: true
     template: src={{ item.src }} dest={{ item.dest }}
     with_items:
         - { src: "{{ ssl_key_template }}", dest: "{{ ssl_key_file }}" }
@@ -27,21 +27,21 @@
 
 
   - name: Copy nginx conf for CentOS registry
-    sudo: yes
+    become: true
     template: src={{ nginx_conf_template }} dest=/etc/nginx/conf.d/{{ nginx_conf_filename }}
     tags:
       - nginx
       - jenkins/slave
 
   - name: Reload nginx systemd service
-    sudo: yes
+    become: true
     systemd: name=nginx state=reloaded
     tags:
       - nginx
       - jenkins/slave
 
   - name: restart nginx
-    sudo: yes
+    become: true
     service: name=nginx state=restarted enabled=yes
     tags:
       - nginx

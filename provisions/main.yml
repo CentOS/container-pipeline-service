@@ -4,7 +4,7 @@
   tasks:
     - name: Disable requiretty in sudoers
       lineinfile:  dest=/etc/sudoers state=absent regexp="^Defaults    requiretty.*"
-      sudo: yes
+      become: true
     - name: Enable centos admin repo when EPEL is disabled
       copy: src=centos-admin.repo dest=/etc/yum.repos.d/centos-admin.repo
       when: not enable_epel
@@ -20,7 +20,7 @@
           state: permissive
     - name: Install rsync in all nodes
       yum: name=rsync state=installed
-      sudo: yes
+      become: true
   tags:
     - jenkins
     - openshift
@@ -77,13 +77,13 @@
           mode: push
           rsync_opts:
             - "{{ rsync_ssh_opts }}"
-      sudo: yes
+      become: true
     - name: Push config
       copy: src=/tmp/cccp_settings.py dest=/opt/cccp-service/container_pipeline/lib/settings.py
-      sudo: yes
+      become: true
     - name: Ensure manage.py is executable
       file: path=/opt/cccp-service/manage.py mode='g+x'
-      sudo: yes
+      become: true
       tags:
           - application
           - application/update_src

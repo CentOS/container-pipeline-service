@@ -1,12 +1,12 @@
 ---
 - name: Enable epel
   yum: name=epel-release state=installed
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Ensure that user jenkins is included in docker group
   user: name=jenkins groups=docker append=yes
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Enable Docker Registry
@@ -20,16 +20,16 @@
     dest=/etc/sysconfig/docker
     regexp="^\s*OPTIONS=.*"
     replace="OPTIONS='--selinux-enabled --log-driver=journald --signature-verification=false -H localhost:2367 -H unix:///var/run/docker.sock'"
-  sudo: yes
+  become: true
 
 - name: Enable and start Docker service
   service: name=docker state=started
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Install fedmsg and utils
   yum: name={{ item }} state=installed
-  sudo: yes
+  become: true
   with_items:
     - fedmsg
     - fedmsg-relay
@@ -40,17 +40,17 @@
       dest: /etc/fedmsg.d/ssl.py
       regexp: "validate_signatures=True"
       replace: "validate_signatures=False"
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Ensure jenkinsbuilder is a package
   file: path=/opt/cccp-service/jenkinsbuilder/__init__.py state=touch
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Ensure repo data dir exists
   file: path=/opt/cccp-service/container_pipeline/tracking/data state=directory
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Initialize for creating DB tables.
@@ -58,7 +58,7 @@
   ignore_errors: yes
   retries: 5
   delay: 10
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Create DB tables
@@ -66,36 +66,36 @@
   ignore_errors: yes
   retries: 5
   delay: 10
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Copy fedmsg conf
   copy:
       src: "{{ role_path }}/../../../fedmsg.d/container_pipeline.py"
       dest: "/etc/fedmsg.d/container_pipeline.py"
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Copy empty fedmsg endpoints conf
   copy:
       src: fedmsg_endpoints.py
       dest: /etc/fedmsg.d/endpoints.py
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Start fedmsg-relay
   service: name=fedmsg-relay state=restarted enabled=True
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Ensure jenkins user can write to log file
   file: path=/srv/pipeline-logs/cccp.log state=file owner=jenkins
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Copy jenkins job template
   template: src=jobs.yml.j2 dest="{{ ansible_env.HOME }}/repo_tracking_job.yml"
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Ensure jenkins user is owner of src dir
@@ -103,7 +103,7 @@
       path: /opt/cccp-service/
       owner: jenkins
       recurse: yes
-  sudo: yes
+  become: true
   tags: repo_tracking
 
 - name: Create jenkins jobs
@@ -116,13 +116,13 @@
       - cccp_pkgupdatelistener.service
       - cccp_triggerbuilds.service
       - cccp_imagescanner.service
-  sudo: yes
+  become: true
   tags: repo_tracking
   register: service_files_updated
 
 - name: systemctl daemon-reload
   shell: systemctl daemon-reload
-  sudo: yes
+  become: true
   when: service_files_updated
 
 - name: Enable and start services
@@ -131,5 +131,5 @@
       - cccp_pkgupdatelistener
       - cccp_triggerbuilds
       - cccp_imagescanner
-  sudo: yes
+  become: true
   tags: repo_tracking

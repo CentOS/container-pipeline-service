@@ -1,6 +1,6 @@
 ---
 - name: Check if NFS backup directory exists on node
-  sudo: yes
+  become: true
   stat:
     path: '{{db_backup_nfs_path}}'
   register: nfs_dir_mounted
@@ -8,7 +8,7 @@
   tags: db
 
 - name: Fail if NFS share is not mounted on node for db backup
-  sudo: yes
+  become: true
   fail:
     msg: "NFS share is not mounted on node for db backup."
   when:
@@ -21,20 +21,20 @@
     path: '{{ db_local_volume }}'
     state: directory
     mode: 0766
-  sudo: yes
+  become: true
   tags: db
 
 - name: Set ACL for local dir for volumen sharing
-  sudo: yes
+  become: true
   shell: "setfacl -m u:{{ postgresql_uid }}:-wx {{ db_local_volume }}"
   tags: db
 
 - name: Reload docker systemd service
-  sudo: yes
+  become: true
   systemd: name=docker state=reloaded
 
 - name: Start Docker service
-  sudo: yes
+  become: true
   systemd: name=docker state=started enabled=yes
 
 - name: Pull CentOS postgres container
@@ -43,7 +43,7 @@
       tag: latest
       state: present
       force: yes
-  sudo: yes
+  become: true
   tags: db
 
 - name: Run postgres container
@@ -60,7 +60,7 @@
           POSTGRESQL_DATABASE: '{{ db_name }}'
       state: started
       restart_policy: on-failure
-  sudo: yes
+  become: true
   tags: db
 
 - name: Wait for 20 seconds for the db to come up
@@ -69,14 +69,14 @@
   tags: db
 
 - name: Copy cron script to have postgresql db backups
-  sudo: yes
+  become: true
   template: src=cccp_db_pg_dump_cron.sh.j2 dest=/root/cccp_db_pg_dump_cron.sh mode=0755
   tags:
     - db
     - cron
 
 - name: Cron job for postgresql db backups hourly
-  sudo: yes
+  become: true
   cron:
       name: "Postgresql cccp db hourly backup"
       job: "/root/cccp_db_pg_dump_cron.sh"
@@ -86,14 +86,14 @@
     - cron
 
 - name: Copy cron script to check if the pg-dump exported latest tar file is readable
-  sudo: yes
+  become: true
   template: src=cron_cccp_db_read_check.sh.j2 dest=/root/cron_cccp_db_read_check.sh mode=0755
   tags:
     - db
     - cron
 
 - name: Cron job for postgresql db backups hourly
-  sudo: yes
+  become: true
   cron:
       name: "Postgresql cccp database tar readability check"
       job: "/root/cron_cccp_db_read_check.sh"
@@ -103,14 +103,14 @@
     - cron
 
 - name: Copy cron script to delete old pg_dump tar files
-  sudo: yes
+  become: true
   template: src=cron_delete_pg_dump_tars.sh.j2 dest=/root/cron_delete_pg_dump_tars.sh mode=0755
   tags:
     - db
     - cron
 
 - name: Cron job to delete old pg_dump tar files daily
-  sudo: yes
+  become: true
   cron:
       name: "Cron to delete old pg_dump tar files daily"
       job: "/root/cron_delete_pg_dump_tars.sh"

@@ -1,13 +1,13 @@
 ---
 - name: Create secret key if not already there
   shell: docker run --rm {{ sentry_container_image }} config generate-secret-key > sentry.key
-  sudo: yes
+  become: true
   run_once: true
 
 - name: Load sentry secret key into vars
   shell: cat sentry.key
   register: secret_result
-  sudo: yes
+  become: true
 
 - name: Run sentry upgrade
   shell: >
@@ -19,7 +19,7 @@
       --link sentry-postgres:postgres
       --link sentry-redis:redis
       {{ sentry_container_image }} upgrade --noinput
-  sudo: yes
+  become: true
 
 - name: Create super user for sentry
   shell: >
@@ -32,4 +32,4 @@
       --link sentry-redis:redis
       {{ sentry_container_image }} createuser --email {{ sentry_admin_email }} --password {{ sentry_admin_password }} --superuser --no-input
   ignore_errors: yes
-  sudo: yes
+  become: true

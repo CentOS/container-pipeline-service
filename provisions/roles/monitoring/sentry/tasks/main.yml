@@ -2,16 +2,16 @@
 - name: Ensure redis container image is present
   docker_image:
       name: registry.centos.org/centos/redis:latest
-  sudo: yes
+  become: true
 
 - name: Copy redis conf file
   shell: >
       docker run --rm --entrypoint cat registry.centos.org/centos/redis:latest /redis-master/redis.conf > {{ ansible_env.HOME }}/redis.conf
-  sudo: yes
+  become: true
 
 - name: Disable redis protection-mode in conf
   lineinfile: dest="{{ ansible_env.HOME }}/redis.conf" regexp="protected-mode" line="protected-mode no"
-  sudo: yes
+  become: true
 
 - name: Run sentry redis container
   docker_container:
@@ -23,7 +23,7 @@
           - "6379:6379"
       volumes:
           - "{{ ansible_env.HOME }}/redis.conf:/redis-master/redis.conf"
-  sudo: yes
+  become: true
 
 - name: Run sentry postgres container
   docker_container:
@@ -35,12 +35,12 @@
           POSTGRESQL_DATABASE: '{{ sentry_db_name }}'
       volumes:
           - sentry-pg-data:/var/lib/pgsql/data
-  sudo: yes
+  become: true
 
 - name: Pull sentry image
   docker_image:
       name: {{ sentry_container_image }}
-  sudo: yes
+  become: true
 
 - include: initialize.yml
   tags:
@@ -50,7 +50,7 @@
 - name: Load sentry secret key into vars
   shell: cat sentry.key
   register: secret_result
-  sudo: yes
+  become: true
 
 - name: Run sentry server
   docker_container:
@@ -66,7 +66,7 @@
           SENTRY_DB_NAME: '{{ sentry_db_name }}'
           SENTRY_DB_USER: '{{ sentry_db_user }}'
           SENTRY_DB_PASSWORD: '{{ sentry_db_password }}'
-  sudo: yes
+  become: true
 
 - name: Run sentry cron
   docker_container:
@@ -81,7 +81,7 @@
           SENTRY_DB_USER: '{{ sentry_db_user }}'
           SENTRY_DB_PASSWORD: '{{ sentry_db_password }}'
       command: run cron
-  sudo: yes
+  become: true
 
 - name: Run sentry worker
   docker_container:
@@ -96,4 +96,4 @@
           SENTRY_DB_USER: '{{ sentry_db_user }}'
           SENTRY_DB_PASSWORD: '{{ sentry_db_password }}'
       command: run worker
-  sudo: yes
+  become: true

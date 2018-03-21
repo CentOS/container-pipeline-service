@@ -1,22 +1,22 @@
 ---
 - name: Enable epel
   yum: name=epel-release state=installed
-  sudo: yes
+  become: true
   tags: django
 
 - name: Install pip
   yum: name=python-pip state=installed
-  sudo: yes
+  become: true
   tags: django
 
 - name: Install Django
   pip: name=django version=1.11.2
-  sudo: yes
+  become: true
   tags: django
 
 - name: Install latest docker and python-docker-py packages
   yum: name={{ item }} state=latest
-  sudo: yes
+  become: true
   with_items:
       - docker
       - python-docker-py
@@ -24,20 +24,20 @@
 
 - name: Install postgresql-devel
   yum: name=postgresql-devel state=installed
-  sudo: yes
+  become: true
   tags: django
 
 - name: Install psycopg2
   pip: name=psycopg2 version=2.7.3
-  sudo: yes
+  become: true
   tags: django
 
 - name: Install raven
   pip: name=raven version=6.5.0
-  sudo: yes
+  become: true
   tags: django
 
 - name: Ensure docker group exists
   group: name=docker state=present
-  sudo: yes
+  become: true
   tags: django
