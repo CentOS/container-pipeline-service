@@ -86,7 +86,7 @@ parameters:
   displayName: Jenkinsfile repo branch
   name: JENKINSFILE_GIT_BRANCH
   required: true
-  value: master-job
+  value: master
 - description: Context dir is base path to find Jenkinsfile
   displayName: Context dir
   name: CONTEXT_DIR
