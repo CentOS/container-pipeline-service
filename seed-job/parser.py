@@ -20,7 +20,7 @@ for entry in yml_dict["Projects"]:
         "-p PIPELINE_NAME={} ".format(pipeline_name) + \
         "-p DEPENDS_ON={} ".format(entry["depends-on"]) + \
         "-p TARGET_FILE={} ".format(entry["target-file"]) + \
-        "-p CONTEXT_DIR={} ".format("master") + \
+        "-p CONTEXT_DIR={} ".format("master-job") + \
         "-p APP_ID={} ".format(entry["app-id"]) + \
         "-p JOB_ID={} ".format(entry["job-id"])
 
