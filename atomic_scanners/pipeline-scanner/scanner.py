@@ -111,8 +111,8 @@ class ScanImageRootfs(object):
                     "%s" % str(err)
             else:
                 self.json_out["Summary"] = \
-                    "No RPM updates pending for the image." % str(err)
-                self.json_out["Successful"] = True
+                    "Error occured while processing yum updates. %s" % str(err)
+                self.json_out["Successful"] = False
             resp = []
 
         self.json_out['Scan Results']['Package Updates'] = resp
