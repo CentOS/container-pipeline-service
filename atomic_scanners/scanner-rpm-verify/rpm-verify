@@ -1,6 +1,6 @@
 type: scanner
 scanner_name: rpm-verify
-image_name: registry.centos.org/pipeline-images/scanner-rpm-verify
+image_name: scanner-rpm-verify:rhel7
 default_scan: rpm-verify
 scans: [
   { name: rpm-verify,
