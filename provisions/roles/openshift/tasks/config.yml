@@ -70,7 +70,7 @@
 - name: Create test OpenShift origin container
   when: deployment == "docker"
   docker_container:
-    name: origin-test
+    name: origin
     image: "{{ origin_image_registry }}/{{ origin_image_name }}:{{ origin_image_tag }}"
     privileged: yes
     pid_mode: host
@@ -78,7 +78,6 @@
     volumes: "{{ openshift_volumes }}"
     command: start --master=https://"{{ansible_default_ipv4.address}}":8443 --node-config=/var/lib/origin/openshift.local.config/node-{{ ansible_hostname }}/node-config.yaml --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml
     restart_policy: always
-    restart_retries: 2
 
 - name: Create production OpenShift origin container
   when: deployment != "docker"

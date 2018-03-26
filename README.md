@@ -92,9 +92,15 @@ Here's the graphical representation of what is going on underneath-the-hood:
 
 ## Want to deploy your own pipeline?
 
-This will allow you to bring up a single or multi-node setup of the Container Pipeline Service.
+This will bring up a single or multi-node setup of the Container Pipeline Service.
 
+Requirements:
+  - RedHat-based OS (Fedora, CentOS, RHEL)
+  - 4GB of RAM
+  - 50GB HDD
+  -
 We use Ansible Playbooks in order to provision the service. As long as your OS is accesible over SSH, you can set up the host(s):
+
 
 ```sh
 $ git clone https://github.com/CentOS/container-pipeline-service/
@@ -124,6 +130,77 @@ $ openssl req -x509 -days 366 -new -key private/$REGISTRY.key -out certs/$REGIST
 # passwords or private keys used to access the hosts in the hosts file
 $ ansible-playbook -i hosts main.yml
 ```
+
+## Container-based Development
+
+Alternatively, you can try out CCCP using our container-based development. This will provision four SSH-accessible containers based on CentOS 7.
+
+Available commands:
+
+```sh
+$ cd provisions
+$ ./dev.sh 
+CCCP Development Setup: Use this to bring up a container-based development setup for CCCP
+
+Usage:
+ ./dev [command]
+
+Available Commands:
+ up     Brings up 4 SSH-accessible CentOS 7 containers for deployment
+ down   Destroys the four containers
+ deploy Deploys the Ansible provisioning script
+
+Deploy:
+ deploy [container-index] [container-index-branch] [cccp] [cccp-branch]
+
+Examples:
+ ./dev.sh deploy https://github.com/USERNAME/container-index master https://github.com/USERNAME/container-pipeline test-branch
+
+```
+
+1. Bring up your cluster
+
+```sh
+$ ./dev.sh up
+...
+```
+
+2. Deploy your container-index as well as container-pipeline branch:
+
+```sh
+./dev.sh deploy https://github.com/USERNAME/test-index master https://github.com/USERNAME/container-pipeline-service master
+===================================================================
+This is going to take a while (grab a coffee)
+This requires a fast machine (Core i7 or equivilant, 8GB+ RAM)
+We will be provisioning and deploying to each container via ansible
+
+|--------------------------------|
+| IP            | HOST           |
+|--------------------------------|
+| 192.168.10.10 | jenkins master |
+| 192.168.10.20 | jenkins slave  |
+| 192.168.10.30 | openshift      |
+| 192.168.10.40 | scanner worker |
+|--------------------------------|
+
+===================================================================
+...
+===================================================================
+Successfully deployed!
+
+Logs are located at /home/docker/container-pipeline-service/provisions/pipeline-logs
+
+|--------------------------------------------------------------|
+| Service   | IP/Host                    | Username/Password   |
+|--------------------------------------------------------------|
+| Registry  | https://192.168.10.20      |                     |
+| Jenkins   | http://192.168.10.10:8080  | admin:admin         |
+| OpenShift | https://192.168.10.30:8443 | test-admin:test     |
+|--------------------------------------------------------------|
+===================================================================
+```
+
+After deployment, your logs will be located at `$PWD/pipeline-logs`
 
 ## Contribute to the CentOS Community Container Pipeline Service
 
