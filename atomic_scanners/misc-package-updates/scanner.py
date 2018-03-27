@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from datetime import datetime
+from time import sleep
 import docker
 import json
 import logging
@@ -152,12 +153,18 @@ def create_container(client, image, ep, cmd):
     """
     response = ""
     try:
+        # create the container
         container = client.create_container(
-                image=image,
-                entrypoint=ep,
-                command=cmd
+            image=image,
+            entrypoint=ep,
+            command=cmd
         )
-        response = client.start(container=container.get("Id"))
+        # start the container
+        client.start(container=container.get("Id"))
+        # pause for 10 seconds for package manager to collect data
+        sleep(10)
+        # get the logs from container
+        response = client.logs(container=container.get("Id"))
     except Exception as e:
         logger.log(
             level=logging.ERROR,
@@ -176,23 +183,23 @@ try:
     # Check for pip updates
     if cli_arg == "pip":
         response = create_container(
-                client, IMAGE_NAME,
-                ep="/usr/bin/pip",
-                cmd="list --outdated")
+            client, IMAGE_NAME,
+            ep="/usr/bin/pip",
+            cmd="list --outdated")
 
     # Check for rubygem updates
     elif cli_arg == "gem":
         response = create_container(
-                client, IMAGE_NAME,
-                ep="/usr/bin/gem",
-                cmd="outdated")
+            client, IMAGE_NAME,
+            ep="/usr/bin/gem",
+            cmd="outdated")
 
     # Check for npm updates
     elif cli_arg == "npm":
         response = create_container(
-                client, IMAGE_NAME,
-                ep="/usr/bin/npm",
-                cmd="outdated -g")
+            client, IMAGE_NAME,
+            ep="/usr/bin/npm",
+            cmd="outdated -g")
 
 except Exception as e:
     logger.log(
