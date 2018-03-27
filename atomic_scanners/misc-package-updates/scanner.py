@@ -36,7 +36,8 @@ def binary_does_not_exist(response):
     """
     Used to figure if the npm, pip, gem binary exists in the container image
     """
-    if 'executable file not found in' in response or 'not found' in response:
+    if 'executable file not found in' in response or 'not found' in response \
+            or 'no such file or directory' in response:
         return True
     return False
 
@@ -145,7 +146,7 @@ def template_json_data(scan_type):
     return json_out
 
 
-def create_container(client, image, cmd):
+def create_container(client, image, ep, cmd):
     """
     Execute given cmd in container via client
     """
@@ -153,8 +154,8 @@ def create_container(client, image, cmd):
     try:
         container = client.create_container(
                 image=image,
-                entrypoint="/bin/bash",
-                cmd=cmd
+                entrypoint=ep,
+                command=cmd
         )
         response = client.start(container=container.get("Id"))
     except Exception as e:
@@ -169,19 +170,29 @@ def create_container(client, image, cmd):
             container=container.get("Id"), force=True, v=True)
 
 
+json_out = template_json_data(cli_arg)
 try:
     response = ""
     # Check for pip updates
     if cli_arg == "pip":
-        response = create_container(client, IMAGE_NAME, "pip list --outdated")
+        response = create_container(
+                client, IMAGE_NAME,
+                ep="/usr/bin/pip",
+                cmd="list --outdated")
 
     # Check for rubygem updates
     elif cli_arg == "gem":
-        response = create_container(client, IMAGE_NAME, "gem outdated")
+        response = create_container(
+                client, IMAGE_NAME,
+                ep="/usr/bin/gem",
+                cmd="outdated")
 
     # Check for npm updates
     elif cli_arg == "npm":
-        response = create_container(client, IMAGE_NAME, "npm outdated -g")
+        response = create_container(
+                client, IMAGE_NAME,
+                ep="/usr/bin/npm",
+                cmd="outdated -g")
 
 except Exception as e:
     logger.log(
@@ -190,7 +201,6 @@ except Exception as e:
     )
 
 else:
-    json_out = template_json_data(cli_arg)
     if not response or binary_does_not_exist(response):
         json_out["Scan Results"] = \
             "Could not find {} executable in the image".format(cli_arg)
