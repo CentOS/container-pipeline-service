@@ -135,7 +135,7 @@ def template_json_data(scan_type):
     current_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
     json_out = {
         "Start Time": current_time,
-        "Successful": "",
+        "Successful": False,
         "Scan Type": scan_type + "-updates",
         "UUID": UUID,
         "CVE Feed Last Updated": "NA",
@@ -171,8 +171,8 @@ def create_container(client, image, ep, cmd):
 
 
 json_out = template_json_data(cli_arg)
+response = ""
 try:
-    response = ""
     # Check for pip updates
     if cli_arg == "pip":
         response = create_container(
@@ -200,7 +200,7 @@ except Exception as e:
         msg="Scanner failed: {}".format(e)
     )
 
-else:
+finally:
     if not response or binary_does_not_exist(response):
         json_out["Scan Results"] = \
             "Could not find {} executable in the image".format(cli_arg)
