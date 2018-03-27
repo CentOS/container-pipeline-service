@@ -116,14 +116,16 @@ def main(args):
 
     # Create a build entry for project to track build
     project, created = Project.objects.get_or_create(
-        name=project_name,
-        target_file_link=form_targetfile_link(
-            repo_url,
-            repo_build_path,
-            repo_branch,
-            target_file
-        )
+        name=project_name
     )
+    project.target_file_link=form_targetfile_link(
+        repo_url,
+        repo_build_path,
+        repo_branch,
+        target_file
+    )
+    project.save()
+
     Build.objects.create(uuid=job['uuid'], project=project,
                          status='queued',
                          start_time=timezone.now())

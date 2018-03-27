@@ -120,6 +120,13 @@ for f in files:
                 entry["target-file"]
             )
         )
+        project.target_file_link = form_targetfile_link(
+            entry["git-url"],
+            entry["git-path"],
+            entry["git-branch"],
+            entry["target-file"]
+        )
+        project.save()
         build = Build.objects.create(
             uuid=job_uuid,
             project=project,

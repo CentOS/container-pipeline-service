@@ -63,12 +63,12 @@ class TestLinter(BaseTestCase):
         self.run_dj_script(
             'from container_pipeline.models import Project; '
             'from container_pipeline.utils import form_targetfile_link;'
-            'Project.objects.get_or_create('
-            'name=\\"nshaikh-build-fail-test-latest\\",'
-            'target_file_link=form_targetfile_link('
+            'p, c = Project.objects.get_or_create('
+            'name=\\"nshaikh-build-fail-test-latest\\");'
+            'p.target_file_link=form_targetfile_link('
             '{}, {}, {}, {}'
-            ')'
-            ')'.format(
+            ');'
+            'p.save()'.format(
                 self.repo_url,
                 self.repo_build_path,
                 self.repo_branch,

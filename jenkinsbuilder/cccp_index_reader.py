@@ -248,18 +248,19 @@ def create_or_update_project_on_jenkins(indexdlocation):
                     error, str(myargs)))
                 logger.critical("Project details: %s ", str(project))
                 exit(1)
-            Project.objects.get_or_create(
-                name='{}-{}-{}'.format(
-                    project[0]['project']['appid'],
-                    project[0]['project']['jobid'],
-                    project[0]['project']['desired_tag']),
-                target_file_link=form_targetfile_link(
+                p, c = Project.objects.get_or_create(
+                    name='{}-{}-{}'.format(
+                        project[0]['project']['appid'],
+                        project[0]['project']['jobid'],
+                        project[0]['project']['desired_tag'])
+                )
+                p.target_file_link = form_targetfile_link(
                     project[0]['project']['git_url'],
                     project[0]['project']['rel_path'],
                     project[0]['project']['git_branch'],
                     project[0]['project']['target_file']
                 )
-            )
+                p.save()
 
         except Exception as e:
             logger.critical("Error updating jenkins job via file %s",
