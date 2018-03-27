@@ -61,7 +61,7 @@ class TestScanners(BaseTestCase):
         # create database entry for Project model for project under test
         self.run_dj_script(
             'from container_pipeline.models import Project; '
-            'from container_pipeline.utils import form _targetfile_link;'
+            'from container_pipeline.utils import form_targetfile_link;'
             'Project.objects.get_or_create('
             'name=\\"nshaikh-go-helloworld-latest\\",'
             'target_file_link=form_targetfile_link('
