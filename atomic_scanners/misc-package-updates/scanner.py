@@ -36,7 +36,9 @@ def binary_does_not_exist(response):
     """
     Used to figure if the npm, pip, gem binary exists in the container image
     """
-    return 'executable file not found in' in response
+    if 'executable file not found in' in response or 'not found' in response:
+        return True
+    return False
 
 
 def split_by_newline(response):
@@ -143,48 +145,56 @@ def template_json_data(scan_type):
     return json_out
 
 
-json_out = template_json_data(cli_arg)
+def create_container(client, image, cmd):
+    """
+    Execute given cmd in container via client
+    """
+    response = ""
+    try:
+        container = client.create_container(
+                image=image,
+                entrypoint="/bin/bash",
+                cmd=cmd
+        )
+        response = client.start(container=container.get("Id"))
+    except Exception as e:
+        logger.log(
+            level=logging.ERROR,
+            msg="{} failed in scanner: {}".format(cmd, e)
+        )
+    else:
+        return response
+    finally:
+        client.remove_container(
+            container=container.get("Id"), force=True, v=True)
+
 
 try:
-    # Create the container before starting/running it
-    container = client.create_container(image=IMAGE_NAME,
-                                        command="tail -f /dev/null")
-
-    # Running the container
-    client.start(container.get('Id'))
-
+    response = ""
     # Check for pip updates
     if cli_arg == "pip":
-        # variable to store info about exec_start
-        exe = client.exec_create(
-            container=container.get("Id"),
-            cmd="pip list --outdated"
-        )
-
-        response = client.exec_start(exe)
+        response = create_container(client, IMAGE_NAME, "pip list --outdated")
 
     # Check for rubygem updates
     elif cli_arg == "gem":
-        exe = client.exec_create(
-            container=container.get("Id"),
-            cmd="gem outdated"
-        )
-
-        response = client.exec_start(exe)
+        response = create_container(client, IMAGE_NAME, "gem outdated")
 
     # Check for npm updates
     elif cli_arg == "npm":
-        exe = client.exec_create(
-            container=container.get("Id"),
-            cmd="npm outdated -g"
-        )
+        response = create_container(client, IMAGE_NAME, "npm outdated -g")
 
-        response = client.exec_start(exe)
+except Exception as e:
+    logger.log(
+        level=logging.ERROR,
+        msg="Scanner failed: {}".format(e)
+    )
 
-    if binary_does_not_exist(response):
+else:
+    json_out = template_json_data(cli_arg)
+    if not response or binary_does_not_exist(response):
         json_out["Scan Results"] = \
             "Could not find {} executable in the image".format(cli_arg)
-        json_out["Successful"] = "false"
+        json_out["Successful"] = False
         json_out["Summary"] = "No updates for packages installed via {}. ".\
             format(cli_arg)
     else:
@@ -192,17 +202,9 @@ try:
             format_response(cli_arg, response)
         json_out["Finished Time"] = \
             datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
-        json_out["Successful"] = "true"
+        json_out["Successful"] = True
         json_out["Summary"] = "Possible updates for packages installed via " \
             "{}. ".format(cli_arg)
-
-    # remove the container
-    client.remove_container(container=container.get("Id"), force=True)
-except Exception as e:
-    logger.log(
-        level=logging.ERROR,
-        msg="Scanner failed: {}".format(e)
-    )
 
 
 output_dir = os.path.join(OUTDIR, UUID)
