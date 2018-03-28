@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from datetime import datetime
+from time import sleep
 import docker
 import json
 import logging
@@ -36,7 +37,10 @@ def binary_does_not_exist(response):
     """
     Used to figure if the npm, pip, gem binary exists in the container image
     """
-    return 'executable file not found in' in response
+    if 'executable file not found in' in response or 'not found' in response \
+            or 'no such file or directory' in response:
+        return True
+    return False
 
 
 def split_by_newline(response):
@@ -132,7 +136,7 @@ def template_json_data(scan_type):
     current_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
     json_out = {
         "Start Time": current_time,
-        "Successful": "",
+        "Successful": False,
         "Scan Type": scan_type + "-updates",
         "UUID": UUID,
         "CVE Feed Last Updated": "NA",
@@ -143,48 +147,71 @@ def template_json_data(scan_type):
     return json_out
 
 
+def create_container(client, image, ep, cmd):
+    """
+    Execute given cmd in container via client
+    """
+    response = ""
+    try:
+        # create the container
+        container = client.create_container(
+            image=image,
+            entrypoint=ep,
+            command=cmd
+        )
+        # start the container
+        client.start(container=container.get("Id"))
+        # pause for 10 seconds for package manager to collect data
+        sleep(10)
+        # get the logs from container
+        response = client.logs(container=container.get("Id"))
+    except Exception as e:
+        logger.log(
+            level=logging.ERROR,
+            msg="{} failed in scanner: {}".format(cmd, e)
+        )
+    else:
+        return response
+    finally:
+        client.remove_container(
+            container=container.get("Id"), force=True, v=True)
+
+
 json_out = template_json_data(cli_arg)
-
+response = ""
 try:
-    # Create the container before starting/running it
-    container = client.create_container(image=IMAGE_NAME,
-                                        command="tail -f /dev/null")
-
-    # Running the container
-    client.start(container.get('Id'))
-
     # Check for pip updates
     if cli_arg == "pip":
-        # variable to store info about exec_start
-        exe = client.exec_create(
-            container=container.get("Id"),
-            cmd="pip list --outdated"
-        )
-
-        response = client.exec_start(exe)
+        response = create_container(
+            client, IMAGE_NAME,
+            ep="/usr/bin/pip",
+            cmd="list --outdated")
 
     # Check for rubygem updates
     elif cli_arg == "gem":
-        exe = client.exec_create(
-            container=container.get("Id"),
-            cmd="gem outdated"
-        )
-
-        response = client.exec_start(exe)
+        response = create_container(
+            client, IMAGE_NAME,
+            ep="/usr/bin/gem",
+            cmd="outdated")
 
     # Check for npm updates
     elif cli_arg == "npm":
-        exe = client.exec_create(
-            container=container.get("Id"),
-            cmd="npm outdated -g"
-        )
+        response = create_container(
+            client, IMAGE_NAME,
+            ep="/usr/bin/npm",
+            cmd="outdated -g")
 
-        response = client.exec_start(exe)
+except Exception as e:
+    logger.log(
+        level=logging.ERROR,
+        msg="Scanner failed: {}".format(e)
+    )
 
-    if binary_does_not_exist(response):
+finally:
+    if not response or binary_does_not_exist(response):
         json_out["Scan Results"] = \
             "Could not find {} executable in the image".format(cli_arg)
-        json_out["Successful"] = "false"
+        json_out["Successful"] = False
         json_out["Summary"] = "No updates for packages installed via {}. ".\
             format(cli_arg)
     else:
@@ -192,17 +219,9 @@ try:
             format_response(cli_arg, response)
         json_out["Finished Time"] = \
             datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
-        json_out["Successful"] = "true"
+        json_out["Successful"] = True
         json_out["Summary"] = "Possible updates for packages installed via " \
             "{}. ".format(cli_arg)
-
-    # remove the container
-    client.remove_container(container=container.get("Id"), force=True)
-except Exception as e:
-    logger.log(
-        level=logging.ERROR,
-        msg="Scanner failed: {}".format(e)
-    )
 
 
 output_dir = os.path.join(OUTDIR, UUID)
