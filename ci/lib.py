@@ -260,6 +260,7 @@ scanner_worker
 {scanner_host}
 
 [all:vars]
+allowed_hosts="['127.0.0.1']"
 db_host= {jenkins_master_host}
 public_registry= {jenkins_slave_host}
 intranet_registry = {jenkins_slave_host}:5000
@@ -269,6 +270,7 @@ beanstalk_server={openshift_host}
 test=True
 jenkins_public_key_file = jenkins.key.pub
 enable_epel=False
+vagrant=False
 test_nfs_share={test_nfs_share}
 setup_nfs=True
 production=False
@@ -279,6 +281,18 @@ cccp_index_repo=https://github.com/centos/container-index.git
 cccp_index_repo_branch=ci
 db_backup_nfs_path=/srv/db/cccp
 db_local_volume=/srv/local-db-volume/cccp
+expire_tar_after=4
+# postgresql database related configurations
+db_user=cccp
+db_name=cccp
+db_pass=cccp
+db_port=5432
+postgresql_image=registry.centos.org/centos/postgresql-95-centos7
+postgresql_uid=26
+sentry_enabled=false
+sentry_log_level='WARNING'
+sentry_dsn=''
+
 
 [jenkins_master:vars]
 jenkins_private_key_file = jenkins.key

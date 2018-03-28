@@ -23,19 +23,41 @@ logrotate_maxsize=100M
 logrotate_rotate=5
 
 [all:vars]
+#======================================
+## Deployment Setting
+#======================================
+# for distinguishing emails from production, pre-prod, test environments
+# give either value among [production, pre-prod, test]
+# default is production
+deployment=production
 
+#======================================
 ## Basic Config
 #======================================
-# Set log level
-log_level = DEBUG
 # configure registry node
 public_registry=jenkins-slave
 intranet_registry=jenkins-slave:5000
 # configure beanstalkd server node
 beanstalk_server=open-shift
 db_host=jenkins-master
+rsync_ssh_opts=""
+enable_epel=True
+allowed_hosts="['127.0.0.1']"
 
+#======================================
+## Development Config
+#======================================
+# Set log level
+log_level = DEBUG
+test=False
+# dev environment options, update following to true to configure NFS
+setup_nfs=False
+# replace scanner_worker below with its FQDN / IP
+#test_nfs_share=scanner_worker:/nfsshare
+# Vagrant is no longer supported, keep this False
+vagrant=False
 
+#======================================
 ## Container Index related config
 #======================================
 # configure projects to build, point container-index git URL
@@ -43,18 +65,29 @@ cccp_index_repo=https://github.com/centos/container-index.git
 # branch of cccp_index_repo
 cccp_index_repo_branch=master
 
-
-## NFS Config related options
 #======================================
-# update following to true to configure NFS, needed for dev environment
-setup_nfs=False
-# replace scanner-worker below with its FQDN / IP, needed if setup_nfs=True
-#test_nfs_share=scanner-worker:/nfsshare
-
-
-## Email related config
+## Sentry
 #======================================
-# for distinguishing emails from production, pre-prod, test environments
-# give either value among [production, pre-prod, test]
-# default is production
-deployment=production
+# sentry related configurations
+sentry_enabled=false
+sentry_log_level='WARNING'
+# sentry_dsn must be defined in hosts file if you enable sentry
+# sentry_dsn=''
+
+#======================================
+## Database Config
+#======================================
+# postgresql database related configurations
+db_user=cccp
+db_name=cccp
+db_pass=cccp
+db_port=5432
+postgresql_image=registry.centos.org/centos/postgresql-95-centos7
+postgresql_uid=26
+
+# Needed variable for deployments, default:/srv/pipeline-logs/db/cccp/, update as required
+db_backup_nfs_path=/srv/db/cccp
+db_local_volume=/srv/local-db-volume/cccp
+db_host=jenkins_master
+# expire the cccp database pg_dump tar files after given number of days
+expire_tar_after=4
