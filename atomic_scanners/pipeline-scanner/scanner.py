@@ -99,23 +99,30 @@ class ScanImageRootfs(object):
         )
         resp, err = process.communicate()
 
+        # initialize the response as list
+        updates = []
+
         if resp != "":
             self.json_out["Summary"] = "RPM updates available for the image."
             self.json_out["Successful"] = True
-            resp = self.parse_yum_check_update(resp)
+            updates = self.parse_yum_check_update(resp)
         else:
             if "rpmdb open failed" in err:
                 self.json_out["Summary"] = \
                     "Failed to open rpmdb in image under test, " \
                     "scanner needs configured `yum` in image under test. " \
                     "%s" % str(err)
-            else:
+            elif err:
                 self.json_out["Summary"] = \
                     "Error occured while processing yum updates. %s" % str(err)
                 self.json_out["Successful"] = False
-            resp = []
+            # both err and resp are empty in this case
+            else:
+                self.json_out["Summary"] = \
+                    "No RPM updates available."
+                self.json_out["Successful"] = True
 
-        self.json_out['Scan Results']['Package Updates'] = resp
+        self.json_out['Scan Results']['Package Updates'] = updates
 
     def parse_yum_check_update(self, data):
         resp = []
