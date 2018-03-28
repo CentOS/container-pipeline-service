@@ -14,7 +14,7 @@
   file: path=/srv/pipeline-logs/cccp.log state=touch
 
 - name: Stop mail-server container
-  sudo: yes
+  become: true
   ignore_errors: true
   docker_container:
     name: mail-server
@@ -28,7 +28,7 @@
       replace="LOG_LEVEL = '{{ log_level }}'"
 
 - name: Build mail-server container image
-  sudo: yes
+  become: true
   docker_image:
     name: mail-server
     path: "/opt/cccp-service"

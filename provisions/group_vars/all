@@ -32,3 +32,8 @@ sentry_enabled: false
 sentry_log_level: 'WARNING'
 # sentry_dsn must be defined in hosts file if you enable sentry
 # sentry_dsn: ''
+
+# ansible playbook related configs
+ansible_become: true
+ansible_become_method: sudo  # default, but set explicitly for clarity
+ansible_become_user: root  # default, but set explicitly for clarity

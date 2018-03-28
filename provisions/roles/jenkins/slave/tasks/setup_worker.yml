@@ -11,14 +11,14 @@
     line: 'ADD_REGISTRY="--add-registry {{ public_registry }}:5000 --add-registry registry.centos.org"'
 
 - name: Reload docker systemd service
-  sudo: yes
+  become: true
   systemd: name=docker state=reloaded
 
 - name: Restart Docker
   systemd: name=docker state=restarted enabled=yes
 
 - name: Build container-pipeline image
-  sudo: yes
+  become: true
   docker_image:
     state: present
     force: yes
@@ -96,7 +96,7 @@
       - application
 
 - name: Reload Dockerfile linter worker systemd service
-  sudo: yes
+  become: true
   systemd: name=cccp-dockerfile-lint-worker daemon_reload=yes
   tags:
       - application

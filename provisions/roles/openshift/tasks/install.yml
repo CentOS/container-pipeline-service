@@ -16,7 +16,7 @@
       - python-docker-py
 
 - name: Reload docker systemd service
-  sudo: yes
+  become: true
   systemd: name=docker state=reloaded
 
 - name: Start Docker service

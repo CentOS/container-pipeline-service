@@ -5,7 +5,7 @@
 # Stop Jenkins so no files are overriden by a running Jenkins instance
 - name: Stop jenkins before configuration
   service: name=jenkins state=stopped
-  sudo: yes
+  become: true
   tags:
   - jenkins/master
 
@@ -16,7 +16,7 @@
 # Start Jenkins again
 - name: Start jenkins
   service: name=jenkins state=started
-  sudo: yes
+  become: true
   tags:
   - jenkins/master
 
