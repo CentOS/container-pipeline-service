@@ -118,7 +118,7 @@ def main(args):
     project, created = Project.objects.get_or_create(
         name=project_name
     )
-    project.target_file_link=form_targetfile_link(
+    project.target_file_link = form_targetfile_link(
         repo_url,
         repo_build_path,
         repo_branch,
