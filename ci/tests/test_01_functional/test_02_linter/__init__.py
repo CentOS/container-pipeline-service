@@ -66,7 +66,7 @@ class TestLinter(BaseTestCase):
             'p, c = Project.objects.get_or_create('
             'name=\\"nshaikh-build-fail-test-latest\\");'
             'p.target_file_link=form_targetfile_link('
-            '{}, {}, {}, {}'
+            '\\"{}\\", \\"{}\\", \\"{}\\", \\"{}\\"'
             ');'
             'p.save()'.format(
                 self.repo_url,

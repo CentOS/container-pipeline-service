@@ -65,7 +65,7 @@ class TestScanners(BaseTestCase):
             'p, c = Project.objects.get_or_create('
             'name=\\"nshaikh-go-helloworld-latest\\");'
             'p.target_file_link=form_targetfile_link('
-            '\"{}\", \"{}\", \"{}\", \"{}\"'
+            '\\"{}\\", \\"{}\\", \\"{}\\", \\"{}\\"'
             ');'
             'p.save()'.format(
                 self.repo_url,
