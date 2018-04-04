@@ -10,6 +10,7 @@ on the registry and initializing the scan tasks for the workers.
 import beanstalkc
 import container_pipeline.lib.dj
 from container_pipeline.models.pipeline import Project, Build, BuildPhase
+from container_pipeline.utils import form_targetfile_link
 from django.utils import timezone
 import glob
 import json
@@ -97,9 +98,9 @@ for f in files:
             "project_name": project_name,
             "namespace": project_name,
             "image_under_test": "%s:5000/%s/%s:%s" %
-            (registry, app_id, job_id, desired_tag),
+                                (registry, app_id, job_id, desired_tag),
             "output_image": "registry.centos.org/%s/%s:%s" %
-            (app_id, job_id, desired_tag),
+                            (app_id, job_id, desired_tag),
             "notify_email": email,
             "weekly": True,
             "logs_dir": LOGS_DIR,
@@ -110,7 +111,22 @@ for f in files:
 
         job = bs.put(json.dumps(data))
         # Initializing Database entries
-        project, created = Project.objects.get_or_create(name=project_name)
+        project, created = Project.objects.get_or_create(
+            name=project_name,
+            target_file_link=form_targetfile_link(
+                entry["git-url"],
+                entry["git-path"],
+                entry["git-branch"],
+                entry["target-file"]
+            )
+        )
+        project.target_file_link = form_targetfile_link(
+            entry["git-url"],
+            entry["git-path"],
+            entry["git-branch"],
+            entry["target-file"]
+        )
+        project.save()
         build = Build.objects.create(
             uuid=job_uuid,
             project=project,
@@ -126,4 +142,4 @@ for f in files:
         scan_phase.save()
 
         print "Image %s sent for weekly scan with data %s" % \
-            (entry_short_name, data)
+              (entry_short_name, data)

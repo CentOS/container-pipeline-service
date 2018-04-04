@@ -23,7 +23,9 @@ class Project(models.Model):
     service
     """
     name = models.CharField(max_length=200, unique=True, db_index=True)
-
+    target_file_link = models.CharField(
+        max_length=350, default=None, blank=True, null=True
+    )
     created = models.DateTimeField(auto_now_add=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, blank=True)
 

@@ -13,12 +13,9 @@ import yaml
 from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib.log import load_logger
 from container_pipeline.lib.settings import LOGS_BASE_DIR
-from container_pipeline.model_tmp.containers import (ContainerLinksModel,
-                                                     form_Dockerfile_link)
+from container_pipeline.utils import form_targetfile_link
 from container_pipeline.models import Project
 
-# Container Info Collector
-container_info = ContainerLinksModel()
 # Fix integration of django with other Python scripts.
 
 # populate container_pipeline module path
@@ -129,12 +126,6 @@ def get_projects_from_index(indexdlocation):
                         if dependson_job == '':
                             dependson_job = 'none'
 
-                        container_name = appid + "/" + jobid + ":" + desiredtag
-                        dockerfile_link = form_Dockerfile_link(
-                            giturl, gitpath, gitbranch, targetfile)
-                        container_info.append_info(
-                            container_name, dockerfile_link)
-
                         if project.get('prebuild-script'):
                             giturl = "https://github.com/bamachrn/"\
                                 "cccp-pre-build-code"
@@ -156,7 +147,6 @@ def get_projects_from_index(indexdlocation):
                         logger.critical(str(e))
                         logger.critical(sys.exc_info()[0])
                         raise
-    container_info.marshall()
     return projects
 
 
@@ -258,11 +248,19 @@ def create_or_update_project_on_jenkins(indexdlocation):
                     error, str(myargs)))
                 logger.critical("Project details: %s ", str(project))
                 exit(1)
-            Project.objects.get_or_create(
-                name='{}-{}-{}'.format(
-                    project[0]['project']['appid'],
-                    project[0]['project']['jobid'],
-                    project[0]['project']['desired_tag']))
+                p, c = Project.objects.get_or_create(
+                    name='{}-{}-{}'.format(
+                        project[0]['project']['appid'],
+                        project[0]['project']['jobid'],
+                        project[0]['project']['desired_tag'])
+                )
+                p.target_file_link = form_targetfile_link(
+                    project[0]['project']['git_url'],
+                    project[0]['project']['rel_path'],
+                    project[0]['project']['git_branch'],
+                    project[0]['project']['target_file']
+                )
+                p.save()
 
         except Exception as e:
             logger.critical("Error updating jenkins job via file %s",

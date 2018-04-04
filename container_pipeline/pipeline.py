@@ -6,7 +6,8 @@ from container_pipeline.lib import dj  # noqa
 from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.models import Build, Project
-from container_pipeline.utils import get_job_hash, get_project_name
+from container_pipeline.utils import get_job_hash, get_project_name, \
+    form_targetfile_link
 from django.utils import timezone
 from trigger_dockerfile_lint import trigger_dockerfile_linter
 
@@ -114,7 +115,17 @@ def main(args):
     job['build_context'] = build_context
 
     # Create a build entry for project to track build
-    project, created = Project.objects.get_or_create(name=project_name)
+    project, created = Project.objects.get_or_create(
+        name=project_name
+    )
+    project.target_file_link = form_targetfile_link(
+        repo_url,
+        repo_build_path,
+        repo_branch,
+        target_file
+    )
+    project.save()
+
     Build.objects.create(uuid=job['uuid'], project=project,
                          status='queued',
                          start_time=timezone.now())
