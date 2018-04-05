@@ -1,96 +1,91 @@
 #!/usr/bin/python
-"""Scanner Runner."""
+"""
+Scanner Runner.
+
+This module invokes all registered scanners and orchestrates the processing.
+"""
+
+import docker
 import json
 import logging
 import os
 
-import container_pipeline.lib.settings as constants
-import docker
+from container_pipeline.lib import settings
 from container_pipeline.lib.log import load_logger
 from container_pipeline.scanners.container_capabilities import \
     ContainerCapabilities
 from container_pipeline.scanners.misc_package_updates import \
     MiscPackageUpdates
-from container_pipeline.scanners.pipeline import PipelineScanner
+from container_pipeline.scanners.pipeline_scanner import PipelineScanner
 from container_pipeline.scanners.rpm_verify import ScannerRPMVerify
+from container_pipeline.scanners.base import Scanner
 
 
-class ScannerRunner(object):
+class ScannerRunner(Scanner):
     """
-    Scanner Handler orchastration.
+    Scanner Handler orchestration.
 
     Scanner runner class handling basic operation and orchestration of
     multiple scanner handlers
     """
 
-    def __init__(self, job_info):
+    def __init__(self, job):
         """Initialize runner."""
         # initializing logger
         load_logger()
         self.logger = logging.getLogger('scan-worker')
+        self.docker_conn = self.docker_client()
+        self.job = job
 
-        self.job_info = job_info
+        # register all scanners
+        self.scanners = [
+            PipelineScanner,
+            ScannerRPMVerify,
+            MiscPackageUpdates,
+            ContainerCapabilities
+        ]
 
-        DOCKER_HOST = "127.0.0.1"
-        DOCKER_PORT = "4243"
+    def docker_client(self, host="127.0.0.1", port="4243"):
+        """
+        returns Docker client object on success else False on failure
+        """
         try:
-            # docker client connection to CentOS 7 system
-            self.conn = docker.Client(base_url="tcp://{}:{}".format(
-                DOCKER_HOST, DOCKER_PORT
-            ))
+            conn = docker.Client(base_url="tcp://{}:{}".format(host, port))
         except Exception as e:
             self.logger.fatal(
-                "Error connecting to Docker daemon. Error {}".format(e),
+                "Failed to connect to Docker daemon. {}".format(e),
                 exc_info=True)
+            return False
+        else:
+            return conn
 
-        # Receive and send `namespace` key-value as is
-        self.job_namespace = job_info.get('namespace')
-        self.scanners = {
-            "registry.centos.org/pipeline-images/pipeline-scanner":
-            PipelineScanner,
-            "registry.centos.org/pipeline-images/scanner-rpm-verify":
-            ScannerRPMVerify,
-            "registry.centos.org/pipeline-images/misc-package-updates":
-            MiscPackageUpdates,
-            "registry.centos.org/pipeline-images/"
-            "container-capabilities-scanner":
-            ContainerCapabilities
-        }
+    def remove_image(self, image):
+        """
+        Remove the image under test using docker client
+        """
+        self.logger.info("Removing image {}".format(image))
+        self.docker_conn.remove_image(image=self.image, force=True)
 
-    def pull_image_under_test(self, image_under_test):
-        """Pull image under test on test run host."""
-        self.logger.info("Pulling image {}".format(image_under_test))
-        pull_data = self.conn.pull(
-            repository=image_under_test
-        )
+    def pull_image(self, image):
+        """
+        Pull image under test on scanner host machine
+        """
+        self.logger.info("Pulling image {}".format(image))
+        pull_data = self.docker_conn.pull(repository=image)
 
         if 'error' in pull_data:
             self.logger.fatal("Error pulling requested image {}: {}".format(
-                image_under_test, pull_data
+                image, pull_data
             ))
             return False
-        self.logger.info("Image is pulled {}".format(image_under_test))
+
+        self.logger.info("Pulled image {}".format(image))
         return True
 
-    def run_a_scanner(self, scanner, image_under_test):
-        """Run the given scanner on image_under_test."""
-        json_data = {}
-        # create object for the respective scanner class
-        scanner_obj = self.scanners.get(scanner)()
-        # should receive the JSON data loaded
-        status, json_data = scanner_obj.scan(image_under_test)
-
-        if not status:
-            self.logger.warning("Failed to run the scanner {}".format(scanner))
-        else:
-            self.logger.info("Finished running {} scanner.".format(scanner))
-
-        # if scanner failed to run, this will return {}, do check at receiver
-        # end
-        return json_data
-
     def export_scanners_status(self, status, status_file_path):
-        """Export status of scanners execution for build in process."""
+        """
+        Export status of scanners execution for build in process.
+        """
         try:
             fin = open(status_file_path, "w")
             json.dump(status, fin)
@@ -102,100 +97,114 @@ class ScannerRunner(object):
             self.logger.info(
                 "Wrote scanners status to file: {}".format(status_file_path))
 
-    def export_scanner_logs(self, scanner, data):
-        """Export scanner logs in given directory."""
-        logs_file_path = os.path.join(
-            self.job_info["logs_dir"],
-            constants.SCANNERS_RESULTFILE[scanner][0])
-        self.logger.info(
-            "Scanner={} result log file:{}".format(scanner, logs_file_path)
-        )
+    def export_scanner_result(self, data, result_file):
+        """
+        Export scanner logs in given directory.
+        """
         try:
-            fin = open(logs_file_path, "w")
+            fin = open(result_file, "w")
             json.dump(data, fin, indent=4, sort_keys=True)
         except IOError as e:
             self.logger.critical(
-                "Failed to write scanner={} logs on NFS share.".format(
-                    scanner))
+                "Failed to write scanner result file {}".format(result_file))
             self.logger.critical(str(e), exc_info=True)
+            return None
         else:
             self.logger.info(
-                "Wrote the scanner logs to log file: {}".format(
-                    logs_file_path))
-        finally:
-            return logs_file_path
+                "Exported scanner result file {}".format(result_file))
+            return True
+
+    def run_a_scanner(self, scanner_obj, image):
+        """
+        Run the given scanner on image.
+        """
+        # should receive the JSON data loaded
+        data = scanner_obj.scan(image)
+
+        self.logger.info("Finished running {} scanner.".format(
+            scanner_obj.scanner_name))
+
+        return data
 
     def scan(self):
         """
         Run the listed atomic scanners on image under test.
 
-        #FIXME: at the moment this menthod is returning the results of multiple
-        scanners in one json and sends over the bus
+        # FIXME: at the moment this menthod is returning the results of
+        multiple scanners in one json and sends over the bus
         """
-        self.logger.info("Received job : {}".format(self.job_info))
+        self.logger.info("Received scanning job : {}".format(self.job))
 
-        # TODO: Figure out why random tag (with date) is coming
-        # image_under_test=":".join(self.job_info.get("name").split(":")[:-1])
-        image_under_test = self.job_info.get("image_under_test")
-        self.logger.info("Image under test:{}".format(image_under_test))
+        image = self.job.get("image")
+
+        self.logger.info("Image under test for scanning :{}".format(image))
         # copy the job info into scanners data,
         # as we are going to add logs and msg
-        scanners_data = self.job_info
+        scanners_data = self.job
         scanners_data["msg"] = {}
         scanners_data["logs_URL"] = {}
         scanners_data["logs_file_path"] = {}
 
         # pull the image first, if failed move on to start_delivery
-        if not self.pull_image_under_test(image_under_test):
+        if not self.pull_image(image):
             self.logger.info(
                 "Image pulled failed, moving job to delivery phase.")
             scanners_data["action"] = "start_delivery"
             return False, scanners_data
 
         # run the multiple scanners on image under test
-        for scanner in self.scanners.keys():
-            data_temp = self.run_a_scanner(scanner, image_under_test)
+        for scanner in self.scanners:
+            # create object for the respective scanner class
+            scanner_obj = scanner()
+            # execute atomic scan and grab the results
+            result = self.run_a_scanner(scanner_obj, image)
 
-            if not data_temp:
+            # each scanner invoker class defines the output result file
+            result_file = os.path.join(
+                self.job["logs_dir"], scanner_obj.result_file)
+
+            # for only the cases where export/write operation could fail
+            if not self.export_scanner_result(result, result_file):
                 continue
 
-            # TODO: what to do if the logs writing failed, check status here
-            # scanners results file path on NFS
-            logs_filepath = self.export_scanner_logs(scanner, data_temp)
-
-            # scanner results logs URL
-            logs_URL = logs_filepath.replace(
-                constants.LOGS_DIR,
-                constants.LOGS_URL_BASE
-            )
-
             # keep the message
-            scanners_data["msg"][data_temp["scanner_name"]] = data_temp["msg"]
+            scanners_data["msg"][result["scanner"]] = result["msg"]
 
             # pass the logs filepath via beanstalk tube
             # TODO: change the respective key from logs ==> logs_URL while
             # accessing this
-            scanners_data["logs_URL"][data_temp["scanner_name"]] = logs_URL
+            # scanner results logs URL
+            scanners_data["logs_URL"][result["scanner"]] = result_file.replace(
+                settings.LOGS_DIR,
+                settings.LOGS_URL_BASE)
 
             # put the logs file name as well here in data
-            scanners_data["logs_file_path"][
-                data_temp["scanner_name"]] = logs_filepath
+            scanners_data["logs_file_path"][result["scanner"]] = result_file
+
+        # TODO: Check here if at least one scanner ran successfully
+        self.logger.info("Finished executing all scanners.")
 
         # keep notify_user action in data, even if we are deleting the job,
         # since whenever we will read the response, we should be able to see
         # action
         scanners_data["action"] = "notify_user"
 
-        # after all scanners are ran, remove the image
-        self.logger.info("Removing the image: {}".format(image_under_test))
-        self.conn.remove_image(image=image_under_test, force=True)
-        # TODO: Check here if at least one scanner ran successfully
-        self.logger.info("Finished executing all scanners.")
-
         status_file_path = os.path.join(
-            self.job_info["logs_dir"],
-            constants.SCANNERS_STATUS_FILE)
+            self.job["logs_dir"],
+            settings.SCANNERS_STATUS_FILE)
+
         # We export the scanners_status on NFS
         self.export_scanners_status(scanners_data, status_file_path)
 
+        # clean up the system
+        self.clean_up(image)
+
         return True, scanners_data
+
+    def clean_up(self, image):
+        """
+        Clean up the system post scan
+        """
+        # after all scanners are ran, remove the image
+        self.logger.info("Removing the image: {}".format(image))
+        self.docker_conn.remove_image(image=image, force=True)

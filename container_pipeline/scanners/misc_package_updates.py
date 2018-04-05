@@ -1,5 +1,6 @@
 #!/usr/bin/python
 """This class is for checking updates from different other packagers."""
+
 import os
 
 from container_pipeline.scanners.base import Scanner
@@ -9,43 +10,40 @@ class MiscPackageUpdates(Scanner):
     """Checks updates for packages other than RPM."""
 
     def __init__(self):
-        """Name it to Misc Package update check."""
+        """
+        Initialize scanner invoker with basic configs
+        """
         self.scanner_name = "misc-package-updates"
-        self.full_scanner_name = \
-            "registry.centos.org/pipeline-images/misc-package-updates"
         self.scan_types = ["pip-updates", "npm-updates", "gem-updates"]
+        self.result_file = "misc_package_updates_scanner_results.json"
 
-    def scan(self, image_under_test):
+    def run(self, image):
         """Run the scanner."""
+        super(MiscPackageUpdates, self).__init__(
+            image=image,
+            scanner=self.scanner_name,
+            result_file=self.result_file)
+
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
         logs = []
-        super(MiscPackageUpdates, self).__init__(
-            image_under_test=image_under_test,
-            scanner_name=self.scanner_name,
-            full_scanner_name=self.full_scanner_name,
-            to_process_output=False
-        )
+        os.environ["IMAGE_NAME"] = self.image
 
-        os.environ["IMAGE_NAME"] = self.image_under_test
+        for st in self.scan_types:
+            # scan_results gets {"status": True/False,
+            #                    "logs": {},
+            #                    "msg": msg}
+            scan_results = self.scan(scan_type=st, process_output=False)
 
-        for _ in self.scan_types:
-            scan_cmd = [
-                "atomic",
-                "scan",
-                "--scanner={}".format(self.scanner_name),
-                "--scan_type={}".format(_),
-                "{}".format(image_under_test)
-            ]
+            if not scan_results.get("status", False):
+                continue
 
-            scan_results = super(MiscPackageUpdates, self).scan(scan_cmd)
+            logs.append(scan_results["logs"])
 
-            if not scan_results[0]:
-                return False, None
+        # invoke base class's cleanup utility
+        self.cleanup()
 
-            logs.append(scan_results[1])
-
-        return True, self.process_output(logs)
+        return self.process_output(logs)
 
     def process_output(self, logs):
         """
@@ -58,10 +56,10 @@ class MiscPackageUpdates(Scanner):
         as default, scan type
         """
         data = {}
-        data["scanner_name"] = self.scanner_name
+        data["scanner"] = self.scanner_name
+        data["image_under_test"] = self.image
         data["msg"] = ""
         for i in logs:
-            data["msg"] += i["Summary"]
+            data["msg"] += i.get("Summary", "Faled to run the scanner.")
         data["logs"] = logs
-
         return data

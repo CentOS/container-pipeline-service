@@ -12,11 +12,9 @@ import os
 import shutil
 import subprocess
 
-import docker
 from Atomic import Atomic, mount
 
 from container_pipeline.lib.log import load_logger
-from container_pipeline.lib.settings import SCANNERS_OUTPUT
 
 
 class Scanner(object):
@@ -25,11 +23,13 @@ class Scanner(object):
     Other classes can use as super class for common functions.
     """
 
-    def __init__(self, image, scanner):
+    def __init__(self, image, scanner, result_file):
         # container/image under test
         self.image = image
         # scanner name / as installed /not full URL
         self.scanner = scanner
+        # name of the output result file by scanner
+        self.result_file = result_file
         # image_id
         self.image_id = Atomic().get_input_id(self.image)
         # set logger or set console
@@ -45,20 +45,6 @@ class Scanner(object):
         self.mount_obj.image = self.image_id
         # provide mount option read/write
         self.mount_obj.options = ["rw"]
-
-    def docker_client(self, host="127.0.0.1", port="4243"):
-        """
-        returns Docker client object on success else False on failure
-        """
-        try:
-            conn = docker.Client(base_url="tcp://{}:{}".format(host, port))
-        except Exception as e:
-            self.logger.fatal(
-                "Failed to connect to Docker daemon. {}".format(e),
-                exc_info=True)
-            return False
-        else:
-            return conn
 
     def run_cmd(self, cmd):
         """
@@ -220,27 +206,30 @@ class Scanner(object):
             res_file = os.path.join(
                 self.res_dir,
                 "_{}".format(self.image_mountpath.split("/")[1]),
-                SCANNERS_OUTPUT[self.scanner][0])
+                self.result_file)
         # or if its a scan without mount
         else:
             res_file = os.path.join(
                 self.res_dir,
                 self.image_id,
-                SCANNERS_OUTPUT[self.scanner][0])
+                self.result_file)
 
         return res_file
 
-    def process_output(self, json_data):
+    def process_output(self, result):
         """
         Process the output from scanner, and format is as per need.
         """
-        # grab the summary of scanner as msg of output
-        msg = json_data.get("Summary", "{} results".format(self.scanner))
+        # grab the summary of scanper as msg of output
+        msg = result.get("Summary",
+                         result.get("msg",
+                                    "{} results".format(self.scanner)))
         return {
             "image_under_test": self.image,
             "scanner": self.scanner,
             "msg": msg,
-            "logs": json_data
+            "logs": result.get("logs", {}),
+            "status": result.get("status", False)
         }
 
     def scan(self, scan_type=None,
@@ -265,32 +254,41 @@ class Scanner(object):
         self.logger.debug("Running atomic scan: {}".format(str(cmd)))
         out, error = self.run_cmd(cmd)
 
+        result = None
         if out != "":
             res_file = self.parse_result_path(out, rootfs)
             # if scanner did not export the results
             if not res_file:
-                self.logger.critical(
-                    "No scan results found for {}".format(self.scanner))
-                return None
+                msg = "No scan results found for {}".format(self.scanner)
+                self.logger.critical(msg)
+                result = {"msg": msg, "status": False, "logs": {}}
             else:
-                data = self.read_json(res_file)
-                # if the invoker wants to process the output in a diff format
-                if process_output:
-                    return self.process_output(data)
-                # else send the scanners output as is
-                return data
+                # if scanner exported the result file
+                result = self.read_json(res_file)
+                # if failed to read the result file or its empty
+                if not result:
+                    result = {
+                        "msg": "Failed to read {} result file.".format(
+                            self.scanner),
+                        "status": False,
+                        "logs": {}}
+                # if scanner result is read
+                else:
+                    result = {"status": True,
+                              "logs": result,
+                              "msg": "{} results".format(self.scanner)}
         else:
+            # if there are issues in executing scanner itself
             self.logger.critical(
                 "Error running scanner {}. {}".format(
                     self.scanner, str(error)))
-            return None
+            result = {"msg": "Failed to run scanner {}.".format(self.scanner),
+                      "status": False,
+                      "logs": {}}
 
-    def remove_image(self):
-        """
-        Remove the image under test using docker client
-        """
-        docker_cli = self.docker_client()
-        docker_cli.remove_image(image=self.image, force=True)
+        if process_output:
+            return self.process_output(result)
+        return result
 
     def remove_result_dir(self):
         """
@@ -310,12 +308,11 @@ class Scanner(object):
     def cleanup(self, unmount=False):
         """
         Clean up utilities
-         - Removes image under test after scanning
          - Removes redundant atomic scan results at `atomic` default location
          - Unmounts if image rootfs is mounted and removes the mount path dir
         """
-        self.remove_image()
         self.remove_result_dir()
         if unmount:
             self.unmount_image()
+            self.clean_mountpath()
             self.remove_dirs(self.image_mountpath)
