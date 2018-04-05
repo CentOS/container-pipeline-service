@@ -23,6 +23,7 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'name',
             'created',
+            'target_file_link',
             'last_updated'
         )
 
