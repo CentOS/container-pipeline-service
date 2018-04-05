@@ -39,7 +39,7 @@ class BuildViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         builds = Build.objects.all.order_by('-start_time')
 
-        b_project = self.request.query_params.get('project', None)
+        b_project = self.request.query_params.get('name', None)
         b_status = self.request.query_params.get('status', None)
         # b_start_time = self.request.query_params.get('start_time', None)
         # b_end_time = self.request.query_params.get('end_time', None)
