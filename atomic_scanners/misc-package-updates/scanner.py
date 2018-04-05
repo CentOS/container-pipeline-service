@@ -227,7 +227,7 @@ finally:
 output_dir = os.path.join(OUTDIR, UUID)
 os.makedirs(output_dir)
 
-output_file_relative = "image_scan_results.json"
+output_file_relative = "misc_package_updates_scanner_results.json"
 
 output_file_absoulte = os.path.join(output_dir, output_file_relative)
 

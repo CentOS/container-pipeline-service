@@ -171,27 +171,17 @@ SCANNERS_OUTPUT = {
         "image_scan_results.json"
     ],
     "registry.centos.org/pipeline-images/misc-package-updates": [
-        "image_scan_results.json"
+        "misc_package_updates_scanner_results.json"
     ],
     "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-        "RPMVerify.json"
+        "rpm_verify_scanner_results.json"
     ],
     "registry.centos.org/pipeline-images/container-capabilities-scanner": [
         "container_capabilities_scanner_results.json"
     ]
 }
-SCANNERS_RESULTFILE = {
-    "registry.centos.org/pipeline-images/pipeline-scanner": [
-        "pipeline_scanner_results.json"],
-    "registry.centos.org/pipeline-images/misc-package-updates": [
-        "misc_package_updates_scanner_results.json"],
-    "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-        "RPMVerify_scanner_results.json"],
-    "registry.centos.org/pipeline-images/container-capabilities-scanner": [
-        "container-capabilities-results.json"
-    ]
+SCANNERS_RESULTFILE = SCANNERS_OUTPUT.copy()
 
-}
 SCANNERS_STATUS_FILE = "scanners_status.json"
 
 LINTER_RESULT_FILE = "linter_results.txt"

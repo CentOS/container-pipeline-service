@@ -57,7 +57,7 @@ class ScanImageRootfs(object):
         self.pretty_name = None
 
         # output file for the scan results
-        op_file = "image_scan_results.json"
+        op_file = "pipeline_scanner_results.json"
         self.op_file = os.path.join(self.out_path, op_file)
 
         # json data for the output
