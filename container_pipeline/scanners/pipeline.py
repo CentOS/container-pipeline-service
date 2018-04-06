@@ -91,46 +91,7 @@ class PipelineScanner(object):
         self.logger.info("Successfully mounted image's rootfs")
         return True
 
-    def unmount_image(self, retries=10, delay=10):
-        """Unmount image using the Atomic mount object."""
-        retry_count = 0
-        self.logger.info("Unmounting image's rootfs from {}".format(
-            self.mount_object.mountpoint))
-        while retry_count < retries:
-            try:
-                self.mount_object.unmount()
-                self.logger.info('Unmounted image\'s rootfs from {}'.format(
-                    self.mount_object.mountpoint))
-            except Exception as e:
-                if retry_count < retries:
-                    self.logger.info('Retrying to unmount image rootfs.')
-                    retry_count += 1
-                    time.sleep(delay)
-                else:
-                    self.logger.error(
-                        'Error during unmounting image\'s rootfs from {}: {}'
-                        .format(self.mount_object.mountpoint, e))
-
-    def remove_image(self):
-        """
-        Clear up the scanned image.
-
-        Removes the mounted image rootfs path as well as
-        removes the image using docker
-        """
-        try:
-            shutil.rmtree(self.image_rootfs_path)
-        except OSError as error:
-            self.logger.warning(
-                "Error removing image rootfs path. Error {}".format(
-                    str(error)),
-                exc_info=True
-            )
-        self.logger.info(
-            "Removing the image {}".format(self.image_under_test))
-        self.conn.remove_image(image=self.image_under_test, force=True)
-
-    def scan(self, image_under_test):
+    def _scan(self, image_under_test):
         """Run the pipleline scanner."""
         self.image_under_test = image_under_test
         self.image_id = Atomic().get_input_id(image_under_test)
@@ -139,7 +100,7 @@ class PipelineScanner(object):
         json_data = {}
 
         if not self.mount_image():
-            return False, json_data
+            return self.result(False, json_data)
 
         cmd = [
             'atomic',
@@ -173,19 +134,17 @@ class PipelineScanner(object):
             else:
                 self.logger.critical(
                     "No scan results found at {}".format(output_json_file))
-                return False, json_data
+                return self.result(False, json_data)
         else:
             self.logger.warning(
                 "Failed to get the results from atomic CLI. Error:{}".format(
                     err)
             )
-            return False, json_data
+            return self.result(False, json_data)
 
-        self.unmount_image(retries=10, delay=10)
-        shutil.rmtree(self.image_rootfs_path, ignore_errors=True)
         self.logger.info(
             "Finished executing scanner: {}".format(self.scanner_name))
-        return True, self.process_output(json_data)
+        return self.result(True, self.process_output(json_data))
 
     def process_output(self, json_data):
         """
@@ -203,3 +162,76 @@ class PipelineScanner(object):
             data["logs"] = {}
             data["msg"] = "No updates required."
         return data
+
+    def scan(self, image_under_test):
+        try:
+            return self._scan(image_under_test)
+        except Exception as e:
+            self.logger.warning(
+                "Failed to run pipeline-scanner. Error: %s", str(e))
+            # in case if image was mounted and exception came later
+            self.clean_up()
+
+    def result(self, status, data):
+        """
+        Returns result to caller, ensures unmounting image
+        """
+        self.clean_up()
+        return status, data
+
+    def clean_up(self):
+        """
+        Perform clean up utility before returning scan execution
+        """
+        self.unmount_image()
+        self.remove_image_rootfs_path()
+        self.remove_docker_image()
+
+    def unmount_image(self, retries=10, delay=10):
+        """Unmount image using the Atomic mount object."""
+        retry_count = 0
+        self.logger.info("Unmounting image's rootfs from {}".format(
+            self.mount_object.mountpoint))
+        while retry_count < retries:
+            try:
+                self.mount_object.unmount()
+                self.logger.info('Unmounted image\'s rootfs from {}'.format(
+                    self.mount_object.mountpoint))
+            except Exception as e:
+                if retry_count < retries:
+                    self.logger.info('Retrying to unmount image rootfs.')
+                    retry_count += 1
+                    time.sleep(delay)
+                else:
+                    self.logger.error(
+                        'Error during unmounting image\'s rootfs from {}: {}'
+                        .format(self.mount_object.mountpoint, e))
+
+    def remove_image_rootfs_path(self):
+        """
+        Clear up the scanned image.
+
+        Removes the mounted image rootfs path as well as
+        removes the image using docker
+        """
+        try:
+            shutil.rmtree(self.image_rootfs_path)
+        except OSError as error:
+            self.logger.warning(
+                "Error removing image rootfs path. Error {}".format(
+                    str(error)),
+                exc_info=True
+            )
+
+    def remove_docker_image(self):
+        """
+        Removes image under test via docker connection
+        """
+        self.logger.info(
+            "Removing the image {}".format(self.image_under_test))
+        try:
+            self.conn.remove_image(image=self.image_under_test, force=True)
+        except Exception as e:
+            self.logger.warning(
+                "Failed to remove docker image: %s", self.image_under_test)
+            self.logger.warning(str(e))
