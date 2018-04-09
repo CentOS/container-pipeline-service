@@ -7,7 +7,7 @@ import urllib2
 
 from time import sleep
 
-from constants import PROJECT_DIR,\
+from ci.constants import PROJECT_DIR,\
     DEPLOY_LOGS_PATH,\
     JENKINS_HOSTNAME,\
     JENKINS_HTTP_PORT,\
