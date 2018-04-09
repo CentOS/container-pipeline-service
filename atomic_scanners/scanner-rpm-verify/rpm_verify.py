@@ -56,9 +56,7 @@ class RPMVerify(object):
         self.scan_type = "RPM Verify scan for finding tampered files."
         self.scanner = "scanner-rpm-verify"
 
-        self.result_filename = os.path.join(
-            self.out_path,
-            self.__class__.__name__ + ".json")
+        self.result_filename = "rpm_verify_scanner_results.json"
 
         # json data for the output
         self.json_out = self.template_json_data(
