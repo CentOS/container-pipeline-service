@@ -223,15 +223,15 @@ class Scanner(object):
         Process the output from scanner, and format is as per need.
         """
         # grab the summary of scanper as msg of output
-        msg = result.get("Summary",
-                         result.get("msg",
-                                    "{} results".format(self.scanner)))
+        logs = result.get("logs", {})
+        msg = logs.get("Summary",
+                       result.get("msg",
+                                  "{} results".format(self.scanner)))
         return {
             "image_under_test": self.image,
             "scanner": self.scanner,
             "msg": msg,
-            "logs": result.get("logs", {}),
-            "status": result.get("status", False)
+            "logs": logs,
         }
 
     def scan(self, scan_type=None,
@@ -274,7 +274,7 @@ class Scanner(object):
                 # if scanner exported the result file
                 self.logger.debug("{} exported results at {}".format(
                     self.scanner, res_file)
-                    )
+                )
 
                 result = self.read_json(res_file)
                 # if failed to read the result file or its empty
