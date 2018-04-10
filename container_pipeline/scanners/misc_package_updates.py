@@ -1,8 +1,6 @@
 #!/usr/bin/python
 """This class is for checking updates from different other packagers."""
 
-import os
-
 from container_pipeline.scanners.base import Scanner
 
 
@@ -27,13 +25,16 @@ class MiscPackageUpdates(Scanner):
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
         logs = []
-        os.environ["IMAGE_NAME"] = self.image
+
+        # this scanner needs following env var for atomic scan command
+        env_vars = {"IMAGE_NAME": self.image}
 
         for st in self.scan_types:
             # scan_results gets {"status": True/False,
             #                    "logs": {},
             #                    "msg": msg}
-            scan_results = self.scan(scan_type=st, process_output=False)
+            scan_results = self.scan(
+                scan_type=st, process_output=False, env_vars=env_vars)
 
             if not scan_results.get("status", False):
                 continue

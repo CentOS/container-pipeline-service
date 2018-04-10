@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-This file has Scanning base class, with helper utilities.
+This file has base class, with helper utilities.
 Per scanner, a subsclass can be written and use Scanner class as
 base class.
 """
@@ -71,7 +71,7 @@ class Scanner(object):
                 path, error))
             return False
         else:
-            self.logger.debug("Dir {} is created.".format(self.path))
+            self.logger.debug("Dir {} is created.".format(path))
             return True
 
     def remove_dirs(self, path):
@@ -216,7 +216,6 @@ class Scanner(object):
                 self.res_dir,
                 self.image_id,
                 self.result_file)
-
         return res_file
 
     def process_output(self, result):
@@ -236,7 +235,8 @@ class Scanner(object):
         }
 
     def scan(self, scan_type=None,
-             rootfs=None, verbose=False, process_output=True):
+             rootfs=None, verbose=False, process_output=True,
+             env_vars=None):
         """
         Runs atomic scan for given scan_type
         """
@@ -253,6 +253,11 @@ class Scanner(object):
 
         cmd.append(self.image)
 
+        # add any environment variables before atomic scan command
+        if env_vars:
+            for key, value in env_vars.iteritems():
+                os.environ[key] = value
+
         # Running the atomic scan command after processing params
         self.logger.debug("Running atomic scan: {}".format(str(cmd)))
         out, error = self.run_cmd(cmd)
@@ -267,6 +272,10 @@ class Scanner(object):
                 result = {"msg": msg, "status": False, "logs": {}}
             else:
                 # if scanner exported the result file
+                self.logger.debug("{} exported results at {}".format(
+                    self.scanner, res_file)
+                    )
+
                 result = self.read_json(res_file)
                 # if failed to read the result file or its empty
                 if not result:
