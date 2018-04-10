@@ -4,8 +4,14 @@ import os
 import time
 
 from random import randint
+
 from ci.tests.base import BaseTestCase
-from container_pipeline.lib.settings import SCANNERS_RESULTFILE
+from container_pipeline.scanners.container_capabilities import \
+    ContainerCapabilities
+from container_pipeline.scanners.rpm_verify import ScannerRPMVerify
+from container_pipeline.scanners.pipeline_scanner import PipelineScanner
+from container_pipeline.scanners.misc_package_updates import \
+    MiscPackageUpdates
 
 BUILD_FAIL_PROJECT_NAME = "nshaikh-go-helloworld-latest"
 
@@ -119,7 +125,7 @@ class TestScanners(BaseTestCase):
                 is_present = True
                 break
             print "File not found, waiting and retrying.. "
-            time.sleep(60)
+            time.sleep(10)
         print self.run_cmd("ls {0}".format(os.path.dirname(path)))
         return is_present
 
@@ -132,45 +138,39 @@ class TestScanners(BaseTestCase):
         # wait for 120 seconds to complete the build
         time.sleep(120)
         # get the relevant result file for scanner to be tested
-        result_file = SCANNERS_RESULTFILE.get(
-            "registry.centos.org/pipeline-images/scanner-rpm-verify"
-        )[0]
+        result_file = ScannerRPMVerify().result_file
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
 
-    """
     def test_01_misc_package_updates_scanner_results(self):
-    # Test if scanner is exporting the results as expected.
+        """
+        Test if scanner is exporting the results as expected.
+        """
+
         # get the relevant result file for scanner to be tested
-        result_file = SCANNERS_RESULTFILE.get(
-                "registry.centos.org/pipeline-images/misc-package-updates"
-                )[0]
+        result_file = MiscPackageUpdates().result_file
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
 
     def test_02_pipeline_scanner_results(self):
-        # Test if scanner is exporting the results as expected.
+        """
+        Test if scanner is exporting the results as expected.
+        """
+
         # get the relevant result file for scanner to be tested
-        result_file = SCANNERS_RESULTFILE.get(
-                "registry.centos.org/pipeline-images/pipeline-scanner"
-                )[0]
-        # TODO: fix pipeline-scanner to work with yum less image_under_test
-        self.assertFalse(self.check_if_file_exists(
+        result_file = PipelineScanner().result_file
+        self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
-    """
 
     def test_03_container_capabilities_scanner_results(self):
         """
         Test if scanner is exporting the results as expected.
         """
         # get the relevant result file for scanner to be tested
-        result_file = SCANNERS_RESULTFILE.get(
-            "registry.centos.org/pipeline-images/"
-            "container-capabilities-scanner"
-        )[0]
+        result_file = ContainerCapabilities().result_file
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
