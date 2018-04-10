@@ -56,10 +56,15 @@ class MiscPackageUpdates(Scanner):
         as default, scan type
         """
         data = {}
-        data["scanner"] = self.scanner
         data["image_under_test"] = self.image
+        data["scanner"] = self.scanner
+        data["logs"] = logs
+        # if not logs found, write proper msg and return
+        if not logs:
+            data["msg"] = "Failed to run the scanner."
+            return data
+        # initialize with empty string for concatenation
         data["msg"] = ""
         for i in logs:
             data["msg"] += i.get("Summary", "Faled to run the scanner.")
-        data["logs"] = logs
         return data
