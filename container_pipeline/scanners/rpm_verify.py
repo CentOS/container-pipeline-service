@@ -9,7 +9,7 @@ class ScannerRPMVerify(Scanner):
 
     def __init__(self):
         """Scanner verify initialization."""
-        self.scanner = "scanner-rpm-verify"
+        self.scanner = "rpm-verify"
         self.result_file = "rpm_verify_scanner_results.json"
 
     def run(self, image):
