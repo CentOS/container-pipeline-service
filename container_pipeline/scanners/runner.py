@@ -88,7 +88,7 @@ class ScannerRunner(Scanner):
         """
         try:
             fin = open(status_file_path, "w")
-            json.dump(status, fin)
+            json.dump(status, fin, indent=4, sort_keys=True)
         except IOError as e:
             self.logger.critical(
                 "Failed to write scanners status on NFS share.")
