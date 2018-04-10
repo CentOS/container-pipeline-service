@@ -12,7 +12,7 @@ class ScannerRPMVerify(Scanner):
         self.scanner = "scanner-rpm-verify"
         self.result_file = "rpm_verify_scanner_results.json"
 
-    def scan(self, image):
+    def run(self, image):
         """
         Run the scanner-rpm-verify atomic scanner.
 

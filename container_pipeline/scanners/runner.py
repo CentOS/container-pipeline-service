@@ -119,10 +119,10 @@ class ScannerRunner(Scanner):
         Run the given scanner on image.
         """
         # should receive the JSON data loaded
-        data = scanner_obj.scan(image)
+        data = scanner_obj.run(image)
 
         self.logger.info("Finished running {} scanner.".format(
-            scanner_obj.scanner_name))
+            scanner_obj.scanner))
 
         return data
 
