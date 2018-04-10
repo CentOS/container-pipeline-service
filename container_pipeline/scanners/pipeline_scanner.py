@@ -38,11 +38,12 @@ class PipelineScanner(Scanner):
         data["image_under_test"] = self.image
         data["scanner"] = self.scanner
         # if status of execution as False
-        if json_data.get("status", False):
+        if not json_data.get("status", False):
             data["msg"] = "Failed to run the scanner."
             data["logs"] = {}
-        # elif check if there are available package updates
-        elif json_data["Scan Results"]["Package Updates"]:
+            return data
+        # if check if there are available package updates
+        if json_data["Scan Results"]["Package Updates"]:
             data["msg"] = "RPM updates available for the image."
             data["logs"] = json_data
         else:
