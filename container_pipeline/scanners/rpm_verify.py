@@ -9,7 +9,7 @@ class ScannerRPMVerify(Scanner):
 
     def __init__(self):
         """Scanner verify initialization."""
-        self.scanner_name = "scanner-rpm-verify"
+        self.scanner = "scanner-rpm-verify"
         self.result_file = "rpm_verify_scanner_results.json"
 
     def scan(self, image):
@@ -22,7 +22,7 @@ class ScannerRPMVerify(Scanner):
         """
         super(ScannerRPMVerify, self).__init__(
             image=image,
-            scanner=self.scanner_name,
+            scanner=self.scanner,
             result_file=self.result_file)
         data = self.scan()
 

@@ -13,7 +13,7 @@ class MiscPackageUpdates(Scanner):
         """
         Initialize scanner invoker with basic configs
         """
-        self.scanner_name = "misc-package-updates"
+        self.scanner = "misc-package-updates"
         self.scan_types = ["pip-updates", "npm-updates", "gem-updates"]
         self.result_file = "misc_package_updates_scanner_results.json"
 
@@ -21,7 +21,7 @@ class MiscPackageUpdates(Scanner):
         """Run the scanner."""
         super(MiscPackageUpdates, self).__init__(
             image=image,
-            scanner=self.scanner_name,
+            scanner=self.scanner,
             result_file=self.result_file)
 
         # initializing a blank list that will contain results from all the
@@ -56,7 +56,7 @@ class MiscPackageUpdates(Scanner):
         as default, scan type
         """
         data = {}
-        data["scanner"] = self.scanner_name
+        data["scanner"] = self.scanner
         data["image_under_test"] = self.image
         data["msg"] = ""
         for i in logs:

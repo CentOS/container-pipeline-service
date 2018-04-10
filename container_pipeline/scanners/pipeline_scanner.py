@@ -8,7 +8,7 @@ class PipelineScanner(Scanner):
     """pipeline-scanner atomic scanner handler."""
 
     def __init__(self):
-        self.scanner_name = "pipeline-scanner"
+        self.scanner = "pipeline-scanner"
         self.result_file = "pipeline_scanner_results.json"
 
     def run(self, image):
@@ -17,7 +17,7 @@ class PipelineScanner(Scanner):
         """
         super(PipelineScanner, self).__init__(
             image=image,
-            scanner=self.scanner_name,
+            scanner=self.scanner,
             result_file=self.result_file)
         self.mount_image()
         data = self.scan(rootfs=True, process_output=False)

@@ -15,7 +15,7 @@ class ContainerCapabilities(Scanner):
 
     def __init__(self):
         """Scanner name and types."""
-        self.scanner_name = "container-capabilities-scanner"
+        self.scanner = "container-capabilities-scanner"
         self.result_file = "container_capabilities_scanner_results.json"
 
     def run(self, image):
@@ -24,7 +24,7 @@ class ContainerCapabilities(Scanner):
         # scan types of this scanner
         super(ContainerCapabilities, self).__init__(
             image=image,
-            scanner=self.scanner_name,
+            scanner=self.scanner,
             result_file=self.result_file)
 
         os.environ["IMAGE_NAME"] = self.image
