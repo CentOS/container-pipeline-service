@@ -11,20 +11,20 @@ from subprocess import Popen, PIPE
 # has issue about and need to be filtered
 # out since this is a known issue and it is in progress to get fixed.
 FILTER_PATHS = [
-  "/",   # centos base image has issue with this filepath
-  "/usr/lib/udev/hwdb.d/20-OUI.hwdb",
-  "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",
-  "/usr/lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb",
-  "/usr/lib/udev/hwdb.d/20-net-ifname.hwdb",
-  "/usr/lib/udev/hwdb.d/20-pci-classes.hwdb",
-  "/usr/lib/udev/hwdb.d/20-pci-vendor-model.hwdb",
-  "/usr/lib/udev/hwdb.d/20-sdio-classes.hwdb",
-  "/usr/lib/udev/hwdb.d/20-sdio-vendor-model.hwdb",
-  "/usr/lib/udev/hwdb.d/20-usb-classes.hwdb",
-  "/usr/lib/udev/hwdb.d/20-usb-vendor-model.hwdb",
-  "/usr/lib/udev/hwdb.d/60-keyboard.hwdb",
-  "/usr/lib/udev/hwdb.d/70-mouse.hwdb",
-  "/usr/lib/udev/hwdb.d/70-touchpad.hwdb",
+    "/",   # centos base image has issue with this filepath
+    "/usr/lib/udev/hwdb.d/20-OUI.hwdb",
+    "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",
+    "/usr/lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb",
+    "/usr/lib/udev/hwdb.d/20-net-ifname.hwdb",
+    "/usr/lib/udev/hwdb.d/20-pci-classes.hwdb",
+    "/usr/lib/udev/hwdb.d/20-pci-vendor-model.hwdb",
+    "/usr/lib/udev/hwdb.d/20-sdio-classes.hwdb",
+    "/usr/lib/udev/hwdb.d/20-sdio-vendor-model.hwdb",
+    "/usr/lib/udev/hwdb.d/20-usb-classes.hwdb",
+    "/usr/lib/udev/hwdb.d/20-usb-vendor-model.hwdb",
+    "/usr/lib/udev/hwdb.d/60-keyboard.hwdb",
+    "/usr/lib/udev/hwdb.d/70-mouse.hwdb",
+    "/usr/lib/udev/hwdb.d/70-touchpad.hwdb",
 ]
 
 
@@ -56,7 +56,8 @@ class RPMVerify(object):
         self.scan_type = "RPM Verify scan for finding tampered files."
         self.scanner = "scanner-rpm-verify"
 
-        self.result_filename = "rpm_verify_scanner_results.json"
+        self.result_filename = os.path.join(
+            self.out_path, "rpm_verify_scanner_results.json")
 
         # json data for the output
         self.json_out = self.template_json_data(
@@ -206,10 +207,11 @@ class RPMVerify(object):
         """
         Export the JSON data in output_file
         """
-        os.makedirs(self.out_path)
         current_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
         self.json_out["Finished Time"] = current_time
         self.json_out["Scan Results"] = data
+        # create parent dir
+        os.makedirs(self.out_path)
         with open(self.result_filename, "w") as f:
             f.write(json.dumps(self.json_out, indent=4))
 
