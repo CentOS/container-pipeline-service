@@ -45,6 +45,8 @@ class Scanner(object):
         self.mount_obj.image = self.image_id
         # provide mount option read/write
         self.mount_obj.options = ["rw"]
+        # provide mount point
+        self.mount_obj.mountpoint = self.image_mountpath
 
     def run_cmd(self, cmd):
         """
@@ -69,6 +71,7 @@ class Scanner(object):
                 path, error))
             return False
         else:
+            self.logger.debug("Dir {} is created.".format(self.path))
             return True
 
     def remove_dirs(self, path):
