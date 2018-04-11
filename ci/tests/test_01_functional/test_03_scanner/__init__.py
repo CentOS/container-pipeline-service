@@ -6,12 +6,6 @@ import time
 from random import randint
 
 from ci.tests.base import BaseTestCase
-from container_pipeline.scanners.container_capabilities import \
-    ContainerCapabilities
-from container_pipeline.scanners.rpm_verify import ScannerRPMVerify
-from container_pipeline.scanners.pipeline_scanner import PipelineScanner
-from container_pipeline.scanners.misc_package_updates import \
-    MiscPackageUpdates
 
 BUILD_FAIL_PROJECT_NAME = "nshaikh-go-helloworld-latest"
 
@@ -138,7 +132,7 @@ class TestScanners(BaseTestCase):
         # wait for 120 seconds to complete the build
         time.sleep(120)
         # get the relevant result file for scanner to be tested
-        result_file = ScannerRPMVerify().result_file
+        result_file = "rpm_verify_scanner_results.json"
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
@@ -149,7 +143,7 @@ class TestScanners(BaseTestCase):
         """
 
         # get the relevant result file for scanner to be tested
-        result_file = MiscPackageUpdates().result_file
+        result_file = "misc_package_updates_scanner_results.json"
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
@@ -160,7 +154,7 @@ class TestScanners(BaseTestCase):
         """
 
         # get the relevant result file for scanner to be tested
-        result_file = PipelineScanner().result_file
+        result_file = "pipeline_scanner_results.json"
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
@@ -170,7 +164,7 @@ class TestScanners(BaseTestCase):
         Test if scanner is exporting the results as expected.
         """
         # get the relevant result file for scanner to be tested
-        result_file = ContainerCapabilities().result_file
+        result_file = "container_capabilities_scanner_results.json"
         self.assertTrue(self.check_if_file_exists(
             path=os.path.join(self.logs_dir, result_file)
         ))
