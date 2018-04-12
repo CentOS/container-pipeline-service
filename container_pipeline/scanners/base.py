@@ -227,8 +227,14 @@ class Scanner(object):
         msg = logs.get("Summary",
                        result.get("msg",
                                   "{} results".format(self.scanner)))
+
+        # this is provide image name without random tag
+        image_name_without_tag = self.split_repo_name(self.image)
+        image_name_without_tag = image_name_without_tag.get(
+            "image_name", "")
+
         return {
-            "image_under_test": self.image,
+            "image_under_test": image_name_without_tag,
             "scanner": self.scanner,
             "msg": msg,
             "logs": logs,
@@ -316,6 +322,63 @@ class Scanner(object):
                 self.logger.debug(
                     "Removed redundant atomic scan results {}".format(
                         self.res_dir))
+
+    def split_repo_name(self, repo_name):
+        """
+        Given a fully qualified repository name returns a dict
+        with parts of repo_name as
+        {  "registry": "r.c.o"
+           "image": "foo/bar:tag1",
+           "tag": "tag1",
+           "image_name": "foo/bar"  #name without tag
+        }
+
+        """
+        if not repo_name:
+            return {}
+
+        parts = repo_name.split("/")
+
+        if len(parts) == 1:
+            # case for foo:latest
+            registry = None
+            image = repo_name
+        elif len(parts) == 2:
+            # check if part[0] is a registry
+            if "." in parts[0] or ":" in parts[0]:
+                # case for r.c.o/foo:latest
+                registry = parts[0]
+                image = parts[1]
+            else:
+                # case for foo/bar:latest
+                registry = None
+                image = repo_name
+
+        # for cases where len(parts) > 2
+        else:
+            # check if part[0] is a registry
+            if "." in parts[0] or ":" in parts[0]:
+                # case for r.c.o/foo/bar:latest
+                registry = parts[0]
+                image = "/".join(parts[1:])
+            else:
+                # case for prod/foo/bar:latest
+                registry = None
+                image = repo_name
+
+        # now process tags
+        image_parts = image.split(":")
+        if len(image_parts) == 2:
+            # case for foo:tag1, foo/bar:tag1, prod/foo/bar:latest
+            image_name = image_parts[0]
+            tag = image_parts[1]
+        else:
+            # cases for foo , foo/bar, prod/foo/bar
+            image_name = image
+            # use default tag
+            tag = "latest"
+        return {"registry": registry, "image": image,
+                "image_name": image_name, "tag": tag}
 
     def cleanup(self, unmount=False):
         """

@@ -35,7 +35,13 @@ class PipelineScanner(Scanner):
         add meaningful information based on validations
         """
         data = {}
-        data["image_under_test"] = self.image
+
+        # this is provide image name without random tag
+        image_name_without_tag = self.split_repo_name(self.image)
+        image_name_without_tag = image_name_without_tag.get(
+            "image_name", "")
+
+        data["image_under_test"] = image_name_without_tag
         data["scanner"] = self.scanner
         # if status of execution as False
         if not json_data.get("status", False):

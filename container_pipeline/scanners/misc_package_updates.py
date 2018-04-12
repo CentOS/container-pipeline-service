@@ -57,7 +57,13 @@ class MiscPackageUpdates(Scanner):
         as default, scan type
         """
         data = {}
-        data["image_under_test"] = self.image
+
+        # this is provide image name without random tag
+        image_name_without_tag = self.split_repo_name(self.image)
+        image_name_without_tag = image_name_without_tag.get(
+            "image_name", "")
+
+        data["image_under_test"] = image_name_without_tag
         data["scanner"] = self.scanner
         data["logs"] = logs
         # if not logs found, write proper msg and return
