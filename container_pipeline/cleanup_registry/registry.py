@@ -131,3 +131,4 @@ def delete_from_registry(verbose,
         config
     ]
     run_cmd(cmd, no_shell=not verbose)
+

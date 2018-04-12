@@ -195,3 +195,4 @@ class PipelineRegistryGarbageCollector(RegistryGarbageCollector):
 
     def post_removal(self):
         lib.print_msg("No post removal tasks", self.verbose)
+
