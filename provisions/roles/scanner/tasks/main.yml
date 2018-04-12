@@ -1,6 +1,6 @@
 ---
 - name: Install Atomic
-  yum: name=atomic state=present
+  yum: name=atomic-1.20.1-9.git436cf5d.el7.centos.x86_64 state=present
   become: true
   tags: scanner
 
