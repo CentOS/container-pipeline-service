@@ -1,6 +1,7 @@
 import argparse
 
-from garbagecollector import GarbageCollector
+from container_pipeline.cleanup_registry.pgc import \
+    PipelineRegistryGarbageCollector
 
 
 def get_args_parser():
@@ -75,7 +76,7 @@ def main():
     index_git_url = parser.indexgiturl
     collect = True if parser.collect else False
     verbose = True if parser.verbose else False
-    GarbageCollector(
+    PipelineRegistryGarbageCollector(
         registry_host=registry_host,
         registry_port=registry_port,
         registry_secure=registry_secure,
@@ -84,7 +85,7 @@ def main():
         local_index=local_index,
         collect=collect,
         verbose=verbose
-    ).run()
+    ).collect()
 
 
 if __name__ == '__main__':
