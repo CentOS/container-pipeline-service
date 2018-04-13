@@ -168,7 +168,7 @@ OC_CERT = os.environ.get('OC_CERT') or '/opt/cccp-service/client/ca.crt'
 
 SCANNERS_OUTPUT = {
     "registry.centos.org/pipeline-images/pipeline-scanner": [
-        "image_scan_results.json"
+        "pipeline_scanner_results.json"
     ],
     "registry.centos.org/pipeline-images/misc-package-updates": [
         "misc_package_updates_scanner_results.json"
