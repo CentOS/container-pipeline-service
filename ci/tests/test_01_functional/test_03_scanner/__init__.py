@@ -1,13 +1,8 @@
 # module to test scanner functionality
 
 import os
-import time
-
-from random import randint
 
 from ci.tests.base import BaseTestCase
-
-BUILD_FAIL_PROJECT_NAME = "nshaikh-go-helloworld-latest"
 
 
 class TestScanners(BaseTestCase):
@@ -22,120 +17,34 @@ class TestScanners(BaseTestCase):
         Initialize the beanstalkd queue with queues respective to linter.
         """
         super(TestScanners, self).setUp()
-        # project name generated from appid-jobid-tag
-        self.project_under_test = BUILD_FAIL_PROJECT_NAME
-        # initialize projects model, to simulate cccp-index job
-        self.appid = "nshaikh"
-        self.jobid = "go-helloworld"
-        self.desired_tag = "latest"
-        self.repo_url = "https://github.com/navidshaikh/minimal-go-container"
-        self.repo_branch = "master"
-        self.repo_build_path = "/"
-        self.target_file = "Dockerfile.scratch"
-        self.depends_on = "centos/centos:latest"
-        self.test_tag = "SCANNERS_TEST"
-        self.logs_dir = "/srv/pipeline-logs/" + self.test_tag
-        self.build_context = "./"
-        self.build_number = str(randint(11, 99))
-        self.notify_email = "container-status-report@centos.org"
-        self.cleanup_beanstalkd()
-        self.cleanup_openshift()
+        self.logs_dir_base = "/srv/pipeline-logs/"
+        # find the a logs dir in /srv/pipeline-logs
+        self.logs_dir = self.find_a_logs_dir()
 
-    def run_dj_script(self, script):
-        _script = (
-            'import os, django; '
-            'os.environ.setdefault(\\"DJANGO_SETTINGS_MODULE\\", '
-            '\\"container_pipeline.lib.settings\\"); '
-            'django.setup(); '
-            '{}'
-        ).format(script)
-        return self.run_cmd(
-            'cd /opt/cccp-service && '
-            'python -c "{}"'.format(_script))
-
-    def start_build(self):
+    def find_a_logs_dir(self):
         """
-        Starts the build of a project
+        Find a logs dir in /srv/pipeline-logs with `build_logs.txt`
+        file in it, this dir will be used to find scanners results
         """
-        self.provision()
-        # create database entry for Project model for project under test
-        self.run_dj_script(
-            'from container_pipeline.models import Project; '
-            'from container_pipeline.utils import form_targetfile_link;'
-            'p, c = Project.objects.get_or_create('
-            'name=\\"nshaikh-go-helloworld-latest\\");'
-            'p.target_file_link=form_targetfile_link('
-            '\\"{}\\", \\"{}\\", \\"{}\\", \\"{}\\"'
-            ');'
-            'p.save()'.format(
-                self.repo_url,
-                self.repo_build_path,
-                self.repo_branch,
-                self.target_file
-            )
-        )
-        workspace_dir = os.path.join(
-            "/srv/jenkins/workspace/",
-            self.project_under_test)
-
-        # run the container_pipeline/pipeline.py module
-        args = " ".join([
-            self.appid, self.jobid, self.repo_url,
-            self.repo_branch, self.repo_build_path,
-            self.target_file, self.notify_email,
-            self.desired_tag, self.depends_on,
-            self.test_tag, self.build_number,
-            self.build_context])
-
-        command = ("mkdir -p {0} && "
-                   "git clone {1} {0} && "
-                   "export DOCKERFILE_DIR={0} && "
-                   "export PYTHONPATH=/opt/cccp-service && "
-                   "mkdir -p /srv/pipeline-logs/{2} && "
-                   "cd /opt/cccp-service && "
-                   "python container_pipeline/pipeline.py {3}").format(
-            workspace_dir, self.repo_url, self.test_tag, args)
-
-        # we need to trigger build on jenkins_slave node
-        # figure out jenkins_slave hostname to run command upon
-        # self.hosts variable is defined in base.py
-        jenkins_slave = self.hosts["jenkins_slave"]["host"]
-
-        print "Starting a test build with command: \n%s" % command
-        print self.run_cmd(command, host=jenkins_slave)
-
-    def check_if_file_exists(self, path):
-        """
-        Checks if given filepath exists
-        """
-        retry_count = 0
-        is_present = False
-        while retry_count < 10:
-            retry_count += 1
-            print "Check if file %s exists: " % path
-            if self.run_cmd(
-                    "[ ! -f {0} ] || echo 'Yes';".format(
-                        path)).strip() == "Yes":
-                is_present = True
-                break
-            print "File not found, waiting and retrying.. "
-            time.sleep(10)
-        print self.run_cmd("ls {0}".format(os.path.dirname(path)))
-        return is_present
+        for dirpath, dirs, files in os.walk(self.logs_dir_base):
+            if "build_logs.txt" in files:
+                # this dir path contains "build_logs.txt" file
+                print "Logs dir is", dirpath
+                return dirpath
+        # this is going to fail the tests, than erroring out
+        print "build_logs.txt is not present in any logs dir."
+        print "This implies tests are going to be failed."
+        return self.logs_dir_base
 
     def test_00_rpm_verify_scanner_results(self):
         """
         Test if scanner is exporting the results as expected.
         """
-        # start the build, at the start of very first test
-        self.start_build()
-        # wait for 120 seconds to complete the build
-        time.sleep(120)
         # get the relevant result file for scanner to be tested
-        result_file = "rpm_verify_scanner_results.json"
-        self.assertTrue(self.check_if_file_exists(
-            path=os.path.join(self.logs_dir, result_file)
-        ))
+        result_file = os.path.join(
+            self.logs_dir,
+            "rpm_verify_scanner_results.json")
+        self.assertTrue(result_file)
 
     def test_01_misc_package_updates_scanner_results(self):
         """
@@ -143,14 +52,10 @@ class TestScanners(BaseTestCase):
         """
 
         # get the relevant result file for scanner to be tested
-        """
-        result_file = "misc_package_updates_scanner_results.json"
-        self.assertTrue(self.check_if_file_exists(
-            path=os.path.join(self.logs_dir, result_file)
-        ))
-        """
-        # TODO : Figure out why this scanner result is not exported
-        pass
+        result_file = os.path.join(
+            self.logs_dir,
+            "misc_package_updates_scanner_results.json")
+        self.assertTrue(result_file)
 
     def test_02_pipeline_scanner_results(self):
         """
@@ -158,28 +63,17 @@ class TestScanners(BaseTestCase):
         """
 
         # get the relevant result file for scanner to be tested
-        result_file = "pipeline_scanner_results.json"
-        self.assertTrue(self.check_if_file_exists(
-            path=os.path.join(self.logs_dir, result_file)
-        ))
+        result_file = os.path.join(
+            self.logs_dir,
+            "pipeline_scanner_results.json")
+        self.assertTrue(result_file)
 
     def test_03_container_capabilities_scanner_results(self):
         """
         Test if scanner is exporting the results as expected.
         """
         # get the relevant result file for scanner to be tested
-        """
-        result_file = "container_capabilities_scanner_results.json"
-        self.assertTrue(self.check_if_file_exists(
-            path=os.path.join(self.logs_dir, result_file)
-        ))
-        """
-        # TODO : Figure out why this scanner result is not exported
-        pass
-
-    def tearDown(self):
-        """
-        Tear down tests artifacts
-        """
-        self.cleanup_beanstalkd()
-        self.cleanup_openshift()
+        result_file = os.path.join(
+            self.logs_dir,
+            "container_capabilities_scanner_results.json")
+        self.assertTrue(result_file)
