@@ -111,22 +111,17 @@ for f in files:
 
         job = bs.put(json.dumps(data))
         # Initializing Database entries
-        project, created = Project.objects.get_or_create(
-            name=project_name,
-            target_file_link=form_targetfile_link(
-                entry["git-url"],
-                entry["git-path"],
-                entry["git-branch"],
-                entry["target-file"]
+        project = Project.objects.get(
+            name=project_name
+        )
+        if not project:
+            print(
+                str.format(
+                    "Skipping {}, as project object was not found",
+                    project_name
+                )
             )
-        )
-        project.target_file_link = form_targetfile_link(
-            entry["git-url"],
-            entry["git-path"],
-            entry["git-branch"],
-            entry["target-file"]
-        )
-        project.save()
+            continue
         build = Build.objects.create(
             uuid=job_uuid,
             project=project,
