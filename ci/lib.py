@@ -3,10 +3,11 @@ import os
 import select
 import subprocess
 import sys
+import urllib2
 
 from time import sleep
 
-from constants import PROJECT_DIR,\
+from ci.constants import PROJECT_DIR,\
     DEPLOY_LOGS_PATH,\
     JENKINS_HOSTNAME,\
     JENKINS_HTTP_PORT,\
@@ -31,6 +32,17 @@ Notes:
         scanner_host = nodes[3]
         controller = nodes[4]
 """
+
+
+def request_json(url):
+    data = None
+    if url:
+        try:
+            r = urllib2.urlopen(url)
+            data = json.loads(r.read())
+        except Exception:
+            pass
+    return data
 
 
 def _print(msg):

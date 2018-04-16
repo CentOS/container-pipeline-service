@@ -148,6 +148,18 @@
   tags:
       - repo_tracking
 
+- name: Setup API Server
+  hosts: jenkins_slaves
+  roles:
+      - django
+      - api
+  tags:
+      - django
+      - repo_tracking
+      - api
+      - jenkins
+      - jenkins/slave
+
 - name: Run tasks for CI
   hosts: jenkins_master
   roles:

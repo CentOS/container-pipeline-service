@@ -33,6 +33,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'container_pipeline',
+    'rest_framework',
+    'rest_framework_docs',
 )
 
 MIDDLEWARE = [
@@ -71,13 +73,24 @@ ALLOWED_HOSTS = ['127.0.0.1']
 LOGS_URL_BASE = "https://registry.centos.org/pipeline-logs/"
 LOGS_DIR = LOGS_DIR_BASE = "/srv/pipeline-logs/"
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'DEFAULT_PAGINATION_CLASS':
+    'container_pipeline.pagination.ModelAPIPagination'
+}
+
 LOGGING = dict(
     version=1,
     level=LOG_LEVEL,
     formatters=dict(
         bare={
-            "format": ('[%(asctime)s] %(name)s p%(process)s %(lineno)d '
-                       '%(levelname)s - %(message)s')
+            "format":
+            (
+                '[%(asctime)s] %(name)s p%(process)s %(lineno)d '
+                '%(levelname)s - %(message)s'
+            )
         },
     ),
     handlers=dict(

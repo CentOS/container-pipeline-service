@@ -18,6 +18,40 @@
   yum: name={{ item }} state=latest
   become: true
   with_items:
+    - docker
+    - python-docker-py
+  tags: django
+
+- name: Install Django REST Framework
+  pip: name=djangorestframework
+  become: true
+  tags:
+    - django
+    - api
+
+- name: Install Django REST Framework drfdocs
+  pip: name=drfdocs
+  become: true
+  tags:
+    - django
+    - api
+
+- name: Install Django REST Framework Filtering Backends
+  pip: name=django-filter
+  become: true
+  tags:
+    - django
+    - api
+
+- name: Install Docker
+  yum: name=docker state=installed
+  become: true
+  tags: django
+
+- name: Install docker-py
+  yum: name=python-docker-py state=installed
+  become: true
+  with_items:
       - docker
       - python-docker-py
   tags: django

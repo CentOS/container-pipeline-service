@@ -1,3 +1,5 @@
+# KEEP IN SYNC WITH DOCKERFILE
+
 FROM registry.centos.org/centos/centos:latest
 
 MAINTAINER CentOS Community Container Pipeline <centos-devel@centos.org>
@@ -15,6 +17,25 @@ RUN mkdir -p /opt/cccp-service
 ADD node.kubeconfig ca.crt /opt/cccp-service/
 ADD container_pipeline /opt/cccp-service/container_pipeline
 ADD oc /usr/bin/oc
+
+ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
+WORKDIR /opt/cccp-service
+
+# Stuff for API Server starts here.
+
+EXPOSE 8080
+
+ADD ./install-apiserver.sh ./run-apiserver.sh /opt/
+
+ADD ./static/ /opt/cccp-service/static/
+
+RUN chmod -R +x /opt && sh /opt/install-apiserver.sh
+
+USER apache
+
+ENTRYPOINT ["/opt/run-apiserver.sh"]
+CMD ["apache"]
+
 
 ENV PYTHONPATH=$PYTHONPATH:/opt/cccp-service/
 WORKDIR /opt/cccp-service

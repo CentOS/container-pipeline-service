@@ -1,0 +1,32 @@
+---
+
+- name: Collect static content for API Server
+  shell: "python /opt/cccp-service/manage.py collectstatic --no-input"
+  tags:
+      - api
+      - application
+
+- name: Build API Server image
+  sudo: yes
+  docker_image:
+    state: present
+    force: yes
+    name: pipeline-apiserver
+    path: /opt/cccp-service
+    dockerfile: Dockerfile.apiserver
+  tags:
+      - api
+      - application
+
+- name: Run the API Server container
+  docker_container:
+    name: apiserver
+    state: started
+    restart: yes
+    image: pipeline-apiserver
+    restart_policy: always
+    volumes: /srv/pipeline-logs:/srv/pipeline-logs:rw
+    published_ports: "9001:8080"
+  tags:
+      - api
+      - application
