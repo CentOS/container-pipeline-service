@@ -273,7 +273,7 @@ scanner_worker
 
 [all:vars]
 db_host= {jenkins_master_host}
-public_registry= {jenkins_slave_host}
+public_registry= {jenkins_slave_host}:5000
 intranet_registry = {jenkins_slave_host}:5000
 copy_ssl_certs=True
 openshift_startup_delay=150
