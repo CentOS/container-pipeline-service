@@ -62,10 +62,15 @@ class TestRepoMonitoring(BaseTestCase):
                 'ContainerImage; '
                 'print ContainerImage.objects.get('
                 'name=\\"bamachrn/python:release\\").scanned').strip()
+            print "Is scanned: {}".format(scanned)
+            if scanned:
+                print "Is scanned: {}".format(scanned)
             if scanned == 'True':
                 is_scanned = True
                 break
-            time.sleep(10)
+            time.sleep(5)
+
+        print self.run_cmd("docker images")
         self.assertTrue(is_scanned)
 
         time.sleep(10)

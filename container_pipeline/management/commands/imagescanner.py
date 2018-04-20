@@ -96,7 +96,7 @@ def scan_image(image):
     image.scanned = True
     image.last_scanned = timezone.now()
     image.save()
-    image.remove()
+    # image.remove()
 
 
 class Command(BaseCommand):
