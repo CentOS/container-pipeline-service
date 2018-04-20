@@ -33,6 +33,15 @@
       state: permissive
   tags: scanner
 
+- name: Use devicemapper storage option for docker
+  replace: >
+    dest=/etc/sysconfig/docker-storage
+    regexp="^#*\s*DOCKER_STORAGE_OPTIONS=.*"
+    replace="DOCKER_STORAGE_OPTIONS='--storage-driver devicemapper'"
+  become: true
+  when: deployment != "production" or deployment != "pre-prod" or deployment != "staging"
+  tags: scanner
+
 - name: Restart Docker
   systemd: name=docker state=restarted enabled=yes
   tags: scanner
