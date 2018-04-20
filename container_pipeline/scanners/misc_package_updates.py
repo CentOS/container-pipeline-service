@@ -1,6 +1,5 @@
 #!/usr/bin/python
 """This class is for checking updates from different other packagers."""
-import os
 
 from container_pipeline.scanners.base import Scanner
 
@@ -9,43 +8,43 @@ class MiscPackageUpdates(Scanner):
     """Checks updates for packages other than RPM."""
 
     def __init__(self):
-        """Name it to Misc Package update check."""
-        self.scanner_name = "misc-package-updates"
-        self.full_scanner_name = \
-            "registry.centos.org/pipeline-images/misc-package-updates"
+        """
+        Initialize scanner invoker with basic configs
+        """
+        self.scanner = "misc-package-updates"
         self.scan_types = ["pip-updates", "npm-updates", "gem-updates"]
+        self.result_file = "misc_package_updates_scanner_results.json"
 
-    def scan(self, image_under_test):
+    def run(self, image):
         """Run the scanner."""
+        super(MiscPackageUpdates, self).__init__(
+            image=image,
+            scanner=self.scanner,
+            result_file=self.result_file)
+
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
         logs = []
-        super(MiscPackageUpdates, self).__init__(
-            image_under_test=image_under_test,
-            scanner_name=self.scanner_name,
-            full_scanner_name=self.full_scanner_name,
-            to_process_output=False
-        )
 
-        os.environ["IMAGE_NAME"] = self.image_under_test
+        # this scanner needs following env var for atomic scan command
+        env_vars = {"IMAGE_NAME": self.image}
 
-        for _ in self.scan_types:
-            scan_cmd = [
-                "atomic",
-                "scan",
-                "--scanner={}".format(self.scanner_name),
-                "--scan_type={}".format(_),
-                "{}".format(image_under_test)
-            ]
+        for st in self.scan_types:
+            # scan_results gets {"status": True/False,
+            #                    "logs": {},
+            #                    "msg": msg}
+            scan_results = self.scan(
+                scan_type=st, process_output=False, env_vars=env_vars)
 
-            scan_results = super(MiscPackageUpdates, self).scan(scan_cmd)
+            if not scan_results.get("status", False):
+                continue
 
-            if not scan_results[0]:
-                return False, None
+            logs.append(scan_results["logs"])
 
-            logs.append(scan_results[1])
+        # invoke base class's cleanup utility
+        self.cleanup()
 
-        return True, self.process_output(logs)
+        return self.process_output(logs)
 
     def process_output(self, logs):
         """
@@ -58,10 +57,21 @@ class MiscPackageUpdates(Scanner):
         as default, scan type
         """
         data = {}
-        data["scanner_name"] = self.scanner_name
+
+        # this is provide image name without random tag
+        image_name_without_tag = self.split_repo_name(self.image)
+        image_name_without_tag = image_name_without_tag.get(
+            "image_name", "")
+
+        data["image_under_test"] = image_name_without_tag
+        data["scanner"] = self.scanner
+        data["logs"] = logs
+        # if not logs found, write proper msg and return
+        if not logs:
+            data["msg"] = "Failed to run the scanner."
+            return data
+        # initialize with empty string for concatenation
         data["msg"] = ""
         for i in logs:
-            data["msg"] += i["Summary"]
-        data["logs"] = logs
-
+            data["msg"] += i.get("Summary", "Faled to run the scanner.")
         return data

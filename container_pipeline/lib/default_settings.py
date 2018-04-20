@@ -179,24 +179,7 @@ OC_CONFIG = os.environ.get('OC_CONFIG') or \
     '/opt/cccp-service/client/node.kubeconfig'
 OC_CERT = os.environ.get('OC_CERT') or '/opt/cccp-service/client/ca.crt'
 
-SCANNERS_OUTPUT = {
-    "registry.centos.org/pipeline-images/pipeline-scanner": [
-        "pipeline_scanner_results.json"
-    ],
-    "registry.centos.org/pipeline-images/misc-package-updates": [
-        "misc_package_updates_scanner_results.json"
-    ],
-    "registry.centos.org/pipeline-images/scanner-rpm-verify": [
-        "rpm_verify_scanner_results.json"
-    ],
-    "registry.centos.org/pipeline-images/container-capabilities-scanner": [
-        "container_capabilities_scanner_results.json"
-    ]
-}
-SCANNERS_RESULTFILE = SCANNERS_OUTPUT.copy()
-
 SCANNERS_STATUS_FILE = "scanners_status.json"
-
 LINTER_RESULT_FILE = "linter_results.txt"
 LINTER_STATUS_FILE = "linter_status.json"
 
