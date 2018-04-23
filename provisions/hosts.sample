@@ -29,7 +29,8 @@ logrotate_rotate=5
 # Set log level
 log_level = DEBUG
 # configure registry node
-public_registry=jenkins-slave
+#for prod public_registry=registry.centos.org 
+public_registry=jenkins-slave:5000
 intranet_registry=jenkins-slave:5000
 # configure beanstalkd server node
 beanstalk_server=open-shift
