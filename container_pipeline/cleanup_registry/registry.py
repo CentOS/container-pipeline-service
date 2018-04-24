@@ -119,7 +119,8 @@ def mark_removal_from_local_registry(verbose, container_namespace,
 
 
 def delete_from_registry(verbose,
-                         config="/etc/docker-distribution/registry/config.yml"):
+                         config="/etc/docker-distribution/registry/config.yml"
+                         ):
     """
     Deletes marked images from registry by invoking inbuild docker
     distribution gc.

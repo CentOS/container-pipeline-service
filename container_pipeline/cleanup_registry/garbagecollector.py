@@ -67,8 +67,9 @@ class RegistryGarbageCollector(object):
                 tag: remove
             }
 
-    def update_mismatched(self, container_name, container_tag, match_only_check,
-                          matched, exception_list_check, ex, remove=True):
+    def update_mismatched(self, container_name, container_tag,
+                          match_only_check, matched, exception_list_check, ex,
+                          remove=True):
 
         if match_only_check and matched:
             if not (exception_list_check and ex):
@@ -97,5 +98,3 @@ class RegistryGarbageCollector(object):
         if self.delete_revisions:
             delete_revision_tags_from_local()
         delete_from_registry(self.verbose)
-
-
