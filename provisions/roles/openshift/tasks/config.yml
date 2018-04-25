@@ -7,7 +7,7 @@
 - name: Enable Docker registry
   lineinfile:
     dest: /etc/sysconfig/docker
-    line: 'ADD_REGISTRY="--add-registry {{ public_registry }}"'
+    line: 'ADD_REGISTRY="--add-registry {{ public_registry }} --add-registry {{ intranet_registry }}"'
 
 - name: Restart Docker
   service: name=docker state=restarted enabled=yes
