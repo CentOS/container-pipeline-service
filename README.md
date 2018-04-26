@@ -13,24 +13,38 @@ But the resources can be varied based on availability. However, make sure to
 use `--iso-url centos` part in above command as we have setup things on CentOS
 based minishift VM.
 
-Once the VM is ready, clone this repo on host system (not the VM). Login to the
-OpenShift cluster using `oc` and create a build from the buildconfig under
+Once the VM is ready, spin up a Jenkins server that can be used by the Jenkins
+Pipeline buildconfigs. Also, since we're going to be building images using
+Jenkins pods, we need to add few capabilities to the Jenkins service account.
+Do this on host system:
+
+```bash
+$ oc login -u system:admin
+$ oc process -p MEMORY_LIMIT=1Gi openshift//jenkins-persistent| oc create -f -
+$ oc adm policy add-scc-to-user privileged system:serviceaccount:myproject:jenkins
+$ oc adm policy add-role-to-user system:image-builder system:serviceaccount:myproject:jenkins
+```
+
+This spins up a persistent Jenkins deployment which has 1 GB memory alloted to
+it. The Jenkins service spun up by this template is recognized and used by the
+Jenkins Pipelines.
+
+Now, clone this repo on host system (not the VM). Login to the OpenShift
+cluster as user `developer` and create a build from the buildconfig under
 `seed-job` directory:
 
 ```bash
 # on host system
 $ git clone https://github.com/dharmit/ccp-openshift/
 $ cd ccp-openshift
-$ oc login
+$ oc login -u developer
+<use any password>
 $ oc create -f seed-job/buildconfig.yaml
 ```
 
-A Jenkins server will be started in the OpenShift cluster. To ensure that it's
-able to build containers, give it appropriate privilege:
-
-```bash
-$ oc adm policy add-role-to-user system:image-builder system:serviceaccount:myproject:jenkins
-```
+Now check in the OpenShift web console under Build -> Pipelines and see if a
+Jenkins Pipeline has been created. Be patient because the image being used is
+quite large (2.2 GB) at the moment.
 
 To be able to build multiple container images at the same time, edit the
 Jenkins deployment and add an environment variable `JENKINS_JAVA_OVERRIDES` to
