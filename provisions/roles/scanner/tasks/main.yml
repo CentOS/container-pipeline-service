@@ -24,7 +24,7 @@
 - name: Enable Docker Registry
   lineinfile:
       dest: /etc/sysconfig/docker
-      line: 'ADD_REGISTRY="--insecure-registry {{ intranet_registry }} --add-registry {{ public_registry }} --add-registry registry.centos.org"'
+      line: 'ADD_REGISTRY="--insecure-registry {{ intranet_registry }} --add-registry {{ intranet_registry }}"'
   tags: scanner
 
 - name: Set SELinux to permissive

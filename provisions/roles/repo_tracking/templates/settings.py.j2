@@ -15,6 +15,6 @@ DATABASES = {
         'PORT': '{{ db_port }}'
     }
 }
-REGISTRY_ENDPOINT = ('{{ public_registry }}:5000', '{{ public_registry }}:5000')
+REGISTRY_ENDPOINT = ('{{ intranet_registry }}', '{{ public_registry }}')
 BEANSTALK_SERVER = '{{ beanstalk_server }}'
 ALLOWED_HOSTS = {{ allowed_hosts }}
