@@ -108,6 +108,7 @@ for f in files:
             "uuid": job_uuid
         }
 
+        print ("Putting data on master_tube: {}".format(data))
         job = bs.put(json.dumps(data))
         # Initializing Database entries
         project = Project.objects.get(
