@@ -28,18 +28,16 @@ podTemplate(
         git url: '${GIT_URL}', branch: '${GIT_BRANCH}'
       }
     }
+    stage('Lint the Dockerfile'){
+      dir("${PIPELINE_NAME}/${GIT_PATH}"){
+        sh "dockerfile_lint ${TARGET_FILE}"   
+      }
+    }
     stage('Build Docker image') {
       dir("${PIPELINE_NAME}/${GIT_PATH}"){
         sh "docker build -t ${APP_ID}/${JOB_ID}:${DESIRED_TAG} -f ${TARGET_FILE} ."
         sh "docker images"
       }
-    }
-    stage('Push image to registry') {
-      sh '''
-      docker login -u openshift -p `oc whoami -t` 172.30.1.1:5000 &&
-      docker tag ${APP_ID}/${JOB_ID}:${DESIRED_TAG} 172.30.1.1:5000/${APP_ID}/${JOB_ID}:${DESIRED_TAG} &&
-      docker push 172.30.1.1:5000/${APP_ID}/${JOB_ID}:${DESIRED_TAG}
-      '''
     }
   }
 }
