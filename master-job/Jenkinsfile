@@ -38,7 +38,7 @@ podTemplate(
     }
     stage('Build Docker image') {
       dir("${PIPELINE_NAME}/${GIT_PATH}"){
-        sh "docker build -t ${APP_ID}/${JOB_ID}:${DESIRED_TAG} -f ${TARGET_FILE} ."
+        sh "docker build --no-cache -t ${APP_ID}/${JOB_ID}:${DESIRED_TAG} -f ${TARGET_FILE} ."
         sh "docker images"
       }
     }
