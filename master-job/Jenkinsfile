@@ -30,7 +30,8 @@ podTemplate(
     }
     stage('Lint the Dockerfile'){
       dir("${PIPELINE_NAME}/${GIT_PATH}"){
-        sh "dockerfile_lint ${TARGET_FILE}"   
+        def out = sh script:"dockerfile_lint ${TARGET_FILE}", returnStatus: true
+        sh "echo ${out}"
       }
     }
     stage('Build Docker image') {
