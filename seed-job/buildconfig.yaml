@@ -7,7 +7,7 @@ spec:
     type: Git
     git:
       uri: "https://github.com/dharmit/ccp-openshift"
-      ref: "master"
+      ref: ${PIPELINE_BRANCH}
     contextDir: "seed-job"
   strategy:
     type: "JenkinsPipeline"
@@ -22,3 +22,7 @@ spec:
         value: "source"
   triggers:
       - type: ConfigChange
+parameters:
+- description: "Pipeline repo branch to build off"
+  displayName: Pipeline repo branch
+  name: PIPELINE_BRANCH
