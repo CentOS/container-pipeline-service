@@ -1,27 +1,32 @@
-kind: "BuildConfig"
 apiVersion: "v1"
+kind: "Template"
 metadata:
   name: "container-index-seed-pipeline"
-spec:
-  source:
-    type: Git
-    git:
-      uri: "https://github.com/dharmit/ccp-openshift"
-      ref: ${PIPELINE_BRANCH}
-    contextDir: "seed-job"
-  strategy:
-    type: "JenkinsPipeline"
-    jenkinsPipelineStrategy:
-      jenkinsfilePath: "Jenkinsfile"
-      env:
-      - name: CONTAINER_INDEX_LOCATION
-        value: https://github.com/dharmit/ccp-openshift-index
-      - name: CONTAINER_INDEX_BRANCH
-        value: master
-      - name: PIPELINE_TARGET_DIR
-        value: "source"
-  triggers:
-      - type: ConfigChange
+objects:
+  - apiVersion: "v1"
+    kind: "BuildConfig"
+    metadata:
+        name: seed-job
+    spec:
+      source:
+        type: Git
+        git:
+          uri: "https://github.com/dharmit/ccp-openshift"
+          ref: ${PIPELINE_BRANCH}
+        contextDir: "seed-job"
+      strategy:
+        type: "JenkinsPipeline"
+        jenkinsPipelineStrategy:
+          jenkinsfilePath: "Jenkinsfile"
+          env:
+          - name: CONTAINER_INDEX_LOCATION
+            value: https://github.com/dharmit/ccp-openshift-index
+          - name: CONTAINER_INDEX_BRANCH
+            value: master
+          - name: PIPELINE_TARGET_DIR
+            value: "source"
+      triggers:
+          - type: ConfigChange
 parameters:
 - description: "Pipeline repo branch to build off"
   displayName: Pipeline repo branch
