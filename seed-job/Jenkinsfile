@@ -38,7 +38,7 @@ pipeline {
     }
         stage('Parse index') {
       steps {
-          sh "python seed-job/parser.py"
+          sh "python seed-job/parser.py ${JENKINSFILE_GIT_BRANCH}"
           sh "cat projects.sh"
           sh "sh projects.sh"
       }

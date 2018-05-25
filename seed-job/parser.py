@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 
 with open("source/projects.yaml") as stream:
@@ -24,9 +25,7 @@ for entry in yml_dict["Projects"]:
         "-p CONTEXT_DIR={} ".format("master-job") + \
         "-p APP_ID={} ".format(entry["app-id"]) + \
         "-p JOB_ID={} ".format(entry["job-id"]) + \
-        "-p JENKINSFILE_GIT_BRANCH={}".format(
-            os.environ.get("JENKINSFILE_GIT_BRANCH")
-        )
+        "-p JENKINSFILE_GIT_BRANCH={}".format(sys.argv[1])
 
     # there's gotta be a better way to ensure that buildconfigs created by
     # parsing the yaml file get triggered automatically for first run.
