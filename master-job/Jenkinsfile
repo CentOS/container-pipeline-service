@@ -43,14 +43,16 @@ podTemplate(
             }
         }
         stage('Scan the image') {
+            sh "docker run --name scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} -d ${APP_ID}/${JOB_ID}:${DESIRED_TAG} tail -f /dev/null"
             parallel (
-                "list": {
-                    sh "ls -l"
+                "list yum update": {
+                    sh "docker exec -t scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} yum -q check-update"
                 },
-                "cwd":  {
-                    sh "pwd"
+                "rpm -Va":  {
+                    sh "docker exec -t scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} rpm -Va"
                 }
             )
+            sh "docker stop scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} && docker rm scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
         }
     }
 }
