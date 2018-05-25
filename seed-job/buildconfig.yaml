@@ -25,9 +25,16 @@ objects:
             value: master
           - name: PIPELINE_TARGET_DIR
             value: "source"
+          - name: JENKINSFILE_GIT_BRANCH
+            value: ${JENKINSFILE_GIT_BRANCH}
       triggers:
           - type: ConfigChange
 parameters:
 - description: "Pipeline repo branch to build off"
   displayName: Pipeline repo branch
   name: PIPELINE_BRANCH
+- description: Git repo branch containing the Jenkinsfile
+  displayName: Jenkinsfile repo branch
+  name: JENKINSFILE_GIT_BRANCH
+  required: true
+  value: master
