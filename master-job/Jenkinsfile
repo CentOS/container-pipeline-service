@@ -48,10 +48,12 @@ podTemplate(
             sh "docker run --name ${container_name} -d ${image_name} tail -f /dev/null"
             parallel (
                 "list yum update": {
-                    sh (returnStdout: true, script: "docker exec -t ${container_name} yum -q check-update", returnStatus: true)
+                    sh (returnStdout: true, script: "docker exec -t ${container_name} yum -q check-update > yum-check-update 2>&1", returnStatus: true)
+                    sh "cat yum-check-update"
                 },
                 "rpm -Va":  {
-                    sh (returnStdout: true, script: "docker exec -t ${container_name} rpm -Va", returnStatus: true)
+                    sh (returnStdout: true, script: "docker exec -t ${container_name} rpm -Va > rpm-va 2>&1", returnStatus: true)
+                    sh "cat rpm-va"
                 }
             )
             sh "docker stop ${container_name} && docker rm ${container_name}"
