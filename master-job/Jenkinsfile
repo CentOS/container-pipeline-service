@@ -54,5 +54,9 @@ podTemplate(
             )
             sh "docker stop scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} && docker rm scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
         }
+        // this stage should be triggered after image is delivered to the registry
+        stage('Remove the image'){
+            sh "docker rmi ${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
+        }
     }
 }
