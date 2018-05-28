@@ -12,6 +12,15 @@ class ApiV1TestCase(APITestCase):
     Module to test api v1.
     """
 
+    node = "jenkins_slave"
+    api_server = "jenkins_slave"
+    test_project = {
+        "name": "test-project",
+        "target_file_link": "test_link",
+        "build_uuid": str(uuid.uuid4())
+    }
+    api_version = "v1"
+
     def run_dj_script(self, script):
         _script = (
             'import os, django; '
