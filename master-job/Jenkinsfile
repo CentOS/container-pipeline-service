@@ -51,7 +51,7 @@ podTemplate(
                     sh (returnStdout: true, script: "docker exec -t ${container_name} yum -q check-update", returnStatus: true)
                 },
                 "rpm -Va":  {
-                    sh "docker exec -t ${container_name} rpm -Va"
+                    sh (returnStdout: true, script: "docker exec -t ${container_name} rpm -Va", returnStatus: true)
                 }
             )
             sh "docker stop ${container_name} && docker rm ${container_name}"
