@@ -23,6 +23,8 @@ podTemplate(
 )
 {
     node('ccp-pipeline') {
+        def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}" 
+        def container_name = "scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
         stage('Checkout Source') {
             dir("${PIPELINE_NAME}"){
                 git url: '${GIT_URL}', branch: '${GIT_BRANCH}'
@@ -38,25 +40,25 @@ podTemplate(
         }
         stage('Build Docker image') {
             dir("${PIPELINE_NAME}/${GIT_PATH}"){
-                sh "docker build --no-cache -t ${APP_ID}/${JOB_ID}:${DESIRED_TAG} -f ${TARGET_FILE} ."
+                sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ."
                 sh "docker images"
             }
         }
         stage('Scan the image') {
-            sh "docker run --name scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} -d ${APP_ID}/${JOB_ID}:${DESIRED_TAG} tail -f /dev/null"
+            sh "docker run --name ${container_name} -d ${image_name} tail -f /dev/null"
             parallel (
                 "list yum update": {
-                    sh (returnStdout: true, script: "docker exec -t scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} yum -q check-update", returnStatus: true)
+                    sh (returnStdout: true, script: "docker exec -t ${container_name} yum -q check-update", returnStatus: true)
                 },
                 "rpm -Va":  {
-                    sh "docker exec -t scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} rpm -Va"
+                    sh "docker exec -t ${container_name} rpm -Va"
                 }
             )
-            sh "docker stop scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG} && docker rm scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
+            sh "docker stop ${container_name} && docker rm ${container_name}"
         }
         // this stage should be triggered after image is delivered to the registry
         stage('Remove the image'){
-            sh "docker rmi ${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
+            sh "docker rmi ${image_name}"
         }
     }
 }
