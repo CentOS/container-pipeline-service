@@ -27,6 +27,8 @@ objects:
             value: "source"
           - name: JENKINSFILE_GIT_BRANCH
             value: ${JENKINSFILE_GIT_BRANCH}
+          - name: REGISTRY_URL
+            value: ${REGISTRY_URL}
       triggers:
           - type: ConfigChange
 parameters:
@@ -38,3 +40,6 @@ parameters:
   name: JENKINSFILE_GIT_BRANCH
   required: true
   value: master
+- description: URL of the registry to which image is to be pushed
+  name: REGISTRY_URL
+  displayName: Registry URL

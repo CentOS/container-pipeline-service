@@ -25,7 +25,8 @@ for entry in yml_dict["Projects"]:
         "-p CONTEXT_DIR={} ".format("master-job") + \
         "-p APP_ID={} ".format(entry["app-id"]) + \
         "-p JOB_ID={} ".format(entry["job-id"]) + \
-        "-p JENKINSFILE_GIT_BRANCH={}".format(sys.argv[1])
+        "-p JENKINSFILE_GIT_BRANCH={} ".format(sys.argv[1]) + \
+        "-p REGISTRY_URL={}".format(sys.argv[2])
 
     # there's gotta be a better way to ensure that buildconfigs created by
     # parsing the yaml file get triggered automatically for first run.
