@@ -13,9 +13,35 @@ But the resources can be varied based on availability. However, make sure to
 use `--iso-url centos` part in above command as we have setup things on CentOS
 based minishift VM.
 
+If you want to run this on VM:
+
+Get a CentOS based VM with minimum 4GB RAM, 50GB Memory
+
+Then install docker and enable openshift origin repos
+
+```bash
+yum install docker git centos-release-openshift-origin -y
+yum install origin-clients -y
+```
+Edit Docker config to support openshifts internal registry. Update `/etc/docker/daemon.json`
+
+```
+{
+"insecure-registries":["172.30.0.0/16"]
+}
+```
+Now enable docker and bring up the oc cluster
+
+```bash
+systemctl enable --now docker
+oc cluster up --public-hostname=<IP address of the VM>
+```
+This will bring up the openshift cluster with latest verion of OpenShift origin.
+
 Once the VM is ready, spin up a Jenkins server that can be used by the Jenkins
 Pipeline buildconfigs. Also, since we're going to be building images using
 Jenkins pods, we need to add few capabilities to the Jenkins service account.
+
 Do this on host system:
 
 ```bash
