@@ -1,13 +1,29 @@
 To spin up things in an OpenShift cluster based on the contents in this
 repository, please make sure you have a minishift based VM or a CentOS VM with
-root privileges.
+root privileges. You'll also need to spin up Docker Distribution (registry) on
+same VM or different VM.
+
+###Docker Distribution (registry) setup
+
+The system on which you'd like to setup the registry, execute following
+commands:
+
+```bash
+$ yum install -y docker-distribution
+$ systemctl enable --now docker-distribution
+```
+
+Also make sure that the firewall rules are not blocking access to the registry
+(port 5000 by default.)
+
+###OpenShift setup
 
 **Minishift**
 
 Start the minishift VM using below command:
 
 ```bash
-$ minishift start --disk-size 50GB --memory 8GB --iso-url centos --openshift-version 3.9.0
+$ minishift start --disk-size 50GB --memory 8GB --iso-url centos --openshift-version 3.9.0 --insecure-registry <registry-ip>:<port>
 ```
 
 Memory and storage can be varied based on availability. It is recommended to
@@ -28,12 +44,12 @@ $ yum install -y docker git centos-release-openshift-origin
 $ yum install -y origin-clients
 ```
 
-Edit Docker config to support OpenShift's internal registry. Update
-`/etc/docker/daemon.json`
+Edit Docker config to support OpenShift's internal registry and the external
+registry we created in earlier step. Update `/etc/docker/daemon.json`
 
 ```json
 {
-"insecure-registries":["172.30.0.0/16"]
+"insecure-registries":["172.30.0.0/16", "<registry-ip>:<port>"]
 }
 ```
 
@@ -44,7 +60,7 @@ $ systemctl enable --now docker
 $ oc cluster up --public-hostname=<IP address of the VM>
 ```
 
-This will bring up the openshift cluster with latest verion of OpenShift origin.
+This will bring up the OpenShift cluster with latest verion of OpenShift origin.
 
 **Bringing up the service**
 
