@@ -65,8 +65,8 @@ podTemplate(
         }
         // this stage should be triggered after image is delivered to the registry
         stage('Remove the image'){
-            sh "docker rmi ${image_name}"
             sh "docker rmi ${image_name_with_registry}"
+            sh "docker rmi ${image_name}"
         }
     }
 }
