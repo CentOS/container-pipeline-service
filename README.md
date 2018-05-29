@@ -92,7 +92,7 @@ $ git clone https://github.com/dharmit/ccp-openshift/
 $ cd ccp-openshift
 $ oc login -u developer
 <use any password>
-$ oc process -p PIPELINE_BRANCH=<branch-name> -p JENKINSFILE_GIT_BRANCH=<branch-name> -p REGISTRY_URL=<registry-ip>:<port> -f seed-job/buildconfig.yaml |oc create -f -
+$ oc process -p PIPELINE_BRANCH=<branch-name> -p JENKINSFILE_GIT_BRANCH=<branch-name> -p REGISTRY_URL=<registry-ip>:<port> -f seed-job/buildtemplate.yaml |oc create -f -
 ```
 
 `<branch-name>` in above command needs to be replaced with the branch of this
