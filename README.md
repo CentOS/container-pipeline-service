@@ -3,7 +3,7 @@ repository, please make sure you have a minishift based VM or a CentOS VM with
 root privileges. You'll also need to spin up Docker Distribution (registry) on
 same VM or different VM.
 
-###Docker Distribution (registry) setup
+### Docker Distribution (registry) setup
 
 The system on which you'd like to setup the registry, execute following
 commands:
@@ -16,7 +16,7 @@ $ systemctl enable --now docker-distribution
 Also make sure that the firewall rules are not blocking access to the registry
 (port 5000 by default.)
 
-###OpenShift setup
+### OpenShift setup
 
 **Minishift**
 
