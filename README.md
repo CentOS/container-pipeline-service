@@ -1,9 +1,10 @@
 To spin up things in an OpenShift cluster based on the contents in this
-repository, please make sure you have a
-[minishift](https://github.com/minishift/minishift/) based VM started up. We've
-not tested this against anything other than minishift.
+repository, you can follow any of the two methods of getting openshift cluster
 
-We used following command to start a minishift environment:
+***Minishift:***
+
+To have a
+[minishift](https://github.com/minishift/minishift/) based VM started up,we used following command to start a minishift environment:
 
 ```bash
 $ minishift start --disk-size 50GB --memory 8GB --iso-url centos --openshift-version 3.9.0
@@ -13,9 +14,9 @@ But the resources can be varied based on availability. However, make sure to
 use `--iso-url centos` part in above command as we have setup things on CentOS
 based minishift VM.
 
-If you want to run this on VM:
+***CentOs Based VM:***
 
-Get a CentOS based VM with minimum 4GB RAM, 50GB Memory
+Get a CentOS based VM with minimum 4GB RAM, 50GB Diskspace
 
 Then install docker and enable openshift origin repos
 
@@ -38,7 +39,9 @@ oc cluster up --public-hostname=<IP address of the VM>
 ```
 This will bring up the openshift cluster with latest verion of OpenShift origin.
 
-Once the VM is ready, spin up a Jenkins server that can be used by the Jenkins
+***Bringing up the service:***
+
+Once the VM is ready with OpenShift cluster in it, spin up a Jenkins server that can be used by the Jenkins
 Pipeline buildconfigs. Also, since we're going to be building images using
 Jenkins pods, we need to add few capabilities to the Jenkins service account.
 
