@@ -18,6 +18,11 @@ objects:
         type: "JenkinsPipeline"
         jenkinsPipelineStrategy: 
           jenkinsfile: |
+            properties([
+                pipelineTriggers([
+                    pollSCM('H/10 * * * *')
+                ])
+            ])
             podTemplate(
                 cloud: 'openshift',
                 name: 'ccp-pipeline',
