@@ -11,13 +11,88 @@ objects:
       source:
         type: Git
         git:
-          uri: ${JENKINSFILE_GIT_URL}
-          ref: ${JENKINSFILE_GIT_BRANCH}
+          uri: ${GIT_URL}
+          ref: ${GIT_BRANCH}
         contextDir: ${CONTEXT_DIR}
       strategy:
         type: "JenkinsPipeline"
         jenkinsPipelineStrategy: 
-          jenkinsfilePath: "Jenkinsfile"
+          jenkinsfile: |
+            podTemplate(
+                cloud: 'openshift',
+                name: 'ccp-pipeline',
+                label: 'ccp-pipeline',
+                serviceAccount: 'jenkins',
+                containers: [
+                  containerTemplate(
+                    name: 'jnlp',
+                    image: 'registry.centos.org/dharmit/ccp-openshift-slave',
+                    ttyEnabled: true,
+                    alwaysPullImage: true,
+                    workingDir: '/tmp',
+                    privileged: true,
+                    args: '${computer.jnlpmac} ${computer.name}'
+                  )
+                ],
+                volumes: [
+                  hostPathVolume(
+                    hostPath: '/var/run/docker.sock',
+                    mountPath: '/var/run/docker.sock'
+                  )
+                ]
+            )
+            {
+                node ('master') {
+                    git poll: true, url: '${GIT_URL}'
+                }
+                node('ccp-pipeline') {
+                    def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}" 
+                    def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
+                    def container_name = "scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
+                    stage('Checkout Source') {
+                        dir("${PIPELINE_NAME}"){
+                            git url: '${GIT_URL}', branch: '${GIT_BRANCH}'
+                        }
+                    }
+                    stage('Lint the Dockerfile'){
+                        dir("${PIPELINE_NAME}/${GIT_PATH}"){
+                            // def out = sh script:"dockerfile_lint ${TARGET_FILE}", returnStatus: true
+                            // sh "echo ${out}"
+                            def output = sh(returnStdout: true, script: 'dockerfile_lint ${TARGET_FILE} > result 2>&1', returnStatus: true)
+                            sh "cat result"
+                        }
+                    }
+                    stage('Build Docker image') {
+                        dir("${PIPELINE_NAME}/${GIT_PATH}"){
+                            sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ."
+                            sh "docker images"
+                        }
+                    }
+                    stage('Scan the image') {
+                        sh "docker run --name ${container_name} -d ${image_name} tail -f /dev/null"
+                        parallel (
+                            "list yum update": {
+                                sh (returnStdout: true, script: "docker exec -t ${container_name} yum -q check-update > yum-check-update 2>&1", returnStatus: true)
+                                sh "cat yum-check-update"
+                            },
+                            "rpm -Va":  {
+                                sh (returnStdout: true, script: "docker exec -t ${container_name} rpm -Va > rpm-va 2>&1", returnStatus: true)
+                                sh "cat rpm-va"
+                            }
+                        )
+                        sh "docker stop ${container_name} && docker rm ${container_name}"
+                    }
+                    stage("Push image to registry") {
+                        sh "docker tag ${image_name} ${image_name_with_registry}"
+                        sh "docker push ${image_name_with_registry}"
+                    }
+                    // this stage should be triggered after image is delivered to the registry
+                    stage('Remove the image'){
+                        sh "docker rmi ${image_name_with_registry}"
+                        sh "docker rmi ${image_name}"
+                    }
+                }
+            }
           env:
           - name: GIT_URL
             value: ${GIT_URL}
