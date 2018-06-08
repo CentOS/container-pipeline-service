@@ -40,28 +40,12 @@ objects:
                 }
               }
               stages {
-                stage('Checkout SCM') {
-                  steps {
-                    checkout scm
+                  stage('Checkout Source') {
+                        dir("${PIPELINE_NAME}"){
+                            git url: '${CONTAINER_INDEX_LOCATION}', branch: '${CONTAINER_INDEX_BRANCH}'
+                        }
                   }
-                }
-                stage('Checkout sources') {
-                  steps {
-                    checkout([
-                      $class: 'GitSCM',
-                      branches: [[name: "${CONTAINER_INDEX_BRANCH}"]],
-                      doGenerateSubmoduleConfigurations: false,
-                      extensions: [
-                        [$class: 'RelativeTargetDirectory', relativeTargetDir: "${PIPELINE_TARGET_DIR}"]
-                      ],
-                      submoduleCfg: [],
-                      userRemoteConfigs: [
-                        [url: "${CONTAINER_INDEX_LOCATION}"]
-                      ]
-                    ])
-                     }
-                }
-                    stage('Parse index') {
+                stage('Parse index') {
                   steps {
                       sh "python seed-job/parser.py ${REGISTRY_URL}"
                       sh "cat projects.sh"
@@ -69,8 +53,7 @@ objects:
                   }
                 }
               }
-            }
-            
+              }
           env:
           - name: CONTAINER_INDEX_LOCATION
             value: https://github.com/dharmit/ccp-openshift-index
