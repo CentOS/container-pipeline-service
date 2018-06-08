@@ -2,7 +2,9 @@ import os
 import sys
 import yaml
 
-with open("source/projects.yaml") as stream:
+CONTAINER_REPO_DIR = sys.argv[1]
+
+with open(os.path.join(CONTAINER_REPO_DIR, "projects.yaml")) as stream:
     try:
         yml_dict = (yaml.load(stream))
     except yaml.YAMLError as exc:
@@ -25,7 +27,7 @@ for entry in yml_dict["Projects"]:
         "-p CONTEXT_DIR={} ".format("master-job") + \
         "-p APP_ID={} ".format(entry["app-id"]) + \
         "-p JOB_ID={} ".format(entry["job-id"]) + \
-        "-p REGISTRY_URL={}".format(sys.argv[1])
+        "-p REGISTRY_URL={}".format(sys.argv[2])
 
     # there's gotta be a better way to ensure that buildconfigs created by
     # parsing the yaml file get triggered automatically for first run.

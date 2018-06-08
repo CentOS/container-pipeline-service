@@ -52,9 +52,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "pwd"
-                            sh "ls -l"
-                            sh "python seed-job/parser.py ${REGISTRY_URL}"
+                            sh "python seed-job/parser.py ${CONTAINER_INDEX_DIR} ${REGISTRY_URL}"
                             sh "cat projects.sh"
                             sh "sh projects.sh"
                         }
