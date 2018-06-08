@@ -11,13 +11,66 @@ objects:
       source:
         type: Git
         git:
-          uri: "https://github.com/dharmit/ccp-openshift"
-          ref: ${PIPELINE_BRANCH}
+          uri: ${CONTAINER_INDEX_LOCATION}
+          ref: ${CONTAINER_INDEX_BRANCH}
         contextDir: "seed-job"
       strategy:
         type: "JenkinsPipeline"
         jenkinsPipelineStrategy:
-          jenkinsfilePath: "Jenkinsfile"
+          jenkinsfile: |
+            properties([
+                pipelineTriggers([
+                    pollSCM('H/10 * * * *')
+                ])
+            ])
+            pipeline {
+              agent {
+                kubernetes {
+                    label 'seed-slave'
+                    cloud 'openshift'
+                    serviceAccount 'jenkins'
+                    containerTemplate {
+                      name 'jnlp'
+                      image "registry.centos.org/dharmit/ccp-openshift-slave"
+                      alwaysPullImage true
+                      workingDir '/tmp'
+                      args '${computer.jnlpmac} ${computer.name}'
+                      ttyEnabled false
+                   }
+                }
+              }
+              stages {
+                stage('Checkout SCM') {
+                  steps {
+                    checkout scm
+                  }
+                }
+                stage('Checkout sources') {
+                  steps {
+                    checkout([
+                      $class: 'GitSCM',
+                      branches: [[name: "${CONTAINER_INDEX_BRANCH}"]],
+                      doGenerateSubmoduleConfigurations: false,
+                      extensions: [
+                        [$class: 'RelativeTargetDirectory', relativeTargetDir: "${PIPELINE_TARGET_DIR}"]
+                      ],
+                      submoduleCfg: [],
+                      userRemoteConfigs: [
+                        [url: "${CONTAINER_INDEX_LOCATION}"]
+                      ]
+                    ])
+                     }
+                }
+                    stage('Parse index') {
+                  steps {
+                      sh "python seed-job/parser.py ${REGISTRY_URL}"
+                      sh "cat projects.sh"
+                      sh "sh projects.sh"
+                  }
+                }
+              }
+            }
+            
           env:
           - name: CONTAINER_INDEX_LOCATION
             value: https://github.com/dharmit/ccp-openshift-index
@@ -25,21 +78,21 @@ objects:
             value: master
           - name: PIPELINE_TARGET_DIR
             value: "source"
-          - name: JENKINSFILE_GIT_BRANCH
-            value: ${JENKINSFILE_GIT_BRANCH}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
       triggers:
           - type: ConfigChange
 parameters:
-- description: "Pipeline repo branch to build off"
-  displayName: Pipeline repo branch
-  name: PIPELINE_BRANCH
-- description: Git repo branch containing the Jenkinsfile
-  displayName: Jenkinsfile repo branch
-  name: JENKINSFILE_GIT_BRANCH
-  required: true
-  value: master
 - description: URL of the registry to which image is to be pushed
   name: REGISTRY_URL
   displayName: Registry URL
+- description: "Container Index to use"
+  displayName: Container Index
+  name: CONTAINER_INDEX_LOCATION
+  required: true
+  value: https://github.com/dharmit/ccp-openshift-index
+- description: "Container Index branch to use"
+  displayName: Container Index branch
+  name: CONTAINER_INDEX_BRANCH
+  required: true
+  value: master
