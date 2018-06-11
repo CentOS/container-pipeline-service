@@ -47,17 +47,23 @@ objects:
                 ]
             )
             {
-                node ('master') {
-                    git poll: true, url: '${GIT_URL}'
-                }
                 node('ccp-pipeline') {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}" 
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def container_name = "scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
                     stage('Checkout Source') {
-                        dir("${PIPELINE_NAME}"){
-                            git url: '${GIT_URL}', branch: '${GIT_BRANCH}'
-                        }
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: "${GIT_BRANCH}"]],
+                            doGenerateSubmoduleConfigurations: false,
+                            extensions: [
+                                [$class: 'RelativeTargetDirectory', relativeTargetDir: "${PIPELINE_NAME}"]
+                            ],
+                            submoduleCfg: [],
+                            userRemoteConfigs: [
+                                [url: "${GIT_URL}"]
+                            ]
+                        ])
                     }
                     stage('Lint the Dockerfile'){
                         dir("${PIPELINE_NAME}/${GIT_PATH}"){
