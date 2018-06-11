@@ -1,11 +1,10 @@
 from ci.container_index.lib.utils import IndexCIMessage
 import os
 
+
 class Validator(object):
 
-    def __init__(
-            self, validation_data, file_name
-        ):
+    def __init__(self, validation_data, file_name):
         self.message = IndexCIMessage(validation_data)
         self.validation_data = validation_data
         self.file_name = file_name
@@ -28,7 +27,8 @@ class Validator(object):
     def validate(self):
         """
         Runs the validator to validate based on provided data.
-        :return: Returns a flag to indicate success or falure and an IndexCIMessage object.
+        :return: Returns a flag to indicate success or falure
+        and an IndexCIMessage object.
         """
         self._perform_validation()
         return self.message
@@ -56,7 +56,7 @@ class BasicSchemaValidator(Validator):
 
 
 class StringFieldValidator(BasicSchemaValidator):
-    
+
     def __init__(self, validation_data, file_name):
         super(StringFieldValidator, self).__init__(validation_data, file_name)
         self.field_name = ""
