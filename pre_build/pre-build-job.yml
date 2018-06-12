@@ -63,12 +63,11 @@
             rtn_code=$?
 
             if [ $rtn_code -eq 0 ]; then
-              $ssh_cmd -t "cd payload && rm -rf .gitignore .git .gitkeep||true && \
-              git init && git config --global user.name 'Container Pipeline' && \
+              $ssh_cmd -t "cd payload && git config --global user.name 'Container Pipeline' && \
               git config --global user.email container@centos.org && \
               git remote add prebuild-render {prebuild_render} && \
               git checkout -b {prebuild_branch} && \
-              git add -A && \
+              git add -A -f && \
               git commit -am $GIT_COMMIT && \
               git push prebuild-render {prebuild_branch} -f"
               cico node done $CICO_ssid
