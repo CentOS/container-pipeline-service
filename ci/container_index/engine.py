@@ -65,10 +65,10 @@ class Engine(object):
         self.summary[file_name] = messages
 
     def run(self):
+        overall_success = True
         for index_file in self.index_files:
             file_data = utils.load_yaml(index_file)
             messages = []
-            overall_success = True
 
             # Perform primary validation
             m = schema_validation.TopLevelProjectsValidator(

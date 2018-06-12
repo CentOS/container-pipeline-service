@@ -58,16 +58,6 @@ class IDValidator(BasicSchemaValidator):
             return
 
 
-class DependsOnValidator(BasicSchemaValidator):
-
-    def __init__(self, validation_data, file_name):
-        super(DependsOnValidator, self).__init__(
-            validation_data, file_name)
-
-    def _extra_validation(self):
-        self.message.title = "Depends On validation"
-
-
 class AppIDValidator(StringFieldValidator):
 
     def __init__(self, validation_data, file_name):
