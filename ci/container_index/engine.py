@@ -20,7 +20,7 @@ class Engine(object):
             )
 
     def __init__(
-        self, test_bench_path="~/.index_ci_bench", schema_validators=None,
+        self, schema_validators=None,
         value_validators=None, index_location="./", verbose=True
     ):
         """

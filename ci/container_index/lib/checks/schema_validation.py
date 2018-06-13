@@ -2,18 +2,9 @@ from ci.container_index.lib.checks.basevalidation\
     import Validator, BasicSchemaValidator, StringFieldValidator
 import ci.container_index.lib.utils as index_utils
 from ci.container_index.lib.constants import *
-from os.path import realpath, dirname, join
 from uuid import uuid4
 from ci.container_index.lib.utils import\
     load_yaml, dump_yaml
-
-
-def gen_tracking_file():
-    dir_path = dirname(realpath(__file__))
-    return join(
-        dir_path,
-        ".track_file_" + str(uuid4())
-    )
 
 
 class TopLevelProjectsValidator(Validator):
