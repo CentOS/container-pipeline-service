@@ -4,7 +4,7 @@ from datetime import datetime, date
 
 from glob import glob
 from os import environ, path, mkdir, unsetenv, listdir,\
-    unlink, devnull, getenv, getcwd, chdir, system
+    unlink, devnull, getenv, getcwd, chdir, system, remove
 from shutil import rmtree
 
 from subprocess import check_call, CalledProcessError, STDOUT
@@ -42,17 +42,15 @@ def dump_yaml(file_path, data):
 
 
 def update_git_repo(git_url, git_branch, clone_location="."):
-    t = git_url.split(':')[1] if ':' in git_url else git_url
-    clone_path = path.join(clone_location, t)
     ret = None
 
-    if not path.exists(clone_path):
-        clone_command = ["git", "clone", git_url, clone_path]
+    if not path.exists(clone_location):
+        clone_command = ["git", "clone", git_url, clone_location]
         if not execute_command(clone_command):
             return None
 
     get_back = getcwd()
-    chdir(clone_path)
+    chdir(clone_location)
 
     # This command fetches all branches of added remotes of git repo.
     branches_cmd = r"""git branch -r | grep -v '\->' | while
@@ -71,7 +69,7 @@ def update_git_repo(git_url, git_branch, clone_location="."):
     cmd = ["git", "checkout", "origin/" + git_branch]
 
     if execute_command(cmd):
-        ret = clone_path
+        ret = clone_location
     chdir(get_back)
     return ret
 
