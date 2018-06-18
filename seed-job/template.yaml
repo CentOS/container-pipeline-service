@@ -23,7 +23,7 @@ objects:
                     pollSCM('H/10 * * * *'),
                     upstream(
                         threshold: 'SUCCESS',
-                        upstreamProjects: 'myproject-${DEPENDS_ON}'
+                        upstreamProjects: '${DEPENDS_ON}'
                     )
                 ])
             ])

@@ -25,7 +25,8 @@ for entry in yml_dict["Projects"]:
             "-p PIPELINE_NAME={} ".format(pipeline_name) + \
             "-p DEPENDS_ON={depends_on} ".format(
                 depends_on=None if entry["depends-on"] is None
-                else entry["depends-on"].replace("/", "-").replace(":", "-")
+                else (sys.argv[3] + "-" +
+                      entry["depends-on"].replace("/", "-").replace(":", "-"))
             ) + \
             "-p TARGET_FILE={} ".format(entry["target-file"]) + \
             "-p CONTEXT_DIR={} ".format("master-job") + \
@@ -39,7 +40,7 @@ for entry in yml_dict["Projects"]:
 
     # there's gotta be a better way to ensure that buildconfigs created by
     # parsing the yaml file get triggered automatically for first run.
-    oc_build = "oc start-build {} -n myproject".format(pipeline_name)
+    oc_build = "oc start-build {} -n {}".format(pipeline_name, sys.argv[3])
 
     with open("projects.sh", "a+") as f:
         f.write("{} {} && {} \n".format(command, oc_apply, oc_build))

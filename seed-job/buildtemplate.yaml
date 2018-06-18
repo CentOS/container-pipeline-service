@@ -52,7 +52,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "python seed-job/parser.py ${CONTAINER_INDEX_DIR} ${REGISTRY_URL}"
+                            sh "python seed-job/parser.py ${CONTAINER_INDEX_DIR} ${REGISTRY_URL} ${NAMESPACE}"
                             sh "cat projects.sh"
                             sh "sh projects.sh"
                         }
@@ -72,6 +72,8 @@ objects:
             value: ${PIPELINE_BRANCH}
           - name: PIPELINE_REPO_DIR
             value: ${PIPELINE_REPO_DIR}
+          - name: NAMESPACE
+            value: ${NAMESPACE}
       triggers:
           - type: ConfigChange
 parameters:
@@ -106,3 +108,7 @@ parameters:
   name: CONTAINER_INDEX_DIR
   required: true
   value: /tmp/container-index
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true
