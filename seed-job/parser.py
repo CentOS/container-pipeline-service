@@ -22,7 +22,10 @@ for entry in yml_dict["Projects"]:
         "-p DESIRED_TAG={} ".format(entry["desired-tag"]) + \
         "-p NOTIFY_EMAIL={} ".format(entry["notify-email"]) + \
         "-p PIPELINE_NAME={} ".format(pipeline_name) + \
-        "-p DEPENDS_ON={} ".format(entry["depends-on"]) + \
+        "-p DEPENDS_ON={depends_on} ".format(
+            depends_on=None if entry["depends-on"] is None
+            else entry["depends-on"].replace("/", "-").replace(":", "-")
+        ) + \
         "-p TARGET_FILE={} ".format(entry["target-file"]) + \
         "-p CONTEXT_DIR={} ".format("master-job") + \
         "-p APP_ID={} ".format(entry["app-id"]) + \

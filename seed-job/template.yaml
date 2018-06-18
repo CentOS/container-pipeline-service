@@ -20,7 +20,11 @@ objects:
           jenkinsfile: |
             properties([
                 pipelineTriggers([
-                    pollSCM('H/10 * * * *')
+                    pollSCM('H/10 * * * *'),
+                    upstream(
+                        threshold: 'SUCCESS',
+                        upstreamProjects: 'myproject-${DEPENDS_ON}'
+                    )
                 ])
             ])
             podTemplate(
