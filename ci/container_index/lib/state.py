@@ -1,6 +1,8 @@
 import ci.container_index.lib.utils as utils
 from os import path, mkdir, remove
 from uuid import uuid4
+from ci.container_index.lib.constants import StateKeys
+
 
 STATE_LOCATION = str.format(
     "{}/.index_ci_{}",
@@ -34,17 +36,23 @@ def git_update(git_url, git_branch):
 
 
 def dump_state(state):
-    with open(STATE_FILE, "w+"):
-        utils.dump_yaml(STATE_FILE, state)
+    utils.dump_yaml(STATE_FILE, state)
 
 
 def get_state():
-    with open(STATE_FILE, "r"):
-        data = utils.load_yaml(STATE_FILE)
+    data = None
+    if path.exists(STATE_FILE):
+        with open(STATE_FILE, "r"):
+            data = utils.load_yaml(STATE_FILE)
 
     if not data or not isinstance(data, dict) or len(data) <= 0:
         data = {
-            "Unique": None
+            StateKeys.UNIQUE_IDS: {
+
+            },
+            StateKeys.UNIQUE_AJD: {
+
+            }
         }
 
     return data
