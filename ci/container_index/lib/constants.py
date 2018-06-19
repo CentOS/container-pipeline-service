@@ -13,6 +13,10 @@ class FieldKeys(object):
     BUILD_CONTEXT = "build-context"
     DEPENDS_ON = "depends-on"
 
+class CheckKeys(object):
+    CLONE = "clone"
+    CLONE_LOCATION = "clone-location"
+
 class StateKeys(object):
     UNIQUE_IDS = "Unique_IDS"
     UNIQUE_AJD = "Unique_AJD"
