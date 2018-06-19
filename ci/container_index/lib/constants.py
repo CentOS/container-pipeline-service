@@ -12,3 +12,11 @@ class FieldKeys(object):
     NOTIFY_EMAIL = "notify-email"
     BUILD_CONTEXT = "build-context"
     DEPENDS_ON = "depends-on"
+
+class StateKeys(object):
+    UNIQUE_IDS = "Unique_IDS"
+    UNIQUE_AJD = "Unique_AJD"
+
+
+class RegexPatterns(object):
+    EMAIL = r"(\w+[.|\w])*@(\w+[.])*\w+"
