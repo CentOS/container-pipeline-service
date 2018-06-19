@@ -26,12 +26,13 @@ def clean_up():
 
 
 def git_update(git_url, git_branch):
+    clone_location = path.join(
+        STATE_REPOS,
+        git_url.split(':')[-1].strip('//')
+    )
     return utils.update_git_repo(
         git_url, git_branch,
-        path.join(
-            STATE_REPOS,
-            git_url.split(':')[-1]
-        )
+        clone_location
     )
 
 
