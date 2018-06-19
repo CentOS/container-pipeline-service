@@ -2,6 +2,9 @@ from os import mkdir, rmdir, path
 from glob import glob
 
 import ci.container_index.lib.checks.schema_validation as schema_validation
+import ci.container_index.lib.checks.value_validation as value_validation
+from os import mkdir, rmdir
+from os.path import abspath, exists as path_exists, join
 import ci.container_index.config as config
 
 import ci.container_index.lib.utils as utils
@@ -64,6 +67,13 @@ class Engine(object):
 
         # - Value Validators
         # TODO
+        if (not value_validators or not
+           isinstance(value_validators, list) or
+           len(value_validators) <= 0):
+           v_list = config.value_validators
+        else:
+            v_list = value_validators
+        self._load_validators(value_validation, v_list)
 
         self.summary = {}
 
@@ -94,13 +104,12 @@ class Engine(object):
                     entries = file_data.get(constants.FieldKeys.PROJECTS)
                     # Extract entries and start evaluating them, one by one
                     for entry in entries:
+                        entry[constants.CheckKeys.CLONE] = True
                         for v in self.validators:
                             m = v(entry, index_file).validate()
                             if not m.success:
                                 overall_success = False
                             messages.append(m)
-                else:
-                    overall_success = False
             else:
                 utils.print_out(
                     "Could not fetch data from index file {}\nError:{}".format(

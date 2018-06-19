@@ -11,3 +11,8 @@ schema_validators = [
     "NotifyEmailValidator",
     "BuildContextValidator"
 ]
+
+value_validators = [
+    "GitCloneValidator",
+    "CccpYamlExistsValidator"
+]
