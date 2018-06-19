@@ -5,7 +5,7 @@ This file contains base classes for all the validators.
 import os
 from ci.container_index.lib.utils import IndexCIMessage
 import ci.container_index.lib.state as state
-from ci.container_index.lib.constants import FieldKeys
+from ci.container_index.lib.constants import FieldKeys, CheckKeys
 
 
 class Validator(object):
@@ -128,10 +128,12 @@ class StatefullValidator(Validator):
         state.dump_state(self.state)
 
 
-class GitCloneValidator(StatefullValidator):
+class OptionalClonedValidator(Validator):
 
     def __init__(self, validation_data, file_name):
-        super(GitCloneValidator, self).__init__(validation_data, file_name)
+        super(OptionalClonedValidator, self).__init__(validation_data, file_name)
+        self.message.title = "Optional Cloned Validator"
+        self.clone = None
         self.clone_location = None
 
     def _clone_repo(self):
@@ -140,12 +142,12 @@ class GitCloneValidator(StatefullValidator):
                 self.validation_data.get(FieldKeys.GIT_BRANCH)
             )
 
-    def _validate_after_clone(self):
+    def _validate_after_preperation(self):
         pass
 
-    def _stateful_validation(self):
-        self._clone_repo()
-        if not self.clone_location:
-            self._invalidate("Failed to clone git repo or checkout git branch")
-            return
-        self._validate_after_clone()
+    def _perform_validation(self):
+        self.clone = self.validation_data.get(CheckKeys.CLONE)
+        if not self.clone:
+            self.clone_location = self.validation_data.get(CheckKeys.CLONE_LOCATION)
+        else:
+            self._clone_repo()
