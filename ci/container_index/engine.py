@@ -1,11 +1,12 @@
+from os import mkdir, rmdir, path
+from glob import glob
+
 import ci.container_index.lib.checks.schema_validation as schema_validation
 import ci.container_index.config as config
 
 import ci.container_index.lib.utils as utils
 import ci.container_index.lib.constants as constants
-
-from os import mkdir, rmdir, path
-from glob import glob
+import ci.container_index.lib.state as state
 
 
 class Engine(object):
@@ -35,6 +36,7 @@ class Engine(object):
             raise Exception(
                 "Could not find location specified for index."
             )
+
 
         # Goto the index location and collect the index files
         self.index_location = path.abspath(index_location)
@@ -76,6 +78,7 @@ class Engine(object):
         Runs the index ci tests.
         """
         overall_success = True
+        state.init()
         for index_file in self.index_files:
             file_data, err = utils.load_yaml(index_file)
             if file_data:
@@ -106,5 +109,5 @@ class Engine(object):
                 )
 
             self.add_summary(index_file, messages)
-
+        state.clean_up()
         return overall_success, self.summary
