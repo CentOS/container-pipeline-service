@@ -3,6 +3,7 @@ schema_validators = [
     "AppIDValidator",
     "JobIDValidator",
     "DesiredTagValidator",
+    "UniqueEntryValidator",
     "GitURLValidator",
     "GitPathValidator",
     "GitBranchValidator",
