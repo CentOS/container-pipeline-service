@@ -1,7 +1,13 @@
+from uuid import uuid4
+
 import ci.container_index.lib.utils as index_utils
 from ci.container_index.lib.checks.basevalidation\
-    import Validator, BasicSchemaValidator, StringFieldValidator
+    import Validator, BasicSchemaValidator, StringFieldValidator, StatefullValidator
 from ci.container_index.lib.constants import *
+import ci.container_index.lib.utils as index_utils
+from ci.container_index.lib.constants import *
+from ci.container_index.lib.utils import\
+    load_yaml, dump_yaml, gen_hash
 
 
 class TopLevelProjectsValidator(Validator):
@@ -171,3 +177,37 @@ class BuildContextValidator(StringFieldValidator):
             validation_data, file_name)
         self.field_name = FieldKeys.BUILD_CONTEXT
         self.message.title = "Build Context Validation"
+
+
+class UniqueEntryValidator(StatefullValidator):
+
+    def __init__(self, validation_data, file_name):
+        super(UniqueEntryValidator, self).__init__(validation_data, file_name)
+
+    def _stateful_validation(self):
+        self.message.title = "Unique ID Validation."
+        if self.file_base_name not in self.state[StateKeys.UNIQUE_IDS]:
+            self.state[StateKeys.UNIQUE_IDS][self.file_base_name] = []
+        if self.file_base_name not in self.state[StateKeys.UNIQUE_AJD]:
+            self.state[StateKeys.UNIQUE_AJD][self.file_base_name] = []
+
+        if self.validation_data.get(FieldKeys.ID)\
+            in self.state[StateKeys.UNIQUE_IDS][self.file_base_name]:
+            self._invalidate("The id field must be unique.")
+            return
+        self.state[StateKeys.UNIQUE_IDS][self.file_base_name].append(
+            self.validation_data.get(FieldKeys.ID)
+        )
+        new_hash = gen_hash(
+            str.format(
+                "{}-{}-{}",
+                str(self.validation_data.get(FieldKeys.APP_ID)),
+                str(self.validation_data.get(FieldKeys.JOB_ID)),
+                str(self.validation_data.get(FieldKeys.DESIRED_TAG))
+            )
+        )
+        if new_hash in self.state[StateKeys.UNIQUE_AJD][self.file_base_name]:
+            self._invalidate("The ck app-id, job-id and desired-tag must be unique")
+            return
+
+        self.state[StateKeys.UNIQUE_AJD][self.file_base_name].append(new_hash)
