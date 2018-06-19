@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 import ci.container_index.lib.utils as index_utils
 from ci.container_index.lib.checks.basevalidation\
     import Validator, BasicSchemaValidator, StringFieldValidator, StatefullValidator
@@ -8,6 +6,7 @@ import ci.container_index.lib.utils as index_utils
 from ci.container_index.lib.constants import *
 from ci.container_index.lib.utils import\
     load_yaml, dump_yaml, gen_hash
+from ci.container_index.lib.constants import FieldKeys, StateKeys
 
 
 class TopLevelProjectsValidator(Validator):
@@ -198,7 +197,7 @@ class UniqueEntryValidator(StatefullValidator):
         self.state[StateKeys.UNIQUE_IDS][self.file_base_name].append(
             self.validation_data.get(FieldKeys.ID)
         )
-        new_hash = gen_hash(
+        new_hash = index_utils.gen_hash(
             str.format(
                 "{}-{}-{}",
                 str(self.validation_data.get(FieldKeys.APP_ID)),
