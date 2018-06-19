@@ -8,6 +8,8 @@ from os import environ, path, mkdir, unsetenv, listdir,\
 from shutil import rmtree
 
 from subprocess import check_call, CalledProcessError, STDOUT
+import hashlib
+import re
 
 
 def execute_command(cmd):
@@ -31,14 +33,18 @@ def load_yaml(file_path):
     return data, err
 
 
-def dump_yaml(file_path, data):
+def dump_yaml(file_path, data, override_old=True):
     err = None
     try:
-        with open(file_path, "w") as f:
-            yaml.dump(f)
+        with open(file_path, "w+" if not override_old else "w") as f:
+            yaml.dump(data, f)
     except Exception as e:
         err = e.message
     return err
+
+
+def gen_hash(data):
+    return str(hashlib.sha224(data).hexdigest())
 
 
 def update_git_repo(git_url, git_branch, clone_location="."):
@@ -77,6 +83,10 @@ def update_git_repo(git_url, git_branch, clone_location="."):
 def print_out(data, verbose=True):
     if verbose:
         print(data)
+
+
+def match_regex(pattern, match):
+    return re.compile(pattern).match(match)
 
 
 class IndexCIMessage(object):
