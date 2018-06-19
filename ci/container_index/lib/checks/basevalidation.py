@@ -4,6 +4,8 @@ This file contains base classes for all the validators.
 
 import os
 from ci.container_index.lib.utils import IndexCIMessage
+import ci.container_index.lib.state as state
+from ci.container_index.lib.constants import FieldKeys
 
 
 class Validator(object):
@@ -103,3 +105,47 @@ class StringFieldValidator(BasicSchemaValidator):
             )
             return
         self._extra_validation_1()
+
+
+class StatefullValidator(Validator):
+    """
+    Acts as parent for stateful validations.
+    Note: If you are using any of these classes
+    individually, please do a state.init() before and
+    state.clean_up() after, from ci.container_index.state
+    """
+
+    def __init__(self, validation_data, file_name):
+        super(StatefullValidator, self).__init__(validation_data, file_name)
+        state.init()
+        self.state = state.get_state()
+
+    def _stateful_validation(self):
+        pass
+
+    def _perform_validation(self):
+        self._stateful_validation()
+        state.dump_state(self.state)
+
+
+class GitCloneValidator(StatefullValidator):
+
+    def __init__(self, validation_data, file_name):
+        super(GitCloneValidator, self).__init__(validation_data, file_name)
+        self.clone_location = None
+
+    def _clone_repo(self):
+        self.clone_location = state.git_update(
+                self.validation_data.get(FieldKeys.GIT_URL),
+                self.validation_data.get(FieldKeys.GIT_BRANCH)
+            )
+
+    def _validate_after_clone(self):
+        pass
+
+    def _stateful_validation(self):
+        self._clone_repo()
+        if not self.clone_location:
+            self._invalidate("Failed to clone git repo or checkout git branch")
+            return
+        self._validate_after_clone()
