@@ -61,7 +61,7 @@ def update_git_repo(git_url, git_branch, clone_location="."):
     # This command fetches all branches of added remotes of git repo.
     branches_cmd = r"""git branch -r | grep -v '\->' | while
     read remote; do git branch --track "${remote#origin/}"
-    $remote" &> /dev/null; done"""
+    $remote &> /dev/null; done """
 
     system(branches_cmd)
     cmd = ["git", "fetch", "--all"]
