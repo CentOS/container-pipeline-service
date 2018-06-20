@@ -16,7 +16,7 @@ objects:
         contextDir: ${CONTEXT_DIR}
       strategy:
         type: "JenkinsPipeline"
-        jenkinsPipelineStrategy: 
+        jenkinsPipelineStrategy:
           jenkinsfile: |
             properties([
                 pipelineTriggers([
@@ -35,7 +35,7 @@ objects:
                 containers: [
                   containerTemplate(
                     name: 'jnlp',
-                    image: 'registry.centos.org/dharmit/ccp-openshift-slave',
+                    image: '172.29.33.48:5000/nshaikh/ccp-jenkins-slave',
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
@@ -52,7 +52,7 @@ objects:
             )
             {
                 node('ccp-pipeline') {
-                    def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}" 
+                    def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def container_name = "scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
                     stage('Checkout Source') {
@@ -85,18 +85,16 @@ objects:
                         }
                     }
                     stage('Scan the image') {
-                        sh "docker run --name ${container_name} -d ${image_name} tail -f /dev/null"
                         parallel (
                             "list yum update": {
-                                sh (returnStdout: true, script: "docker exec -t ${container_name} yum -q check-update > yum-check-update 2>&1", returnStatus: true)
-                                sh "cat yum-check-update"
+                              sh (returnStdout: true, script: "docker run --rm --entrypoint /bin/rpm ${image_name} check-update > yum-check-update 2>&1", returnStatus: true)
+                              sh "cat yum-check-update"
                             },
-                            "rpm -Va":  {
-                                sh (returnStdout: true, script: "docker exec -t ${container_name} rpm -Va > rpm-va 2>&1", returnStatus: true)
-                                sh "cat rpm-va"
+                            "run the script from slave container": {
+                              sh(returnStdout: true, script: "/bin/python /opt/scanning/yumupdates.py > slave-updates 2>&1", returnStatus: true)
+                              sh "cat slave-updates"
                             }
                         )
-                        sh "docker stop ${container_name} && docker rm ${container_name}"
                     }
                     stage("Push image to registry") {
                         sh "docker tag ${image_name} ${image_name_with_registry}"
