@@ -172,11 +172,11 @@ objects:
       triggers:
           - type: ConfigChange
 parameters:
-- description: "Path to a directory containing a Dockerfile"
+- description: "Path to the directory containing a Dockerfile"
   displayName: "Git Path"
   name: GIT_PATH
   required: true
-- description: "Name of the dockerfile to be built"
+- description: "Name of the Dockerfile to be built"
   displayName: Dockerfile
   name: TARGET_FILE
   required: true
