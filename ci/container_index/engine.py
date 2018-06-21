@@ -1,14 +1,16 @@
 import ci.container_index.lib.checks.schema_validation as schema_validation
-from os import mkdir, rmdir
-from os.path import abspath, exists as path_exists, join
 import ci.container_index.config as config
-from glob import glob
+
 import ci.container_index.lib.utils as utils
 import ci.container_index.lib.constants as constants
-import imp
 
+from os import mkdir, rmdir, path
+from glob import glob
 
 class Engine(object):
+    """
+    This class controls the flow of ci runs.
+    """
 
     def _load_validators(self, v_type, v_list):
         """
@@ -26,15 +28,16 @@ class Engine(object):
         """
         Initializes the test engine
         """
+        self.verbose = verbose
         # Index file location needs to be provided
-        if not path_exists(index_location):
+        if not path.exists(index_location):
             raise Exception(
                 "Could not find location specified for index."
             )
 
         # Goto the index location and collect the index files
-        self.index_location = abspath(index_location)
-        self.index_d = join(self.index_location, "index.d")
+        self.index_location = path.abspath(index_location)
+        self.index_d = path.join(self.index_location, "index.d")
         self.index_files = glob(
             str.format("{}/*.y*ml", self.index_d)
         )
@@ -43,7 +46,7 @@ class Engine(object):
            (len(self.index_files) == 1 and
                any("index_template" in s for s
                    in self.index_files))):
-            raise Exception("No index files to match.")
+            raise Exception("No index files to process.")
 
         # Collect the validators that need to run.
         self.validators = []
@@ -62,31 +65,43 @@ class Engine(object):
         self.summary = {}
 
     def add_summary(self, file_name, messages):
+        """
+        Adds a summary.
+        """
         self.summary[file_name] = messages
 
     def run(self):
+        """
+        Runs the index ci tests.
+        """
         overall_success = True
         for index_file in self.index_files:
             file_data = utils.load_yaml(index_file)
-            messages = []
+            if file_data:
+                messages = []
 
-            # Perform primary validation
-            m = schema_validation.TopLevelProjectsValidator(
-                file_data, index_file
-            ).validate()
-            messages.append(m)
-            # If primary validation was successful, move forward.
-            if m.success:
-                entries = file_data.get(constants.FieldKeys.PROJECTS)
-                # Extract entries and start evaluating them, one by one
-                for entry in entries:
-                    for v in self.validators:
-                        m = v(entry, index_file).validate()
-                        if not m.success:
-                            overall_success = False
-                        messages.append(m)
+                # Perform primary validation
+                m = schema_validation.TopLevelProjectsValidator(
+                    file_data, index_file
+                ).validate()
+                messages.append(m)
+                # If primary validation was successful, move forward.
+                if m.success:
+                    entries = file_data.get(constants.FieldKeys.PROJECTS)
+                    # Extract entries and start evaluating them, one by one
+                    for entry in entries:
+                        for v in self.validators:
+                            m = v(entry, index_file).validate()
+                            if not m.success:
+                                overall_success = False
+                            messages.append(m)
+                else:
+                    overall_success = False
             else:
-                overall_success = False
+                utils.print_out(
+                    "Could not fetch data from index file {}".format(index_file),
+                    verbose=self.verbose
+                )
 
             self.add_summary(index_file, messages)
 
