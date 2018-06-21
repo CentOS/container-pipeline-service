@@ -69,6 +69,11 @@ def update_git_repo(git_url, git_branch, clone_location="."):
     return ret
 
 
+def print_out(data, verbose=True):
+    if verbose:
+        print(data)
+
+
 class IndexCIMessage(object):
 
     def __init__(self, data, title=None):
