@@ -7,6 +7,7 @@ import ci.container_index.lib.constants as constants
 from os import mkdir, rmdir, path
 from glob import glob
 
+
 class Engine(object):
     """
     This class controls the flow of ci runs.
@@ -99,8 +100,9 @@ class Engine(object):
                     overall_success = False
             else:
                 utils.print_out(
-                    "Could not fetch data from index file {}\nError:{}".format(index_file, err),
-                    verbose=self.verbose
+                    "Could not fetch data from index file {}\nError:{}".format(
+                        index_file, err
+                    ), verbose=self.verbose
                 )
 
             self.add_summary(index_file, messages)

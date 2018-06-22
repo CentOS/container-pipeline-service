@@ -68,7 +68,8 @@ class AppIDValidator(StringFieldValidator):
            self.file_base_name.split(".")[0]):
             self._invalidate(
                 str.format(
-                    "{} must be the same as the file name {}, without the extension.",
+                    """{} must be the same as the file name {},
+                    without the extension.""",
                     self.field_name,
                     self.file_base_name
                 )
