@@ -76,7 +76,7 @@ class Engine(object):
         """
         overall_success = True
         for index_file in self.index_files:
-            file_data = utils.load_yaml(index_file)
+            file_data, err = utils.load_yaml(index_file)
             if file_data:
                 messages = []
 
@@ -99,7 +99,7 @@ class Engine(object):
                     overall_success = False
             else:
                 utils.print_out(
-                    "Could not fetch data from index file {}".format(index_file),
+                    "Could not fetch data from index file {}\nError:{}".format(index_file, err),
                     verbose=self.verbose
                 )
 
