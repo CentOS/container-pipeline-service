@@ -1,9 +1,12 @@
 import yaml
+
 from datetime import datetime, date
+
 from glob import glob
 from os import environ, path, mkdir, unsetenv, listdir,\
     unlink, devnull, getenv, getcwd, chdir, system
 from shutil import rmtree
+
 from subprocess import check_call, CalledProcessError, STDOUT
 
 
@@ -12,27 +15,30 @@ def execute_command(cmd):
     try:
         fnull = open(devnull, "w")
         check_call(cmd, stdout=fnull, stderr=STDOUT)
-        return True
     except CalledProcessError:
         return False
+    return True
 
 
 def load_yaml(file_path):
     data = None
+    err = None
     try:
         with open(file_path, "r") as f:
             data = yaml.load(f)
     except Exception as e:
-        pass
-    return data
+        err = e.message
+    return data, err
 
 
 def dump_yaml(file_path, data):
+    err = None
     try:
         with open(file_path, "w") as f:
             yaml.dump(f)
     except Exception as e:
-        pass
+        err = e.message
+    return err
 
 
 def update_git_repo(git_url, git_branch, clone_location="."):
@@ -48,6 +54,7 @@ def update_git_repo(git_url, git_branch, clone_location="."):
     get_back = getcwd()
     chdir(clone_path)
 
+    # This command fetches all branches of added remotes of git repo.
     branches_cmd = r"""git branch -r | grep -v '\->' | while
     read remote; do git branch --track "${remote#origin/}"
     $remote" &> /dev/null; done"""
