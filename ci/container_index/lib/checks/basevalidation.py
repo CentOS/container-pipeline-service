@@ -1,8 +1,15 @@
-from ci.container_index.lib.utils import IndexCIMessage
+"""
+This file contains base classes for all the validators.
+"""
+
 import os
+from ci.container_index.lib.utils import IndexCIMessage
 
 
 class Validator(object):
+    """
+    Validates data, based on provided validation logic
+    """
 
     def __init__(self, validation_data, file_name):
         self.message = IndexCIMessage(validation_data)
@@ -11,10 +18,16 @@ class Validator(object):
         self.file_base_name = os.path.basename(self.file_name)
 
     def _invalidate(self, err):
+        """
+        Invalidate the validation, with an error message.
+        """
         self.message.success = False
         self.message.errors.append(err)
 
     def _warn(self, warn):
+        """
+        Add a warning, to the validation.
+        """
         self.message.warnings.append(warn)
 
     def _perform_validation(self):
@@ -27,7 +40,7 @@ class Validator(object):
     def validate(self):
         """
         Runs the validator to validate based on provided data.
-        :return: Returns a flag to indicate success or falure
+        :return: Returns a flag to indicate success or failure
         and an IndexCIMessage object.
         """
         self._perform_validation()
@@ -35,6 +48,9 @@ class Validator(object):
 
 
 class BasicSchemaValidator(Validator):
+    """
+    Acts as parent of all Schema validatos classes
+    """
 
     def __init__(self, validation_data, file_name):
         super(BasicSchemaValidator, self).__init__(validation_data, file_name)
@@ -56,10 +72,13 @@ class BasicSchemaValidator(Validator):
 
 
 class StringFieldValidator(BasicSchemaValidator):
+    """
+    Acts as base for all validators that do string validation
+    """
 
     def __init__(self, validation_data, file_name):
         super(StringFieldValidator, self).__init__(validation_data, file_name)
-        self.field_name = ""
+        self.field_name = "UNKNOWN"
 
     def _extra_validation_1(self):
         pass
