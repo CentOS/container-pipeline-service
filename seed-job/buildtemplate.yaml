@@ -11,35 +11,104 @@ objects:
       source:
         type: Git
         git:
-          uri: "https://github.com/dharmit/ccp-openshift"
-          ref: ${PIPELINE_BRANCH}
+          uri: ${CONTAINER_INDEX_REPO}
+          ref: ${CONTAINER_INDEX_BRANCH}
         contextDir: "seed-job"
       strategy:
         type: "JenkinsPipeline"
         jenkinsPipelineStrategy:
-          jenkinsfilePath: "Jenkinsfile"
+          jenkinsfile: |
+            properties([
+                pipelineTriggers([
+                    pollSCM('H/10 * * * *')
+                ])
+            ])
+            podTemplate(
+                cloud: 'openshift',
+                name: 'ccp-pipeline',
+                label: 'ccp-pipeline',
+                serviceAccount: 'jenkins',
+                containers: [
+                  containerTemplate(
+                    name: 'jnlp',
+                    image: 'registry.centos.org/dharmit/ccp-openshift-slave',
+                    ttyEnabled: true,
+                    alwaysPullImage: true,
+                    workingDir: '/tmp',
+                    privileged: true,
+                    args: '${computer.jnlpmac} ${computer.name}'
+                  )
+                ],
+            )
+            {
+                node ('ccp-pipeline'){
+                    stage('Checkout Sources') {
+                        dir("${CONTAINER_INDEX_DIR}") {
+                            git url: '${CONTAINER_INDEX_REPO}', branch: '${CONTAINER_INDEX_BRANCH}'
+                        }
+                        dir("${PIPELINE_REPO_DIR}") {
+                            git url: '${PIPELINE_REPO}', branch: '${PIPELINE_BRANCH}'
+                        }
+                    }
+                    stage('Parse index') {
+                        dir("${PIPELINE_REPO_DIR}") {
+                            sh "python seed-job/parser.py ${CONTAINER_INDEX_DIR} ${REGISTRY_URL} ${NAMESPACE}"
+                            sh "cat projects.sh"
+                            sh "sh projects.sh"
+                        }
+                    }
+                }
+            }
           env:
-          - name: CONTAINER_INDEX_LOCATION
-            value: https://github.com/dharmit/ccp-openshift-index
+          - name: CONTAINER_INDEX_REPO
+            value: ${CONTAINER_INDEX_REPO}
           - name: CONTAINER_INDEX_BRANCH
-            value: master
-          - name: PIPELINE_TARGET_DIR
-            value: "source"
-          - name: JENKINSFILE_GIT_BRANCH
-            value: ${JENKINSFILE_GIT_BRANCH}
+            value: ${CONTAINER_INDEX_BRANCH}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
+          - name: PIPELINE_REPO
+            value: ${PIPELINE_REPO}
+          - name: PIPELINE_BRANCH
+            value: ${PIPELINE_BRANCH}
+          - name: PIPELINE_REPO_DIR
+            value: ${PIPELINE_REPO_DIR}
+          - name: NAMESPACE
+            value: ${NAMESPACE}
       triggers:
           - type: ConfigChange
 parameters:
-- description: "Pipeline repo branch to build off"
-  displayName: Pipeline repo branch
-  name: PIPELINE_BRANCH
-- description: Git repo branch containing the Jenkinsfile
-  displayName: Jenkinsfile repo branch
-  name: JENKINSFILE_GIT_BRANCH
-  required: true
-  value: master
 - description: URL of the registry to which image is to be pushed
   name: REGISTRY_URL
   displayName: Registry URL
+- description: "Container Index to use"
+  displayName: Container Index
+  name: CONTAINER_INDEX_REPO
+  required: true
+  value: https://github.com/dharmit/ccp-openshift-index
+- description: "Container Index branch to use"
+  displayName: Container Index branch
+  name: CONTAINER_INDEX_BRANCH
+  required: true
+  value: master
+- description: Repository containing CentOS Container Pipeline service code
+  displayName: Pipeline service repo
+  name: PIPELINE_REPO
+  required: true
+- description: Branch of Pipeline service to checkout to
+  displayName: Pipeline branch
+  name: PIPELINE_BRANCH
+  required: true
+- description: Directory where Pipeline service code is to be cloned
+  displayName: Pipeline repo directory
+  name: PIPELINE_REPO_DIR
+  required: true
+  value: /tmp/pipeline-service
+- description: Directory where container index is to be cloned
+  displayName: Container index directory
+  name: CONTAINER_INDEX_DIR
+  required: true
+  value: /tmp/container-index
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true

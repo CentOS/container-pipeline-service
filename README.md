@@ -74,9 +74,12 @@ Do this on host system:
 ```bash
 $ oc login -u system:admin
 $ oc process -p MEMORY_LIMIT=1Gi openshift//jenkins-persistent| oc create -f -
-$ oc adm policy add-scc-to-user privileged system:serviceaccount:myproject:jenkins
-$ oc adm policy add-role-to-user system:image-builder system:serviceaccount:myproject:jenkins
+$ oc adm policy add-scc-to-user privileged system:serviceaccount:<openshift-namespace>:jenkins
+$ oc adm policy add-role-to-user system:image-builder system:serviceaccount:<openshift-namespace>:jenkins
 ```
+
+where `<openshift-namespace>` is the name of the OpenShift project in which
+you're working.
 
 This spins up a persistent Jenkins deployment which has 1 GB memory alloted to
 it. The Jenkins service spun up by this template is recognized and used by the
@@ -92,7 +95,7 @@ $ git clone https://github.com/dharmit/ccp-openshift/
 $ cd ccp-openshift
 $ oc login -u developer
 <use any password>
-$ oc process -p PIPELINE_BRANCH=<branch-name> -p JENKINSFILE_GIT_BRANCH=<branch-name> -p REGISTRY_URL=<registry-ip>:<port> -f seed-job/buildtemplate.yaml |oc create -f -
+$ oc process -p PIPELINE_BRANCH=<branch-name> -p JENKINSFILE_GIT_BRANCH=<branch-name> -p REGISTRY_URL=<registry-ip>:<port> -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml |oc create -f -
 ```
 
 `<branch-name>` in above command needs to be replaced with the branch of this
