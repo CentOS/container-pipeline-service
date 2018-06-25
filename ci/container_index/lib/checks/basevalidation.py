@@ -116,7 +116,9 @@ class StatefullValidator(Validator):
     """
 
     def __init__(self, validation_data, file_name):
-        super(StatefullValidator, self).__init__(validation_data, file_name)
+        super(StatefullValidator, self).__init__(
+            validation_data, file_name
+        )
         state.init()
         self.state = state.get_state()
 
@@ -131,16 +133,18 @@ class StatefullValidator(Validator):
 class OptionalClonedValidator(Validator):
 
     def __init__(self, validation_data, file_name):
-        super(OptionalClonedValidator, self).__init__(validation_data, file_name)
+        super(OptionalClonedValidator, self).__init__(
+            validation_data, file_name
+        )
         self.message.title = "Optional Cloned Validator"
         self.clone = None
         self.clone_location = None
 
     def _clone_repo(self):
         self.clone_location = state.git_update(
-                self.validation_data.get(FieldKeys.GIT_URL),
-                self.validation_data.get(FieldKeys.GIT_BRANCH)
-            )
+            self.validation_data.get(FieldKeys.GIT_URL),
+            self.validation_data.get(FieldKeys.GIT_BRANCH)
+        )
 
     def _validate_after_preperation(self):
         pass
@@ -148,6 +152,8 @@ class OptionalClonedValidator(Validator):
     def _perform_validation(self):
         self.clone = self.validation_data.get(CheckKeys.CLONE)
         if not self.clone:
-            self.clone_location = self.validation_data.get(CheckKeys.CLONE_LOCATION)
+            self.clone_location = self.validation_data.get(
+                CheckKeys.CLONE_LOCATION
+            )
         else:
             self._clone_repo()

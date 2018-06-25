@@ -40,7 +40,6 @@ class Engine(object):
                 "Could not find location specified for index."
             )
 
-
         # Goto the index location and collect the index files
         self.index_location = path.abspath(index_location)
         self.index_d = path.join(self.index_location, "index.d")
@@ -66,11 +65,10 @@ class Engine(object):
         self._load_validators(schema_validation, v_list)
 
         # - Value Validators
-        # TODO
         if (not value_validators or not
            isinstance(value_validators, list) or
            len(value_validators) <= 0):
-           v_list = config.value_validators
+            v_list = config.value_validators
         else:
             v_list = value_validators
         self._load_validators(value_validation, v_list)

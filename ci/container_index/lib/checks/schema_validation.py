@@ -1,6 +1,7 @@
 import ci.container_index.lib.utils as index_utils
 from ci.container_index.lib.checks.basevalidation\
-    import Validator, BasicSchemaValidator, StringFieldValidator, StatefullValidator
+    import Validator, BasicSchemaValidator,\
+    StringFieldValidator, StatefullValidator
 from ci.container_index.lib.constants import *
 import ci.container_index.lib.utils as index_utils
 from ci.container_index.lib.constants import *
@@ -190,8 +191,8 @@ class UniqueEntryValidator(StatefullValidator):
         if self.file_base_name not in self.state[StateKeys.UNIQUE_AJD]:
             self.state[StateKeys.UNIQUE_AJD][self.file_base_name] = []
 
-        if self.validation_data.get(FieldKeys.ID)\
-            in self.state[StateKeys.UNIQUE_IDS][self.file_base_name]:
+        if self.validation_data.get(FieldKeys.ID) in
+        self.state[StateKeys.UNIQUE_IDS][self.file_base_name]:
             self._invalidate("The id field must be unique.")
             return
         self.state[StateKeys.UNIQUE_IDS][self.file_base_name].append(
@@ -206,7 +207,9 @@ class UniqueEntryValidator(StatefullValidator):
             )
         )
         if new_hash in self.state[StateKeys.UNIQUE_AJD][self.file_base_name]:
-            self._invalidate("The ck app-id, job-id and desired-tag must be unique")
+            self._invalidate(
+                "The ck app-id, job-id and desired-tag must be unique"
+            )
             return
 
         self.state[StateKeys.UNIQUE_AJD][self.file_base_name].append(new_hash)

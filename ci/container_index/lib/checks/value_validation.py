@@ -1,6 +1,7 @@
 import ci.container_index.lib.utils as index_utils
 from ci.container_index.lib.constants import FieldKeys, StateKeys, CheckKeys
-from ci.container_index.lib.checks.basevalidation import OptionalClonedValidator
+from ci.container_index.lib.checks.basevalidation import\
+    OptionalClonedValidator
 from os import path
 import ci.container_index.lib.state as state
 
@@ -20,7 +21,9 @@ class GitCloneValidator(OptionalClonedValidator):
 class CccpYamlExistsValidator(OptionalClonedValidator):
 
     def __init__(self, validation_data, file_name):
-        super(CccpYamlExistsValidator, self).__init__(validation_data, file_name)
+        super(CccpYamlExistsValidator, self).__init__(
+            validation_data, file_name
+        )
 
     def _validate_after_preperation(self):
         self.message.title = "CCCP YAML Validator"
