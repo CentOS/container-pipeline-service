@@ -3,9 +3,10 @@ This file contains base classes for all the validators.
 """
 
 import os
-from ci.container_index.lib.utils import IndexCIMessage
+
 import ci.container_index.lib.state as state
 from ci.container_index.lib.constants import FieldKeys, CheckKeys
+from ci.container_index.lib.utils import IndexCIMessage
 
 
 class Validator(object):
@@ -51,7 +52,7 @@ class Validator(object):
 
 class BasicSchemaValidator(Validator):
     """
-    Acts as parent of all Schema validatos classes
+    Acts as parent of all Schema validators classes
     """
 
     def __init__(self, validation_data, file_name):
@@ -70,6 +71,10 @@ class BasicSchemaValidator(Validator):
         self._extra_validation()
 
     def _extra_validation(self):
+        """
+        This function can be overriden to add more schema validations
+        that will need to be done.
+        """
         pass
 
 
@@ -83,11 +88,14 @@ class StringFieldValidator(BasicSchemaValidator):
         self.field_name = "UNKNOWN"
 
     def _extra_validation_1(self):
+        """
+        This function can be overridden to add any extra validations
+        """
         pass
 
     def _extra_validation(self):
         if not isinstance(
-            self.validation_data.get(self.field_name), str
+                self.validation_data.get(self.field_name), str
         ):
             self._invalidate(
                 str.format(
@@ -107,7 +115,7 @@ class StringFieldValidator(BasicSchemaValidator):
         self._extra_validation_1()
 
 
-class StatefullValidator(Validator):
+class StateValidator(Validator):
     """
     Acts as parent for stateful validations.
     Note: If you are using any of these classes
@@ -116,13 +124,16 @@ class StatefullValidator(Validator):
     """
 
     def __init__(self, validation_data, file_name):
-        super(StatefullValidator, self).__init__(
+        super(StateValidator, self).__init__(
             validation_data, file_name
         )
         state.init()
         self.state = state.get_state()
 
     def _stateful_validation(self):
+        """
+        Override to add any more required validation.
+        """
         pass
 
     def _perform_validation(self):
@@ -131,6 +142,10 @@ class StatefullValidator(Validator):
 
 
 class OptionalClonedValidator(Validator):
+    """
+    This class contains logic to either optionally clone repo, using git-url
+    or to use existing cloned code to perform validation.
+    """
 
     def __init__(self, validation_data, file_name):
         super(OptionalClonedValidator, self).__init__(
@@ -141,15 +156,22 @@ class OptionalClonedValidator(Validator):
         self.clone_location = None
 
     def _clone_repo(self):
+        """
+        This function clones the git-url and checks out specified git branch.
+        """
         self.clone_location = state.git_update(
             self.validation_data.get(FieldKeys.GIT_URL),
             self.validation_data.get(FieldKeys.GIT_BRANCH)
         )
 
-    def _validate_after_preperation(self):
+    def _validate_after(self):
+        """
+        Override to add validations to be done after
+        """
         pass
 
     def _perform_validation(self):
+        # Clone the repo, if needed
         self.clone = self.validation_data.get(CheckKeys.CLONE)
         if not self.clone:
             self.clone_location = self.validation_data.get(
@@ -157,3 +179,4 @@ class OptionalClonedValidator(Validator):
             )
         else:
             self._clone_repo()
+        self._validate_after()

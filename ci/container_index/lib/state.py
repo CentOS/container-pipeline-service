@@ -1,8 +1,8 @@
-import ci.container_index.lib.utils as utils
 from os import path, mkdir, remove
 from uuid import uuid4
-from ci.container_index.lib.constants import StateKeys
 
+import ci.container_index.lib.utils as utils
+from ci.container_index.lib.constants import StateKeys
 
 STATE_LOCATION = str.format(
     "{}/.index_ci_{}",

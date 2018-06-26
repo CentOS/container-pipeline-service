@@ -1,15 +1,9 @@
-import yaml
-
-from datetime import datetime, date
-
-from glob import glob
-from os import environ, path, mkdir, unsetenv, listdir,\
-    unlink, devnull, getenv, getcwd, chdir, system, remove
-from shutil import rmtree
-
-from subprocess import check_call, CalledProcessError, STDOUT
 import hashlib
 import re
+from os import path, devnull, getcwd, chdir, system
+from subprocess import check_call, CalledProcessError, STDOUT
+
+import yaml
 
 
 def execute_command(cmd):
@@ -90,7 +84,6 @@ def match_regex(pattern, match):
 
 
 class IndexCIMessage(object):
-
     def __init__(self, data, title=None):
         self.title = title if title else "Untitled"
         self.success = True
