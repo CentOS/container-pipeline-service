@@ -97,6 +97,7 @@ objects:
                             }
                         )
                         sh "docker stop scan-data && docker rm scan-data"
+                        sh "docker volume prune -f"
                     }
                     stage("Push image to registry") {
                         sh "docker tag ${image_name} ${image_name_with_registry}"
