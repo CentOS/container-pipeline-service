@@ -54,7 +54,8 @@ objects:
                 node('ccp-pipeline') {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
-                    def container_name = "scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
+                    def scan_data_image = "172.29.33.48:5000/nshaikh/ccp-jenkins-slave"
+                    def scan_data_container = "scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
                     stage('Checkout Source') {
                         checkout([
                             $class: 'GitSCM',
@@ -85,18 +86,18 @@ objects:
                         }
                     }
                     stage('Scan the image') {
-                        sh "docker create --name=scan-data 172.29.33.48:5000/nshaikh/ccp-jenkins-slave"
+                        sh "docker create --name=${scan_data_container} ${scan_data_image}"
                         parallel (
                             "list yum update": {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from scan-data --entrypoint /bin/python ${image_name} /opt/scanning/yumupdates.py > yum-check-update 2>&1", returnStatus: true)
+                              sh (returnStdout: true, script: "docker run --rm --volumes-from ${scan_data_container} --entrypoint /bin/python ${image_name} /opt/scanning/yumupdates.py > yum-check-update 2>&1", returnStatus: true)
                               sh "cat yum-check-update"
                             },
-                            "Verify installed RPMs contents:" {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from scan-data --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
+                            "Verify installed RPMs contents": {
+                              sh (returnStdout: true, script: "docker run --rm --volumes-from ${scan_data_container} --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
                               sh "cat rpm-verify"
                             }
                         )
-                        sh "docker stop scan-data && docker rm scan-data"
+                        sh "docker stop ${scan_data_container} && docker rm ${scan_data_container}"
                         sh "docker volume prune -f"
                     }
                     stage("Push image to registry") {
