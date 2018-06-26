@@ -95,6 +95,10 @@ objects:
                             "Verify installed RPMs contents": {
                               sh (returnStdout: true, script: "docker run --rm --volumes-from ${scan_data_container} --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
                               sh "cat rpm-verify"
+                            },
+                            "List pip, npm, gem updates": {
+                              sh (returnStdout: true, script: "docker run --rm --volumes-from ${scan_data_container} --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
+                              sh "cat misc-updates"
                             }
                         )
                         sh "docker stop ${scan_data_container} && docker rm ${scan_data_container}"
