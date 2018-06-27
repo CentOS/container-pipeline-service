@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: scan-data
+spec:
+  selector:
+    matchLabels:
+      name: scan-data
+  template:
+    metadata:
+      labels:
+        name: scan-data
+    spec:
+      nodeSelector:
+        purpose: prod
+      containers:
+      - image: 172.29.33.48:5000/nshaikh/ccp-openshift-scan
+        imagePullPolicy: Always
+        name: scan-data
+      serviceAccount: default
