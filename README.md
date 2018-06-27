@@ -72,8 +72,9 @@ the Jenkins service account.
 Do this on host system:
 
 ```bash
-$ oc login -u system:admin
+$ oc login -u developer
 $ oc process -p MEMORY_LIMIT=1Gi openshift//jenkins-persistent| oc create -f -
+$ oc login -u system:admin
 $ oc adm policy add-scc-to-user privileged system:serviceaccount:<openshift-namespace>:jenkins
 $ oc adm policy add-role-to-user system:image-builder system:serviceaccount:<openshift-namespace>:jenkins
 ```
@@ -94,12 +95,18 @@ cluster as user `developer` and create a build from the buildconfig under
 $ git clone https://github.com/dharmit/ccp-openshift/
 $ cd ccp-openshift
 $ oc login -u developer
-<use any password>
-$ oc process -p PIPELINE_BRANCH=<branch-name> -p JENKINSFILE_GIT_BRANCH=<branch-name> -p REGISTRY_URL=<registry-ip>:<port> -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml |oc create -f -
+$ oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml | oc create -f - 
 ```
 
-`<branch-name>` in above command needs to be replaced with the branch of this
-repo (or its fork - for dev purposes) you want to use to deploy.
+If you're a developer working on your fork, export appropriate values for the
+variables used above. Otherwise you can use the command:
+
+```bash
+$ oc process -p PIPELINE_REPO=https://github.com/dharmit/ccp-openshift -p PIPELINE_BRANCH=master -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml | oc create -f -
+```
+
+`REGISTRY_URL` is the IP:port combination of remote registry. For example
+`192.168.122.38:5000`.
 
 Now check in the OpenShift web console under Build -> Pipelines and see if a
 Jenkins Pipeline has been created. Be patient because the image being used is
