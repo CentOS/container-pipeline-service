@@ -35,7 +35,7 @@ objects:
                 containers: [
                   containerTemplate(
                     name: 'jnlp',
-                    image: '172.29.33.48:5000/nshaikh/ccp-jenkins-slave',
+                    image: 'registry.centos.org/dharmit/ccp-openshift-slave',
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
@@ -54,7 +54,7 @@ objects:
                 node('ccp-pipeline') {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
-                    def scan_data_image = "172.29.33.48:5000/nshaikh/ccp-jenkins-slave"
+                    def scan_data_image = "172.29.33.48:5000/nshaikh/ccp-openshift-scan"
                     def scan_data_container = "scan_${APP_ID}_${JOB_ID}_${DESIRED_TAG}"
                     stage('Checkout Source') {
                         checkout([
