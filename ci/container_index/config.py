@@ -12,6 +12,7 @@ schema_validators = [
     "GitURLValidator",
     "GitPathValidator",
     "GitBranchValidator",
+    "PrebuildValidator",
     "TargetFileValidator",
     "NotifyEmailValidator",
     "BuildContextValidator"

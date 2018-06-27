@@ -20,6 +20,8 @@ class FieldKeys(object):
     NOTIFY_EMAIL = "notify-email"
     BUILD_CONTEXT = "build-context"
     DEPENDS_ON = "depends-on"
+    PREBUILD_SCRIPT = "prebuild-script"
+    PREBUILD_CONTEXT = "prebuild-context"
 
 
 class CheckKeys(object):
