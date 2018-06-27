@@ -6,6 +6,7 @@ from os import path
 
 from ci.container_index.lib.checks.basevalidation import \
     OptionalClonedValidator
+from  ci.container_index.lib.constants import *
 
 
 class GitCloneValidator(OptionalClonedValidator):
@@ -40,4 +41,29 @@ class CccpYamlExistsValidator(OptionalClonedValidator):
             path.exists(path.join(self.clone_location, ".cccp.yaml"))
         ]):
             self._invalidate("CCCP yaml file does not exist in repository.")
+            return
+
+
+class TargetFileExistsValidator(OptionalClonedValidator):
+    def __init__(self, validation_data, file_name):
+        super(TargetFileExistsValidator, self).__init__(
+            validation_data, file_name
+        )
+
+    def _validate_after(self):
+        self.message.title = "Target File Exists Validator"
+        if (not path.exists(
+            path.join(
+                self.clone_location,
+                self.validation_data.get(FieldKeys.GIT_PATH),
+                self.validation_data.get(FieldKeys.TARGET_FILE)
+            )
+        )):
+            self._invalidate(
+                str.format(
+                    "Target File {} does not exist, at the path {}",
+                    self.validation_data.get(FieldKeys.TARGET_FILE),
+                    self.validation_data.get(FieldKeys.GIT_PATH)
+                )
+            )
             return
