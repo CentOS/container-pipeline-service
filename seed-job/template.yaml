@@ -86,17 +86,18 @@ objects:
                         }
                     }
                     stage('Scan the image') {
+                        sh "oc login -u system:admin"
                         parallel (
                             "list yum update": {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps | grep k8s_scan-data_scan-data | cut -d ' ' -f 1` --entrypoint /bin/python ${image_name} /opt/scanning/yumupdates.py > yum-check-update 2>&1", returnStatus: true)
+                              sh (returnStdout: true, script: "docker run --rm --volumes-from `oc get pods -l name=scan-data -o jsonpath='{.items[0].status.containerStatuses[0].containerID}' | cut -c 10-` > yum-check-update 2>&1", returnStatus: true)
                               sh "cat yum-check-update"
                             },
                             "Verify installed RPMs contents": {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps | grep k8s_scan-data_scan-data | cut -d ' ' -f 1` --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
+                              sh (returnStdout: true, script: "docker run --rm --volumes-from `oc get pods -l name=scan-data -o jsonpath='{.items[0].status.containerStatuses[0].containerID}' | cut -c 10-` --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
                               sh "cat rpm-verify"
                             },
                             "List pip, npm, gem updates": {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps | grep k8s_scan-data_scan-data | cut -d ' ' -f 1` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
+                              sh (returnStdout: true, script: "docker run --rm --volumes-from `oc get pods -l name=scan-data -o jsonpath='{.items[0].status.containerStatuses[0].containerID}' | cut -c 10-` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
                               sh "cat misc-updates"
                             }
                         )
