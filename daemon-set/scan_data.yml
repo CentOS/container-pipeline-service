@@ -14,7 +14,7 @@ spec:
       nodeSelector:
         purpose: prod
       containers:
-      - image: 172.29.33.48:5000/nshaikh/ccp-openshift-scan
+      - image: registry.centos.org/navidshaikh/ccp-openshift-scan
         imagePullPolicy: Always
         name: scan-data
       serviceAccount: jenkins
