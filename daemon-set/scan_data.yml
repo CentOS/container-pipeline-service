@@ -17,4 +17,4 @@ spec:
       - image: 172.29.33.48:5000/nshaikh/ccp-openshift-scan
         imagePullPolicy: Always
         name: scan-data
-      serviceAccount: default
+      serviceAccount: jenkins
