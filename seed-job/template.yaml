@@ -97,6 +97,11 @@ objects:
                             "List pip, npm, gem updates": {
                               sh (returnStdout: true, script: "docker run --rm --volumes-from `oc get pods -l ${scan_data_container} -o jsonpath='{.items[0].status.containerStatuses[0].containerID}' | cut -c 10-` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
                               sh "cat misc-updates"
+                            },
+                            "Container capabilities scan": {
+                              def run_label = sh (returnStdout: true, script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
+                              sh (returnStdout: true, script: "docker run --rm --volumes-from `oc get pods -l ${scan_data_container} -o jsonpath='{.items[0].status.containerStatuses[0].containerID}' | cut -c 10-` --entrypoint /bin/python ${image_name} /opt/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1", returnStatus: true)
+                              sh "cat capabilities"
                             }
                         )
                     }
