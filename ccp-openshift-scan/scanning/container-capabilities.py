@@ -46,9 +46,7 @@ def check_args(cmd):
             if not found_sec_arg:
                 print("\nThis container uses privileged "
                       "security switches:")
-            print("\n\033[1mINFO: {}\033[0m "
-                  "\n{}{}".format(sec_arg, " " * 6,
-                                           security_args[sec_arg]))
+            print("\nINFO: {}\n\t{}".format(sec_arg, security_args[sec_arg]))
             found_sec_arg = True
     if found_sec_arg:
         print("\nFor more information on these switches and their "
