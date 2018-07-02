@@ -1,13 +1,9 @@
-import yaml
-
-from datetime import datetime, date
-
-from glob import glob
-from os import environ, path, mkdir, unsetenv, listdir,\
-    unlink, devnull, getenv, getcwd, chdir, system
-from shutil import rmtree
-
+import hashlib
+import re
+from os import path, devnull, getcwd, chdir, system
 from subprocess import check_call, CalledProcessError, STDOUT
+
+import yaml
 
 
 def execute_command(cmd):
@@ -31,33 +27,35 @@ def load_yaml(file_path):
     return data, err
 
 
-def dump_yaml(file_path, data):
+def dump_yaml(file_path, data, override_old=True):
     err = None
     try:
-        with open(file_path, "w") as f:
-            yaml.dump(f)
+        with open(file_path, "w+" if not override_old else "w") as f:
+            yaml.dump(data, f)
     except Exception as e:
         err = e.message
     return err
 
 
+def gen_hash(data):
+    return str(hashlib.sha224(data).hexdigest())
+
+
 def update_git_repo(git_url, git_branch, clone_location="."):
-    t = git_url.split(':')[1] if ':' in git_url else git_url
-    clone_path = path.join(clone_location, t)
     ret = None
 
-    if not path.exists(clone_path):
-        clone_command = ["git", "clone", git_url, clone_path]
+    if not path.exists(clone_location):
+        clone_command = ["git", "clone", git_url, clone_location]
         if not execute_command(clone_command):
             return None
 
     get_back = getcwd()
-    chdir(clone_path)
+    chdir(clone_location)
 
     # This command fetches all branches of added remotes of git repo.
     branches_cmd = r"""git branch -r | grep -v '\->' | while
     read remote; do git branch --track "${remote#origin/}"
-    $remote" &> /dev/null; done"""
+    $remote &> /dev/null; done """
 
     system(branches_cmd)
     cmd = ["git", "fetch", "--all"]
@@ -71,7 +69,7 @@ def update_git_repo(git_url, git_branch, clone_location="."):
     cmd = ["git", "checkout", "origin/" + git_branch]
 
     if execute_command(cmd):
-        ret = clone_path
+        ret = clone_location
     chdir(get_back)
     return ret
 
@@ -81,8 +79,11 @@ def print_out(data, verbose=True):
         print(data)
 
 
-class IndexCIMessage(object):
+def match_regex(pattern, match):
+    return re.compile(pattern).match(match)
 
+
+class IndexCIMessage(object):
     def __init__(self, data, title=None):
         self.title = title if title else "Untitled"
         self.success = True
