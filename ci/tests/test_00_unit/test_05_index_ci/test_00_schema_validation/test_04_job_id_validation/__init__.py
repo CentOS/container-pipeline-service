@@ -4,40 +4,36 @@ from ci.container_index.lib.constants import *
 import ci.container_index.lib.checks.schema_validation as schema_validation
 
 
-class ProjectsValidationTests(IndexCIBase):
+class JobIDValidationTests(IndexCIBase):
 
     def test_00_setup_test(self):
         self._setup_test()
 
-    def test_01_top_level_validator_success_valid_projects_list(self):
+    def test_01_validation_succeeds_valid_job_id(self):
         self.assertTrue(
-            schema_validation.TopLevelProjectsValidator(
+            schema_validation.JobIDValidator(
                 {
-                    FieldKeys.PROJECTS: [
-                        1, 2
-                    ]
-                },
-                DUMMY_INDEX_FILE
-            )
-        )
-
-    def test_02_top_level_validator_fails_missing_project(self):
-        self.assertFalse(
-            schema_validation.TopLevelProjectsValidator(
-                {
-                    "Prj": [
-                        1, 2
-                    ]
+                    FieldKeys.JOB_ID: "python"
                 },
                 DUMMY_INDEX_FILE
             ).validate().success
         )
 
-    def test_03_top_level_validator_fails_projects_not_list(self):
+    def test_02_validation_fails_missing_job_id(self):
         self.assertFalse(
-            schema_validation.TopLevelProjectsValidator(
+            schema_validation.JobIDValidator(
                 {
-                    FieldKeys.PROJECTS: "Ramu"
+                    "Job-ID": "test"
+                },
+                DUMMY_INDEX_FILE
+            ).validate().success
+        )
+
+    def test_03_validation_fails_job_id_not_string(self):
+        self.assertFalse(
+            schema_validation.JobIDValidator(
+                {
+                    FieldKeys.JOB_ID: 1
                 },
                 DUMMY_INDEX_FILE
             ).validate().success

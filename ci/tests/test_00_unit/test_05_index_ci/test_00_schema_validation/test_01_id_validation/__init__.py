@@ -9,7 +9,17 @@ class IDValidationTests(IndexCIBase):
     def test_00_setup_test(self):
         self._setup_test()
 
-    def test_01_validation_fails_missing_id(self):
+    def test_01_validation_succeeds_valid_id(self):
+        self.assertTrue(
+            schema_validation.IDValidator(
+                {
+                    FieldKeys.ID: 1
+                },
+                DUMMY_INDEX_FILE
+            ).validate().success
+        )
+
+    def test_02_validation_fails_missing_id(self):
         self.assertFalse(
             schema_validation.IDValidator(
                 {
@@ -19,7 +29,7 @@ class IDValidationTests(IndexCIBase):
             ).validate().success
         )
 
-    def test_02_validation_fails_id_not_number(self):
+    def test_03_validation_fails_id_not_number(self):
         self.assertFalse(
             schema_validation.IDValidator(
                 {
@@ -28,13 +38,3 @@ class IDValidationTests(IndexCIBase):
                 DUMMY_INDEX_FILE
             ).validate().success
         )
-
-    def test_03_validation_succeeds_valid_id(self):
-            self.assertTrue(
-                schema_validation.IDValidator(
-                    {
-                        FieldKeys.ID: 1
-                    },
-                    DUMMY_INDEX_FILE
-                ).validate().success
-            )
