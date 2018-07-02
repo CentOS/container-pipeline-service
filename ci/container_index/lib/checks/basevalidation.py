@@ -183,6 +183,9 @@ class OptionalClonedValidator(Validator):
 
 
 class CCCPYamlValidator(OptionalClonedValidator):
+    """
+    This class acts as a base class for doing all validations w.r.t cccp yaml.
+    """
     def __init__(self, validation_data, file_name):
         super(CCCPYamlValidator, self).__init__(validation_data, file_name)
         self.message.title = "CCCP Yaml Validator"
@@ -190,6 +193,9 @@ class CCCPYamlValidator(OptionalClonedValidator):
         self._load_error = None
 
     def _load_cccp_yaml(self):
+        """
+        Loads the cccp yaml data, assuming it can find the file
+        """
         cccp_dir = os.path.join(self.clone_location, self.validation_data.get(
             FieldKeys.GIT_PATH))
         for p in [
@@ -203,6 +209,9 @@ class CCCPYamlValidator(OptionalClonedValidator):
                 break
 
     def _validate_cccp_yaml(self):
+        """
+        Perform validation, after loading cccp yaml data
+        """
         pass
 
     def _validate_after(self):
