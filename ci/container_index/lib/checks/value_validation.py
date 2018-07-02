@@ -25,7 +25,6 @@ class GitCloneValidator(OptionalClonedValidator):
 
 class CCCPYamlExistsValidator(CCCPYamlValidator):
     """
-
     Validates if cccp yaml file exists or not
     """
     def __init__(self, validation_data, file_name):
