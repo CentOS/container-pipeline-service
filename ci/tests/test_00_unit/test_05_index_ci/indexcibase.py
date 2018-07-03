@@ -19,12 +19,6 @@ class IndexCIBase(BaseTestCase):
         print(msg)
         print("=" * count)
 
-    def init_test(self):
-        index_ci_state.init()
-
-    def cleanup_test(self):
-        index_ci_state.clean_up()
-
     def _setup_test(self):
         """Setup the requirements for test"""
         # Setup node info
