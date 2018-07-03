@@ -235,7 +235,7 @@ class UniqueEntryValidator(StateValidator):
             )
         )
         if (new_hash in self.state.data[StateKeys.UNIQUE_AJD]
-             [self.file_base_name]):
+           [self.file_base_name]):
             self._invalidate(
                 "The ck app-id, job-id and desired-tag must be unique"
             )
