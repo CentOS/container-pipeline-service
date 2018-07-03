@@ -12,7 +12,7 @@ spec:
         name: scan-data
     spec:
       nodeSelector:
-        purpose: prod
+        zone: default
       containers:
       - image: registry.centos.org/navidshaikh/ccp-openshift-scan
         imagePullPolicy: Always
