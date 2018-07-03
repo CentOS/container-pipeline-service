@@ -96,7 +96,7 @@ This spins up a persistent Jenkins deployment which has 1 GB memory alloted to
 it. The Jenkins service spun up by this template is recognized and used by the
 Jenkins Pipelines.
 
-**Configuring DaemonSet**
+**Configuring DaemonSet:**
 
 Scanning is one of the build pipeline phase the service offers.
 In scanning, we introspect the image built. In order to make scanning module
