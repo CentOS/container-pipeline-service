@@ -29,7 +29,7 @@ $ minishift start --disk-size 50GB --memory 8GB --iso-url centos --openshift-ver
 Memory and storage can be varied based on availability. It is recommended to
 have 4GB memory and 20GB disk space as minimum. However, make sure to use
 `--iso-url centos` part in above command as we have setup things on CentOS based
-minishift VM. 
+minishift VM.
 
 **CentOS VM**
 
@@ -85,14 +85,35 @@ This spins up a persistent Jenkins deployment which has 1 GB memory alloted to
 it. The Jenkins service spun up by this template is recognized and used by the
 Jenkins Pipelines.
 
-Now, clone this repo on host system (not the VM). Login to the OpenShift
-cluster as user `developer` and create a build from the buildconfig under
-`seed-job` directory:
+**Configuring DaemonSet:**
+
+Scanning is one of the build pipeline phase the service offers.
+In scanning, we introspect the image built. In order to make scanning module
+available on all the possible builder nodes, we configure and deploy
+DaemonSet. The DeamonSet spins up a pod per builder node, which avails
+a docker volume for all the containers on the node. The scan stage in pipeline
+uses the volume for performing scan phase.
+
+DaemonSet needs to be deployed using cluster admin.
+Configure it with cluster admin user:
 
 ```bash
 # on host system
 $ git clone https://github.com/dharmit/ccp-openshift/
 $ cd ccp-openshift
+$ oc login -u system:admin
+$ oc create -f daemon-set/scan_data.yml
+```
+
+Note: The labels and name of pod defined for DaemonSet are used in pipeline
+[template](seed-job/template.yaml) to identify the container created using DaemonSet.
+Please keep the mentioned fields intact in DaemonSet template.
+
+Now, login to the OpenShift cluster as user `developer` and create a build from the buildconfig under
+`seed-job` directory in cloned `ccp-openshift` repo:
+
+```bash
+# on host system
 $ oc login -u developer
 <use any password>
 $ oc process -p PIPELINE_BRANCH=<branch-name> -p JENKINSFILE_GIT_BRANCH=<branch-name> -p REGISTRY_URL=<registry-ip>:<port> -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml |oc create -f -
