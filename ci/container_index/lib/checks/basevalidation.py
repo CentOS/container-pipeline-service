@@ -6,7 +6,7 @@ import os
 
 import ci.container_index.lib.state as state
 from ci.container_index.lib.constants import FieldKeys, CheckKeys
-from ci.container_index.lib.utils import IndexCIMessage
+from ci.container_index.lib.utils import IndexCIMessage, load_yaml
 
 
 class Validator(object):
@@ -180,3 +180,55 @@ class OptionalClonedValidator(Validator):
         else:
             self._clone_repo()
         self._validate_after()
+
+
+class CCCPYamlValidator(OptionalClonedValidator):
+    """
+    This class acts as a base class for doing all validations w.r.t cccp yaml.
+    """
+    def __init__(self, validation_data, file_name):
+        super(CCCPYamlValidator, self).__init__(validation_data, file_name)
+        self.message.title = "CCCP Yaml Validator"
+        self._cccp_yaml_data = None
+        self._load_error = None
+
+    def _load_cccp_yaml(self):
+        """
+        Loads the cccp yaml data, assuming it can find the file
+        """
+        cccp_dir = os.path.join(self.clone_location, self.validation_data.get(
+            FieldKeys.GIT_PATH))
+        for p in [
+            os.path.join(cccp_dir, "cccp.yml"),
+            os.path.join(cccp_dir, ".cccp.yml"),
+            os.path.join(cccp_dir, "cccp.yaml"),
+            os.path.join(cccp_dir, ".cccp.yaml")
+        ]:
+            if os.path.exists(p):
+                self._cccp_yaml_data, self._load_error = load_yaml(p)
+                break
+
+    def _validate_cccp_yaml(self):
+        """
+        Perform validation, after loading cccp yaml data
+        """
+        pass
+
+    def _validate_after(self):
+        self._load_cccp_yaml()
+        if self._load_error:
+            self._invalidate(
+                str.format(
+                    "Failed to load the cccp data, error : {}",
+                )
+            )
+            return
+        else:
+            if not self._cccp_yaml_data:
+                self._invalidate(
+                    str.format(
+                        "Failed to find cccp data at {}",
+                        self.validation_data.get(FieldKeys.GIT_PATH)
+                    )
+                )
+        self._validate_cccp_yaml()

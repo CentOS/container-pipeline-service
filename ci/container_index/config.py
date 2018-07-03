@@ -12,6 +12,7 @@ schema_validators = [
     "GitURLValidator",
     "GitPathValidator",
     "GitBranchValidator",
+    "PrebuildValidator",
     "TargetFileValidator",
     "NotifyEmailValidator",
     "BuildContextValidator"
@@ -20,5 +21,8 @@ schema_validators = [
 # The list of default value validators that need to run.
 value_validators = [
     "GitCloneValidator",
-    "CccpYamlExistsValidator"
+    "CCCPYamlExistsValidator",
+    "TargetFileExistsValidator",
+    "PreBuildExistsValidator",
+    "JobIDMatchesIndex"
 ]

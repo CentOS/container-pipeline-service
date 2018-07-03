@@ -119,6 +119,31 @@ class GitURLValidator(StringFieldValidator):
         self.message.title = "Git URL Validation"
 
 
+class PrebuildValidator(Validator):
+    """
+    This class validates the values of pre build parameters.
+    """
+
+    def __init__(self, validation_data, file_name):
+        super(PrebuildValidator, self).__init__(validation_data, file_name)
+        self.message.title = "Pre Build field validation"
+
+    def _perform_validation(self):
+        if FieldKeys.PREBUILD_SCRIPT not in self.validation_data:
+            self._warn("No prebuild-script specified on this container.")
+            return
+        if (not isinstance(
+                self.validation_data.get(FieldKeys.PREBUILD_SCRIPT), str)):
+            self._invalidate("prebuild-script must be a valid string.")
+        if (not isinstance(
+                self.validation_data.get(FieldKeys.PREBUILD_CONTEXT), str)):
+            self._invalidate("prebuild-context must be a valid string.")
+        if len(self.validation_data.get(FieldKeys.PREBUILD_SCRIPT) <= 0):
+            self._invalidate("prebuild-script must be of non-zero length")
+        if len(self.validation_data.get(FieldKeys.PREBUILD_CONTEXT) <= 0):
+            self._invalidate("prebuild-context must be of non-zero length")
+
+
 class GitPathValidator(StringFieldValidator):
     """
     Checks the formatting git-path field of the data.
