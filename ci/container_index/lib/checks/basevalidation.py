@@ -127,8 +127,7 @@ class StateValidator(Validator):
         super(StateValidator, self).__init__(
             validation_data, file_name
         )
-        state.init()
-        self.state = state.get_state()
+        self.state = self.validation_data.get(CheckKeys.STATE)
 
     def _stateful_validation(self):
         """
@@ -138,10 +137,10 @@ class StateValidator(Validator):
 
     def _perform_validation(self):
         self._stateful_validation()
-        state.dump_state(self.state)
+        self.state.save()
 
 
-class OptionalClonedValidator(Validator):
+class OptionalClonedValidator(StateValidator):
     """
     This class contains logic to either optionally clone repo, using git-url
     or to use existing cloned code to perform validation.
@@ -159,7 +158,7 @@ class OptionalClonedValidator(Validator):
         """
         This function clones the git-url and checks out specified git branch.
         """
-        self.clone_location = state.git_update(
+        self.clone_location = self.state.git_update(
             self.validation_data.get(FieldKeys.GIT_URL),
             self.validation_data.get(FieldKeys.GIT_BRANCH)
         )
@@ -170,7 +169,7 @@ class OptionalClonedValidator(Validator):
         """
         pass
 
-    def _perform_validation(self):
+    def _stateful_validation(self):
         # Clone the repo, if needed
         self.clone = self.validation_data.get(CheckKeys.CLONE)
         if not self.clone:

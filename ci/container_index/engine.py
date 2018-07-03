@@ -89,9 +89,10 @@ class Engine(object):
         """
         # Initialize
         overall_success = True
-        state.init()
+        st = state.State()
 
         # Read the files, one by one and validate them.
+        messages = []
         for index_file in self.index_files:
             file_data, err = utils.load_yaml(index_file)
             if file_data:
@@ -110,6 +111,7 @@ class Engine(object):
                         # Instruct all Clone validators to use git-url
                         # and git-branch to clone
                         entry[constants.CheckKeys.CLONE] = True
+                        entry[constants.CheckKeys.STATE] = st
                         # Initialize validators from list and validate data.
                         for v in self.validators:
                             m = v(entry, index_file).validate()
@@ -124,5 +126,5 @@ class Engine(object):
                 )
 
             self.add_summary(index_file, messages)
-        state.clean_up()
+        st.clean_state()
         return overall_success, self.summary
