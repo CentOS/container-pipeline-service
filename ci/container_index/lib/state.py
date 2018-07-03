@@ -7,81 +7,74 @@ from uuid import uuid4
 import ci.container_index.lib.utils as utils
 from ci.container_index.lib.constants import StateKeys
 
-# STATE_LOCATION = Location where state information is stored
-STATE_LOCATION = str.format(
-    "{}/.index_ci_{}",
-    path.expanduser("~"),
-    str(uuid4())
-)
-# Location where git repos are cloned.
-STATE_REPOS = path.join(STATE_LOCATION, "repos")
-# Location of state file wherer state is dumped
-STATE_FILE = path.join(STATE_LOCATION, "state")
 
-
-def init():
+class State(object):
     """
-    Initialize the state, creating necessary directories, if they don't exist
+    Manages the state of needed by some validators
     """
-    if not path.exists(STATE_LOCATION):
-        mkdir(STATE_LOCATION)
-    if not path.exists(STATE_REPOS):
-        mkdir(STATE_REPOS)
 
+    def __init__(self):
+        self.state_location = str.format(
+            "{}/.index_ci_{}",
+            path.expanduser("~"),
+            str(uuid4())
+        )
 
-def clean_up():
-    """
-    Removes the state tracking file.
-    """
-    if path.exists(STATE_FILE):
-        remove(STATE_FILE)
+        self.state_repos = path.join(self.state_location, "repos")
+        self.state_file = path.join(self.state_location, "state")
 
+        if not path.exists(self.state_location):
+            mkdir(self.state_location)
+        if not path.exists(self.state_repos):
+            mkdir(self.state_repos)
 
-def git_update(git_url, git_branch):
-    """
-    Clones provided git repository and checks out specified git branch in
-    STATE_REPOS.
-    :param git_url: The URL of the git repository to clone
-    :param git_branch: The branch to check out in the git repository
-    :return The location where the clone happened.
-    """
-    clone_location = path.join(
-        STATE_REPOS,
-        git_url.split(':')[-1].strip('//')
-    )
-    return utils.update_git_repo(
-        git_url, git_branch,
-        clone_location
-    )
+        self.data = None
+        self.load()
 
+    def clean_state(self):
+        """
+        Cleans up the state.
+        """
+        if path.exists(self.state_file):
+            remove(self.state_file)
 
-def dump_state(state):
-    """
-    Dumps current state into state file
-    :param state: The state information to dump
-    :return:
-    """
-    utils.dump_yaml(STATE_FILE, state)
+    def git_update(self, git_url, git_branch):
+        """
+        Clones and checks out git repository specified git url and branch
+        :param git_url: The url of repository to clone
+        :param git_branch: The branch to checkout
+        :return: The location of clone, if successful, else False
+        """
+        clone_location = path.join(
+            self.state_repos,
+            git_url.split(':')[-1].strip('//')
+        )
+        return utils.update_git_repo(
+            git_url, git_branch,
+            clone_location
+        )
 
+    def save(self):
+        """
+        Writes the state to external file
+        """
+        utils.dump_yaml(self.state_file, self.data)
 
-def get_state():
-    """
-    Gets the state as stored in state file or initializes state.
-    :return: Current state, either from file or initialized.
-    """
-    data = None
-    if path.exists(STATE_FILE):
-        with open(STATE_FILE, "r"):
-            data = utils.load_yaml(STATE_FILE)
+    def load(self):
+        """
+        Loads the state from file
+        :return:
+        """
+        if path.exists(self.state_file):
+            self.data, err = utils.load_yaml(self.state_file)
+            if err:
+                raise Exception("Failed to read state file")
+        else:
+            self.data = {
+                StateKeys.UNIQUE_IDS: {
 
-    if not data or not isinstance(data, dict) or len(data) <= 0:
-        data = {
-            StateKeys.UNIQUE_IDS: {
+                },
+                StateKeys.UNIQUE_AJD: {
 
-            },
-            StateKeys.UNIQUE_AJD: {
-
+                }
             }
-        }
-
-    return data
