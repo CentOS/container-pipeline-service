@@ -197,8 +197,11 @@ class CCCPYamlValidator(OptionalClonedValidator):
         """
         Loads the cccp yaml data, assuming it can find the file
         """
-        cccp_dir = os.path.join(self.clone_location, self.validation_data.get(
-            FieldKeys.GIT_PATH))
+        cccp_dir = str.format(
+            "{}/{}",
+            self.clone_location,
+            self.validation_data.get(FieldKeys.GIT_PATH)
+        )
         for p in [
             os.path.join(cccp_dir, "cccp.yml"),
             os.path.join(cccp_dir, ".cccp.yml"),

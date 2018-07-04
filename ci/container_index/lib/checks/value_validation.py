@@ -49,11 +49,12 @@ class TargetFileExistsValidator(OptionalClonedValidator):
             self._warn("Skipping target file check as prebuild step exists")
             return
         if (not path.exists(
-             path.join(
+            str.format(
+                "{}/{}/{}",
                 self.clone_location,
                 self.validation_data.get(FieldKeys.GIT_PATH),
                 self.validation_data.get(FieldKeys.TARGET_FILE)
-             ))):
+            ))):
             self._invalidate(
                 str.format(
                     "Target File {} does not exist, at the path {}",
