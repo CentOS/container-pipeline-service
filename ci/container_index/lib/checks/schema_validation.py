@@ -214,16 +214,16 @@ class UniqueEntryValidator(StateValidator):
 
     def _stateful_validation(self):
         self.message.title = "Unique ID Validation."
-        if self.file_base_name not in self.state[StateKeys.UNIQUE_IDS]:
-            self.state[StateKeys.UNIQUE_IDS][self.file_base_name] = []
-        if self.file_base_name not in self.state[StateKeys.UNIQUE_AJD]:
-            self.state[StateKeys.UNIQUE_AJD][self.file_base_name] = []
+        if self.file_base_name not in self.state.data[StateKeys.UNIQUE_IDS]:
+            self.state.data[StateKeys.UNIQUE_IDS][self.file_base_name] = []
+        if self.file_base_name not in self.state.data[StateKeys.UNIQUE_AJD]:
+            self.state.data[StateKeys.UNIQUE_AJD][self.file_base_name] = []
 
         if (self.validation_data.get(FieldKeys.ID) in
-                self.state[StateKeys.UNIQUE_IDS][self.file_base_name]):
+                self.state.data[StateKeys.UNIQUE_IDS][self.file_base_name]):
             self._invalidate("The id field must be unique.")
             return
-        self.state[StateKeys.UNIQUE_IDS][self.file_base_name].append(
+        self.state.data[StateKeys.UNIQUE_IDS][self.file_base_name].append(
             self.validation_data.get(FieldKeys.ID)
         )
         new_hash = index_utils.gen_hash(
@@ -234,10 +234,13 @@ class UniqueEntryValidator(StateValidator):
                 str(self.validation_data.get(FieldKeys.DESIRED_TAG))
             )
         )
-        if new_hash in self.state[StateKeys.UNIQUE_AJD][self.file_base_name]:
+        if (new_hash in self.state.data[StateKeys.UNIQUE_AJD]
+           [self.file_base_name]):
             self._invalidate(
                 "The ck app-id, job-id and desired-tag must be unique"
             )
             return
 
-        self.state[StateKeys.UNIQUE_AJD][self.file_base_name].append(new_hash)
+        self.state.data[StateKeys.UNIQUE_AJD][self.file_base_name].append(
+            new_hash
+        )

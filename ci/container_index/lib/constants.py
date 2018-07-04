@@ -30,6 +30,7 @@ class CheckKeys(object):
     """
     CLONE = "clone"
     CLONE_LOCATION = "clone-location"
+    STATE = "state"
 
 
 class StateKeys(object):
