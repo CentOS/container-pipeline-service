@@ -1,7 +1,7 @@
 """
 This file contains all function needed to maintain state accross validators.
 """
-from os import path, mkdir, remove
+from os import path, mkdir, remove, getenv, environ, unsetenv
 from uuid import uuid4
 
 import ci.container_index.lib.utils as utils
@@ -22,6 +22,9 @@ class State(object):
 
         self.state_repos = path.join(self.state_location, "repos")
         self.state_file = path.join(self.state_location, "state")
+        self.old_environ = dict(environ)
+        unsetenv("GIT_ASKPASS")
+        unsetenv("GIT_SSHPASS")
 
         if not path.exists(self.state_location):
             mkdir(self.state_location)
@@ -37,6 +40,16 @@ class State(object):
         """
         if path.exists(self.state_file):
             remove(self.state_file)
+        environ.update(self.old_environ)
+
+    def set_git_env(self):
+        self.old_environ = dict(environ)
+        environ["GIT_TERMINAL_PROMPT"] = "0"
+        unsetenv("GIT_ASKPASS")
+        unsetenv("GIT_SSHPASS")
+
+    def unset_git_env(self):
+        environ.update(self.old_environ)
 
     def git_update(self, git_url, git_branch):
         """
