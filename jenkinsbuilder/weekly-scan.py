@@ -67,7 +67,14 @@ for f in files:
         desired_tag = entry["desired-tag"]
         email = entry["notify-email"]
 
-        entry_short_name = str(app_id) + "/" + str(job_id)
+        project_name = "{}-{}-{}".format(app_id, job_id, desired_tag)
+
+        try:
+            project = Project.objects.get(name=project_name)
+        except Project.DoesNotExist:
+            print ("Skipping {}, as its not found in database.".format(
+                project_name))
+            continue
 
         # test_tag generation, unique per project
         task = subprocess.Popen(
@@ -83,14 +90,7 @@ for f in files:
             os.makedirs(LOGS_DIR)
 
         # Scan an image only if it exists in the catalog!
-        # if entry_short_name in json_catalog:
         job_uuid = str(uuid.uuid4())
-        project_name = str.format(
-            "{app_id}-{job_id}-{desired_tag}",
-            app_id=str(app_id),
-            job_id=str(job_id),
-            desired_tag=str(desired_tag)
-        )
         data = {
             "action": "start_scan",
             "tag": desired_tag,
@@ -109,18 +109,7 @@ for f in files:
         }
 
         job = bs.put(json.dumps(data))
-        # Initializing Database entries
-        project = Project.objects.get(
-            name=project_name
-        )
-        if not project:
-            print(
-                str.format(
-                    "Skipping {}, as project object was not found",
-                    project_name
-                )
-            )
-            continue
+
         build = Build.objects.create(
             uuid=job_uuid,
             project=project,
@@ -134,6 +123,8 @@ for f in files:
         )
         scan_phase.status = 'queued'
         scan_phase.save()
+
+        entry_short_name = str(app_id) + "/" + str(job_id)
 
         print "Image %s sent for weekly scan with data %s" % \
               (entry_short_name, data)
