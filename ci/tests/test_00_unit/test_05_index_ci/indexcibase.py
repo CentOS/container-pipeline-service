@@ -11,14 +11,6 @@ class IndexCIBase(BaseTestCase):
 
     node = "controller"
 
-    @staticmethod
-    def _print_init_msg(msg):
-        count = len(msg)
-        print("\n")
-        print("=" * count)
-        print(msg)
-        print("=" * count)
-
     def _setup_test(self):
         """Setup the requirements for test"""
         # Setup node info
