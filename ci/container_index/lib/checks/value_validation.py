@@ -54,7 +54,7 @@ class TargetFileExistsValidator(OptionalClonedValidator):
                 self.clone_location,
                 self.validation_data.get(FieldKeys.GIT_PATH),
                 self.validation_data.get(FieldKeys.TARGET_FILE)
-            ))):
+             ))):
             self._invalidate(
                 str.format(
                     "Target File {} does not exist, at the path {}",
@@ -78,12 +78,19 @@ class PreBuildExistsValidator(OptionalClonedValidator):
         self.message.title = "Prebuild Exists Validator"
         if FieldKeys.PREBUILD_SCRIPT not in self.validation_data:
             return
+        if (FieldKeys.PREBUILD_SCRIPT in self.validation_data and
+                FieldKeys.PREBUILD_CONTEXT not in self.validation_data):
+            self._invalidate(
+                "Prebuild script is provided, but no prebuild context"
+            )
+            return
 
         if (not path.exists(
-             path.join(
-                self.clone_location,
-                self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
-             )
+                str.format(
+                    "{}/{}",
+                    self.clone_location,
+                    self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
+                )
         )):
             self._invalidate(
                 str.format(
@@ -92,7 +99,8 @@ class PreBuildExistsValidator(OptionalClonedValidator):
                 )
             )
         if (not path.exists(
-                path.join(
+                str.format(
+                    "{}/{}",
                     self.clone_location,
                     self.validation_data.get(FieldKeys.PREBUILD_CONTEXT)
                 )

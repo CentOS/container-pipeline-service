@@ -7,7 +7,7 @@ from uuid import uuid4
 from os import path, mkdir, utime
 
 
-class FileExistsBaseTest(IndexCIBase):
+class FilesBaseTest(IndexCIBase):
 
     def setup_mock_location(self, file_names):
         s = index_ci_state.State()

@@ -1,11 +1,11 @@
 from ci.tests.test_00_unit.test_05_index_ci.test_01_value_validation.\
-    test_01_files_exist_validation.file_exists_base import FileExistsBaseTest
+    test_01_files_validation.file_validation_base import FilesBaseTest
 from ci.tests.test_00_unit.test_05_index_ci.indexcibase import DUMMY_INDEX_FILE
 from ci.container_index.lib.constants import *
 import ci.container_index.lib.checks.value_validation as value_validation
 
 
-class CccpYamlExistsValidationTests(FileExistsBaseTest):
+class CccpYamlExistsValidationTests(FilesBaseTest):
 
     def test_00_setup_test(self):
         self._setup_test()
