@@ -19,7 +19,7 @@ class GitPathValidationTests(IndexCIBase):
             ).validate().success
         )
 
-    def test_02_validation_fails_missing_job_id(self):
+    def test_02_validation_fails_missing_git_path(self):
         self.assertFalse(
             schema_validation.GitPathValidator(
                 {
@@ -29,7 +29,7 @@ class GitPathValidationTests(IndexCIBase):
             ).validate().success
         )
 
-    def test_03_validation_fails_job_id_not_string(self):
+    def test_03_validation_fails_git_path_not_string(self):
         self.assertFalse(
             schema_validation.GitPathValidator(
                 {
