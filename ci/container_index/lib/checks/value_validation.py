@@ -124,7 +124,9 @@ class JobIDMatchesIndex(CCCPYamlValidator):
 
     def _validate_cccp_yaml(self):
         cccp_jid = self._cccp_yaml_data.get(FieldKeys.JOB_ID)
-        if (not cccp_jid and
-           cccp_jid != self.validation_data.get(FieldKeys.JOB_ID)):
+        if not cccp_jid:
+            self._invalidate("job-id must be present in the cccp yaml file")
+            return
+        if cccp_jid and cccp_jid != self.validation_data.get(FieldKeys.JOB_ID):
             self._invalidate("job-id does not match value provided in index.")
             return
