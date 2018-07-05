@@ -14,7 +14,7 @@ spec:
       nodeSelector:
         zone: default
       containers:
-      - image: registry.centos.org/navidshaikh/ccp-openshift-scan
+      - image: registry.centos.org/pipeline-images/ccp-openshift-scan
         imagePullPolicy: Always
         name: scan-data
       serviceAccount: jenkins

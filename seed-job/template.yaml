@@ -35,7 +35,7 @@ objects:
                 containers: [
                   containerTemplate(
                     name: 'jnlp',
-                    image: 'registry.centos.org/dharmit/ccp-openshift-slave',
+                    image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
