@@ -55,76 +55,87 @@ objects:
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def daemonset_name = "scan-data_scan-data"
-                    stage('Checkout Source') {
-                        checkout([
-                            $class: 'GitSCM',
-                            branches: [[name: "${GIT_BRANCH}"]],
-                            doGenerateSubmoduleConfigurations: false,
-                            extensions: [
-                                [$class: 'RelativeTargetDirectory', relativeTargetDir: "${PIPELINE_NAME}"],
-                                [$class: 'CloneOption', depth: 1, noTags: false, reference: '', shallow: true, timeout: 10]
-                            ],
-                            submoduleCfg: [],
-                            userRemoteConfigs: [
-                                [url: "${GIT_URL}"]
-                            ]
-                        ])
-                    }
-                    stage('Prebuild source repo'){
-                        if("${PRE_BUILD_SCRIPT}" != "None")
-                        {
-                           dir("${PIPELINE_NAME}/${PRE_BUILD_CONTEXT}"){
-                              sh "sh ${PRE_BUILD_SCRIPT}"
-                           }
-                        }
-                        else
-                        {
-                            echo "Prebuild is not requested"
-                        }
-                    }
+                    def success = false
                     stage('Lint the Dockerfile'){
                         dir("${PIPELINE_NAME}/${GIT_PATH}"){
                             // def out = sh script:"dockerfile_lint ${TARGET_FILE}", returnStatus: true
                             // sh "echo ${out}"
                             def output = sh(returnStdout: true, script: 'dockerfile_lint ${TARGET_FILE} > result 2>&1', returnStatus: true)
                             sh "cat result"
-                        }
-                    }
-                    stage('Build Docker image') {
-                        dir("${PIPELINE_NAME}/${GIT_PATH}"){
-                            sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ."
-                            sh "docker images"
-                        }
-                    }
-                    stage('Scan the image') {
-                        parallel (
-                            "RPM updates": {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/yumupdates.py > yum-check-update 2>&1", returnStatus: true)
-                              sh "cat yum-check-update"
-                            },
-                            "Verify RPMs": {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
-                              sh "cat rpm-verify"
-                            },
-                            "Miscellaneous updates": {
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
-                              sh "cat misc-updates"
-                            },
-                            "Container capabilities": {
-                              def run_label = sh (returnStdout: true, script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
-                              sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1", returnStatus: true)
-                              sh "cat capabilities"
+                    try {
+                        stage('Checkout Source') {
+                            checkout([
+                                $class: 'GitSCM',
+                                branches: [[name: "${GIT_BRANCH}"]],
+                                doGenerateSubmoduleConfigurations: false,
+                                extensions: [
+                                    [$class: 'RelativeTargetDirectory', relativeTargetDir: "${PIPELINE_NAME}"],
+                                    [$class: 'CloneOption', depth: 1, noTags: false, reference: '', shallow: true, timeout: 10]
+                                ],
+                                submoduleCfg: [],
+                                userRemoteConfigs: [
+                                    [url: "${GIT_URL}"]
+                                ]
+                            ])
+                        stage('Prebuild source repo'){
+                            if("${PRE_BUILD_SCRIPT}" != "None")
+                            {
+                               dir("${PIPELINE_NAME}/${PRE_BUILD_CONTEXT}"){
+                                  sh "sh ${PRE_BUILD_SCRIPT}"
+                               }
                             }
-                        )
+                            else
+                            {
+                                echo "Prebuild is not requested"
+                            }
+                        }
+                        stage('Lint the Dockerfile'){
+                            dir("${PIPELINE_NAME}/${GIT_PATH}"){
+                                // def out = sh script:"dockerfile_lint ${TARGET_FILE}", returnStatus: true
+                                // sh "echo ${out}"
+                                def output = sh(returnStdout: true, script: 'dockerfile_lint ${TARGET_FILE} > result 2>&1', returnStatus: true)
+                                sh "cat result"
+                            }
+                        }
+                        stage('Build Docker image') {
+                            dir("${PIPELINE_NAME}/${GIT_PATH}"){
+                                sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ."
+                                sh "docker images"
+                            }
+                        }
+                        stage('Scan the image') {
+                            parallel (
+                                "RPM updates": {
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/yumupdates.py > yum-check-update 2>&1", returnStatus: true)
+                                  sh "cat yum-check-update"
+                                },
+                                "Verify RPMs": {
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
+                                  sh "cat rpm-verify"
+                                },
+                                "Miscellaneous updates": {
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
+                                  sh "cat misc-updates"
+                                },
+                                "Container capabilities": {
+                                  def run_label = sh (returnStdout: true, script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1", returnStatus: true)
+                                  sh "cat capabilities"
+                                }
+                            )
+                        }
+                        stage("Push image to registry") {
+                            sh "docker tag ${image_name} ${image_name_with_registry}"
+                            sh "docker push ${image_name_with_registry}"
+                        }
+                        // this stage should be triggered after image is delivered to the registry
+                        stage('Remove the image'){
+                            sh "docker rmi ${image_name_with_registry}"
+                            sh "docker rmi ${image_name}"
+                        }
                     }
-                    stage("Push image to registry") {
-                        sh "docker tag ${image_name} ${image_name_with_registry}"
-                        sh "docker push ${image_name_with_registry}"
-                    }
-                    // this stage should be triggered after image is delivered to the registry
-                    stage('Remove the image'){
-                        sh "docker rmi ${image_name_with_registry}"
-                        sh "docker rmi ${image_name}"
+                    finally {
+                            sh "echo -e 'Build request for ${image_name_with_registry}' | mail -r container-build-reports@centos.org -S smtp=smtp://mail.centos.org -s ${success} ${NOTIFY_EMAIL} "
                     }
                 }
             }
