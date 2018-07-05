@@ -53,12 +53,12 @@ class ScanWorker(BaseWorker):
             self.logger.warning("Job data %s", str(self.job))
 
             self.set_buildphase_data(
-                build_phase_status='complete',
+                build_phase_status='failed',
                 build_phase_end_time=timezone.now()
             )
         else:
             self.set_buildphase_data(
-                build_phase_status='failed',
+                build_phase_status='complete',
                 build_phase_end_time=timezone.now()
             )
             self.logger.debug(str(scanners_data))
@@ -71,15 +71,17 @@ class ScanWorker(BaseWorker):
 
         # if weekly scan, push the job for notification
         if self.job.get("weekly"):
-            scanners_data["action"] = "notify_user"
-            self.queue.put(json.dumps(scanners_data), 'master_tube')
-            self.init_next_phase_data('delivery')
-            self.logger.debug(
-                str.format(
-                    "Weekly scan for {project} is complete.",
-                    project=self.job.get("namespace")
+            # send email of weekly scan only if scanners execution status=true
+            if status:
+                scanners_data["action"] = "notify_user"
+                self.queue.put(json.dumps(scanners_data), 'master_tube')
+                self.init_next_phase_data('delivery')
+                self.logger.debug(
+                    str.format(
+                        "Weekly scan for {project} is complete.",
+                        project=self.job.get("namespace")
+                    )
                 )
-            )
         else:
             # now scanning is complete, relay job for delivery
             # all other details about job stays same
