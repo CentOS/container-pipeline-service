@@ -158,10 +158,12 @@ class OptionalClonedValidator(StateValidator):
         """
         This function clones the git-url and checks out specified git branch.
         """
+        self.state.set_git_env()
         self.clone_location = self.state.git_update(
             self.validation_data.get(FieldKeys.GIT_URL),
             self.validation_data.get(FieldKeys.GIT_BRANCH)
         )
+        self.state.unset_git_env()
 
     def _validate_after(self):
         """

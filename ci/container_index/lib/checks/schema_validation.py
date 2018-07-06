@@ -135,12 +135,12 @@ class PrebuildValidator(Validator):
         if (not isinstance(
                 self.validation_data.get(FieldKeys.PREBUILD_SCRIPT), str)):
             self._invalidate("prebuild-script must be a valid string.")
+        elif len(self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)) == 0:
+            self._invalidate("prebuild-script must be of non-zero length")
         if (not isinstance(
                 self.validation_data.get(FieldKeys.PREBUILD_CONTEXT), str)):
             self._invalidate("prebuild-context must be a valid string.")
-        if len(self.validation_data.get(FieldKeys.PREBUILD_SCRIPT) <= 0):
-            self._invalidate("prebuild-script must be of non-zero length")
-        if len(self.validation_data.get(FieldKeys.PREBUILD_CONTEXT) <= 0):
+        elif len(self.validation_data.get(FieldKeys.PREBUILD_CONTEXT)) == 0:
             self._invalidate("prebuild-context must be of non-zero length")
 
 
