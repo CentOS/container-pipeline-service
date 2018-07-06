@@ -63,7 +63,6 @@ class IndexCITests(BaseTestCase):
                 }
             }
         )
-        print("Moc loc : {}".format(mock_loc))
         s, summary = Engine(index_location=mock_loc, the_state=st).run()
         self.assertTrue(s)
 
@@ -85,6 +84,57 @@ class IndexCITests(BaseTestCase):
                 }
             }
         )
-        print("Moc loc : {}".format(mock_loc))
         s, summary = Engine(index_location=mock_loc, the_state=st).run()
+        self.assertFalse(s)
+
+    def test_03_indexci_runs_specific_schema_validators(self):
+        st, mock_loc = self.setup_mock_location(
+            {
+                "bamachrn.yaml": {
+                    FieldKeys.PROJECTS: [
+                        {
+                            FieldKeys.ID: 1,
+                            FieldKeys.APP_ID: "bamachrn",
+                        }
+                    ]
+                }
+            }
+        )
+        s, summary = Engine(
+            index_location=mock_loc,
+            the_state=st,
+            schema_validators=["IDValidator", "AppIDValidator"],
+            value_validators=None
+        ).run()
+        self.assertTrue(s)
+
+    def test_04_indexci_runs_specific_value_validators(self):
+        st, mock_loc = self.setup_mock_location(
+            {
+                "bamachrn.yaml": {
+                    FieldKeys.PROJECTS: [
+                        {
+                            FieldKeys.ID: 1,
+                            FieldKeys.APP_ID: "bamachrn",
+                            FieldKeys.JOB_ID: "python",
+                            FieldKeys.DESIRED_TAG: "latest",
+                            FieldKeys.GIT_URL: "https://github.com/bamachrn/ccc"
+                                               "p-python1",
+                            FieldKeys.GIT_PATH: "demo",
+                            FieldKeys.GIT_BRANCH: "master",
+                            FieldKeys.TARGET_FILE: "Dockerfile.demo",
+                            FieldKeys.NOTIFY_EMAIL: "hello@example.com",
+                            FieldKeys.BUILD_CONTEXT: "./",
+                            FieldKeys.DEPENDS_ON: "centos/centos:latest"
+                        }
+                    ]
+                }
+            }
+        )
+        s, summary = Engine(
+            index_location=mock_loc,
+            the_state=st,
+            schema_validators=None,
+            value_validators=["GitCloneValidator"]
+        ).run()
         self.assertFalse(s)
