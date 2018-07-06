@@ -31,7 +31,8 @@ class Engine(object):
 
     def __init__(
             self, schema_validators=None,
-            value_validators=None, index_location="./", verbose=True
+            value_validators=None, index_location="./", verbose=True,
+            the_state=None
     ):
         """
         Initializes the test engine
@@ -76,6 +77,7 @@ class Engine(object):
         self._load_validators(value_validation, v_list)
 
         self.summary = {}
+        self.state = the_state if the_state else state.State()
 
     def add_summary(self, file_name, messages):
         """
@@ -89,7 +91,6 @@ class Engine(object):
         """
         # Initialize
         overall_success = True
-        st = state.State()
 
         # Read the files, one by one and validate them.
         messages = []
@@ -111,13 +112,16 @@ class Engine(object):
                         # Instruct all Clone validators to use git-url
                         # and git-branch to clone
                         entry[constants.CheckKeys.CLONE] = True
-                        entry[constants.CheckKeys.STATE] = st
+                        entry[constants.CheckKeys.STATE] = self.state
                         # Initialize validators from list and validate data.
                         for v in self.validators:
                             m = v(entry, index_file).validate()
                             if not m.success:
                                 overall_success = False
                             messages.append(m)
+                else:
+                    overall_success = False
+                    messages.append(m)
             else:
                 utils.print_out(
                     "Could not fetch data from index file {}\nError:{}".format(
@@ -126,5 +130,5 @@ class Engine(object):
                 )
 
             self.add_summary(index_file, messages)
-        st.clean_state()
+        self.state.clean_state()
         return overall_success, self.summary
