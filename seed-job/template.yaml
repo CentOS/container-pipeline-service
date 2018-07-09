@@ -135,7 +135,12 @@ objects:
                         }
                     }
                     finally {
-                            sh "echo -e 'Build request for ${image_name_with_registry}' | mail -r container-build-reports@centos.org -S smtp=smtp://mail.centos.org -s ${success} ${NOTIFY_EMAIL} "
+                        if (success==true) {
+                            sh "echo -e 'Build request for ${image_name_with_registry} was successful' | mail -r container-build-reports@centos.org -S smtp=smtp://mail.centos.org -s 'SUCCESS: Container build ${image_name_with_registry}' ${NOTIFY_EMAIL} "
+                        } else {
+                            sh "echo -e 'Build request for ${image_name_with_registry} was unsuccessful' | mail -r container-build-reports@centos.org -S smtp=smtp://mail.centos.org -s 'FAILED: Container build ${image_name_with_registry}' ${NOTIFY_EMAIL} "
+
+                        }
                     }
                 }
             }
