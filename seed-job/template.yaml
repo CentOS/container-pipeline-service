@@ -132,6 +132,8 @@ objects:
                         stage('Remove the image'){
                             sh "docker rmi ${image_name_with_registry}"
                             sh "docker rmi ${image_name}"
+                            // image lint - build - scan - deliver is successful
+                            success = true
                         }
                     }
                     finally {
