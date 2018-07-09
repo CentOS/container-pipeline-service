@@ -242,4 +242,11 @@ parameters:
 - description: URL of the registry to which image is to be pushed
   name: REGISTRY_URL
   displayName: Registry URL
-
+- description: From address to be used when sending email
+  displayName: From email address
+  name: FROM_ADDRESS
+  required: true
+- description: SMTP server to use to send emails
+  displayName: SMTP server address
+  name: SMTP_SERVER
+  required: true

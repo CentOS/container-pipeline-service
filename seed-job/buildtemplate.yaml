@@ -52,7 +52,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "python seed-job/parser.py ${CONTAINER_INDEX_DIR} ${REGISTRY_URL} ${NAMESPACE}"
+                            sh "python seed-job/parser.py ${CONTAINER_INDEX_DIR} ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER}"
                             sh "cat projects.sh"
                             sh "sh projects.sh"
                         }
@@ -111,4 +111,12 @@ parameters:
 - description: Namespace to which the resulting Jenkins Pipelines should belong
   displayName: OpenShift namespace
   name: NAMESPACE
+  required: true
+- description: From address to be used when sending email
+  displayName: From email address
+  name: FROM_ADDRESS
+  required: true
+- description: SMTP server to use to send emails
+  displayName: SMTP server address
+  name: SMTP_SERVER
   required: true
