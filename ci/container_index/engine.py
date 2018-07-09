@@ -60,7 +60,7 @@ class Engine(object):
         # Collect the validators that need to run.
         self.validators = []
         # - Schema Validators:
-        if schema_validators:
+        if schema_validators != "None":
             if (not (schema_validators and
                      isinstance(schema_validators, list)) or
                     len(schema_validators) <= 0):
@@ -70,7 +70,7 @@ class Engine(object):
             self._load_validators(schema_validation, v_list)
 
         # - Value Validators
-        if value_validators:
+        if value_validators != "None":
             if (not value_validators or not
                     isinstance(value_validators, list) or
                     len(value_validators) <= 0):
