@@ -3,7 +3,7 @@ This file contains all the classes related to validating the schema of index
 file.
 """
 
-import ci.container_index.lib.utils as index_utils
+from ci.container_index.lib import utils as index_utils
 from ci.container_index.lib.checks.basevalidation \
     import Validator, BasicSchemaValidator, \
     StringFieldValidator, StateValidator
