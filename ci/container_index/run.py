@@ -25,6 +25,20 @@ def init_parser():
         help="Verbose mode prints more output of the tests",
         action="store_true"
     )
+    parser.add_argument(
+        "-s",
+        "--schemavalidators",
+        help="Comma seperated list of schema validators to run. Use 'None'"
+             " to skip all",
+        metavar="SCHEMA_VALIDATORS"
+    )
+    parser.add_argument(
+        "-u",
+        "--valuevalidators",
+        help="Comma seperated list of value validators to run. Use 'None' to "
+             "skip all",
+        metavar="VALUE_VALIDATORS"
+    )
 
     return parser
 
@@ -79,9 +93,19 @@ def main():
 
     index = args.index
     verbose = True if args.verbose else False
+    schema_validators = None if not args.schemavalidators else (
+        'None' if 'None' in args.schemavalidators else
+        args.schemavalidators.split(',')
+    )
+    value_validators = None if not args.valuevalidators else (
+        'None' if 'None' in args.valuevalidators else
+        args.valuevalidators.split(',')
+    )
     success, summary = engine.Engine(
         index_location=index,
-        verbose=verbose
+        verbose=verbose,
+        schema_validators=schema_validators,
+        value_validators=value_validators
     ).run()
     print_summary(summary, verbose)
     if not success:
