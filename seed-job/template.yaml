@@ -56,12 +56,6 @@ objects:
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def daemonset_name = "scan-data_scan-data"
                     def success = false
-                    stage('Lint the Dockerfile'){
-                        dir("${PIPELINE_NAME}/${GIT_PATH}"){
-                            // def out = sh script:"dockerfile_lint ${TARGET_FILE}", returnStatus: true
-                            // sh "echo ${out}"
-                            def output = sh(returnStdout: true, script: 'dockerfile_lint ${TARGET_FILE} > result 2>&1', returnStatus: true)
-                            sh "cat result"
                     try {
                         stage('Checkout Source') {
                             checkout([
@@ -77,6 +71,7 @@ objects:
                                     [url: "${GIT_URL}"]
                                 ]
                             ])
+                        }
                         stage('Prebuild source repo'){
                             if("${PRE_BUILD_SCRIPT}" != "None")
                             {
