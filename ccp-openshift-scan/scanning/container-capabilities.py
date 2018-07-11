@@ -56,7 +56,7 @@ def check_args(cmd):
 
 def run_scan(command):
     """
-    Runs the container capabilities can and prints error message
+    Runs the container capabilities scan and prints error message
     if provided command is empty
     """
     if not command:
@@ -66,11 +66,10 @@ def run_scan(command):
 
 
 if __name__ == "__main__":
-    example = ('python container-capabilities.py'
-               ' "docker run --privileged $IMAGE /bin/true"')
-
     if len(sys.argv) != 2:
-        print ("Please provide one argument as \n{}".format(example))
+        example = ('python container-capabilities.py'
+                   ' "docker run --privileged $IMAGE /bin/true"')
+        print ("Please provide one argument as\n{}".format(example))
         sys.exit(1)
 
     cli_arg = sys.argv[1].strip()

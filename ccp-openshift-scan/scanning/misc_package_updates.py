@@ -92,7 +92,7 @@ def find_gem_updates(executable="/usr/bin/gem"):
 
 def print_updates(binary):
     """
-    Prints the updates found using givn binary
+    Prints the updates found using given binary
     """
     print ("\n{} updates scan:".format(binary))
 
@@ -121,8 +121,8 @@ if __name__ == "__main__":
     valid_args = ["pip", "gem", "npm", "all"]
 
     if len(sys.argv) < 2:
-        print ("Please provide at least one argument as:")
-        print ("python misc_package_updates.py npm")
+        example = "python misc_package_updates.py npm"
+        print ("Please provide at least one argument as\n{}".format(example))
         print ("Valid arguments: {}".format(valid_args))
         sys.exit(1)
 

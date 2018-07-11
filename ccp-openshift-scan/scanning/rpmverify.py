@@ -45,11 +45,11 @@ file_issues_semantics = {
     "M": "Mode differs (includes permissions and file type)",
     "5": "digest (formerly MD5 sum) differs",
     "D": "Device major/minor number mismatch",
-    "L":  "readLink(2) path mismatch",
-    "U":  "User ownership differs",
-    "G":  "Group ownership differs",
-    "T":  "mTime differs",
-    "P":  "caPabilities differ",
+    "L": "readLink(2) path mismatch",
+    "U": "User ownership differs",
+    "G": "Group ownership differs",
+    "T": "mTime differs",
+    "P": "caPabilities differ",
 }
 
 
@@ -86,10 +86,7 @@ class RPMVerify(object):
         """
         cmd = ["/bin/rpm", "-qf", filepath]
         out, _ = lib.run_cmd_out_err(cmd)
-        if " " in out:
-            return ""
-        else:
-            return out.split("\n")[0]
+        return out.split("\n")[0]
 
     def filter_expected_dirs_modifications(self, filepath):
         """
@@ -157,17 +154,8 @@ class RPMVerify(object):
         Run the RPM verify test
         """
         cmd = self.get_command()
-        out, error = lib.run_cmd_out_err(cmd)
-        result = []
-        result = self.process_cmd_output_data(out)
-        # TODO: since this script is running inside container while we have the
-        # logging on host, we should find a better way to log this message back
-        # Also we should log the RPMs failing the rpm -V test
-        # print "Issue found while running rpm -Va test: "
-        # print error
-        if not result:
-            return []
-        return result
+        out, err = lib.run_cmd_out_err(cmd)
+        return self.process_cmd_output_data(out)
 
     def print_result(self, result):
         """
