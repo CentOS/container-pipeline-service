@@ -6,6 +6,7 @@ import ci.container_index.lib.state as index_ci_state
 from uuid import uuid4
 from ci.container_index.lib.constants import *
 from ci.container_index.engine import Engine
+from subprocess import check_call
 
 
 SETUP_PACKAGES = False
@@ -175,7 +176,8 @@ class IndexCITests(BaseTestCase):
             "-i",
             mock_loc
         ]
-        self.run_cmd(' '.join(cmd), user='root')
+
+        check_call(cmd)
 
     def test_06_indexci_override_schema_validators(self):
         _, mock_loc = self.setup_mock_location(
@@ -207,7 +209,7 @@ class IndexCITests(BaseTestCase):
             "-i",
             mock_loc
         ]
-        self.run_cmd(' '.join(cmd), user='root')
+        check_call(cmd)
 
     def test_07_indexci_override_value_validators(self):
         _, mock_loc = self.setup_mock_location(
@@ -250,4 +252,4 @@ class IndexCITests(BaseTestCase):
             mock_loc
         ]
         with self.assertRaises(Exception):
-            self.run_cmd(' '.join(cmd), user='root')
+            check_call(cmd)
