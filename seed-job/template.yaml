@@ -70,6 +70,18 @@ objects:
                             ]
                         ])
                     }
+                    stage('Prebuild source repo'){
+                        if("${PRE_BUILD_SCRIPT}" != "None")
+                        {
+                           dir("${PIPELINE_NAME}/${PRE_BUILD_CONTEXT}"){
+                              sh "sh ${PRE_BUILD_SCRIPT}"
+                           }
+                        }
+                        else
+                        {
+                            echo "Prebuild is not requested"
+                        }
+                    }
                     stage('Lint the Dockerfile'){
                         dir("${PIPELINE_NAME}/${GIT_PATH}"){
                             // def out = sh script:"dockerfile_lint ${TARGET_FILE}", returnStatus: true
@@ -139,6 +151,10 @@ objects:
             value: ${APP_ID}
           - name: JOB_ID
             value: ${JOB_ID}
+          - name: PRE_BUILD_SCRIPT
+            value: ${PRE_BUILD_SCRIPT}
+          - name: PRE_BUILD_CONTEXT
+            value: ${PRE_BUILD_CONTEXT}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
 parameters:
@@ -199,6 +215,12 @@ parameters:
   displayName: Job ID
   name: JOB_ID
   required: true
+- description: Pre build script is the script runs as pre build stage for building source repo
+  displayName: Prebuild Script
+  name: PRE_BUILD_SCRIPT
+- description: Pre Build context is path from where prebuild_script is triggered in the repo
+  displayName: Prebuild Context
+  name: PRE_BUILD_CONTEXT
 - description: URL of the registry to which image is to be pushed
   name: REGISTRY_URL
   displayName: Registry URL

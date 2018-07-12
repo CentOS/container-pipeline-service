@@ -32,6 +32,14 @@ for entry in yml_dict["Projects"]:
             "-p CONTEXT_DIR={} ".format("master-job") + \
             "-p APP_ID={} ".format(entry["app-id"]) + \
             "-p JOB_ID={} ".format(entry["job-id"]) + \
+            "-p PRE_BUILD_CONTEXT={pre_build_context} ".format(
+                pre_build_context=None if entry.get("prebuild-context") is None
+                else entry.get("prebuild-context")
+            ) + \
+            "-p PRE_BUILD_SCRIPT={pre_build_script} ".format(
+                pre_build_script=None if entry.get("prebuild-script") is None
+                else entry.get("prebuild-script")
+            ) + \
             "-p REGISTRY_URL={}".format(sys.argv[2])
     except Exception as e:
         print "Error processing entry for {}".format(pipeline_name)
