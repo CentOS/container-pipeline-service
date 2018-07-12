@@ -211,6 +211,12 @@ parameters:
   displayName: Job ID
   name: JOB_ID
   required: true
+- description: Pre build script is the script runs as pre build stage for building source repo
+  displayName: Prebuild Script
+  name: PRE_BUILD_SCRIPT
+- description: Pre Build context is path from where prebuild_script is triggered in the repo
+  displayName: Prebuild Context
+  name: PRE_BUILD_CONTEXT
 - description: URL of the registry to which image is to be pushed
   name: REGISTRY_URL
   displayName: Registry URL
