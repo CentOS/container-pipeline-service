@@ -71,7 +71,7 @@ objects:
                         ])
                     }
                     stage('Prebuild source repo'){
-                        if(${PRE_BUILD_SCRIPT} != Null)
+                        if(${PRE_BUILD_SCRIPT} != null)
                         {
                            dir("${PIPELINE_NAME}/${GIT_PATH}/${PRE_BUILD_CONTEXT}"){
                               sh "${PRE_BUILD_SCRIPT}"
