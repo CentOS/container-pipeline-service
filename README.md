@@ -74,6 +74,10 @@ Do this on host system:
 ```bash
 $ oc login -u developer
 $ oc process -p MEMORY_LIMIT=1Gi openshift//jenkins-persistent| oc create -f -
+
+# to enable parallel builds
+$ oc set env dc/jenkins JENKINS_JAVA_OVERRIDES="-Dhudson.slaves.NodeProvisioner.initialDelay=0,-Dhudson.slaves.NodeProvisioner.MARGIN=50,-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85"
+
 $ oc login -u system:admin
 $ oc adm policy add-scc-to-user privileged system:serviceaccount:<openshift-namespace>:jenkins
 $ oc adm policy add-role-to-user system:image-builder system:serviceaccount:<openshift-namespace>:jenkins
