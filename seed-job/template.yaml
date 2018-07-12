@@ -151,6 +151,10 @@ objects:
             value: ${APP_ID}
           - name: JOB_ID
             value: ${JOB_ID}
+          - name: PRE_BUILD_SCRIPT
+            value: ${PRE_BUILD_SCRIPT}
+          - name: PRE_BUILD_CONTEXT
+            value: ${PRE_BUILD_CONTEXT}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
 parameters:
