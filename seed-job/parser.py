@@ -33,11 +33,11 @@ for entry in yml_dict["Projects"]:
             "-p APP_ID={} ".format(entry["app-id"]) + \
             "-p JOB_ID={} ".format(entry["job-id"]) + \
             "-p PRE_BUILD_CONTEXT={pre_build_context} ".format(
-                pre_build_context='null' if entry.get("prebuild-context") is None
+                pre_build_context=None if entry.get("prebuild-context") is None
                 else entry.get("prebuild-context")
             ) + \
             "-p PRE_BUILD_SCRIPT={pre_build_script} ".format(
-                pre_build_script='null' if entry.get("prebuild-script") is None
+                pre_build_script=None if entry.get("prebuild-script") is None
                 else entry.get("prebuild-script")
             ) + \
             "-p REGISTRY_URL={}".format(sys.argv[2])
