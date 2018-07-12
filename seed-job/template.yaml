@@ -70,6 +70,18 @@ objects:
                             ]
                         ])
                     }
+                    stage('Prebuild source repo'){
+                        if(${PRE_BUILD_SCRIPT} != Null)
+                        {
+                           dir("${PIPELINE_NAME}/${GIT_PATH}/${PRE_BUILD_CONTEXT}"){
+                              sh "${PRE_BUILD_SCRIPT}"
+                           }
+                        }
+                        else
+                        {
+                            echo "Prebuild is not requested"
+                        }
+                    }
                     stage('Lint the Dockerfile'){
                         dir("${PIPELINE_NAME}/${GIT_PATH}"){
                             // def out = sh script:"dockerfile_lint ${TARGET_FILE}", returnStatus: true
