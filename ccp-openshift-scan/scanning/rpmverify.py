@@ -8,7 +8,7 @@
 
 import re
 
-import lib
+import scan_lib
 
 # Filter the paths you know the resulting image or base image itself
 # has issue about and need to be filtered
@@ -71,7 +71,7 @@ class RPMVerify(object):
         """
         qf = "%{SIGPGP:pgpsig}|%{VENDOR}|%{PACKAGER}|%{BUILDHOST}"
         cmd = ["/bin/rpm", "-q", "--qf", qf, rpm]
-        out, _ = lib.run_cmd_out_err(cmd)
+        out, _ = scan_lib.run_cmd_out_err(cmd)
         out = out.split("|")
         return {"RPM": rpm,
                 "SIGNATURE": out[0],
@@ -85,7 +85,7 @@ class RPMVerify(object):
         Find source RPM of given filepath
         """
         cmd = ["/bin/rpm", "-qf", filepath]
-        out, _ = lib.run_cmd_out_err(cmd)
+        out, _ = scan_lib.run_cmd_out_err(cmd)
         return out.split("\n")[0]
 
     def filter_expected_dirs_modifications(self, filepath):
@@ -115,6 +115,8 @@ class RPMVerify(object):
             line = line.strip()
             if line.startswith("error:"):
                 continue
+
+            # matches lines of output which corresponds rpm verify results
             match = re.search(r'^([0-9A-Za-z.]+)\s+([c]{0,1})\s+(\W.*)$', line)
 
             # filter the lines with warnings or errors
@@ -154,7 +156,7 @@ class RPMVerify(object):
         Run the RPM verify test
         """
         cmd = self.get_command()
-        out, err = lib.run_cmd_out_err(cmd)
+        out, err = scan_lib.run_cmd_out_err(cmd)
         return self.process_cmd_output_data(out)
 
     def print_result(self, result):

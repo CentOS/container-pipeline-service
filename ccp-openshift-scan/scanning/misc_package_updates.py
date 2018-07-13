@@ -2,7 +2,7 @@
 
 # this scan file has utilities to find pip, npm, gem package updates
 
-import lib
+import scan_lib
 
 import sys
 
@@ -26,7 +26,7 @@ def find_pip_updates(executable="/usr/bin/pip"):
     out, err = [], ""
 
     try:
-        out, err = lib.run_cmd_out_err(command)
+        out, err = scan_lib.run_cmd_out_err(command)
     except Exception as e:
         err = e
 
@@ -50,7 +50,7 @@ def find_npm_updates(executable="/usr/bin/npm"):
     out, err = [], ""
 
     try:
-        out, err = lib.run_cmd_out_err(command)
+        out, err = scan_lib.run_cmd_out_err(command)
     except Exception as e:
         err = e
 
@@ -74,7 +74,7 @@ def find_gem_updates(executable="/usr/bin/gem"):
     out, err = [], ""
 
     try:
-        out, err = lib.run_cmd_out_err(command)
+        out, err = scan_lib.run_cmd_out_err(command)
     except Exception as e:
         err = e
 

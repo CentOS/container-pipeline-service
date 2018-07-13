@@ -1,6 +1,6 @@
 # scan script for yum list update scannr
 
-import lib
+import scan_lib
 
 
 def yum_updates():
@@ -8,7 +8,7 @@ def yum_updates():
     Finds yum updates
     """
     command = ["yum", "-q", "check-update"]
-    out, err = lib.run_cmd_out_err(command)
+    out, err = scan_lib.run_cmd_out_err(command)
     return out, err
 
 
