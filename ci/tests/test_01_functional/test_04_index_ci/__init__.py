@@ -105,7 +105,7 @@ class IndexCITests(BaseTestCase):
             index_location=mock_loc,
             the_state=st,
             schema_validators=["IDValidator", "AppIDValidator"],
-            value_validators="None"
+            skip_value=True
         ).run()
         self.assertTrue(s)
 
@@ -135,7 +135,7 @@ class IndexCITests(BaseTestCase):
         s, summary = Engine(
             index_location=mock_loc,
             the_state=st,
-            schema_validators="None",
+            skip_schema=True,
             value_validators=["GitCloneValidator"]
         ).run()
         self.assertFalse(s)
@@ -204,8 +204,7 @@ class IndexCITests(BaseTestCase):
             )),
             "--schemavalidators",
             "IDValidator,AppIDValidator",
-            "--valuevalidators",
-            "None",
+            "--skipvalue",
             "-i",
             mock_loc
         ]
@@ -244,8 +243,7 @@ class IndexCITests(BaseTestCase):
                 "container_index",
                 "run.py",
             )),
-            "--schemavalidators",
-            "None",
+            "--skipschema",
             "--valuevalidators",
             "GitCloneValidator",
             "-i",
