@@ -12,14 +12,15 @@ def init_parser():
     parser.add_argument(
         "-i",
         "--index",
-        help="Specify location of index. This is where index.d is Default .",
+        help="Specify location of container index. This is where index.d is. "
+             "'./'is default",
         metavar="INDEX_PATH",
         default="."
     )
     parser.add_argument(
         "-v",
         "--verbose",
-        help="Verbose mode prints more output of the tests",
+        help="Verbose mode prints more output of the tests.",
         action="store_true"
     )
     parser.add_argument(
