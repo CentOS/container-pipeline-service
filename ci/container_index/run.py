@@ -25,16 +25,25 @@ def init_parser():
     parser.add_argument(
         "-s",
         "--schemavalidators",
-        help="Comma seperated list of schema validators to run. Use 'None'"
+        help="Comma seperated list of schema validators to run."
              " to skip all",
         metavar="SCHEMA_VALIDATORS"
     )
     parser.add_argument(
+        "--skipschema",
+        help="If set, schema validations are skipped.",
+        action="store_true"
+    )
+    parser.add_argument(
         "-u",
         "--valuevalidators",
-        help="Comma seperated list of value validators to run. Use 'None' to "
-             "skip all",
+        help="Comma seperated list of value validators to run.",
         metavar="VALUE_VALIDATORS"
+    )
+    parser.add_argument(
+        "--skipvalue",
+        help="If set, value validations are skipped",
+        action="store_true"
     )
 
     return parser
@@ -91,18 +100,20 @@ def main():
     index = args.index
     verbose = True if args.verbose else False
     schema_validators = None if not args.schemavalidators else (
-        'None' if 'None' in args.schemavalidators else
         args.schemavalidators.split(',')
     )
     value_validators = None if not args.valuevalidators else (
-        'None' if 'None' in args.valuevalidators else
         args.valuevalidators.split(',')
     )
+    skip_schema = True if args.skipschema else False
+    skip_value = True if args.skipvalue else False
     success, summary = engine.Engine(
         index_location=index,
         verbose=verbose,
         schema_validators=schema_validators,
-        value_validators=value_validators
+        value_validators=value_validators,
+        skip_schema=skip_schema,
+        skip_value=skip_value
     ).run()
     print_summary(summary, verbose)
     if not success:
