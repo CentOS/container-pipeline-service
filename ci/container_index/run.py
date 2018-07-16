@@ -1,9 +1,6 @@
 import sys
 from os import path
 
-fl = path.dirname(path.realpath(__file__))
-sys.path.append(path.join(fl, "..", ".."))
-
 from argparse import ArgumentParser
 import ci.container_index.engine as engine
 
@@ -112,4 +109,5 @@ def main():
         exit(1)
 
 
-main()
+if __name__ == '__main__':
+    main()
