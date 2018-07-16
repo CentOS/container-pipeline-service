@@ -49,7 +49,8 @@ class TargetFileExistsValidator(OptionalClonedValidator):
             self._warn("Skipping target file check as prebuild step exists")
             return
         if (not path.exists(
-             path.join(
+            str.format(
+                "{}/{}/{}",
                 self.clone_location,
                 self.validation_data.get(FieldKeys.GIT_PATH),
                 self.validation_data.get(FieldKeys.TARGET_FILE)
@@ -77,12 +78,19 @@ class PreBuildExistsValidator(OptionalClonedValidator):
         self.message.title = "Prebuild Exists Validator"
         if FieldKeys.PREBUILD_SCRIPT not in self.validation_data:
             return
+        if (FieldKeys.PREBUILD_SCRIPT in self.validation_data and
+                FieldKeys.PREBUILD_CONTEXT not in self.validation_data):
+            self._invalidate(
+                "Prebuild script is provided, but no prebuild context"
+            )
+            return
 
         if (not path.exists(
-             path.join(
-                self.clone_location,
-                self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
-             )
+                str.format(
+                    "{}/{}",
+                    self.clone_location,
+                    self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
+                )
         )):
             self._invalidate(
                 str.format(
@@ -91,7 +99,8 @@ class PreBuildExistsValidator(OptionalClonedValidator):
                 )
             )
         if (not path.exists(
-                path.join(
+                str.format(
+                    "{}/{}",
                     self.clone_location,
                     self.validation_data.get(FieldKeys.PREBUILD_CONTEXT)
                 )
@@ -115,7 +124,9 @@ class JobIDMatchesIndex(CCCPYamlValidator):
 
     def _validate_cccp_yaml(self):
         cccp_jid = self._cccp_yaml_data.get(FieldKeys.JOB_ID)
-        if (not cccp_jid and
-           cccp_jid != self.validation_data.get(FieldKeys.JOB_ID)):
+        if not cccp_jid:
+            self._invalidate("job-id must be present in the cccp yaml file")
+            return
+        if cccp_jid and cccp_jid != self.validation_data.get(FieldKeys.JOB_ID):
             self._invalidate("job-id does not match value provided in index.")
             return

@@ -22,6 +22,7 @@ class State(object):
 
         self.state_repos = path.join(self.state_location, "repos")
         self.state_file = path.join(self.state_location, "state")
+        self.state_mock = path.join(self.state_location, "mock")
         self.old_environ = dict(environ)
         unsetenv("GIT_ASKPASS")
         unsetenv("GIT_SSHPASS")
@@ -30,6 +31,8 @@ class State(object):
             mkdir(self.state_location)
         if not path.exists(self.state_repos):
             mkdir(self.state_repos)
+        if not path.exists(self.state_mock):
+            mkdir(self.state_mock)
 
         self.data = None
         self.load()
