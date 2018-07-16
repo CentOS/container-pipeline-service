@@ -72,5 +72,10 @@ if __name__ == "__main__":
         print ("Please provide one argument as\n{}".format(example))
         sys.exit(1)
 
-    cli_arg = sys.argv[1].strip()
-    run_scan(cli_arg)
+    try:
+        cli_arg = sys.argv[1].strip()
+        run_scan(cli_arg)
+    except Exception as e:
+        print ("Error occurred in Container Capabilities scanner execution.")
+        print ("Error: %s".format(e))
+        sys.exit(1)

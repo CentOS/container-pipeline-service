@@ -132,9 +132,14 @@ if __name__ == "__main__":
         print ("Please provide valid args among {}".format(valid_args))
         sys.exit(1)
 
-    if cli_arg == "all":
-        print_updates("pip")
-        print_updates("npm")
-        print_updates("gem")
-    else:
-        print_updates(cli_arg)
+    try:
+        if cli_arg == "all":
+            print_updates("pip")
+            print_updates("npm")
+            print_updates("gem")
+        else:
+            print_updates(cli_arg)
+    except Exception as e:
+        print ("Error occurred in Misc Package Updates scanner execution.")
+        print ("Error: %s".format(e))
+        sys.exit(1)

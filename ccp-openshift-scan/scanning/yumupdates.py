@@ -36,4 +36,9 @@ def find_updates():
 
 
 if __name__ == "__main__":
-    find_updates()
+    try:
+        find_updates()
+    except Exception as e:
+        print ("Error occurred in RPM Updates scanner execution.")
+        print ("Error: %s".format(e))
+        sys.exit(1)

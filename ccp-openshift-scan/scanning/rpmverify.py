@@ -192,6 +192,11 @@ class RPMVerify(object):
 
 
 if __name__ == "__main__":
-    rpmverify = RPMVerify()
-    result = rpmverify.run()
-    rpmverify.print_result(result)
+    try:
+        rpmverify = RPMVerify()
+        result = rpmverify.run()
+        rpmverify.print_result(result)
+    except Exception as e:
+        print ("Error occurred in RPM Verify scanner execution.")
+        print ("Error: %s".format(e))
+        sys.exit(1)
