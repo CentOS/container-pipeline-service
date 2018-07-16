@@ -32,12 +32,18 @@ class Engine(object):
     def __init__(
             self, schema_validators=None,
             value_validators=None, index_location="./", verbose=True,
-            the_state=None
+            skip_schema=False, skip_value=False, the_state=None
     ):
         """
         Initializes the test engine
         """
         self.verbose = verbose
+        self.skip_schema = skip_schema
+        self.skip_value = skip_value
+
+        if self.skip_schema and self.skip_value:
+            raise Exception("Cannot skip through all tests")
+
         # Index file location needs to be provided
         if not path.exists(index_location):
             raise Exception(
@@ -60,24 +66,26 @@ class Engine(object):
         # Collect the validators that need to run.
         self.validators = []
         # - Schema Validators:
-        if schema_validators != "None":
+        if schema_validators:
             if (not (schema_validators and
                      isinstance(schema_validators, list)) or
                     len(schema_validators) <= 0):
                 v_list = config.schema_validators
             else:
                 v_list = schema_validators
-            self._load_validators(schema_validation, v_list)
+            if not self.skip_schema:
+                self._load_validators(schema_validation, v_list)
 
         # - Value Validators
-        if value_validators != "None":
+        if value_validators:
             if (not value_validators or not
                     isinstance(value_validators, list) or
                     len(value_validators) <= 0):
                 v_list = config.value_validators
             else:
                 v_list = value_validators
-            self._load_validators(value_validation, v_list)
+            if not self.skip_value:
+                self._load_validators(value_validation, v_list)
 
         self.summary = {}
         self.state = the_state if the_state else state.State()
