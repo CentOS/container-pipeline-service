@@ -40,7 +40,9 @@ for entry in yml_dict["Projects"]:
                 pre_build_script=None if entry.get("prebuild-script") is None
                 else entry.get("prebuild-script")
             ) + \
-            "-p REGISTRY_URL={}".format(sys.argv[2])
+            "-p REGISTRY_URL={} ".format(sys.argv[2]) + \
+            "-p FROM_ADDRESS={} ".format(sys.argv[4]) + \
+            "-p SMTP_SERVER={} ".format(sys.argv[5])
     except Exception as e:
         print "Error processing entry for {}".format(pipeline_name)
         print "Error was\n{}".format(e)

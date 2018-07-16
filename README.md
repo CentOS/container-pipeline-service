@@ -116,18 +116,21 @@ Now, login to the OpenShift cluster as user `developer` and create a build from 
 ```bash
 # on host system
 $ oc login -u developer
-$ oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml | oc create -f - 
+$ oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f - 
 ```
 
 If you're a developer working on your fork, export appropriate values for the
 variables used above. Otherwise you can use the command:
 
 ```bash
-$ oc process -p PIPELINE_REPO=https://github.com/dharmit/ccp-openshift -p PIPELINE_BRANCH=master -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml | oc create -f -
+$ oc process -p PIPELINE_REPO=https://github.com/dharmit/ccp-openshift -p PIPELINE_BRANCH=master -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -
 ```
 
 `REGISTRY_URL` is the IP:port combination of remote registry. For example
 `192.168.122.38:5000`.
+
+`FROM_ADDRESS` is the address from which emails will be sent to the end users.
+`SMTP_SERVER` is the server to be used to send emails.
 
 Now check in the OpenShift web console under Build -> Pipelines and see if a
 Jenkins Pipeline has been created. Be patient because the image being used is
