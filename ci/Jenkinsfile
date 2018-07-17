@@ -44,23 +44,93 @@ podTemplate(
         }
         stage("Wait till builds are started")
         {
-            waitForBuildToStart(success_build_id)
+            parallel(
+                "Success build": {
+                    waitForBuildToStart(success_build_id)
+                },
+                "Failure build":{
+                    waitForBuildToStart(failure_build_id)
+                }
+            )
         }
         stage("Check checkout status")
         {
-            waitForStageToComplete(success_build_id,0)
-            checkBuildStatus(success_build_id,0)
+            parallel(
+                "Success build": {
+                     checkBuildStatus(success_build_id,0,"success")
+                },
+                "Failure build":{
+                     checkBuildStatus(failure_build_id,0,"success")
+                }
+            )
         }
-        stage("Check dockerfile linter status")
+        stage("Check Pre-build status")
         {
-            waitForStageToComplete(success_build_id,1)
-            checkBuildStatus(success_build_id,1)
+             parallel(
+                "Success build": {
+                     checkBuildStatus(success_build_id,1,"success")
+                },
+                "Failure build":{
+                     checkBuildStatus(failure_build_id,1,"success")
+                }
+            )
         }
-        stage("Check Build status")
+        stage("Check Dockerfile linter status")
         {
-            waitForStageToComplete(success_build_id,2)
-            checkBuildStatus(success_build_id,2)
+             parallel(
+                "Success build": {
+                     checkBuildStatus(success_build_id,2,"success")
+                },
+                "Failure build":{
+                     checkBuildStatus(failure_build_id,2,"success")
+                }
+            )
         }
+        stage("Check Image Build status")
+        {
+             parallel(
+                "Success build": {
+                     checkBuildStatus(success_build_id,3,"success")
+                },
+                "Failure build":{
+                     checkBuildStatus(failure_build_id,3,"failed")
+                }
+            )
+        }
+        stage("Check Image Scan status")
+        {
+             parallel(
+                "Success build": {
+                     checkBuildStatus(success_build_id,4,"success")
+                },
+                "Failure build":{
+                     checkBuildStatus(failure_build_id,4,"not_available")
+                }
+            )
+        }
+        stage("Check Image delivery status")
+        {
+             parallel(
+                "Success build": {
+                     checkBuildStatus(success_build_id,5,"success")
+                },
+                "Failure build":{
+                     checkBuildStatus(failure_build_id,5,"not_available")
+                }
+            )
+        }
+        stage("Check Image cleanup status")
+        {
+             parallel(
+                "Success build": {
+                     checkBuildStatus(success_build_id,6,"success")
+                },
+                "Failure build":{
+                     checkBuildStatus(failure_build_id,6,"not_available")
+                }
+            )
+        }
+
     }
 }
 def waitForBuildToStart(build_id)
@@ -92,7 +162,7 @@ def waitForStageToComplete(build_id,stage_number)
             false
         }
         else{
-            if ( build_status_obj.stages[stage_number]['status'] != 'SUCCESS' && build_status_obj.stages[stage_number]['status'] != 'FAILURE')
+            if ( build_status_obj.stages[stage_number]['status'] != 'SUCCESS' && build_status_obj.stages[stage_number]['status'] != 'FAILED')
             {
                 echo "Stage status is: ${build_status_obj.stages[stage_number]['status']} waiting to complete"
                 false
@@ -105,9 +175,11 @@ def waitForStageToComplete(build_id,stage_number)
         }
     }
 }
-def checkBuildStatus(build_id,stage_number)
+def checkBuildStatus(build_id,stage_number,expected_status)
 {
-    echo "build_id: ${build_id} stage: ${stage_number}"
+    echo "build_id: ${build_id} stage: ${stage_number} expected_status: ${expected_status}"
+
+    waitForStageToComplete(build_id,stage_number)
 
     build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
     def build_status_obj = new JsonSlurperClassic().parseText(build_status)
