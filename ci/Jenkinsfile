@@ -37,118 +37,82 @@ podTemplate(
                     echo "success Build id: ${success_build_id}"
                 },
                 "failure build": {
-                    failure_build_id = sh(returnStdout: true, script: "oc start-build bamachrn-python-release -n cccp|cut -f 2 -d ' '").trim()
+                    failure_build_id = sh(returnStdout: true, script: "oc start-build nshaikh-build-fail-test-latest -n cccp|cut -f 2 -d ' '").trim()
                     echo "Failure Build id: ${failure_build_id}"
                 }
             )
         }
         stage("Wait till builds are started")
         {
-            waitUntil{
-                def build_started = sh(returnStdout: true, script: "oc get builds ${success_build_id} -o template --template={{.status.phase}}")
-                echo "Build status: ${build_started}"
-                if (build_started != 'Running'){
-                    echo "Build is in ${build_started} state waiting..."
-                    sleep 30
-                    echo "Rechecking the status"
-                    false
-                }
-                else{
-                    echo "Build started going for stage checking now"
-                    sleep 30
-                    true
-                }
-            }
+            waitForBuildToStart(success_build_id)
         }
         stage("Check checkout status")
         {
-            waitUntil{
-                build_status = sh(returnStdout: true, script: "oc get builds ${success_build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-                def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-                if ( build_status_obj.stages[0] == null ){
-                    sleep 30
-                    false
-                }
-                else{
-                    if ( build_status_obj.stages[0]['status'] != 'SUCCESS' && build_status_obj.stages[0]['status'] != 'FAILURE')
-                    {
-                        echo "Stage status is: ${build_status_obj.stages[0]['status']} waiting to complete"
-                        false
-                    }
-                    else
-                    {
-                        echo "Stage complete"
-                        true
-                    }
-                }
-            }
-
-            build_status = sh(returnStdout: true, script: "oc get builds ${success_build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-            def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-            def stage_name = build_status_obj.stages[0]['name']
-            def stage_status = build_status_obj.stages[0]['status']
-            echo "Stage name: ${stage_name}"
-            echo "Stage status: ${stage_status}"
+            waitForStageToComplete(success_build_id,0)
+            checkBuildStatus(success_build_id,0)
         }
         stage("Check dockerfile linter status")
         {
-            waitUntil{
-                build_status = sh(returnStdout: true, script: "oc get builds ${success_build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-                def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-                if ( build_status_obj.stages[1] == null ){
-                    sleep 30
-                    false
-                }
-                else{
-                    if ( build_status_obj.stages[1]['status'] != 'SUCCESS' && build_status_obj.stages[1]['status'] != 'FAILURE')
-                    {
-                        echo "Stage status is: ${build_status_obj.stages[1]['status']} waiting to complete"
-                        false
-                    }
-                    else
-                    {
-                        echo "Stage complete"
-                        true
-                    }
-                }
-            }
-
-            build_status = sh(returnStdout: true, script: "oc get builds ${success_build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-            def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-            def stage_name = build_status_obj.stages[1]['name']
-            def stage_status = build_status_obj.stages[1]['status']
-            echo "Stage name: ${stage_name}"
-            echo "Stage status: ${stage_status}"
+            waitForStageToComplete(success_build_id,1)
+            checkBuildStatus(success_build_id,1)
         }
         stage("Check Build status")
         {
-            waitUntil{
-                build_status = sh(returnStdout: true, script: "oc get builds ${success_build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-                def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-                if ( build_status_obj.stages[2] == null ){
-                    sleep 30
-                    false
-                }
-                else{
-                    if ( build_status_obj.stages[2]['status'] != 'SUCCESS' && build_status_obj.stages[2]['status'] != 'FAILURE')
-                    {
-                        echo "Stage status is: ${build_status_obj.stages[2]['status']} waiting to complete"
-                        false
-                    }
-                    else
-                    {
-                        echo "Stage complete"
-                        true
-                    }
-                }
-            }
-
-            build_status = sh(returnStdout: true, script: "oc get builds ${success_build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-            def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-            def stage_name = build_status_obj.stages[2]['name']
-            def stage_status = build_status_obj.stages[2]['status']
-            echo "Stage name: ${stage_name}"
-            echo "Stage status: ${stage_status}"
+            waitForStageToComplete(success_build_id,2)
+            checkBuildStatus(success_build_id,2)
         }
     }
+}
+def waitForBuildToStart(build_id)
+{
+    waitUntil{
+        def build_started = sh(returnStdout: true, script: "oc get builds ${build_id} -o template --template={{.status.phase}}")
+        echo "Build status: ${build_started}"
+        if (build_started != 'Running'){
+            echo "Build is in ${build_started} state waiting..."
+            sleep 30
+            echo "Rechecking the status"
+            false
+        }
+        else{
+            echo "Build started going for stage checking now"
+            sleep 30
+            true
+        }
+    }
+}
+def waitForStageToComplete(build_id,stage_number)
+{
+    echo "build_id: ${build_id} stage: ${stage_number}"
+    waitUntil{
+        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+        if ( build_status_obj.stages[stage_number] == null ){
+            sleep 30
+            false
+        }
+        else{
+            if ( build_status_obj.stages[stage_number]['status'] != 'SUCCESS' && build_status_obj.stages[stage_number]['status'] != 'FAILURE')
+            {
+                echo "Stage status is: ${build_status_obj.stages[stage_number]['status']} waiting to complete"
+                false
+            }
+            else
+            {
+                echo "Stage complete"
+                true
+            }
+        }
+    }
+}
+def checkBuildStatus(build_id,stage_number)
+{
+    echo "build_id: ${build_id} stage: ${stage_number}"
+
+    build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+    def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+    def stage_name = build_status_obj.stages[stage_number]['name']
+    def stage_status = build_status_obj.stages[stage_number]['status']
+    echo "Stage name: ${stage_name}"
+    echo "Stage status: ${stage_status}"
 }
