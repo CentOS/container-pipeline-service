@@ -179,12 +179,36 @@ def checkBuildStatus(build_id,stage_number,expected_status)
 {
     echo "build_id: ${build_id} stage: ${stage_number} expected_status: ${expected_status}"
 
-    waitForStageToComplete(build_id,stage_number)
+    if ( expected_status != "not_available" )
+    {
+        waitForStageToComplete(build_id,stage_number)
 
-    build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-    def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-    def stage_name = build_status_obj.stages[stage_number]['name']
-    def stage_status = build_status_obj.stages[stage_number]['status']
-    echo "Stage name: ${stage_name}"
-    echo "Stage status: ${stage_status}"
+        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+        def stage_name = build_status_obj.stages[stage_number]['name']
+        def stage_status = build_status_obj.stages[stage_number]['status']
+        echo "Stage name: ${stage_name}"
+        echo "Stage status: ${stage_status}"
+        if ( stage_status.toLowerCase() == expected_status.toLowerCase() )
+        {
+            echo "Stage assertion passed"
+        }
+        else
+        {
+            echo "Stage assestion failed, TODO: get the logs and fail the CI"
+        }
+    }
+    else
+    {
+        echo "This stage should not be present in the pipeline, checking for it"
+        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+        if ( build_status_obj.stages[stage_number] == null ){
+            echo "Assertion passed stage not found"
+        }
+        else
+        {
+            echo "Assertion failed TODO: fail the CI and get the logs"
+        }
+    }
 }
