@@ -35,7 +35,7 @@ class Project(object):
         replace each with hyphen
         """
         return value.replace("_", "-").replace("/", "-").replace(
-                ".", "-").replace(":", "-")
+            ".", "-").replace(":", "-")
 
     def process_depends_on(self, depends_on=None):
         """
@@ -123,3 +123,51 @@ class Project(object):
         Returns the pipeline name based on the project object values
         """
         return "{}-{}-{}".format(self.appid, self.jobid, self.desiredtag)
+
+
+class IndexReader(object):
+    """
+    Class for reading container index and utilities
+    """
+
+    def __init__(self, index, namespace):
+        """
+        Initialize class variable with index location
+        """
+        self.index = index
+        self.namespace = namespace
+
+    def read_yaml(self, filepath):
+        """
+        Read the YAML file at specified location
+
+        return the yaml data on success
+        raise an exception upon failure reading/load the file
+        """
+        try:
+            with open(filepath) as fin:
+                data = yaml.load(fin, Loader=yaml.BaseLoader)
+        except yaml.YAMLError as exc:
+            raise(exc)
+        else:
+            return data
+
+    def read_projects(self):
+        """
+        Reads the projects from given container index
+        """
+        projects = []
+
+        for yamlfile in glob(self.index + "/*.y*ml"):
+            # skip index_template
+            if "index_template" in yamlfile:
+                continue
+
+            app = self.read_yaml(yamlfile)
+            for entry in app['Projects']:
+                # create a project object here with all properties
+                project = Project(entry, self.namespace)
+                # append to the list of projects
+                projects.append(project)
+
+        return projects
