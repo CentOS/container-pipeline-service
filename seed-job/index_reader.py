@@ -171,3 +171,10 @@ class IndexReader(object):
                 projects.append(project)
 
         return projects
+
+
+
+class DeploymetConfigManager(object):
+    """
+
+    """
