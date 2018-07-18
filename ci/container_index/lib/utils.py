@@ -21,7 +21,7 @@ def load_yaml(file_path):
     err = None
     try:
         with open(file_path, "r") as f:
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=yaml.BaseLoader)
     except Exception as e:
         err = e.message
     return data, err
