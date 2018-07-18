@@ -170,6 +170,8 @@ objects:
             value: ${PRE_BUILD_CONTEXT}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
+      triggers:
+          - type: ConfigChange
 parameters:
 - description: "Path to a directory containing a Dockerfile"
   displayName: "Git Path"
