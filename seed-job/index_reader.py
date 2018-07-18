@@ -8,6 +8,8 @@ import subprocess
 import sys
 import yaml
 
+from glob import glob
+
 
 def run_cmd(cmd):
     """
@@ -26,8 +28,16 @@ class Project(object):
         """
         Initialize project object with an entry in container index
         """
-        self.load_project_entry(entry)
         self.namespace = namespace
+        self.load_project_entry(entry)
+
+    def __str__(self):
+        """
+        Returns the string representation of the project object
+        It returns the pipeline-name, which is constructed
+        based on parameters of the project indexed.
+        """
+        return self.pipeline_name()
 
     def replace_dot_slash_colon_(self, value):
         """
@@ -42,24 +52,18 @@ class Project(object):
         Process dependson for given project based on entry index
         and namespace
         """
-        if not depends_on:
+        if not depends_on or depends_on == "null":
             return None
-        return "{}-{}".format(self.namespace,
-                              self.replace_dot_slash_colon_(depends_on)
-                              )
-        """
-        # TODO: process multiple dependson values
-            if dependson is not None:
-                if isinstance(dependson, list):
-                    dependson_job = ','.join(dependson)
-                else:
-                    dependson_job = str(dependson)
-                dependson_job = dependson_job.replace(
-                    ':', '-').replace('/', '-')
 
-            if dependson_job == '':
-                dependson_job = 'none'
-        """
+        if isinstance(depends_on, list):
+            return ",".join("{}-{}".format(
+                self.namespace,
+                self.replace_dot_slash_colon_(d))
+                for d in depends_on)
+        else:
+            return "{}-{}".format(
+                self.namespace,
+                self.replace_dot_slash_colon_(depends_on))
 
     def process_desired_tag(self, desired_tag=None):
         """
@@ -77,7 +81,7 @@ class Project(object):
             return "./"
         return build_context
 
-    def process_prebuild_script(self, prebuild_script=None):
+    def process_pre_build_script(self, prebuild_script=None):
         """
         Process prebuild_script for given project
         """
@@ -109,11 +113,11 @@ class Project(object):
             self.notifyemail = entry['notify-email']
             self.desiredtag = self.process_desired_tag(entry["desired-tag"])
             self.build_context = self.process_build_context(
-                entry["build-context"])
+                entry.get("build-context", None))
             self.pre_build_context = self.process_pre_build_context(
-                entry["prebuild-context"])
+                entry.get("prebuild-context", None))
             self.pre_build_script = self.process_pre_build_script(
-                entry["prebuild-script"])
+                entry.get("prebuild-script", None))
         except Exception as e:
             print ("Error processing container index entry.")
             raise(e)
@@ -173,8 +177,41 @@ class IndexReader(object):
         return projects
 
 
-
 class DeploymetConfigManager(object):
     """
-
+    This class represents utilities to manage
+    deployment configs on openshift as used
+    by pipeline service
     """
+
+    def __init__(self, namespace):
+        self.namespace = namespace
+
+    def list_all_buildconfigs(self):
+        pass
+
+    def create_new_buildconfig(self):
+        pass
+
+    def update_buildconfig(self):
+        pass
+
+
+class Index(object):
+    """
+    The orchestrator class to process operations
+    in container index.
+    """
+
+    def __init__(self, index):
+        self.index = index
+
+    def run(self):
+        # list all jobs in index
+        # list existing jobs
+        # figure out stale jobs
+        # figure out new jobs
+        # delete stale jobs
+        # create new jobs
+        # update existing jobs
+        pass
