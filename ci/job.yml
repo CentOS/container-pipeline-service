@@ -10,7 +10,7 @@
     name: centos-container-pipeline-service-ci-builder-tests
     builders:
         - shell: |
-            python ./ci/cccp_ci.py
+            PYTHONPATH="`pwd`" python ./ci/cccp_ci.py
 
 - builder:
     name: centos-container-pipeline-service-ci-cleanup-builders
