@@ -3,7 +3,6 @@ This script parses the container index specified and
 creates the Jenkins pipeline projects from entries of index.
 """
 
-import os
 import subprocess
 import sys
 import yaml
@@ -265,6 +264,14 @@ class DeploymentConfigManager(object):
         output = run_cmd(command, shell=True)
         print (output)
 
+    def delete_buildconfigs(self, bcs):
+        """
+        Deletes the given list of bcs
+        """
+        command = "oc delete -n {} bc {}"
+        for bc in bcs:
+            run_cmd(command.format(self.namespace, bc))
+
 
 class Index(object):
     """
@@ -279,17 +286,48 @@ class Index(object):
         # create dc_manager object
         self.dc_manager = DeploymentConfigManager(
             registry_url, namespace, from_address, smtp_server)
+        self.infra_projects = ["buildconfigs/seed-job"]
+
+    def find_stale_jobs(self, oc_projects, index_projects):
+        """
+        Given oc projects and index projects, figure out stale
+        projects and return
+        """
+        # diff existing oc projects from index projects
+
+        return list(set(oc_projects) - set(index_projects))
 
     def run(self):
-        # list all jobs in index
-        # list existing jobs
-        # figure out stale jobs
-        # figure out new jobs
-        # delete stale jobs
-        # create new jobs
-        # update existing jobs
-        projects = self.index_reader.read_projects()
-        for project in projects:
+        """
+        Orchestrate container index processing
+        """
+        # list all jobs in index, list of project objects
+        index_projects = self.index_reader.read_projects()
+
+        print ("Number of projects in index {}".format(len(index_projects)))
+
+        # list existing jobs in openshift
+        oc_projects = self.dc_manager.list_all_buildconfigs()
+
+        # filter out infra projects and return only pipeline name
+        oc_projects = [bc.split("/")[1] for bc in oc_projects
+                       if bc not in self.infra_projects]
+
+        print ("Number of projects in OpenShift {}".format(len(oc_projects)))
+
+        # names of pipelines for all projects in container index
+        index_project_names = [project.pipeline_name for project in
+                               index_projects]
+
+        stale_projects = self.find_stale_jobs(oc_projects, index_project_names)
+
+        if stale_projects:
+            print ("List of stale projects:\n{}".format(
+                "\n".join(stale_projects)))
+            # delete all the stal projects/buildconfigs
+            self.dc_manager.delete_buildconfigs(stale_projects)
+
+        for project in index_projects:
             self.dc_manager.apply_buildconfigs(project)
 
 
