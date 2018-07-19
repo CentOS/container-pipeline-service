@@ -95,7 +95,7 @@ class IndexCITests(BaseTestCase):
                     FieldKeys.PROJECTS: [
                         {
                             FieldKeys.ID: 1,
-                            FieldKeys.APP_ID: "bamachrn",
+                            FieldKeys.APP_ID: "bamachrn"
                         }
                     ]
                 }
@@ -186,7 +186,7 @@ class IndexCITests(BaseTestCase):
                     FieldKeys.PROJECTS: [
                         {
                             FieldKeys.ID: 1,
-                            FieldKeys.APP_ID: "bamachrn",
+                            FieldKeys.APP_ID: "bamachrn"
                         }
                     ]
                 }
