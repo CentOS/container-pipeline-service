@@ -223,10 +223,10 @@ class DeploymentConfigManager(object):
             return bcs.strip().split("\n")
 
     def oc_apply_seedjob_template_command(
-            self, template_location="seed-job/template.yml"):
+            self, template_location="seed-job/template.yaml"):
         """
         Returns the oc process and oc apply commands with parameters
-        to process seed-job/template.yml
+        to process seed-job/template.yaml
         """
         oc_apply = "oc apply -n {} -f -".format(self.namespace)
         oc_process = "oc process -f {0} {1}".format(
