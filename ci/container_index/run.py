@@ -26,8 +26,7 @@ def init_parser():
     parser.add_argument(
         "-s",
         "--schemavalidators",
-        help="Comma seperated list of schema validators to run."
-             " to skip all",
+        help="Comma seperated list of schema validators to run.",
         metavar="SCHEMA_VALIDATORS"
     )
     parser.add_argument(
