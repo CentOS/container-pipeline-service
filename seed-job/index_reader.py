@@ -60,7 +60,7 @@ class Project(object):
 
     def process_depends_on(self, depends_on=None):
         """
-        Process dependson for given project based on entry index
+        Process depends_on for given project based on entry index
         and namespace
         """
         if not depends_on or depends_on == "null":
@@ -105,17 +105,17 @@ class Project(object):
         Loads a container index entry in class objects
         """
         try:
-            self.appid = self.replace_dot_slash_colon_(entry['app-id'])
-            self.jobid = self.replace_dot_slash_colon_(entry['job-id'])
+            self.app_id = self.replace_dot_slash_colon_(entry['app-id'])
+            self.job_id = self.replace_dot_slash_colon_(entry['job-id'])
 
-            self.giturl = entry['git-url']
-            self.gitpath = entry['git-path']
-            self.gitbranch = entry['git-branch']
-            self.targetfile = entry['target-file']
+            self.git_url = entry['git-url']
+            self.git_path = entry['git-path']
+            self.git_branch = entry['git-branch']
+            self.target_file = entry['target-file']
             self.build_context = entry.get('build-context', "./")
-            self.dependson = self.process_depends_on(entry['depends-on'])
-            self.notifyemail = entry['notify-email']
-            self.desiredtag = self.process_desired_tag(entry["desired-tag"])
+            self.depends_on = self.process_depends_on(entry['depends-on'])
+            self.notify_email = entry['notify-email']
+            self.desired_tag = self.process_desired_tag(entry["desired-tag"])
             self.pre_build_context = self.process_pre_build_context(
                 entry.get("prebuild-context", None))
             self.pre_build_script = self.process_pre_build_script(
@@ -128,7 +128,7 @@ class Project(object):
         """
         Returns the pipeline name based on the project object values
         """
-        return "{}-{}-{}".format(self.appid, self.jobid, self.desiredtag)
+        return "{}-{}-{}".format(self.app_id, self.job_id, self.desired_tag)
 
 
 class IndexReader(object):
@@ -209,7 +209,7 @@ class DeploymentConfigManager(object):
 -p FROM_ADDRESS={from_address} \
 -p SMTP_SERVER={smtp_server}"""
 
-    def list_all_buildconfigs(self):
+    def list_all_buildConfigs(self):
         """
         List all available buildConfigs
         returns list of buildConfigs available
@@ -243,17 +243,17 @@ class DeploymentConfigManager(object):
         command = self.oc_apply_seedjob_template_command()
         # format the command with project params
         command = command.format(
-            git_url=project.giturl,
-            git_path=project.gitpath,
-            git_branch=project.gitbranch,
-            target_file=project.targetfile,
+            git_url=project.git_url,
+            git_path=project.git_path,
+            git_branch=project.git_branch,
+            target_file=project.target_file,
             build_context=project.build_context,
-            desired_tag=project.desiredtag,
-            depends_on=project.dependson,
-            notify_email=project.notifyemail,
+            desired_tag=project.desired_tag,
+            depends_on=project.depends_on,
+            notify_email=project.notify_email,
             pipeline_name=project.pipeline_name,
-            app_id=project.appid,
-            job_id=project.jobid,
+            app_id=project.app_id,
+            job_id=project.job_id,
             pre_build_context=project.pre_build_context,
             pre_build_script=project.pre_build_script,
             registry_url=self.registry_url,
@@ -308,10 +308,10 @@ class Index(object):
         print ("Number of projects in index {}".format(len(index_projects)))
 
         # list existing jobs in openshift
-        oc_projects = self.dc_manager.list_all_buildconfigs()
+        oc_projects = self.dc_manager.list_all_buildConfigs()
 
         # filter out infra projects and return only pipeline name
-        # bc names are like buildconfig.build.openshift.io/appid-jobid-dt
+        # bc names are like buildconfig.build.openshift.io/app_id-job_id-dt
         oc_projects = [bc.split("/")[1] for bc in oc_projects
                        if bc.split("/")[1] not in self.infra_projects]
 
@@ -330,12 +330,14 @@ class Index(object):
             # delete all the stal projects/buildconfigs
             self.dc_manager.delete_buildconfigs(stale_projects)
 
+        # oc process and oc apply to all fresh and existing jobs
         for project in index_projects:
             self.dc_manager.apply_buildconfigs(project)
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
+        print ("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
     index = sys.argv[1].strip()
