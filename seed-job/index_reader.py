@@ -270,6 +270,7 @@ class DeploymentConfigManager(object):
         """
         command = "oc delete -n {} bc {}"
         for bc in bcs:
+            print ("Deleting buildConfig {}".format(bc))
             run_cmd(command.format(self.namespace, bc))
 
 
@@ -286,7 +287,7 @@ class Index(object):
         # create dc_manager object
         self.dc_manager = DeploymentConfigManager(
             registry_url, namespace, from_address, smtp_server)
-        self.infra_projects = ["buildconfigs/seed-job"]
+        self.infra_projects = ["seed-job"]
 
     def find_stale_jobs(self, oc_projects, index_projects):
         """
@@ -310,8 +311,9 @@ class Index(object):
         oc_projects = self.dc_manager.list_all_buildconfigs()
 
         # filter out infra projects and return only pipeline name
+        # bc names are like buildconfig.build.openshift.io/appid-jobid-dt
         oc_projects = [bc.split("/")[1] for bc in oc_projects
-                       if bc not in self.infra_projects]
+                       if bc.split("/")[1] not in self.infra_projects]
 
         print ("Number of projects in OpenShift {}".format(len(oc_projects)))
 
@@ -319,6 +321,7 @@ class Index(object):
         index_project_names = [project.pipeline_name for project in
                                index_projects]
 
+        # find stale projects based on pipeline-name
         stale_projects = self.find_stale_jobs(oc_projects, index_project_names)
 
         if stale_projects:
