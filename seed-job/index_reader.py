@@ -11,12 +11,23 @@ import yaml
 from glob import glob
 
 
-def run_cmd(cmd):
+def run_cmd(cmd, shell=False):
     """
-    Runs the given command and returns the output and error
+    Runs the given shell command
+
+    :param cmd: Command to run
+    :param shell: Whether to run raw shell commands with '|' and redirections
+    :type cmd: str
+    :type shell: boolean
+
+    :return: Command output
+    :rtype: str
+    :raises: subprocess.CalledProcessError
     """
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE).communicate()
+    if shell:
+        return subprocess.check_output(cmd, shell=True)
+    else:
+        return subprocess.check_output(cmd.split(), shell=False)
 
 
 class Project(object):
@@ -30,6 +41,7 @@ class Project(object):
         """
         self.namespace = namespace
         self.load_project_entry(entry)
+        self.pipeline_name = self.get_pipeline_name()
 
     def __str__(self):
         """
@@ -37,7 +49,7 @@ class Project(object):
         It returns the pipeline-name, which is constructed
         based on parameters of the project indexed.
         """
-        return self.pipeline_name()
+        return self.pipeline_name
 
     def replace_dot_slash_colon_(self, value):
         """
@@ -122,7 +134,7 @@ class Project(object):
             print ("Error processing container index entry.")
             raise(e)
 
-    def pipeline_name(self):
+    def get_pipeline_name(self):
         """
         Returns the pipeline name based on the project object values
         """
@@ -177,24 +189,88 @@ class IndexReader(object):
         return projects
 
 
-class DeploymetConfigManager(object):
+class DeploymentConfigManager(object):
     """
     This class represents utilities to manage
     deployment configs on openshift as used
     by pipeline service
     """
 
-    def __init__(self, namespace):
+    def __init__(self, registry_url, namespace, from_address, smtp_server):
+        self.registry_url = registry_url
         self.namespace = namespace
+        self.from_address = from_address
+        self.smtp_server = smtp_server
+        self.seed_template_params = """\
+-p GIT_URL={git_url} \
+-p GIT_PATH={git_path} \
+-p GIT_BRANCH={git_branch} \
+-p TARGET_FILE={target_file} \
+-p DESIRED_TAG={desired_tag} \
+-p DEPENDS_ON={depends_on} \
+-p NOTIFY_EMAIL={notify_email} \
+-p PIPELINE_NAME={pipeline_name} \
+-p APP_ID={app_id} \
+-p JOB_ID={job_id} \
+-p PRE_BUILD_CONTEXT={pre_build_context} \
+-p PRE_BUILD_SCRIPT={pre_build_script} \
+-p REGISTRY_URL={registry_url} \
+-p FROM_ADDRESS={from_address} \
+-p SMTP_SERVER={smtp_server}"""
 
     def list_all_buildconfigs(self):
-        pass
+        """
+        List all available buildConfigs
+        returns list of buildConfigs available
+        """
+        command = "oc get bc -o name -n {}".format(self.namespace)
+        bcs = run_cmd(command)
+        if not bcs.strip():
+            return []
+        else:
+            return bcs.strip().split("\n")
 
-    def create_new_buildconfig(self):
-        pass
+    def oc_apply_seedjob_template_command(
+            self, template_location="seed-job/template.yml"):
+        """
+        Returns the oc process and oc apply commands with parameters
+        to process seed-job/template.yml
+        """
+        oc_apply = "oc apply -n {} -f -".format(self.namespace)
+        oc_process = "oc process -f {0} {1}".format(
+            template_location,
+            self.seed_template_params
+        )
+        return oc_process + "|" + oc_apply
 
-    def update_buildconfig(self):
-        pass
+    def apply_buildconfigs(self, project):
+        """
+        Given a project object representing a project in container index,
+        process the seed-job template for same and oc apply changes
+        """
+        # get the oc process and oc apply command
+        command = self.oc_apply_seedjob_template_command()
+        # format the command with project params
+        command = command.format(
+            git_url=project.giturl,
+            git_path=project.gitpath,
+            git_branch=project.gitbranch,
+            target_file=project.targetfile,
+            desired_tag=project.desiredtag,
+            depends_on=project.dependson,
+            notify_email=project.notifyemail,
+            pipeline_name=project.pipeline_name,
+            app_id=project.appid,
+            job_id=project.jobid,
+            pre_build_context=project.pre_build_context,
+            pre_build_script=project.pre_build_script,
+            registry_url=self.registry_url,
+            from_address=self.from_address,
+            smtp_server=self.smtp_server
+        )
+        # process and apply buildconfig
+        output = run_cmd(command, shell=True)
+        print (output)
 
 
 class Index(object):
@@ -203,8 +279,13 @@ class Index(object):
     in container index.
     """
 
-    def __init__(self, index):
-        self.index = index
+    def __init__(self, index, registry_url, namespace,
+                 from_address, smtp_server):
+        # create index reader object
+        self.index_reader = IndexReader(index, namespace)
+        # create dc_manager object
+        self.dc_manager = DeploymentConfigManager(
+            registry_url, namespace, from_address, smtp_server)
 
     def run(self):
         # list all jobs in index
@@ -214,4 +295,22 @@ class Index(object):
         # delete stale jobs
         # create new jobs
         # update existing jobs
-        pass
+        projects = self.index_reader.read_projects()
+        for project in projects:
+            self.dc_manager.apply_buildconfigs(project)
+
+
+if __name__ == "__main__":
+    if len(sys.argv != 6):
+        sys.exit(1)
+
+    index = sys.argv[1].strip()
+    registry_url = sys.argv[2].strip()
+    namespace = sys.argv[3].strip()
+    from_address = sys.argv[4].strip()
+    smtp_server = sys.argv[5].strip()
+
+    index_object = Index(index, registry_url, namespace,
+                         from_address, smtp_server)
+
+    index_object.run()
