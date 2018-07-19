@@ -13,7 +13,6 @@ objects:
         git:
           uri: ${GIT_URL}
           ref: ${GIT_BRANCH}
-        contextDir: ${CONTEXT_DIR}
       strategy:
         type: "JenkinsPipeline"
         jenkinsPipelineStrategy:
@@ -218,10 +217,6 @@ parameters:
   name: JENKINSFILE_GIT_BRANCH
   required: true
   value: master
-- description: Context dir is base path to find Jenkinsfile
-  displayName: Context dir
-  name: CONTEXT_DIR
-  required: true
 - description: app_id is analogoues to username in Docker Hub
   displayName: App ID
   name: APP_ID
