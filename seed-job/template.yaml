@@ -94,7 +94,7 @@ objects:
                         }
                         stage('Build Docker image') {
                             dir("${PIPELINE_NAME}/${GIT_PATH}"){
-                                sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ."
+                                sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
                                 sh "docker images"
                             }
                         }

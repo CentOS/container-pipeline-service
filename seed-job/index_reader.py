@@ -85,14 +85,6 @@ class Project(object):
             return "latest"
         return desired_tag
 
-    def process_build_context(self, build_context=None):
-        """
-        Process build_context for given project
-        """
-        if not build_context:
-            return "./"
-        return build_context
-
     def process_pre_build_script(self, prebuild_script=None):
         """
         Process prebuild_script for given project
@@ -121,11 +113,10 @@ class Project(object):
             self.gitpath = entry['git-path']
             self.gitbranch = entry['git-branch']
             self.targetfile = entry['target-file']
+            self.build_context = entry.get('build-context', "./")
             self.dependson = self.process_depends_on(entry['depends-on'])
             self.notifyemail = entry['notify-email']
             self.desiredtag = self.process_desired_tag(entry["desired-tag"])
-            self.build_context = self.process_build_context(
-                entry.get("build-context", None))
             self.pre_build_context = self.process_pre_build_context(
                 entry.get("prebuild-context", None))
             self.pre_build_script = self.process_pre_build_script(
@@ -206,6 +197,7 @@ class DeploymentConfigManager(object):
 -p GIT_PATH={git_path} \
 -p GIT_BRANCH={git_branch} \
 -p TARGET_FILE={target_file} \
+-p BUILD_CONTEXT={build_context} \
 -p DESIRED_TAG={desired_tag} \
 -p DEPENDS_ON={depends_on} \
 -p NOTIFY_EMAIL={notify_email} \
@@ -256,6 +248,7 @@ class DeploymentConfigManager(object):
             git_path=project.gitpath,
             git_branch=project.gitbranch,
             target_file=project.targetfile,
+            build_context=project.build_context,
             desired_tag=project.desiredtag,
             depends_on=project.dependson,
             notify_email=project.notifyemail,
@@ -301,7 +294,7 @@ class Index(object):
 
 
 if __name__ == "__main__":
-    if len(sys.argv != 6):
+    if len(sys.argv) != 6:
         sys.exit(1)
 
     index = sys.argv[1].strip()
