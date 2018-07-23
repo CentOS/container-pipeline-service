@@ -557,6 +557,7 @@ def test(data, path=None):
     run_cmd(
         'export CCCP_CI_HOSTS="%s" && '
         'export CCCP_CI_PROVISIONED=%s && '
+        'export PYTHONPATH="~/container-pipeline-service" && '
         'nosetests %s' % (
             hosts_env, provisioned_env, path),
         host=controller, stream=True)
