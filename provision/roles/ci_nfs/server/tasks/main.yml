@@ -1,0 +1,37 @@
+---
+- name: Install nfs-utils for NFS sharing
+  when: setup_nfs
+  become: true
+  yum: name=nfs-utils state=present
+  tags:
+  - ci_nfs
+  - test
+
+- name: Create NFS mount directory
+  when: setup_nfs
+  become: true
+  file:
+    path: /jenkins
+    state: directory
+    mode: 0777
+  tags:
+  - ci_nfs
+  - test
+
+- name: Add entry in /etc/exports to configure NFS mount
+  when: setup_nfs
+  become: true
+  lineinfile:
+    destfile: /etc/exports
+    line: "/jenkins (rw,sync,no_subtree_check,all_squash,anonuid=0,anongid=0)"
+  tags:
+  - ci_nfs
+  - test
+
+- name: Start and Enable NFS service
+  when: setup_nfs
+  become: true
+  service: name=nfs-server enabled=yes state=started
+  tags:
+  - ci_nfs
+  - test

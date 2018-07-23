@@ -1,0 +1,54 @@
+---
+- name: Perform common tasks for all hosts
+  hosts: all
+  tasks:
+      - name: Disable requiretty in sudoers
+        lineinfile: dest=/etc/sudoers state=absent regexp="^Defaults requiretty.*"
+        become: true
+      - name: Enable centos admin repo when EPEL is disabled
+        copy: src=centos-admin.repo dest=/etc/yum.repos.d/centos-admin.repo
+        when: not enable_epel
+      - name: Ensure centos admin repo is removed when epel is enabled
+        file: path=/etc/yum.repos.d/centos-admin.repo state=absent
+        when: enable_epel
+      - name: Ensure epel is enabled when enable_epel is True
+        yum: name=epel-release state=present
+        when: enable_epel
+      - name: Set SELinux to Permissive
+        selinux:
+          policy: targeted
+          state: permissive
+      - name: Install rsync in all nodes
+        yum: name=rsync state=installed
+        become: true
+  tags:
+      - cluster
+
+- name: Configure NFS Server for CI
+  hosts: nfs_registry
+  roles:
+      - ci_nfs/server
+  tags:
+      - ci_nfs/server
+
+- name: Configure NFS clients on all the nodes for CI
+  hosts: all
+  roles:
+      - ci_nfs/clients
+  tags:
+      - ci_nfs/clients
+
+- name: Deploy Openshift cluster
+  hosts: ansible_node
+  roles:
+      - setup_cluster
+  tags:
+      - cluster_openshift
+      - cluster
+
+- name: Configure jenkins with PV and script permission
+  hosts: openshift_master
+  roles:
+      - setup_jenkins
+  tags:
+      - jenkins
