@@ -264,6 +264,23 @@ class DeploymentConfigManager(object):
         output = run_cmd(command, shell=True)
         print (output)
 
+        # if a buildConfig has config update, oc apply returns
+        # "buildconfig.build.openshift.io "$PIPELINE_NAME" configured"
+        # possible values are ["unchanged", "created", "configured"]
+        # we are looking for "configured" string for updated pipelines
+        if "configured" in output:
+            print ("{} is updated, starting build..".format(
+                project.pipeline_name))
+            self.start_build(project.pipeline_name)
+
+    def start_build(self, pipeline_name):
+        """
+        Given a pipeline name, start the build for same
+        """
+        command = "oc start-build {} -n {}".format(
+            pipeline_name, self.namespace)
+        print (run_cmd(command))
+
     def delete_buildconfigs(self, bcs):
         """
         Deletes the given list of bcs
