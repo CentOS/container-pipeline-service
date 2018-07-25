@@ -6,6 +6,7 @@ import ci.container_index.lib.state as index_ci_state
 from uuid import uuid4
 from ci.container_index.lib.constants import *
 from ci.container_index.engine import Engine
+from subprocess import check_call
 
 
 SETUP_PACKAGES = False
@@ -94,7 +95,7 @@ class IndexCITests(BaseTestCase):
                     FieldKeys.PROJECTS: [
                         {
                             FieldKeys.ID: 1,
-                            FieldKeys.APP_ID: "bamachrn",
+                            FieldKeys.APP_ID: "bamachrn"
                         }
                     ]
                 }
@@ -104,7 +105,7 @@ class IndexCITests(BaseTestCase):
             index_location=mock_loc,
             the_state=st,
             schema_validators=["IDValidator", "AppIDValidator"],
-            value_validators=None
+            skip_value=True
         ).run()
         self.assertTrue(s)
 
@@ -134,7 +135,119 @@ class IndexCITests(BaseTestCase):
         s, summary = Engine(
             index_location=mock_loc,
             the_state=st,
-            schema_validators=None,
+            skip_schema=True,
             value_validators=["GitCloneValidator"]
         ).run()
         self.assertFalse(s)
+
+    def test_05_indexci_run_from_command_line(self):
+        _, mock_loc = self.setup_mock_location(
+            {
+                "bamachrn.yaml": {
+                    FieldKeys.PROJECTS: [
+                        {
+                            FieldKeys.ID: 1,
+                            FieldKeys.APP_ID: "bamachrn",
+                            FieldKeys.JOB_ID: "python",
+                            FieldKeys.DESIRED_TAG: "latest",
+                            FieldKeys.GIT_URL: "https://github.com/bamachrn/ccc"
+                                               "p-python",
+                            FieldKeys.GIT_PATH: "demo",
+                            FieldKeys.GIT_BRANCH: "master",
+                            FieldKeys.TARGET_FILE: "Dockerfile.demo",
+                            FieldKeys.NOTIFY_EMAIL: "hello@example.com",
+                            FieldKeys.BUILD_CONTEXT: "./",
+                            FieldKeys.DEPENDS_ON: "centos/centos:latest"
+                        }
+                    ]
+                }
+            }
+        )
+        cmd = [
+            "python",
+            str(path.join(
+                path.dirname(path.realpath(__file__)),
+                "..",
+                "..",
+                "..",
+                "container_index",
+                "run.py",
+            )),
+            "-i",
+            mock_loc
+        ]
+
+        check_call(cmd)
+
+    def test_06_indexci_override_schema_validators(self):
+        _, mock_loc = self.setup_mock_location(
+            {
+                "bamachrn.yaml": {
+                    FieldKeys.PROJECTS: [
+                        {
+                            FieldKeys.ID: 1,
+                            FieldKeys.APP_ID: "bamachrn"
+                        }
+                    ]
+                }
+            }
+        )
+        cmd = [
+            "python",
+            str(path.join(
+                path.dirname(path.realpath(__file__)),
+                "..",
+                "..",
+                "..",
+                "container_index",
+                "run.py",
+            )),
+            "--schemavalidators",
+            "IDValidator,AppIDValidator",
+            "--skipvalue",
+            "-i",
+            mock_loc
+        ]
+        check_call(cmd)
+
+    def test_07_indexci_override_value_validators(self):
+        _, mock_loc = self.setup_mock_location(
+            {
+                "bamachrn.yaml": {
+                    FieldKeys.PROJECTS: [
+                        {
+                            FieldKeys.ID: 1,
+                            FieldKeys.APP_ID: "bamachrn",
+                            FieldKeys.JOB_ID: "python",
+                            FieldKeys.DESIRED_TAG: "latest",
+                            FieldKeys.GIT_URL: "https://github.com/bamachrn/ccc"
+                                               "p-python1",
+                            FieldKeys.GIT_PATH: "demo",
+                            FieldKeys.GIT_BRANCH: "master",
+                            FieldKeys.TARGET_FILE: "Dockerfile.demo",
+                            FieldKeys.NOTIFY_EMAIL: "hello@example.com",
+                            FieldKeys.BUILD_CONTEXT: "./",
+                            FieldKeys.DEPENDS_ON: "centos/centos:latest"
+                        }
+                    ]
+                }
+            }
+        )
+        cmd = [
+            "python",
+            str(path.join(
+                path.dirname(path.realpath(__file__)),
+                "..",
+                "..",
+                "..",
+                "container_index",
+                "run.py",
+            )),
+            "--skipschema",
+            "--valuevalidators",
+            "GitCloneValidator",
+            "-i",
+            mock_loc
+        ]
+        with self.assertRaises(Exception):
+            check_call(cmd)

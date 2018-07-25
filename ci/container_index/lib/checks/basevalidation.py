@@ -235,4 +235,5 @@ class CCCPYamlValidator(OptionalClonedValidator):
                         self.validation_data.get(FieldKeys.GIT_PATH)
                     )
                 )
+                return
         self._validate_cccp_yaml()
