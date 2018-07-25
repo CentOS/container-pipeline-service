@@ -154,13 +154,15 @@ class IndexReader(object):
             with open(filepath) as fin:
                 data = yaml.load(fin, Loader=yaml.BaseLoader)
         except yaml.YAMLError as exc:
+            print ("Failed to read {}".format(filepath))
             raise(exc)
         else:
             return data
 
     def read_projects(self):
         """
-        Reads the projects from given container index
+        Reads yaml entries from container index and returns
+        them as list of objects of type Project
         """
         projects = []
 
@@ -179,7 +181,7 @@ class IndexReader(object):
         return projects
 
 
-class DeploymentConfigManager(object):
+class BuildConfigManager(object):
     """
     This class represents utilities to manage
     deployment configs on openshift as used
@@ -221,26 +223,24 @@ class DeploymentConfigManager(object):
         else:
             return bcs.strip().split("\n")
 
-    def oc_apply_seedjob_template_command(
-            self, template_location="seed-job/template.yaml"):
+    def apply_buildconfigs(self,
+                           project,
+                           template_location="seed-job/template.yaml"):
         """
-        Returns the oc process and oc apply commands with parameters
-        to process seed-job/template.yaml
+        Given a project object representing a project in container index,
+        process the seed-job template for same and oc apply changes
+        if needed, also performs `oc start-build` for updated project
         """
-        oc_apply = "oc apply -n {} -f -".format(self.namespace)
         oc_process = "oc process -f {0} {1}".format(
             template_location,
             self.seed_template_params
         )
-        return oc_process + "|" + oc_apply
 
-    def apply_buildconfigs(self, project):
-        """
-        Given a project object representing a project in container index,
-        process the seed-job template for same and oc apply changes
-        """
-        # get the oc process and oc apply command
-        command = self.oc_apply_seedjob_template_command()
+        oc_apply = "oc apply -n {} -f -".format(self.namespace)
+
+        # oc process and oc apply command combined with a shell pipe
+        command = oc_process + " | " + oc_apply
+
         # format the command with project params
         command = command.format(
             git_url=project.git_url,
@@ -301,8 +301,8 @@ class Index(object):
                  from_address, smtp_server):
         # create index reader object
         self.index_reader = IndexReader(index, namespace)
-        # create dc_manager object
-        self.dc_manager = DeploymentConfigManager(
+        # create bc_manager object
+        self.bc_manager = BuildConfigManager(
             registry_url, namespace, from_address, smtp_server)
         self.infra_projects = ["seed-job"]
 
@@ -325,7 +325,7 @@ class Index(object):
         print ("Number of projects in index {}".format(len(index_projects)))
 
         # list existing jobs in openshift
-        oc_projects = self.dc_manager.list_all_buildConfigs()
+        oc_projects = self.bc_manager.list_all_buildConfigs()
 
         # filter out infra projects and return only pipeline name
         # bc names are like buildconfig.build.openshift.io/app_id-job_id-dt
@@ -345,11 +345,11 @@ class Index(object):
             print ("List of stale projects:\n{}".format(
                 "\n".join(stale_projects)))
             # delete all the stal projects/buildconfigs
-            self.dc_manager.delete_buildconfigs(stale_projects)
+            self.bc_manager.delete_buildconfigs(stale_projects)
 
         # oc process and oc apply to all fresh and existing jobs
         for project in index_projects:
-            self.dc_manager.apply_buildconfigs(project)
+            self.bc_manager.apply_buildconfigs(project)
 
 
 if __name__ == "__main__":
