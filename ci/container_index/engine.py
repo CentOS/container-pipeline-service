@@ -66,26 +66,24 @@ class Engine(object):
         # Collect the validators that need to run.
         self.validators = []
         # - Schema Validators:
-        if schema_validators:
-            if (not (schema_validators and
-                     isinstance(schema_validators, list)) or
-                    len(schema_validators) <= 0):
-                v_list = config.schema_validators
-            else:
-                v_list = schema_validators
-            if not self.skip_schema:
-                self._load_validators(schema_validation, v_list)
+        if (not (schema_validators and
+                 isinstance(schema_validators, list)) or
+                len(schema_validators) <= 0):
+            v_list = config.schema_validators
+        else:
+            v_list = schema_validators
+        if not self.skip_schema:
+            self._load_validators(schema_validation, v_list)
 
         # - Value Validators
-        if value_validators:
-            if (not value_validators or not
-                    isinstance(value_validators, list) or
-                    len(value_validators) <= 0):
-                v_list = config.value_validators
-            else:
-                v_list = value_validators
-            if not self.skip_value:
-                self._load_validators(value_validation, v_list)
+        if (not (value_validators and
+                 isinstance(value_validators, list)) or
+                len(value_validators) <= 0):
+            v_list = config.value_validators
+        else:
+            v_list = value_validators
+        if not self.skip_value:
+            self._load_validators(value_validation, v_list)
 
         self.summary = {}
         self.state = the_state if the_state else state.State()
