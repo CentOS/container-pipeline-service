@@ -7,7 +7,7 @@ ssh_cmd="ssh $sshopts $CICO_hostname"
 $ssh_cmd "yum -y install epel-release && yum -y install rsync git PyYAML python-networkx"
 rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
 $ssh_cmd git clone https://github.com/CentOS/container-pipeline-service.git 
-$ssh_cmd PYTHONPATH="`pwd`/container-pipeline-service" /usr/bin/python container-pipeline-service/ci/container_index/run.py  -vi ./payload
+$ssh_cmd 'export PYTHONPATH="`pwd`/container-pipeline-service";echo $PYTHONPATH;/usr/bin/python container-pipeline-service/ci/container_index/run.py  -vi ./payload'
 rtn_code=$?
 cico node done $CICO_ssid
 exit $rtn_code
