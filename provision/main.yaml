@@ -5,19 +5,31 @@
       - name: Disable requiretty in sudoers
         lineinfile: dest=/etc/sudoers state=absent regexp="^Defaults requiretty.*"
         become: true
-      - name: Enable centos admin repo when EPEL is disabled
-        copy: src=centos-admin.repo dest=/etc/yum.repos.d/centos-admin.repo
-        when: not enable_epel
-      - name: Ensure centos admin repo is removed when epel is enabled
-        file: path=/etc/yum.repos.d/centos-admin.repo state=absent
-        when: enable_epel
       - name: Ensure epel is enabled when enable_epel is True
         yum: name=epel-release state=present
-        when: enable_epel
-      - name: Set SELinux to Permissive
-        selinux:
-          policy: targeted
-          state: permissive
+      - name: yum update all
+        yum: name='*' state=latest
+      - name: Copy /etc/hosts
+        synchronize: src=/etc/hosts dest=/etc/hosts
+        delegate_to: localhost
+
+      - name: SELinux permissive
+        selinux: policy=targeted state=permissive
+
+      - name: Install packages
+        yum: package={{ item }} state=latest
+        with_items:
+            - NetworkManager
+            - firewalld
+            - python-rhsm-certificates
+            - centos-release-openshift-origin37.noarch
+            - python-ipaddress
+
+      - name: Start services
+        systemd: state=started enabled=yes name={{ item }}
+        with_items:
+            - NetworkManager
+            - firewalld
       - name: Install rsync in all nodes
         yum: name=rsync state=installed
         become: true
@@ -38,17 +50,17 @@
   tags:
       - ci_nfs/clients
 
-- name: Deploy Openshift cluster
-  hosts: ansible_node
-  roles:
-      - setup_cluster
-  tags:
-      - cluster_openshift
-      - cluster
+#  - name: Deploy Openshift cluster
+#  hosts: ansible_node
+#  roles:
+#      - setup_cluster
+#  tags:
+#      - cluster_openshift
+#      - cluster
 
-- name: Configure jenkins with PV and script permission
-  hosts: openshift_master
-  roles:
-      - setup_jenkins
-  tags:
-      - jenkins
+        #- name: Configure jenkins with PV and script permission
+        #  hosts: openshift_master
+        #  roles:
+        #      - setup_jenkins
+        #  tags:
+        #      - jenkins
