@@ -97,3 +97,19 @@ class CccpYamlExistsValidationTests(FilesBaseTest):
                 DUMMY_INDEX_FILE
             ).validate().success
         )
+
+    def test_06_succeeds_no_cccp_yaml_but_prebuild_specified(self):
+        s, mock_loc = self.setup_mock_location(
+            {}
+        )
+        self.assertTrue(
+            value_validation.CCCPYamlExistsValidator(
+                {
+                    CheckKeys.CLONE: False,
+                    CheckKeys.CLONE_LOCATION: mock_loc,
+                    FieldKeys.GIT_PATH: "/",
+                    CheckKeys.STATE: s
+                },
+                DUMMY_INDEX_FILE
+            )
+        )

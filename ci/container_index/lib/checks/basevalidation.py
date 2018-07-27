@@ -7,6 +7,7 @@ import os
 import ci.container_index.lib.state as state
 from ci.container_index.lib.constants import FieldKeys, CheckKeys
 from ci.container_index.lib.utils import IndexCIMessage, load_yaml
+from ci.container_index.lib.constants import FieldKeys
 
 
 class Validator(object):
@@ -219,6 +220,13 @@ class CCCPYamlValidator(OptionalClonedValidator):
         pass
 
     def _validate_after(self):
+        if (FieldKeys.PREBUILD_CONTEXT in self.validation_data and
+                FieldKeys.PREBUILD_SCRIPT in self.validation_data):
+            self._warn(
+                "Skipping checking for cccp yaml as prebuild may be generating"
+                " it"
+            )
+            return
         self._load_cccp_yaml()
         if self._load_error:
             self._invalidate(
