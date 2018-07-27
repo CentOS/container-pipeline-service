@@ -1,0 +1,11 @@
+---
+- name: Install epel for ansible
+  yum: nam=epel-release state=present
+
+- name: Install openshift origin repo for ansible
+  yum: name=centos-release-openshift-origin39.noarch state=installed
+
+- name: Install openshift-ansible
+  yum: name=openshift-ansible state=present
+
+
