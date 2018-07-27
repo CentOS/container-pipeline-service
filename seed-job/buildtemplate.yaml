@@ -52,9 +52,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "python seed-job/parser.py ${CONTAINER_INDEX_DIR} ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER}"
-                            sh "cat projects.sh"
-                            sh "sh projects.sh"
+                            sh "python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER}"
                         }
                     }
                 }
@@ -84,7 +82,7 @@ parameters:
   displayName: Container Index
   name: CONTAINER_INDEX_REPO
   required: true
-  value: https://github.com/dharmit/ccp-openshift-index
+  value: https://github.com/navidshaikh/ccp-openshift-index
 - description: "Container Index branch to use"
   displayName: Container Index branch
   name: CONTAINER_INDEX_BRANCH
