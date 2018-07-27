@@ -82,7 +82,7 @@ parameters:
   displayName: Container Index
   name: CONTAINER_INDEX_REPO
   required: true
-  value: https://github.com/navidshaikh/ccp-openshift-index
+  value: https://github.com/dharmit/ccp-openshift-index
 - description: "Container Index branch to use"
   displayName: Container Index branch
   name: CONTAINER_INDEX_BRANCH
