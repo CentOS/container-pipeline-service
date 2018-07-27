@@ -3,6 +3,7 @@ from os import path
 
 from argparse import ArgumentParser
 import ci.container_index.engine as engine
+from ci.container_index.lib.constants import CheckKeys
 
 
 def init_parser():
@@ -50,6 +51,9 @@ def init_parser():
 
 
 def print_summary(index_ci_summary, report_verbose):
+    blacklisted_keys = [
+        CheckKeys.STATE, CheckKeys.CLONE_LOCATION, CheckKeys.CLONE
+    ]
     if report_verbose:
         print(str.format(
             "\n{} Container Index CI Report {}\n\n",
@@ -64,11 +68,15 @@ def print_summary(index_ci_summary, report_verbose):
                 )
             )
             for message in messages:
+                data = {}
+                for k, v in message.data.iteritems():
+                    if k not in blacklisted_keys:
+                        data[k] = v
                 print(
                     str.format(
                         "TITLE: {} \nDATA :\n {}\nSUCCESS : {}\n",
                         message.title,
-                        message.data,
+                        data,
                         message.success,
                     )
                 )
