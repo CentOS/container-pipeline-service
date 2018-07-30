@@ -123,7 +123,8 @@ class Engine(object):
                             # and git-branch to clone
                             entry[constants.CheckKeys.CLONE] = True
                             entry[constants.CheckKeys.STATE] = self.state
-                            # Initialize validators from list and validate data.
+                            # Initialize validators from list and validate
+                            # data.
                             for v in self.validators:
                                 m = v(entry, index_file).validate()
                                 if not m.success:
