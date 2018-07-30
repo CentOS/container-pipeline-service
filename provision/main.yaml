@@ -33,6 +33,14 @@
       - name: Install rsync in all nodes
         yum: name=rsync state=installed
         become: true
+      - name: Get all the ports open for machines in cluster
+        become: true
+        firewalld:
+            source: 172.29.33.0/8
+            state: enabled
+            immediate: yes
+            permanent: true
+            zone: public
   tags:
       - cluster
 
