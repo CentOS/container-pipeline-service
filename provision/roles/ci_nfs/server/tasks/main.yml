@@ -23,7 +23,7 @@
   become: true
   lineinfile:
     destfile: /etc/exports
-    line: "/jenkins (rw,sync,no_subtree_check,all_squash,anonuid=0,anongid=0)"
+    line: "/jenkins *(rw,sync,no_subtree_check,all_squash,anonuid=0,anongid=0)"
   tags:
   - ci_nfs
   - test
