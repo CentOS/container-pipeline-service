@@ -29,8 +29,7 @@ class PrebuildValidationTests(FilesBaseTest):
     def test_02_success_valid_prebuild_script_prebuild_context(self):
         s, mock_loc = self.setup_mock_location(
             {
-                "test.sh": "testing 1 2 3",
-                "pre_context": None
+                "test.sh": "testing 1 2 3"
             }
         )
         self.assertTrue(
@@ -39,8 +38,8 @@ class PrebuildValidationTests(FilesBaseTest):
                     CheckKeys.CLONE: False,
                     CheckKeys.CLONE_LOCATION: mock_loc,
                     FieldKeys.GIT_PATH: "/",
-                    FieldKeys.PREBUILD_SCRIPT: "/test.sh",
-                    FieldKeys.PREBUILD_CONTEXT: "/pre_context",
+                    FieldKeys.PREBUILD_SCRIPT: "./test.sh",
+                    FieldKeys.PREBUILD_CONTEXT: "/",
                     CheckKeys.STATE: s
                 },
                 DUMMY_INDEX_FILE
@@ -50,8 +49,7 @@ class PrebuildValidationTests(FilesBaseTest):
     def test_03_fails_prebuild_script_does_not_exist(self):
         s, mock_loc = self.setup_mock_location(
             {
-                "test.sh": "testing 1 2 3",
-                "pre_context": None
+                "test.sh": "testing 1 2 3"
             }
         )
         self.assertFalse(
@@ -60,8 +58,8 @@ class PrebuildValidationTests(FilesBaseTest):
                     CheckKeys.CLONE: False,
                     CheckKeys.CLONE_LOCATION: mock_loc,
                     FieldKeys.GIT_PATH: "/",
-                    FieldKeys.PREBUILD_SCRIPT: "/does_not_exist.sh",
-                    FieldKeys.PREBUILD_CONTEXT: "/pre_context",
+                    FieldKeys.PREBUILD_SCRIPT: "./test1.sh",
+                    FieldKeys.PREBUILD_CONTEXT: "/",
                     CheckKeys.STATE: s
                 },
                 DUMMY_INDEX_FILE
@@ -71,8 +69,7 @@ class PrebuildValidationTests(FilesBaseTest):
     def test_04_fails_prebuild_script_exists_no_prebuild_context(self):
         s, mock_loc = self.setup_mock_location(
             {
-                "test.sh": "testing 1 2 3",
-                "pre_context": None
+                "test.sh": "testing 1 2 3"
             }
         )
         self.assertFalse(
@@ -91,8 +88,7 @@ class PrebuildValidationTests(FilesBaseTest):
     def test_05_fails_prebuild_script_exists_invalid_prebuild_context(self):
         s, mock_loc = self.setup_mock_location(
             {
-                "test.sh": "testing 1 2 3",
-                "pre_context": None
+                "test.sh": "testing 1 2 3"
             }
         )
         self.assertFalse(
