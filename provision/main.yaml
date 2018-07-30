@@ -24,12 +24,14 @@
             - python-rhsm-certificates
             - centos-release-openshift-origin37.noarch
             - python-ipaddress
+            - docker
 
       - name: Start services
         systemd: state=started enabled=yes name={{ item }}
         with_items:
             - NetworkManager
             - firewalld
+            - docker
       - name: Install rsync in all nodes
         yum: name=rsync state=installed
         become: true
@@ -44,6 +46,15 @@
   tags:
       - cluster
 
+- name: Confiure container registry
+  hosts: nfs_registry
+  tasks:
+      - name: Install docker distribution
+        yum: name="docker-distribution" state=latest
+        become: true
+      - name: Start and enable container registry
+        systemd: state=started enabled=yes name="docker-distribution"
+        become: true
 - name: Configure NFS Server for CI
   hosts: nfs_registry
   roles:
