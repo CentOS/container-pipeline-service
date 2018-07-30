@@ -89,19 +89,6 @@ class PreBuildExistsValidator(OptionalClonedValidator):
                 str.format(
                     "{}/{}",
                     self.clone_location,
-                    self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
-                )
-        )):
-            self._invalidate(
-                str.format(
-                    "Prebuild script does not exist at {}",
-                    self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
-                )
-            )
-        if (not path.exists(
-                str.format(
-                    "{}/{}",
-                    self.clone_location,
                     self.validation_data.get(FieldKeys.PREBUILD_CONTEXT)
                 )
         )):
@@ -109,6 +96,21 @@ class PreBuildExistsValidator(OptionalClonedValidator):
                 str.format(
                     "Prebuild context does not exist at {}",
                     self.validation_data.get(FieldKeys.PREBUILD_CONTEXT)
+                )
+            )
+        if (not path.exists(
+                str.format(
+                    "{}/{}/{}",
+                    self.clone_location,
+                    self.validation_data.get(FieldKeys.PREBUILD_CONTEXT),
+                    self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
+                )
+        )):
+            self._invalidate(
+                str.format(
+                    "Prebuild script does not exist at {}/{}",
+                    self.validation_data.get(FieldKeys.PREBUILD_CONTEXT),
+                    self.validation_data.get(FieldKeys.PREBUILD_SCRIPT)
                 )
             )
 
