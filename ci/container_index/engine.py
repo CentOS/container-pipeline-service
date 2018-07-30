@@ -104,40 +104,40 @@ class Engine(object):
         # Read the files, one by one and validate them.
         messages = []
         for index_file in self.index_files:
-            file_data, err = utils.load_yaml(index_file)
-            if file_data:
-                messages = []
+            if "index_template" not in index_file:
+                file_data, err = utils.load_yaml(index_file)
+                if file_data:
+                    messages = []
 
-                # Perform primary validation
-                m = schema_validation.TopLevelProjectsValidator(
-                    file_data, index_file
-                ).validate()
-                messages.append(m)
-                # If primary validation was successful, move forward.
-                if m.success:
-                    entries = file_data.get(constants.FieldKeys.PROJECTS)
-                    # Extract entries and start evaluating them, one by one
-                    for entry in entries:
-                        # Instruct all Clone validators to use git-url
-                        # and git-branch to clone
-                        entry[constants.CheckKeys.CLONE] = True
-                        entry[constants.CheckKeys.STATE] = self.state
-                        # Initialize validators from list and validate data.
-                        for v in self.validators:
-                            m = v(entry, index_file).validate()
-                            if not m.success:
-                                overall_success = False
-                            messages.append(m)
-                else:
-                    overall_success = False
+                    # Perform primary validation
+                    m = schema_validation.TopLevelProjectsValidator(
+                        file_data, index_file
+                    ).validate()
                     messages.append(m)
-            else:
-                utils.print_out(
-                    "Could not fetch data from index file {}\nError:{}".format(
-                        index_file, err
-                    ), verbose=self.verbose
-                )
-
-            self.add_summary(index_file, messages)
+                    # If primary validation was successful, move forward.
+                    if m.success:
+                        entries = file_data.get(constants.FieldKeys.PROJECTS)
+                        # Extract entries and start evaluating them, one by one
+                        for entry in entries:
+                            # Instruct all Clone validators to use git-url
+                            # and git-branch to clone
+                            entry[constants.CheckKeys.CLONE] = True
+                            entry[constants.CheckKeys.STATE] = self.state
+                            # Initialize validators from list and validate data.
+                            for v in self.validators:
+                                m = v(entry, index_file).validate()
+                                if not m.success:
+                                    overall_success = False
+                                messages.append(m)
+                    else:
+                        overall_success = False
+                        messages.append(m)
+                else:
+                    t = "Could not fetch data from index file {}\nError:{}"
+                    t = t.format(index_file, err)
+                    utils.print_out(
+                        t, verbose=self.verbose
+                    )
+                self.add_summary(index_file, messages)
         self.state.clean_state()
         return overall_success, self.summary
