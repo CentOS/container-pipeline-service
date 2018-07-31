@@ -37,7 +37,7 @@
         become: true
         when: ci_setup
         firewalld:
-            source: {{ cluster_subnet }}
+            source: "{{ cluster_subnet }}"
             state: enabled
             immediate: yes
             permanent: true
@@ -46,6 +46,11 @@
         shell: iptables -F
         become: yes
         when: ci_setup
+      - name: Copy source code to all machines
+        synchronize:
+            src: ../../
+            dest: /opt/ccp-openshift
+            mode: push
   tags:
       - cluster
 
@@ -60,7 +65,6 @@
         become: true
 - name: Configure NFS Server for CI
   hosts: nfs_registry
-  when: setup_nfs
   roles:
       - ci_nfs/server
   tags:
@@ -68,7 +72,6 @@
 
 - name: Configure NFS clients on all the nodes for CI
   hosts: all
-  when: setup_nfs
   roles:
       - ci_nfs/clients
   tags:
@@ -80,9 +83,9 @@
       - cluster_openshift
       - cluster
 
-        #- name: Configure jenkins with PV and script permission
-        #  hosts: openshift_master
-        #  roles:
-        #      - setup_jenkins
-        #  tags:
-        #      - jenkins
+- name: Configure jenkins with PV and script permission
+  hosts: masters
+  roles:
+      - setup_jenkins
+  tags:
+      - jenkins
