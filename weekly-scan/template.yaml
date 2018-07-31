@@ -13,7 +13,6 @@ objects:
         git:
           uri: ${GIT_URL}
           ref: ${GIT_BRANCH}
-        contextDir: ${CONTEXT_DIR}
       strategy:
         type: "JenkinsPipeline"
         jenkinsPipelineStrategy:
@@ -174,10 +173,6 @@ parameters:
   displayName: Desired Tag
   name: DESIRED_TAG
   required: true
-- description: Context dir is base path to find Jenkinsfile
-  displayName: Context dir
-  name: CONTEXT_DIR
-  required: true
 - description: URL to the Git Repo
   displayName: Git URL
   name: GIT_URL
@@ -193,4 +188,14 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
+- description: Git repo containing the Jenkinsfile
+  displayName: Jenkinsfile repo
+  name: JENKINSFILE_GIT_URL
+  required: true
+  value: https://github.com/dharmit/ccp-openshift
+- description: Git repo branch containing the Jenkinsfile
+  displayName: Jenkinsfile repo branch
+  name: JENKINSFILE_GIT_BRANCH
+  required: true
+  value: master
 
