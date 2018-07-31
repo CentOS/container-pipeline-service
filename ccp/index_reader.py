@@ -301,7 +301,7 @@ class BuildConfigManager(object):
             git_branch=project.git_branch,
             desired_tag=project.desired_tag,
             notify_email=project.notify_email,
-            pipeline_name="wscan_" + project.pipeline_name,
+            pipeline_name="wscan-" + project.pipeline_name,
             app_id=project.app_id,
             job_id=project.job_id,
             registry_url=self.registry_url,
