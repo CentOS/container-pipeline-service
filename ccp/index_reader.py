@@ -220,8 +220,7 @@ class BuildConfigManager(object):
 -p JOB_ID={job_id} \
 -p DESIRED_TAG={desired_tag} \
 -p FROM_ADDRESS={from_address} \
--p SMTP_SERVER={smtp_server}
-"""
+-p SMTP_SERVER={smtp_server}"""
 
     def list_all_buildConfigs(self):
         """
