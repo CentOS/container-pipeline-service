@@ -56,12 +56,12 @@ objects:
                     def success = false
                     try{
                         stage('Check image exists in registry'){
-                            sh (returnStdout: true, script: "curl ${registry_tags} | grep ${DESIRED_TAG}", returnStatus: true)
+                            sh "curl ${registry_tags} | grep ${DESIRED_TAG}"
                             image_in_registry = true
                         }
                         stage('Pull the docker image'){
                             if (image_in_registry==true) {
-                                sh (returnStdout: true, script: "docker pull ${image_name_with_registry}", returnStatus: true)
+                                sh "docker pull ${image_name_with_registry}"
                                 image_pulled = true
                             }
                             else {
