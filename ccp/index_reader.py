@@ -301,7 +301,7 @@ class BuildConfigManager(object):
             git_branch=project.git_branch,
             desired_tag=project.desired_tag,
             notify_email=project.notify_email,
-            pipeline_name=project.pipeline_name + "_wscan",
+            pipeline_name="wscan_" + project.pipeline_name,
             app_id=project.app_id,
             job_id=project.job_id,
             registry_url=self.registry_url,
@@ -387,9 +387,15 @@ class Index(object):
         # names of pipelines for all projects in container index
         index_project_names = [project.pipeline_name for project in
                                index_projects]
+        index_project_names_with_wscan = []
+        for item in index_project_names:
+            index_project_names_with_wscan.append(item)
+            index_project_names_with_wscan.append("wscan_" + item)
 
         # find stale projects based on pipeline-name
-        stale_projects = self.find_stale_jobs(oc_projects, index_project_names)
+        stale_projects = self.find_stale_jobs(
+            oc_projects, index_project_names_with_wscan
+        )
 
         if stale_projects:
             print ("List of stale projects:\n{}".format(
