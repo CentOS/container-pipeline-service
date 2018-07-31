@@ -1,0 +1,21 @@
+---
+- name: Login as system admin
+  shell: export KUBECONFIG=/etc/origin/master/admin.kubeconfig && oc login -u system:admin
+- name: Create cccp project
+  shell: oc new-project cccp --display-name="CentOS Container Pipeline"
+- name: Get Jenkins PV yeaml
+  template: src=jenkins-pv.yaml.j2 dest=/tmp/jenkins-pv.yaml
+- name: Create Jenkins PV
+  shell: oc create -f /tmp/jenkins-pv.yaml
+- name: Deploy Jenkins service
+  shell: oc process -p MEMORY_LIMIT=1Gi openshift//jenkins-persistent | oc create -f -
+- name: Enable parallel builds in jenkins
+  shell: oc set env dc/jenkins JENKINS_JAVA_OVERRIDES="-Dhudson.slaves.NodeProvisioner.initialDelay=0,-Dhudson.slaves.NodeProvisioner.MARGIN=50,-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85"
+- name: Add jenkins sa to privileged
+  shell: oc adm policy add-scc-to-user privileged system:serviceaccount:cccp:jenkins
+- name: Add jenkins sa to builder
+  shell: oc adm policy add-role-to-user system:image-builder system:serviceaccount:cccp:jenkins
+- name: Remove default node selector for cccp project
+  shell: oc annotate namespace cccp openshift.io/node-selector=""
+- name: Run the demon sets for scanner
+  shell: oc create -f /opt/ccp-openshift/daemon-set/scan_data.yml
