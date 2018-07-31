@@ -19,7 +19,7 @@ objects:
           jenkinsfile: |
             properties([
                 pipelineTriggers([
-                    cron('0 3 * * 6'),
+                    cron('0 23 * * 6'),
                 ])
             ])
             podTemplate(
@@ -188,14 +188,4 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
-- description: Git repo containing the Jenkinsfile
-  displayName: Jenkinsfile repo
-  name: JENKINSFILE_GIT_URL
-  required: true
-  value: https://github.com/dharmit/ccp-openshift
-- description: Git repo branch containing the Jenkinsfile
-  displayName: Jenkinsfile repo branch
-  name: JENKINSFILE_GIT_BRANCH
-  required: true
-  value: master
 
