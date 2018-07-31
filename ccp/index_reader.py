@@ -283,7 +283,7 @@ class BuildConfigManager(object):
 
     def apply_weekly_scan(self,
                           project,
-                          template_location="weekly=scan/template.yaml"
+                          template_location="weekly-scan/template.yaml"
                           ):
         oc_process = "oc process -f {0} {1}".format(
             template_location,
