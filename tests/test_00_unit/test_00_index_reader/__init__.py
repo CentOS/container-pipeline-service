@@ -34,19 +34,25 @@ class TestProject(unittest.TestCase):
         """
         index_reader.Project(self.entry, self.namespace)
 
-    def test_desired_tag(self):
+    def test_string_representation(self):
         """
-        Tests desired tag processing and defaults
+        Test __str__ representation of Project object
         """
-        # test a custom value
-        self.entry["desired-tag"] = "release"
         project = index_reader.Project(self.entry, self.namespace)
-        self.assertEqual(project.desired_tag, "release")
+        self.assertEqual(
+            "foo-bar-latest",
+            project.__str__()
+        )
 
-        # test empty value
-        self.entry["desired-tag"] = ""
+    def test_replace_dot_slash_colon_(self):
+        """
+        Test the helper method to replace . / : _ with hyphen
+        """
         project = index_reader.Project(self.entry, self.namespace)
-        self.assertEqual(project.desired_tag, "latest")
+        self.assertEqual(
+            "a-b-c-d",
+            project.replace_dot_slash_colon_("a.b/c_d")
+        )
 
     def test_depends_on(self):
         """
@@ -62,6 +68,60 @@ class TestProject(unittest.TestCase):
 
         # test if commas are included with multiple values of depends_on
         self.assertIn(",", project.depends_on)
+
+        # test the actual values
+        self.assertEqual(
+            "ccp-centos-centos-latest,ccp-centos-centos-7",
+            project.depends_on
+        )
+
+    def test_desired_tag(self):
+        """
+        Tests desired tag processing and defaults
+        """
+        # test a custom value
+        self.entry["desired-tag"] = "release"
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertEqual(project.desired_tag, "release")
+
+        # test empty value
+        self.entry["desired-tag"] = ""
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertEqual(project.desired_tag, "latest")
+
+    def test_pre_build_script(self):
+        """
+        Test processing pre_build_script
+        """
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertEqual(
+            "hooks/script.sh", project.pre_build_script)
+
+        # test a None value, in cases where prebuild-script is not specified
+        self.entry.pop("prebuild-script")
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertIsNone(project.pre_build_script)
+
+    def test_pre_build_context(self):
+        """
+        Test processing pre_build_context
+        """
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertEqual("/", project.pre_build_context)
+
+        # test a None value, in cases where prebuild-context is not specified
+        self.entry.pop("prebuild-context")
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertIsNone(project.pre_build_context)
+
+    def test_get_pipeline_name(self):
+        """
+        Test processing pipeline_name based on given values
+        """
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertEqual(
+            "foo-bar-latest",
+            project.pipeline_name)
 
 
 if __name__ == "__main__":
