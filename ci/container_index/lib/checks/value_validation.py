@@ -129,7 +129,8 @@ class JobIDMatchesIndex(CCCPYamlValidator):
         app_id = self.validation_data.get(FieldKeys.APP_ID)
         job_id = self.validation_data.get(FieldKeys.JOB_ID)
         if app_id and job_id:
-            if app_id == "centos" and job_id == "centos":
+            if ((app_id == "centos" or app_id == "library")
+               and job_id == "centos"):
                 self._warn(
                     "CentOS Base image detected, skipping for now until fix is"
                     " done to repository"
