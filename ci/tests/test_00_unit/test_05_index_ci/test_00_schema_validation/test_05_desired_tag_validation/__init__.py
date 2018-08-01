@@ -28,13 +28,13 @@ class DesiredTagValidationTests(IndexCIBase):
                 DUMMY_INDEX_FILE
             ).validate().success
         )
-
-    def test_03_validation_fails_desired_tag_not_string(self):
-        self.assertFalse(
-            schema_validation.DesiredTagValidator(
-                {
-                    FieldKeys.DESIRED_TAG: 1
-                },
-                DUMMY_INDEX_FILE
-            ).validate().success
-        )
+    #
+    # def test_03_validation_fails_desired_tag_not_string(self):
+    #     self.assertFalse(
+    #         schema_validation.DesiredTagValidator(
+    #             {
+    #                 FieldKeys.DESIRED_TAG: 1
+    #             },
+    #             DUMMY_INDEX_FILE
+    #         ).validate().success
+    #     )

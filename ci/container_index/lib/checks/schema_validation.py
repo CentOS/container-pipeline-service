@@ -95,7 +95,7 @@ class JobIDValidator(StringFieldValidator):
         self.message.title = "Job ID Validation"
 
 
-class DesiredTagValidator(StringFieldValidator):
+class DesiredTagValidator(BasicSchemaValidator):
     """
     Checks the formatting of the desired-tag field of data.
     """
@@ -105,6 +105,12 @@ class DesiredTagValidator(StringFieldValidator):
             validation_data, file_name)
         self.field_name = FieldKeys.DESIRED_TAG
         self.message.title = "Desired Tag Validation"
+
+    def _extra_validation(self):
+        data = str(self.validation_data.get(self.field_name))
+        if len(data) == 0:
+            self._invalidate("Desired tag cannot be a zero length string")
+            return
 
 
 class GitURLValidator(StringFieldValidator):
