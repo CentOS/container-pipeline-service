@@ -8,11 +8,6 @@ objects:
     metadata:
       name: ${PIPELINE_NAME}
     spec:
-      source:
-        type: Git
-        git:
-          uri: ${GIT_URL}
-          ref: ${GIT_BRANCH}
       strategy:
         type: "JenkinsPipeline"
         jenkinsPipelineStrategy:
@@ -55,7 +50,7 @@ objects:
                     def image_pulled = false
                     def success = false
                     try{
-                        stage('Check image exists in registry'){
+                        stage('Check if image exists in registry'){
                             sh "curl ${registry_tags} | grep ${DESIRED_TAG}"
                             image_in_registry = true
                         }
@@ -110,13 +105,8 @@ objects:
                             )
                         }
                         stage('Remove the docker image'){
-                            if (image_pulled==true) {
-                                sh "docker rmi ${image_name_with_registry}"
-                                success = true
-                            }
-                            else {
-                                sh "echo 'Skipping as image not present' && exit 1"
-                            }
+                            sh "docker rmi ${image_name_with_registry}"
+                            success = true
                         }
                     }
                     finally {
@@ -145,10 +135,6 @@ objects:
             value: ${JOB_ID}
           - name: DESIRED_TAG
             value: ${DESIRED_TAG}
-          - name: GIT_URL
-            value: ${GIT_URL}
-          - name: GIT_BRANCH
-            value: ${GIT_BRANCH}
 parameters:
 - description: Email to send notification to
   displayName: Notification email
@@ -172,13 +158,6 @@ parameters:
 - description: Tag for the resulting image
   displayName: Desired Tag
   name: DESIRED_TAG
-  required: true
-- description: URL to the Git Repo
-  displayName: Git URL
-  name: GIT_URL
-- description: Git branch to build off
-  displayName: Git Branch
-  name: GIT_BRANCH
   required: true
 - description: From address to be used when sending email
   displayName: From email address
