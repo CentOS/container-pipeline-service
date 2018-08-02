@@ -1,4 +1,4 @@
-**This document discusses setting up of logging infrastructure in the OpenShift
+**This document discusses setting up logging infrastructure in the OpenShift
 cluster. It assumes that you have an OpenShift 3.9.0 cluster already setup.**
 
  If you don't have an OpenShift 3.9.0 cluster setup already, you can refer the
@@ -12,6 +12,20 @@ $ ansible-playbook -i openshift-cluster/hosts.39 /usr/share/ansible/openshift-an
 # install the cluster
 $ time ansible-playbook -i openshift-cluster/hosts.39 /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml -vvv
 ```
+
+Logging infrastructure that we're going to setup in our cluster is going to be
+based on EFK (Elasitcsearch - Fluentd - Kibana). OpenShift has this integrated
+and all we need to do is make sure that certain prerequisites are satisfied.
+Below are the prerequisites that we took care of before executing the playbook:
+
+- Create a `/logging` directory that's backed by a block storage device of
+  reasonable size. We used nearly 35GB for it.
+- At the moment, we are using worst possible Linux file persmissions so that
+  Elasticsearch pods can access the `/logging` directory:
+   
+  ```bash
+  $ chmod 777 /logging
+  ```
 
 Once the cluster is installed, add logging related parameters to the hosts file
 so that it looks like below:
@@ -113,13 +127,6 @@ This is again going to use `/logging` directory in one of the nodes with
 correct label. It's going to spin up pods for Elasticsearch and Kibana while
 single Fluentd pod in the logging namespace is going to take care of sending
 logs to the relevant cluster.
-
-At the moment, we are using worst possible Linux file persmissions so that
-Elasticsearch pods can access the `/logging` directory:
-
-```bash
-$ chmod 777 /logging
-```
 
 Also the Elasticsearch service account needs to be added to `privileged`
 scc (security context constraint) so that it can use a `hostPath` mount option:
