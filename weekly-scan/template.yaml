@@ -47,7 +47,6 @@ objects:
                     def registry_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
                     def daemonset_name = "scan-data_scan-data"
                     def image_in_registry = false
-                    def image_pulled = false
                     def success = false
                     try{
                         stage('Check if image exists in registry'){
@@ -55,52 +54,26 @@ objects:
                             image_in_registry = true
                         }
                         stage('Pull the docker image'){
-                            if (image_in_registry==true) {
-                                sh "docker pull ${image_name_with_registry}"
-                                image_pulled = true
-                            }
-                            else {
-                                sh "echo 'Not pulling image as its not in registry' && exit 1"
-                            }
+                            sh "docker pull ${image_name_with_registry}"
                         }
                         stage('Scan the image') {
                             parallel (
                                 "RPM updates": {
-                                  if (image_pulled==true) {
-                                      sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name_with_registry} /opt/scanning/yumupdates.py > yum-check-update 2>&1", returnStatus: true)
-                                      sh "cat yum-check-update"
-                                  }
-                                  else {
-                                     sh "echo 'Skipping as image not present' && exit 1"
-                                  }
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/yumupdates.py > yum-check-update 2>&1")
+                                  sh "cat yum-check-update"
                                 },
                                 "Verify RPMs": {
-                                  if (image_pulled==true) {
-                                      sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name_with_registry} /opt/scanning/rpmverify.py > rpm-verify 2>&1", returnStatus: true)
-                                      sh "cat rpm-verify"
-                                  }
-                                  else {
-                                      sh "echo 'Skippping as image not present' && exit 1"
-                                  }
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1")
+                                  sh "cat rpm-verify"
                                 },
                                 "Miscellaneous updates": {
-                                  if (image_pulled==true) {
-                                      sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name_with_registry} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
-                                      sh "cat misc-updates"
-                                  }
-                                  else {
-                                      sh "echo 'Skipping as image not present' && exit 1"
-                                  }
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1")
+                                  sh "cat misc-updates"
                                 },
                                 "Container capabilities": {
-                                  if (image_pulled==true) {
-                                      def run_label = sh (returnStdout: true, script: "docker inspect ${image_name_with_registry} --format '{{ index .Config.Labels \"RUN\" }}'")
-                                      sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name_with_registry} /opt/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1", returnStatus: true)
-                                      sh "cat capabilities"
-                                  }
-                                  else {
-                                      sh "echo 'Skipping as image not present' && exit 1"
-                                  }
+                                  def run_label = sh (script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
+                                  sh "cat capabilities"
                                 }
                             )
                         }
@@ -116,6 +89,8 @@ objects:
                             } else {
                                 sh "echo -e 'Weekly scan for ${image_name_with_registry} was unsuccessful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Weekly scan ${image_name_with_registry} has failed' ${NOTIFY_EMAIL} "
                             }
+                        } else {
+                          sh "echo -e 'Weekly scan for ${image_name_with_registry} was unsuccessful as image not in registry' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Weekly scan ${image_name_with_registry} has failed, as image not in registry' ${NOTIFY_EMAIL} "
                         }
                     }
                 }
