@@ -110,7 +110,7 @@ objects:
                         }
                     }
                     finally {
-                        if (image_pulled==true) {
+                        if (image_in_registry==true) {
                             if (success==true) {
                                 sh "echo -e 'Weekly scan for ${image_name_with_registry} was successful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'SUCCESS: Weekly scan for ${image_name_with_registry} is complete' ${NOTIFY_EMAIL} "
                             } else {
