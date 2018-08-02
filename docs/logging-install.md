@@ -162,3 +162,9 @@ command as `system:admin` user to grant the privileges:
 ```bash
 $ oc adm policy add-cluster-role-to-user cluster-reader developer
 ```
+
+Link to Kibana dashboards is available in OpenShift Web Console under the
+respective deployments. Open the web console and go to the logging namespace.
+In the Overview page, you'll see the numerous deployments made under the
+project. Click on the ones for Kibana and you'll find the link to the route
+that exposes this services.
