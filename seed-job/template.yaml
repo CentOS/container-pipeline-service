@@ -108,7 +108,7 @@ objects:
                                   sh "cat rpm-verify"
                                 },
                                 "Miscellaneous updates": {
-                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1", returnStatus: true)
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1")
                                   sh "cat misc-updates"
                                 },
                                 "Container capabilities": {
