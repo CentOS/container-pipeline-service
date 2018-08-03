@@ -210,6 +210,7 @@ class BuildConfigManager(object):
 -p REGISTRY_URL={registry_url} \
 -p FROM_ADDRESS={from_address} \
 -p SMTP_SERVER={smtp_server}"""
+
         self.weekly_scan_template_params = """\
 -p PIPELINE_NAME=wscan-{pipeline_name} \
 -p REGISTRY_URL={registry_url} \
@@ -232,10 +233,16 @@ class BuildConfigManager(object):
         else:
             return bcs.strip().split("\n")
 
-    def apply_seed_job(self,
-                       project,
-                       template_location="seed-job/template.yaml"
-                       ):
+    def apply_build_job(self,
+                        project,
+                        template_location="seed-job/template.yaml"
+                        ):
+        """
+        Applies the build job template that creates pipeline to build
+        image, and trigger first time build as well.
+        :param project: The name of project, where the template is to be applied
+        :param template_location: The location of the template file.
+        """
         oc_process = "oc process -f {0} {1}".format(
             template_location,
             self.seed_template_params
@@ -282,6 +289,12 @@ class BuildConfigManager(object):
                           project,
                           template_location="weekly-scan/template.yaml"
                           ):
+        """
+        Applies the weekly scan template, creating a pipeline for same
+        :param project: The name of the project where the template is to be
+        applied.
+        :param template_location: The location of template file.
+        """
         oc_process = "oc process -f {0} {1}".format(
             template_location,
             self.weekly_scan_template_params
@@ -317,7 +330,7 @@ class BuildConfigManager(object):
         process the seed-job template for same and oc apply changes
         if needed, also performs `oc start-build` for updated project
         """
-        self.apply_seed_job(project)
+        self.apply_build_job(project)
         self.apply_weekly_scan(project)
 
     def start_build(self, pipeline_name):
