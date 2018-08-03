@@ -130,10 +130,21 @@ class JobIDMatchesIndex(CCCPYamlValidator):
         job_id = self.validation_data.get(FieldKeys.JOB_ID)
         if app_id and job_id:
             if ((app_id == "centos" or app_id == "library")
-               and job_id == "centos"):
+               and (job_id == "centos" or job_id == "nginx-110-centos7")):
                 self._warn(
-                    "CentOS Base image detected, skipping for now until fix is"
+                    "CentOS image detected, skipping for now until fix is"
                     " done to repository"
+                )
+                return
+            if app_id == "fabric8-ui" and job_id == "openshift-nginx":
+                self._warn(
+                    "Skipping check on fabric8-ui for noew"
+                )
+                return
+            if app_id == "pipeline-images":
+                self._warn(
+                    "Skipping for pipeline-images for now as they are"
+                    " an exception case"
                 )
                 return
         # END
