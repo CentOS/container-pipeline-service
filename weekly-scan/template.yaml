@@ -44,13 +44,13 @@ objects:
                 node('ccp-pipeline') {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
-                    def registry_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
+                    def image_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
                     def daemonset_name = "scan-data_scan-data"
                     def image_in_registry = false
                     def success = false
                     try{
                         stage('Check if image exists in registry'){
-                            sh "curl ${registry_tags} | grep ${DESIRED_TAG}"
+                            sh "curl ${image_tags} | grep ${DESIRED_TAG}"
                             image_in_registry = true
                         }
                         stage('Pull the docker image'){
