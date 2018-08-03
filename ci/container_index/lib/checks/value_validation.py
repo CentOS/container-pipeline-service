@@ -136,7 +136,7 @@ class JobIDMatchesIndex(CCCPYamlValidator):
                     " done to repository"
                 )
                 return
-            if app_id == "fabric8-ui":
+            if app_id == "fabric8-ui" or app_id == "fabric8":
                 self._warn(
                     "Skipping check on fabric8-ui for noew"
                 )
