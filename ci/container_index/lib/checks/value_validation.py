@@ -136,7 +136,7 @@ class JobIDMatchesIndex(CCCPYamlValidator):
                     " done to repository"
                 )
                 return
-            if app_id == "fabric8-ui" and job_id == "openshift-nginx":
+            if app_id == "fabric8-ui":
                 self._warn(
                     "Skipping check on fabric8-ui for noew"
                 )
