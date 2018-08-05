@@ -34,7 +34,7 @@ objects:
                 containers: [
                   containerTemplate(
                     name: 'jnlp',
-                    image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                    image: '172.29.33.48:5000/navidshaikh/ccp-openshift-slave',
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
@@ -132,14 +132,20 @@ objects:
                         }
                     }
                     finally {
-                        if (success==true) {
-                            sh "echo -e 'Build request for ${image_name_with_registry} was successful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'SUCCESS: Container build ${image_name_with_registry} is complete' ${NOTIFY_EMAIL} "
-                        } else {
-                            sh "echo -e 'Build request for ${image_name_with_registry} was unsuccessful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Container build ${image_name_with_registry} has failed' ${NOTIFY_EMAIL} "
+                      stage("Notify user"){
+                        dir("${PIPELINE_REPO_DIR}") {
+                          git url: '${PIPELINE_REPO}', branch: '${PIPELINE_BRANCH}'
+                          }
 
-                        }
+                          if (success==true) {
+                            sh "echo ${BUILD_NUMBER}"
+                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py cccp `oc get route jenkins -o template --template={{.spec.host}}` ${PIPELINE_NAME}"
+                          } else {
+                              sh "echo -e 'Build request for ${image_name_with_registry} was unsuccessful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Container build ${image_name_with_registry} has failed' ${NOTIFY_EMAIL} "
+                            }
                     }
-                }
+                  }
+              }
             }
           env:
           - name: GIT_URL
@@ -170,6 +176,8 @@ objects:
             value: ${PRE_BUILD_CONTEXT}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
+          - name: PIPELINE_REPO_DIR
+            value: ${PIPELINE_REPO_DIR}
       triggers:
           - type: ConfigChange
 parameters:
@@ -243,3 +251,18 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
+- description: Directory where Pipeline service code is to be clo
+  displayName: Pipeline repo directory
+  name: PIPELINE_REPO_DIR
+  required: true
+  value: /tmp/pipeline-service
+- description: Repository containing CentOS Container Pipeline service code
+  displayName: Pipeline service repo
+  name: PIPELINE_REPO
+  required: true
+  value: https://github.com/navidshaikh/ccp-openshift
+- description: Branch of Pipeline service to checkout to
+  displayName: Pipeline branch
+  name: PIPELINE_BRANCH
+  required: true
+  value: email-1
