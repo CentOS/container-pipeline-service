@@ -24,7 +24,7 @@ objects:
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
-                    name: 'jnlp',
+                    name: 'wscan-jnlp',
                     image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
                     ttyEnabled: true,
                     alwaysPullImage: true,
@@ -90,7 +90,7 @@ objects:
                                 sh "echo -e 'Weekly scan for ${image_name_with_registry} was unsuccessful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Weekly scan ${image_name_with_registry} has failed' ${NOTIFY_EMAIL} "
                             }
                         } else {
-                          sh "echo -e 'Weekly scan for ${image_name_with_registry} was unsuccessful as image not in registry' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Weekly scan ${image_name_with_registry} has failed, as image not in registry' ${NOTIFY_EMAIL} "
+                          sh "echo -e 'Weekly scan for ${image_name} was unsuccessful as image not in registry' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Weekly scan ${image_name} has failed, as image not in registry' ${NOTIFY_EMAIL} "
                         }
                     }
                 }
