@@ -211,6 +211,16 @@ class BuildConfigManager(object):
 -p FROM_ADDRESS={from_address} \
 -p SMTP_SERVER={smtp_server}"""
 
+        self.weekly_scan_template_params = """\
+-p PIPELINE_NAME=wscan-{pipeline_name} \
+-p REGISTRY_URL={registry_url} \
+-p NOTIFY_EMAIL={notify_email} \
+-p APP_ID={app_id} \
+-p JOB_ID={job_id} \
+-p DESIRED_TAG={desired_tag} \
+-p FROM_ADDRESS={from_address} \
+-p SMTP_SERVER={smtp_server}"""
+
     def list_all_buildConfigs(self):
         """
         List all available buildConfigs
@@ -223,13 +233,15 @@ class BuildConfigManager(object):
         else:
             return bcs.strip().split("\n")
 
-    def apply_buildconfigs(self,
-                           project,
-                           template_location="seed-job/template.yaml"):
+    def apply_build_job(self,
+                        project,
+                        template_location="seed-job/template.yaml"
+                        ):
         """
-        Given a project object representing a project in container index,
-        process the seed-job template for same and oc apply changes
-        if needed, also performs `oc start-build` for updated project
+        Applies the build job template that creates pipeline to build
+        image, and trigger first time build as well.
+        :param project: The name of project, where the template is to be applied
+        :param template_location: The location of the template file.
         """
         oc_process = "oc process -f {0} {1}".format(
             template_location,
@@ -272,6 +284,54 @@ class BuildConfigManager(object):
             print ("{} is updated, starting build..".format(
                 project.pipeline_name))
             self.start_build(project.pipeline_name)
+
+    def apply_weekly_scan(self,
+                          project,
+                          template_location="weekly-scan/template.yaml"
+                          ):
+        """
+        Applies the weekly scan template, creating a pipeline for same
+        :param project: The name of the project where the template is to be
+        applied.
+        :param template_location: The location of template file.
+        """
+        oc_process = "oc process -f {0} {1}".format(
+            template_location,
+            self.weekly_scan_template_params
+        )
+
+        oc_apply = "oc apply -n {} -f -".format(self.namespace)
+
+        # oc process and oc apply command combined with a shell pipe
+        command = oc_process + " | " + oc_apply
+
+        # format the command with project params
+        command = command.format(
+            git_url=project.git_url,
+            git_branch=project.git_branch,
+            desired_tag=project.desired_tag,
+            notify_email=project.notify_email,
+            pipeline_name=project.pipeline_name,
+            app_id=project.app_id,
+            job_id=project.job_id,
+            registry_url=self.registry_url,
+            from_address=self.from_address,
+            smtp_server=self.smtp_server
+        )
+        # process and apply buildconfig
+        output = run_cmd(command, shell=True)
+        print (output)
+
+    def apply_buildconfigs(self,
+                           project,
+                           ):
+        """
+        Given a project object representing a project in container index,
+        process the seed-job template for same and oc apply changes
+        if needed, also performs `oc start-build` for updated project
+        """
+        self.apply_build_job(project)
+        self.apply_weekly_scan(project)
 
     def start_build(self, pipeline_name):
         """
@@ -337,9 +397,16 @@ class Index(object):
         # names of pipelines for all projects in container index
         index_project_names = [project.pipeline_name for project in
                                index_projects]
+        # Adding weekly scan project names
+        index_project_names_with_wscan = []
+        for item in index_project_names:
+            index_project_names_with_wscan.append(item)
+            index_project_names_with_wscan.append("wscan-" + item)
 
         # find stale projects based on pipeline-name
-        stale_projects = self.find_stale_jobs(oc_projects, index_project_names)
+        stale_projects = self.find_stale_jobs(
+            oc_projects, index_project_names_with_wscan
+        )
 
         if stale_projects:
             print ("List of stale projects:\n{}".format(
