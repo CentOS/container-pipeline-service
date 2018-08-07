@@ -1,3 +1,27 @@
+set +e
+export CICO_API_KEY=$(cat ~/duffy.key)
+IFS=' ' read -ra node_details <<< $(cico node get --count 4 -f value -c ip_address -c comment)
+ansible_node=node_details[0]
+nfs_node=node_details[2]
+openshif_1_node=node_details[4]
+openshif_2_node=node_details[5]
+export sshopts="-t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
+
+# generate ssh key for ansible node
+ssh $sshopts $ansible_node 'rm -rf ~/.ssh/id_rsa* && ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa'
+public_key=$(ssh $sshopts $ansible_node 'cat ~/.ssh/id_rsa.pub')
+
+# Add public key to all the ci nodes
+for node in {$nfs_node,$openshif_1_node,$openshif_2_node}
+do
+    ssh $sshopts $node 'echo "$public_key" >> ~/.ssh/authorized_keys'
+done
+
+# setup ansible node
+ssh $sshopts $ansible_node 'yum install -y git && yum install -y rsync && yum install -y gcc libffi-devel python-devel openssl-devel && yum install -y epel-release && yum install -y PyYAML python-networkx python-nose python-pep8 python-jinja2 && yum install -y http://cbs.centos.org/kojifiles/packages/ansible/2.5.5/1.el7/noarch/ansible-2.5.5-1.el7.noarch.rpm'
+
+
+
 for i in `oc get bc -o name`; do oc delete $i; done
 cd
 rm -rf ccp-openshift/
