@@ -27,9 +27,11 @@
   tags:
   - ci_nfs
   - test
+
 - name: Get script approvals set
   become: true
   copy: src=scriptApproval.xml dest=/jenkins/scriptApproval.xml
+
 - name: Start and Enable NFS service
   when: setup_nfs
   become: true

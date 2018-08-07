@@ -5,15 +5,16 @@
       - name: Disable requiretty in sudoers
         lineinfile: dest=/etc/sudoers state=absent regexp="^Defaults requiretty.*"
         become: true
+
       - name: Ensure epel is enabled when enable_epel is True
         yum: name=epel-release state=present
+
       - name: yum update all
         yum: name='*' state=latest
-      - name: Copy /etc/hosts
-        synchronize: src=/etc/hosts dest=/etc/hosts
-        delegate_to: localhost
+
       - name: SELinux permissive
         selinux: policy=targeted state=permissive
+
       - name: Install packages
         yum: package={{ item }} state=latest
         with_items:
@@ -23,6 +24,8 @@
             - centos-release-openshift-origin39.noarch
             - python-ipaddress
             - docker
+            - rsync
+            - PyYAML
 
       - name: Start services
         systemd: state=started enabled=yes name={{ item }}
@@ -30,9 +33,11 @@
             - NetworkManager
             - firewalld
             - docker
-      - name: Install rsync in all nodes
-        yum: name=rsync state=installed
-        become: true
+
+      - name: Copy /etc/hosts
+        synchronize: src=/etc/hosts dest=/etc/hosts
+        delegate_to: localhost
+
       - name: Get all the ports open for machines in cluster
         become: true
         when: ci_setup
@@ -42,10 +47,12 @@
             immediate: yes
             permanent: true
             zone: public
+
       - name: Remove Iptables rules
         shell: iptables -F
         become: yes
         when: ci_setup
+
       - name: Copy source code to all machines
         synchronize:
             src: ../../
@@ -60,6 +67,7 @@
       - name: Install docker distribution
         yum: name="docker-distribution" state=latest
         become: true
+
       - name: Start and enable container registry
         systemd: state=started enabled=yes name="docker-distribution"
         become: true
@@ -79,6 +87,7 @@
 
 - name: Deploy Openshift cluster
   import_playbook: /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+  no_log: True
   tags:
       - cluster_openshift
       - cluster
