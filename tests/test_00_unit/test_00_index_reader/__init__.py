@@ -29,10 +29,10 @@ class TestProject(unittest.TestCase):
 
     def test_load_entries(self):
         """
-        Tests creating Project class object which loads
-        entries
+        Tests creating Project class object which loads entries
         """
-        index_reader.Project(self.entry, self.namespace)
+        obj = index_reader.Project(self.entry, self.namespace)
+        self.assertTrue(isinstance(obj, index_reader.Project))
 
     def test_string_representation(self):
         """
@@ -50,11 +50,11 @@ class TestProject(unittest.TestCase):
         """
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual(
-            "a-b-c-d",
-            project.replace_dot_slash_colon_("a.b/c_d")
+            "a-b-c-d-e",
+            project.replace_dot_slash_colon_("a.b/c_d:e")
         )
 
-    def test_depends_on(self):
+    def test_process_depends_on(self):
         """
         Tests depends_on field processing and defaults
         """
@@ -75,7 +75,7 @@ class TestProject(unittest.TestCase):
             project.depends_on
         )
 
-    def test_desired_tag(self):
+    def test_process_desired_tag(self):
         """
         Tests desired tag processing and defaults
         """
