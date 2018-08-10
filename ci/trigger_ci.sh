@@ -11,6 +11,7 @@ openshift_1_node=${node_details[6]}.ci.centos.org
 openshift_1_node_ip=${node_details[7]}
 openshift_2_node=${node_details[9]}.ci.cento.org
 openshift_2_node_ip=${node_details[10]}
+cico_node_key=${node_details[11]}
 cluster_subnet_ip="172.19.2.0"
 
 echo "=========================Node Details========================"
@@ -96,5 +97,8 @@ echo "Delete build configs if present"
 ssh $sshoptserr $openshift_1_node_ip 'for i in `oc get bc -o name`; do oc delete $i; done'
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
 
-#create CI job build pipeline
-#oc process -p CI_PIPELINE_REPO=${CI_PIPELINE_REPO} -p CI_PIPELINE_BRANCH=${CI_PIPELINE_BRANCH} -f ci/cijobtemplate.yaml | oc create -f -
+echo "create CI job build pipeline"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CI_PIPELINE_REPO=${PIPELINE_REPO} -p CI_PIPELINE_BRANCH=${PIPELINE_BRANCH} -f ci/cijobtemplate.yaml | oc create -f -"
+
+echo "CI complete releasing the nodes"
+cico node done cico_node_key
