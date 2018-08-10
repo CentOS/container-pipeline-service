@@ -87,14 +87,14 @@ export PIPELINE_BRANCH=$git_actual_commit
 export PIPELINE_BASE_BRANCH=$git_branch
 
 export REGISTRY_URL=$nfs_node:5000
-export CONTAINER_INDEX_REPO=https://github.com/bamachrn/ccp-openshift-index
+export CONTAINER_INDEX_REPO=https://github.com/CentOS/container-index
 export CONTAINER_INDEX_BRANCH=ci
 export FROM_ADDRESS=container-build-reports@centos.org
 export SMTP_SERVER=smtp://mail.centos.org
 
 echo "Delete build configs if present"
 ssh $sshoptserr $openshift_1_node_ip 'for i in `oc get bc -o name`; do oc delete $i; done'
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -f seed-job/buildtemplate.yaml | oc create -f -"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
 
 #create CI job build pipeline
 #oc process -p CI_PIPELINE_REPO=${CI_PIPELINE_REPO} -p CI_PIPELINE_BRANCH=${CI_PIPELINE_BRANCH} -f ci/cijobtemplate.yaml | oc create -f -
