@@ -46,9 +46,20 @@ objects:
                         dir("${CONTAINER_INDEX_DIR}") {
                             git url: '${CONTAINER_INDEX_REPO}', branch: '${CONTAINER_INDEX_BRANCH}'
                         }
-                        dir("${PIPELINE_REPO_DIR}") {
-                            git url: '${PIPELINE_REPO}', branch: '${PIPELINE_BRANCH}'
-                        }
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: "${PIPELINE_BRANCH}"]],
+                            doGenerateSubmoduleConfigurations: false,
+                            extensions: [
+                                [$class: 'RelativeTargetDirectory', relativeTargetDir: "${PIPELINE_REPO_DIR}"],
+                                [$class: 'CloneOption', depth: 1, noTags: false, reference: '', shallow: true, timeout: 10]
+                            ],
+                            submoduleCfg: [],
+                            userRemoteConfigs: [
+                                [url: "${PIPELINE_REPO}",refspec: '+refs/pull/*:refs/remotes/origin/pr/*']
+                            ]
+
+                        ])
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
