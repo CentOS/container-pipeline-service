@@ -23,6 +23,7 @@ echo "Openshift Node 1: $openshift_1_node"
 echo "Openshift Node 1 IP: $openshift_1_node_ip"
 echo "Openshift Node 2: $openshift_2_node"
 echo "Openshift Node 2 IP: $openshift_2_node_ip"
+echo "Node hash: $cico_node_key"
 echo "Cluster subnet: $cluster_subnet_ip"
 echo "=============================================================\n\n"
 
@@ -76,7 +77,7 @@ ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /
 ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
 
 echo "Run ansible playbook for setting service"
-ssh $sshopts $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
+ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml'
 
 echo "Cluster is set lets go for tests"
 
@@ -94,11 +95,16 @@ export FROM_ADDRESS=container-build-reports@centos.org
 export SMTP_SERVER=smtp://mail.centos.org
 
 echo "Delete build configs if present"
+ssh $sshoptserr $openshift_1_node_ip "oc login --username='cccp' --password='developer'"
 ssh $sshoptserr $openshift_1_node_ip 'for i in `oc get bc -o name`; do oc delete $i; done'
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
+
+echo "Command to run"
+echo "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
+
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
 
 echo "create CI job build pipeline"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CI_PIPELINE_REPO=${PIPELINE_REPO} -p CI_PIPELINE_BRANCH=${PIPELINE_BRANCH} -f ci/cijobtemplate.yaml | oc create -f -"
 
 echo "CI complete releasing the nodes"
-cico node done cico_node_key
+#cico node done $cico_node_key
