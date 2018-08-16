@@ -27,16 +27,17 @@ def get_url(url):
     return urllib2.urlopen(r, context=ssl._create_unverified_context())
 
 
-def get_cause_of_build(namespace, jenkins_url, job):
+def get_cause_of_build(namespace, jenkins_url, job, build_number):
     """
     Figure out cause of the build trigger
     """
 
     url = ("https://{jenkins_url}/job/{namespace}/job/{namespace}-{job}/"
-           "1/api/json").format(
+           "{build_number}/api/json").format(
                jenkins_url=jenkins_url,
                namespace=namespace,
-               job=job)
+               job=job,
+               build_number=build_number)
 
     print ("Opening URL {}".format(url))
     try:
@@ -89,9 +90,9 @@ def escape_text(text):
     return text.replace("\n", "\\n").replace("\t", "\\t")
 
 
-def notify(namespace, jenkins_url, job):
+def notify(namespace, jenkins_url, job, build_number):
 
-    cause_of_build = get_cause_of_build(namespace, jenkins_url, job)
+    cause_of_build = get_cause_of_build(namespace, jenkins_url, job, build_number)
     send_email(cause_of_build)
 
 
@@ -100,5 +101,6 @@ if __name__ == "__main__":
     namespace = sys.argv[1].strip()
     jenkins_url = sys.argv[2].strip()
     job = sys.argv[3].strip()
+    build_number = sys.argv[4].strip()
 
-    notify(namespace, jenkins_url, job)
+    notify(namespace, jenkins_url, job, build_number)
