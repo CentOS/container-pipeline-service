@@ -138,8 +138,7 @@ objects:
                           }
 
                           if (success==true) {
-                            sh "echo ${BUILD_NUMBER}"
-                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py cccp `oc get route jenkins -o template --template={{.spec.host}}` ${PIPELINE_NAME}"
+                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py cccp `oc get route jenkins -o template --template={{.spec.host}}` ${PIPELINE_NAME} ${BUILD_NUMBER}"
                           } else {
                               sh "echo -e 'Build request for ${image_name_with_registry} was unsuccessful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Container build ${image_name_with_registry} has failed' ${NOTIFY_EMAIL} "
                             }
