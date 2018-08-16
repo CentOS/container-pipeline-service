@@ -77,7 +77,7 @@ ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /
 ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
 
 echo "Run ansible playbook for setting service"
-ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml'
+ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
 
 echo "Cluster is set lets go for tests"
 
@@ -105,6 +105,24 @@ ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIP
 
 echo "create CI job build pipeline"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CI_PIPELINE_REPO=${PIPELINE_REPO} -p CI_PIPELINE_BRANCH=${PIPELINE_BRANCH} -f ci/cijobtemplate.yaml | oc create -f -"
+
+echo "Start ci pipeline"
+build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-job -n cccp |cut -f 2 -d ' '")
+
+echo "Build started with build id: $build_id"
+
+echo "Waiting for the ci to start"
+build_started=$(ssh $sshoptserr $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+echo "Current build status: $build_started"
+
+while [ $build_started != 'Running' ]
+do
+    sleep 30
+    build_started=$(ssh $sshoptserr $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+done
+
+echo "Get CI logs"
+ssh $sshoptserr $nfs_node_ip "tail -f /jenkins/jobs/cccp/jobs/cccp-ci-job/builds/1/log"
 
 echo "CI complete releasing the nodes"
 #cico node done $cico_node_key
