@@ -15,14 +15,20 @@ def get_url(url):
     """
     Perform GET call on given URL
     """
-    username = "navid-admin"
-    token = "6ec99caeeb9407feb7305e1136816c70"
+    #username = "navid-admin"
+    #token = "6ec99caeeb9407feb7305e1136816c70"
 
-    auth_header = base64.b64encode('%s:%s' % (username, token))
+
+    token_command = """\
+oc get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' | \
+xargs -n 1 oc get secret --template='{{ if .data.token }}{{ .data.token }}\
+{{end}}' | head -n 1 | base64 -d - """
+    token = run_cmd(token_command, shell=True)
+    #auth_header = base64.b64encode('%s:%s' % (username, token.strip()))
 
     r = urllib2.Request(url)
 
-    r.add_header("Authorization", "Basic %s" % auth_header)
+    r.add_header("Authorization", "Bearer %s" % token.strip())
 
     return urllib2.urlopen(r, context=ssl._create_unverified_context())
 
