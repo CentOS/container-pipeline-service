@@ -31,7 +31,6 @@ def get_cause_of_build(namespace, jenkins_url, job, build_number):
     """
     Figure out cause of the build trigger
     """
-
     url = ("https://{jenkins_url}/job/{namespace}/job/{namespace}-{job}/"
            "{build_number}/api/json").format(
                jenkins_url=jenkins_url,
@@ -40,6 +39,7 @@ def get_cause_of_build(namespace, jenkins_url, job, build_number):
                build_number=build_number)
 
     print ("Opening URL {}".format(url))
+
     try:
         response = get_url(url)
         response = json.loads(response.read())
@@ -48,26 +48,59 @@ def get_cause_of_build(namespace, jenkins_url, job, build_number):
         return "Error fetching cause of build"
 
     try:
-        cause = response["actions"][0]["causes"][0]["shortDescription"]
+        cause_of_build = None
+        for _class in response["actions"]:
+            if "_class" not in _class:
+                continue
+            # this class refers to cause of build / causeAction
+            if _class["_class"] == "hudson.model.CauseAction":
+                for cause in _class["causes"]:
+                    # refers to SCM trigger
+                    if cause["_class"] == \
+                            "hudson.triggers.SCMTrigger$SCMTriggerCause":
+                        cause_of_build = cause["shortDescription"]
+                        break
+                # fail over / if _class is not the one expected
+                if not cause_of_build:
 
-        if cause == "Started by an SCM change":
-            return "Git commit {}".format(
-                response["actions"][2]["lastBuiltRevision"]["SHA1"]
-            )
-        elif "Started by upstream project" in cause:
-            return "Change in upstream project {}".format(
-                response["actions"][0]["causes"][0]["shortDescription"].split(
-                    '"')[1]
-            )
-        elif "Started from command line" in cause:
-            return "RPM update in enabled repos"
-        elif "Started by user" in cause:
-            return "Manually triggered by admin"
-        else:
-            return str(cause)
+                    # there are two _class available
+                    # io.fabric8.jenkins.openshiftsync.BuildCause
+                    # hudson.triggers.SCMTrigger$SCMTriggerCause
+
+                    # grab the one available
+                    cause_of_build = _class["causes"][0]["shortDescription"]
+                    break
+
+        if cause_of_build == "Started by an SCM change":
+            for _class in response["actions"]:
+                if "_class" not in _class:
+                    continue
+                # this class has build data details
+                if _class["_class"] == "hudson.plugins.git.util.BuildData":
+                    cause_of_build = "Git commit {} to branch {} of repo {}."
+                    return cause_of_build.format(
+                        # referencing 0 here as 1 jenkins job yield 1 build
+                        _class["lastBuiltRevision"]["branch"][0]["SHA1"],
+                        _class["lastBuiltRevision"]["branch"][0]["name"],
+                        _class["remoteUrls"][0])
+
+        if not cause_of_build:
+            return "Unable to find cause of build."
+        return cause_of_build
+
+        # TODO: Other cases of cause to be worked upon
+        # "Started by upstream project"
+        #     return "Change in upstream project {}".format(
+        #         response["actions"][0]["causes"][0]["shortDescription"].split(
+        #             '"')[1]
+        #     )
+        # elif "Started from command line" in cause:
+        #     return "RPM update in enabled repos"
+        # elif "Started by user" in cause:
+        #     return "Manually triggered by admin"
     except KeyError as e:
         print ("Invalid JSON response from Jenkins. {}".format(e))
-        return "Unable to find cause of build"
+        return "Unable to find cause of build."
 
 
 def send_email(cause_of_build):
@@ -92,7 +125,8 @@ def escape_text(text):
 
 def notify(namespace, jenkins_url, job, build_number):
 
-    cause_of_build = get_cause_of_build(namespace, jenkins_url, job, build_number)
+    cause_of_build = get_cause_of_build(
+        namespace, jenkins_url, job, build_number)
     send_email(cause_of_build)
 
 
