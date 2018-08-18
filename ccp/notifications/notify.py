@@ -53,14 +53,27 @@ xargs -n 1 oc get secret --template='{{ if .data.token }}{{ .data.token }}\
         # strip any extra characters while reading stdout
         return token.strip()
 
+    def get_jenkins_pipeline_job_name(self, namespace, image_name):
+        """
+        Returns the jenkins pipeline job name.
+        Its formatted at namespace-appid-jobid-desiredtag.
+        """
+        pipeline = image_name.replace("/", "-").replace("_", "-").replace(
+            ":", "-")
+        return "{}-{}".format(namespace, pipeline)
+
     def get_cause_of_build(self,
-                           namespace, jenkins_url, job, build_number):
+                           namespace, jenkins_url, image_name, build_number):
         """
         Given build identifies, use Jenkins REST APIs to figure
         out cause of build
         """
+        # populate the jenkins pipeline job name
+        job = self.get_jenkins_pipeline_job_name(
+            namespace, image_name)
+
         url = ("https://{jenkins_url}/job/{namespace}/job/"
-               "{namespace}-{job}/{build_number}/api/json".format(
+               "{job}/{build_number}/api/json".format(
                    jenkins_url=jenkins_url,
                    namespace=namespace,
                    job=job,
@@ -235,28 +248,52 @@ https://wiki.centos.org/ContainerPipeline"""
 
         return body
 
-    def notify(self, namespace, jenkins_url, job, build_number):
+    def notify(self,
+               namespace, status, jenkins_url,
+               image_name, image_name_with_registry,
+               build_number, smtp_server, from_address,
+               notify_email):
         """
         Get notifications details and sends email to user
         """
+        status = True if status == "success" else False
+
+        # get the repository name (without tag)
+        # covers the cases of r.c.o/a/b:latest and a.b.c:5000/a/b:latest
+        index = image_name_with_registry.rfind(":")
+        if index != -1:
+            repository = image_name_with_registry[:index]
+        else:
+            repository = image_name_with_registry
 
         cause = self.buildinfo_obj.get_cause_of_build(
-            namespace, jenkins_url, job, build_number)
+            namespace, jenkins_url, image_name, build_number)
 
-        subject = self.subject_of_email(True, "a/b:latest")
-        body = self.body_of_email(True, "r.c.o/a/b:latest", cause)
+        # subject should have image_name without registry
+        subject = self.subject_of_email(status, image_name)
+
+        # body should have repository name (without tag)
+        body = self.body_of_email(status, repository, cause)
 
         self.sendemail_obj.email(
-            "smtp://mail.centos.org",
-            subject, body, "nshaikh@redhat.com", "nshaikh@redhat.com")
+            smtp_server,
+            subject, body, from_address, [notify_email])
 
 
 if __name__ == "__main__":
     namespace = sys.argv[1].strip()
-    jenkins_url = sys.argv[2].strip()
-    job = sys.argv[3].strip()
-    build_number = sys.argv[4].strip()
+    status = sys.argv[2].strip()
+    jenkins_url = sys.argv[3].strip()
+    image_name = sys.argv[4].strip()
+    image_name_with_registry = sys.argv[5].strip()
+    build_number = sys.argv[6].strip()
+    smtp_server = sys.argv[7].strip()
+    from_address = sys.argv[8].strip()
+    notify_email = sys.argv[9].strip()
 
     notify_object = Notify()
     notify_object.notify(
-        namespace, jenkins_url, job, build_number)
+        namespace, status, jenkins_url,
+        image_name, image_name_with_registry,
+        build_number, smtp_server, from_address,
+        notify_email)
