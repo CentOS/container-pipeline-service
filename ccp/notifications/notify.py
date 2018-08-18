@@ -9,7 +9,6 @@ import ssl
 import sys
 import urllib2
 
-
 from ccp.lib.command import run_cmd
 
 
@@ -62,33 +61,10 @@ xargs -n 1 oc get secret --template='{{ if .data.token }}{{ .data.token }}\
             ":", "-")
         return "{}-{}".format(namespace, pipeline)
 
-    def get_cause_of_build(self,
-                           namespace, jenkins_url, image_name, build_number):
+    def parse_jenkins_job_details(self, response):
         """
-        Given build identifies, use Jenkins REST APIs to figure
-        out cause of build
+        Parse the JSON response containing jenkins job details
         """
-        # populate the jenkins pipeline job name
-        job = self.get_jenkins_pipeline_job_name(
-            namespace, image_name)
-
-        url = ("https://{jenkins_url}/job/{namespace}/job/"
-               "{job}/{build_number}/api/json".format(
-                   jenkins_url=jenkins_url,
-                   namespace=namespace,
-                   job=job,
-                   build_number=build_number))
-
-        print ("Opening URL to get cause of build\n{}".format(url))
-
-        try:
-            token = self.get_token()
-            response = self.get_url(url, token)
-            response = json.loads(response.read())
-        except Exception as e:
-            print ("Error opening URL {}".format(e))
-            return "Error fetching cause of build."
-
         try:
             cause_of_build = None
             for _class in response["actions"]:
@@ -145,6 +121,36 @@ xargs -n 1 oc get secret --template='{{ if .data.token }}{{ .data.token }}\
         except KeyError as e:
             print ("Invalid JSON response from Jenkins. {}".format(e))
             return "Unable to find cause of build."
+
+    def get_cause_of_build(self,
+                           namespace, jenkins_url, image_name, build_number):
+        """
+        Given build identifies, use Jenkins REST APIs to figure
+        out cause of build
+        """
+        # populate the jenkins pipeline job name
+        job = self.get_jenkins_pipeline_job_name(
+            namespace, image_name)
+
+        url = ("https://{jenkins_url}/job/{namespace}/job/"
+               "{job}/{build_number}/api/json".format(
+                   jenkins_url=jenkins_url,
+                   namespace=namespace,
+                   job=job,
+                   build_number=build_number))
+
+        print ("Opening URL to get cause of build\n{}".format(url))
+
+        try:
+            token = self.get_token()
+            response = self.get_url(url, token)
+            response = json.loads(response.read())
+        except Exception as e:
+            print ("Error opening URL {}".format(e))
+            return "Error fetching cause of build."
+
+        else:
+            return self.parse_jenkins_job_details(response)
 
 
 class SendEmail(object):
