@@ -137,9 +137,9 @@ objects:
                           }
 
                           if (success==true) {
-                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py cccp success `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${image_name_with_registry} ${BUILD_NUMBER} ${SMTP_SERVER} ${FROM_ADDRESS} ${NOTIFY_EMAIL}"
+                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER}"
                           } else {
-                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py cccp failure `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${image_name_with_registry} ${BUILD_NUMBER} ${SMTP_SERVER} ${FROM_ADDRESS} ${NOTIFY_EMAIL}"
+                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER}"
                             }
                     }
                   }
@@ -176,6 +176,10 @@ objects:
             value: ${REGISTRY_URL}
           - name: PIPELINE_REPO_DIR
             value: ${PIPELINE_REPO_DIR}
+          - name: FROM_ADDRESS
+            value: ${FROM_ADDRESS}
+          - name: SMTP_SERVER
+            value: ${SMTP_SERVER}
       triggers:
           - type: ConfigChange
 parameters:
