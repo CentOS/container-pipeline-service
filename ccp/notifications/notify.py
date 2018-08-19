@@ -62,9 +62,12 @@ class Notify(object):
 
         footer = """\
 --
-Do you have a query ?
+Do you have a query?
 Talk to Pipeline team on #centos-devel at freenode
-https://wiki.centos.org/ContainerPipeline"""
+CentOS Community Container Pipeline Service
+https://wiki.centos.org/ContainerPipeline
+https://github.com/centos/container-index
+"""
 
         if status:
             body = success_template.format(
@@ -76,7 +79,7 @@ https://wiki.centos.org/ContainerPipeline"""
                 "Build Status:", status,
                 "Cause of build:", cause)
 
-        body = body + "\n\n" + footer
+        body = body + "\n" + footer
 
         return body
 
