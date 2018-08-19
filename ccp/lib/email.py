@@ -28,7 +28,7 @@ class SendEmail(object):
         """
         command = """\
 echo -e '{body}' | mail -r {from_address} {cc_opts} -S \
-smtp={smtp_server} -s "{subject}" {to_addresses}"""
+{smtp_server} -s "{subject}" {to_addresses}"""
 
         # it would return '' for when cc_add==[]
         # eg output: "-c a@mail.com -c b@mail.com"
@@ -40,7 +40,7 @@ smtp={smtp_server} -s "{subject}" {to_addresses}"""
         # escape the \n and \t characters
         body = self.escape_text(body)
 
-        command.format(
+        command = command.format(
             body=body,
             from_address=from_add,
             cc_opts=cc_opts,
