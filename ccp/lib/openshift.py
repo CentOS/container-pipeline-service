@@ -85,6 +85,7 @@ class BuildInfo(object):
                 if "_class" not in _class:
                     continue
                 # this class refers to cause of build / causeAction
+                # which contains all the possible values for cause of build
                 if _class["_class"] == "hudson.model.CauseAction":
                     for cause in _class["causes"]:
                         # refers to SCM trigger
@@ -92,6 +93,29 @@ class BuildInfo(object):
                                 "hudson.triggers.SCMTrigger$SCMTriggerCause":
                             cause_of_build = cause["shortDescription"]
                             break
+                        # refers to parent child relationship / depends-on
+                        elif cause["_class"] == \
+                                "hudson.model.Cause$UpstreamCause":
+                            # process upstream project name
+                            # eg: cccp/cccp-test-anomaly-latest
+                            ups_proj = cause["upstreamProject"].split(
+                                "/")[-1].split("-")
+                            # form appid/jobid:desiredtag
+                            ups_proj = "/".join(
+                                ups_proj[1:-1]) + ":" + ups_proj[-1]
+
+                            cause_of_build = (
+                                "Upstream/parent container {} is rebuilt".format(
+                                    ups_proj))
+                            break
+                # jenkins manual trigger is not available
+                # all the builds are intitiated from openshift
+                # shortDescription in this case is like
+                # OpenShift Build cccp/test-python-release-5 from $GITURL
+                # that's a manual trigger
+                        else:
+                            cause_of_build = "Manually triggered by admin"
+
                     # fail over / if _class is not the one expected
                     if not cause_of_build:
 
@@ -104,6 +128,7 @@ class BuildInfo(object):
                             _class["causes"][0]["shortDescription"]
                         break
 
+            # this is to find the git commit in subsequent section of response
             if cause_of_build == "Started by an SCM change":
                 for _class in response["actions"]:
                     if "_class" not in _class:
@@ -123,15 +148,9 @@ class BuildInfo(object):
             return cause_of_build
 
             # TODO: Other cases of cause to be worked upon
-            # "Started by upstream project"
-            #     return "Change in upstream project {}".format(
-            #         response["actions"][0]["causes"][0]["shortDescription"].split(
-            #             '"')[1]
-            #     )
             # elif "Started from command line" in cause:
             #     return "RPM update in enabled repos"
-            # elif "Started by user" in cause:
-            #     return "Manually triggered by admin"
+
         except KeyError as e:
             print ("Invalid JSON response from Jenkins. {}".format(e))
             return "Unable to find cause of build."
