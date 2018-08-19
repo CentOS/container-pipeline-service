@@ -77,6 +77,10 @@ class BuildInfo(object):
         """
         try:
             cause_of_build = None
+
+            if response["number"] == 1:
+                return "First build of container"
+
             for _class in response["actions"]:
                 if "_class" not in _class:
                     continue
