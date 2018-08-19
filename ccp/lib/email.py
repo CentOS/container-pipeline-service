@@ -30,8 +30,9 @@ class SendEmail(object):
 echo -e '{body}' | mail -r {from_address} {cc_opts} -S \
 smtp={smtp_server} -s "{subject}" {to_addresses}"""
 
-        # it would return '' for [] / no cc_add
-        cc_opts = " ".join(map("-c {0}".format(cc_adds)))
+        # it would return '' for when cc_add==[]
+        # eg output: "-c a@mail.com -c b@mail.com"
+        cc_opts = " ".join(["-c " + i for i in cc_adds])
 
         # to addresses
         to_addresses = " ".join(to_adds)
