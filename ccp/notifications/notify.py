@@ -50,7 +50,6 @@ class Notify(object):
         image: Image name
         cause: Cause of the build
         """
-        status = "Success" if status else "Failure"
         success_template = """\
 {0: <20} {1}
 {2: <20} {3}
@@ -71,15 +70,15 @@ https://github.com/centos/container-index
 
         if status:
             body = success_template.format(
-                "Build Status:", status,
+                "Build Status:", "Success",
                 "Repository:", repository,
                 "Cause of build:", cause)
         else:
             body = failure_template.format(
-                "Build Status:", status,
+                "Build Status:", "Failure",
                 "Cause of build:", cause)
 
-        body = body + "\n" + footer
+        body = body + "\n\n" + footer
 
         return body
 
