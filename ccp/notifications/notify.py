@@ -51,10 +51,14 @@ class Notify(object):
         cuase: Cause of the build
         """
         status = "Success" if status else "Failure"
-        template = """\
+        success_template = """\
 {0: <20} {1}
 {2: <20} {3}
-{4: <20} {4}"""
+{4: <20} {5}"""
+
+        failure_template = """\
+{0: <20} {1}
+{2: <20} {3}"""
 
         footer = """\
 --
@@ -62,10 +66,15 @@ Do you have a query ?
 Talk to Pipeline team on #centos-devel at freenode
 https://wiki.centos.org/ContainerPipeline"""
 
-        body = template.format(
-            "Build Status:", status,
-            "Repository:", repository,
-            "Cause of build:", cause)
+        if status:
+            body = success_template.format(
+                "Build Status:", status,
+                "Repository:", repository,
+                "Cause of build:", cause)
+        else:
+            body = failure_template.format(
+                "Build Status:", status,
+                "Cause of build:", cause)
 
         body = body + "\n\n" + footer
 
@@ -86,9 +95,7 @@ https://wiki.centos.org/ContainerPipeline"""
         status = True if status == "success" else False
 
         # get the repository name (without tag)
-        repository = build_info.get(
-            "REGISTRY_URL",
-            image_name.split(":")[0])
+        repository = build_info.get("REGISTRY_URL") + image_name.split(":")[0]
 
         cause = build_info.get("CAUSE_OF_BUILD")
 
