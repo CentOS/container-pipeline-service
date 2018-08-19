@@ -14,14 +14,15 @@ def get_jenkins_access_token(service_account="sa/jenkins"):
     """
     For given service account, get the Jenkins API access
     token using oc secrets
-
     """
-    command = """\
-oc get {0} --template='{{range .secrets}}{{ .name }} {{end}}' |
-xargs -n 1 oc get secret --template='{{ if .data.token }}{{ .data.token }}\
-{{end}}' | head -n 1 | base64 -d - """.format(
-        service_account)
+    command = """oc get %s --template='{{range .secrets}}\
+{{ .name }} {{end}}' | xargs -n 1 oc get secret --template=\
+'{{ if .data.token }}{{ .data.token }}{{end}}' | head -n 1 | \
+base64 -d -""" % service_account
+    # not using format in above command, as it will convert
+    # {{ --> { i.e. double curly brackets into single
 
+    print ("Get Jenkins service account token\n{}".format(command))
     # run the oc command
     token = run_cmd(command, shell=True)
     # strip any extra characters while reading stdout
@@ -192,7 +193,6 @@ class BuildInfo(object):
             response = json.loads(response.read())
         except Exception as e:
             print ("Error opening URL {}".format(e))
-            return "Error fetching cause of build."
-
+            raise(e)
         else:
             return self.parse_jenkins_job(response)
