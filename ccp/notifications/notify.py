@@ -48,7 +48,7 @@ class Notify(object):
         Generate the body of email using given details
         status: Status of build - True=Success False=Failure
         image: Image name
-        cuase: Cause of the build
+        cause: Cause of the build
         """
         status = "Success" if status else "Failure"
         success_template = """\
@@ -95,7 +95,8 @@ https://wiki.centos.org/ContainerPipeline"""
         status = True if status == "success" else False
 
         # get the repository name (without tag)
-        repository = build_info.get("REGISTRY_URL") + image_name.split(":")[0]
+        repository = "https://" + build_info.get("REGISTRY_URL") + \
+            "/" + image_name.split(":")[0]
 
         cause = build_info.get("CAUSE_OF_BUILD")
 
