@@ -51,13 +51,13 @@ class Notify(object):
         cause: Cause of the build
         """
         success_template = """\
-{0: <20} {1}
-{2: <20} {3}
-{4: <20} {5}"""
+{0: <20}{1}
+{2: <20}{3}
+{4: <20}{5}"""
 
         failure_template = """\
-{0: <20} {1}
-{2: <20} {3}"""
+{0: <20}{1}
+{2: <20}{3}"""
 
         footer = """\
 --

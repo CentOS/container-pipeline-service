@@ -43,14 +43,17 @@ class TestNotify(unittest.TestCase):
         repository = "registry.centos.org/foo/bar"
         cause = "Started by admin"
         expected_value = """\
-Build Status:        Success
-Repository:          registry.centos.org/foo/bar
-Cause of build:      Cause of build:
+Build Status:       Success
+Repository:         registry.centos.org/foo/bar
+Cause of build:     Started by admin
 
 --
-Do you have a query ?
+Do you have a query?
 Talk to Pipeline team on #centos-devel at freenode
-https://wiki.centos.org/ContainerPipeline"""
+CentOS Community Container Pipeline Service
+https://wiki.centos.org/ContainerPipeline
+https://github.com/centos/container-index
+"""
 
         self.assertEqual(
             self.notify_obj.body_of_email(
@@ -58,6 +61,7 @@ https://wiki.centos.org/ContainerPipeline"""
                 repository,
                 cause),
             expected_value)
+
 
 if __name__ == "__main__":
     unittest.main()
