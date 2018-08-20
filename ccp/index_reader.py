@@ -657,7 +657,7 @@ class Index(object):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 9:
+    if len(sys.argv) != 10:
         _print("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
@@ -669,20 +669,14 @@ if __name__ == "__main__":
     batch_size = int(sys.argv[6].strip())
     batch_polling_interval = int(sys.argv[7].strip())
     batch_outstanding_builds_cap = int(sys.argv[8].strip())
+    ccp_openshift_slave_image = sys.argv[9].strip()
 
     index_object = Index(
         index, registry_url, namespace,
-        from_address, smtp_server)
+        from_address, smtp_server, ccp_openshift_slave_image
+        )
 
     index_object.run(
         batch_size,
         batch_polling_interval,
         batch_outstanding_builds_cap)
-
-    ccp_openshift_slave_image = sys.argv[6].strip()
-
-    index_object = Index(index, registry_url, namespace,
-                         from_address, smtp_server,
-                         ccp_openshift_slave_image)
-
-    index_object.run()

@@ -396,7 +396,7 @@ origin/master of repo https://github.com/navidshaikh/anomaly."""
         """
         cccp.lib.openshift: Test parsing cause of build case-5 (failure)
         from REST API JSON response containing Jenkins job details
-        case-5: Unable to find the cause build.
+        case-5: Update to build configurations of container
         """
         self.assertRaises(
             self.buildinfo_obj.parse_cause_of_build({}))
