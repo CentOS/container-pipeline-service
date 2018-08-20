@@ -1,0 +1,120 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "container-index-seed-pipeline"
+objects:
+  - apiVersion: "v1"
+    kind: "BuildConfig"
+    metadata:
+        name: seed-job
+    spec:
+      source:
+        type: Git
+        git:
+          uri: ${CONTAINER_INDEX_REPO}
+          ref: ${CONTAINER_INDEX_BRANCH}
+        contextDir: "seed-job"
+      strategy:
+        type: "JenkinsPipeline"
+        jenkinsPipelineStrategy:
+          jenkinsfile: |
+            properties([
+                pipelineTriggers([
+                    pollSCM('H/10 * * * *')
+                ])
+            ])
+            podTemplate(
+                cloud: 'openshift',
+                name: 'ccp-pipeline',
+                label: 'ccp-pipeline',
+                serviceAccount: 'jenkins',
+                containers: [
+                  containerTemplate(
+                    name: 'jnlp',
+                    image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                    ttyEnabled: true,
+                    alwaysPullImage: true,
+                    workingDir: '/tmp',
+                    privileged: true,
+                    args: '${computer.jnlpmac} ${computer.name}'
+                  )
+                ],
+            )
+            {
+                node ('ccp-pipeline'){
+                    stage('Checkout Sources') {
+                        dir("${CONTAINER_INDEX_DIR}") {
+                            git url: '${CONTAINER_INDEX_REPO}', branch: '${CONTAINER_INDEX_BRANCH}'
+                        }
+                        dir("${PIPELINE_REPO_DIR}") {
+                            git url: '${PIPELINE_REPO}', branch: '${PIPELINE_BRANCH}'
+                        }
+                    }
+                    stage('Parse index') {
+                        dir("${PIPELINE_REPO_DIR}") {
+                            sh "python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER}"
+                        }
+                    }
+                }
+            }
+          env:
+          - name: CONTAINER_INDEX_REPO
+            value: ${CONTAINER_INDEX_REPO}
+          - name: CONTAINER_INDEX_BRANCH
+            value: ${CONTAINER_INDEX_BRANCH}
+          - name: REGISTRY_URL
+            value: ${REGISTRY_URL}
+          - name: PIPELINE_REPO
+            value: ${PIPELINE_REPO}
+          - name: PIPELINE_BRANCH
+            value: ${PIPELINE_BRANCH}
+          - name: PIPELINE_REPO_DIR
+            value: ${PIPELINE_REPO_DIR}
+          - name: NAMESPACE
+            value: ${NAMESPACE}
+      triggers:
+          - type: ConfigChange
+parameters:
+- description: URL of the registry to which image is to be pushed
+  name: REGISTRY_URL
+  displayName: Registry URL
+- description: "Container Index to use"
+  displayName: Container Index
+  name: CONTAINER_INDEX_REPO
+  required: true
+  value: https://github.com/navidshaikh/ccp-openshift-index
+- description: "Container Index branch to use"
+  displayName: Container Index branch
+  name: CONTAINER_INDEX_BRANCH
+  required: true
+  value: master
+- description: Repository containing CentOS Container Pipeline service code
+  displayName: Pipeline service repo
+  name: PIPELINE_REPO
+  required: true
+- description: Branch of Pipeline service to checkout to
+  displayName: Pipeline branch
+  name: PIPELINE_BRANCH
+  required: true
+- description: Directory where Pipeline service code is to be cloned
+  displayName: Pipeline repo directory
+  name: PIPELINE_REPO_DIR
+  required: true
+  value: /tmp/pipeline-service
+- description: Directory where container index is to be cloned
+  displayName: Container index directory
+  name: CONTAINER_INDEX_DIR
+  required: true
+  value: /tmp/container-index
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true
+- description: From address to be used when sending email
+  displayName: From email address
+  name: FROM_ADDRESS
+  required: true
+- description: SMTP server to use to send emails
+  displayName: SMTP server address
+  name: SMTP_SERVER
+  required: true
