@@ -253,7 +253,7 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
-- description: Directory where Pipeline service code is to be clo
+- description: Directory where Pipeline service code is to be cloned
   displayName: Pipeline repo directory
   name: PIPELINE_REPO_DIR
   required: true
