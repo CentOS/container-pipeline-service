@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: scan-data
+spec:
+  selector:
+    matchLabels:
+      name: scan-data
+  template:
+    metadata:
+      labels:
+        name: scan-data
+    spec:
+      nodeSelector:
+        zone: default
+      containers:
+      - image: registry.centos.org/pipeline-images/ccp-openshift-scan
+        imagePullPolicy: Always
+        name: scan-data
+      serviceAccount: jenkins
