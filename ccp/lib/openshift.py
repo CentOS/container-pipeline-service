@@ -114,7 +114,8 @@ class BuildInfo(object):
                 # OpenShift Build cccp/test-python-release-5 from $GITURL
                 # that's a manual trigger
                         else:
-                            cause_of_build = "Manually triggered by admin"
+                            cause_of_build = \
+                                "Update to build configurations of container"
 
                     # fail over / if _class is not the one expected
                     if not cause_of_build:
