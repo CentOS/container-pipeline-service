@@ -306,6 +306,7 @@ class TestBuildInfo(unittest.TestCase):
         """
         ccp.lib.openshift: Test processing Jenkins pipeline job name
         given namespace and image_name
+        case-1: Git commit
         """
         namespace = "cccp"
         image_name = "foo/bar:latest"
@@ -315,10 +316,10 @@ class TestBuildInfo(unittest.TestCase):
                 image_name),
             "cccp-foo-bar-latest")
 
-    def test_parse_cause_of_build(self):
+    def test_parse_cause_of_build_1(self):
         """
-        ccp.lib.openshift: Test parsing cause of build from
-        REST API JSON response containing Jenkins job details
+        ccp.lib.openshift: Test parsing cause of build case-1 (Git commit)
+        from REST API JSON response containing Jenkins job details
         """
         self.assertEqual(
             self.buildinfo_obj.parse_cause_of_build(
@@ -327,6 +328,96 @@ class TestBuildInfo(unittest.TestCase):
 Git commit 7e8996417ad7aa438d13190122e895b96914f952 to branch \
 origin/master of repo https://github.com/navidshaikh/anomaly."""
         )
+
+    def test_parse_cause_of_build_2(self):
+        """
+        cccp.lib.openshift: Test parsing cause of build case-2 (parent proj)
+        from REST API JSON response containing Jenkins job details
+        case-2: Upstream project is rebuilt
+        """
+        # trimmed unneeded lines from sample response
+        sample_response = {
+            "number": 2,
+            "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+            "actions": [
+                {
+                    "_class": "hudson.model.CauseAction",
+                    "causes": [
+                        {
+                            "_class": "io.fabric8.jenkins.openshiftsync.BuildCause",
+                            "shortDescription": "OpenShift Build cccp/test-python-release-2 from https://github.com/bamachrn/cccp-python"
+                        },
+                        {
+                            "_class": "hudson.model.Cause$UpstreamCause",
+                            "shortDescription": "Started by upstream project \"cccp/cccp-test-anomaly-latest\" build number 1",
+                            "upstreamBuild": 1,
+                            "upstreamProject": "cccp/cccp-test-anomaly-latest",
+                            "upstreamUrl": "job/cccp/job/cccp-test-anomaly-latest/"
+                        }
+                    ]
+                }
+            ]
+        }
+        self.assertEqual(
+            self.buildinfo_obj.parse_cause_of_build(
+                sample_response),
+            "Upstream/parent container test/anomaly:latest is rebuilt"
+        )
+
+    def test_parse_cause_of_build_3(self):
+        """
+        cccp.lib.openshift: Test parsing cause of build case-3 (first build)
+        from REST API JSON response containing Jenkins job details
+        case-3: First build of container
+        """
+        # trimmed unneeded lines from sample response
+        sample_response = {"number": 1}
+        self.assertEqual(
+            self.buildinfo_obj.parse_cause_of_build(
+                sample_response),
+            "First build of container"
+        )
+
+    def test_parse_cause_of_build_4(self):
+        """
+        cccp.lib.openshift: Test parsing cause of build case-4 (config update)
+        from REST API JSON response containing Jenkins job details
+        case-4: Update to build configurations of container
+        """
+        # trimmed unneeded lines from sample response
+        sample_response = {
+            "number": 5,
+            "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+            "actions": [
+                {
+                    "_class": "hudson.model.CauseAction",
+                    "causes": [
+                        {
+                            "_class": "io.fabric8.jenkins.openshiftsync.BuildCause",
+                            "shortDescription": "OpenShift Build cccp/test-python-release-5 from https://github.com/bamachrn/cccp-python"
+                        }
+                    ]
+                }
+            ]
+        }
+        self.assertEqual(
+            self.buildinfo_obj.parse_cause_of_build(
+                sample_response),
+            "Update to build configurations of container"
+        )
+
+    def test_parse_cause_of_build_5(self):
+        """
+        cccp.lib.openshift: Test parsing cause of build case-5 (failure)
+        from REST API JSON response containing Jenkins job details
+        case-5: Update to build configurations of container
+        """
+        self.assertRaises(
+            self.buildinfo_obj.parse_cause_of_build({}))
+
+        self.assertEqual(
+            self.buildinfo_obj.parse_cause_of_build({}),
+            "Unable to find cause of build.")
 
     def test_parse_jenkins_job(self):
         """

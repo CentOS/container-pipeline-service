@@ -17,7 +17,7 @@ class TestNotify(unittest.TestCase):
 
     def test_subject_of_email(self):
         """
-        Notitications: Test processing subject of email
+        Notitications: Tests processing subject of email
         """
         job = "ccp-a-b-c"
 
@@ -35,7 +35,7 @@ class TestNotify(unittest.TestCase):
 
     def test_body_of_email(self):
         """
-        Notifications: Test processing body of email
+        Notifications: Tests processing body of email
         """
 
         # check the SUCCESS case
