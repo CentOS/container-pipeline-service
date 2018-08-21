@@ -104,25 +104,29 @@ echo "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p P
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
 
 echo "create CI job build pipeline"
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CI_PIPELINE_REPO=${PIPELINE_REPO} -p CI_PIPELINE_BRANCH=${PIPELINE_BRANCH} -f ci/cijobtemplate.yaml | oc create -f -"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cijobtemplate.yaml | oc create -f -"
 
 echo "Start ci pipeline"
 build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-job -n cccp |cut -f 2 -d ' '")
 
 echo "Build started with build id: $build_id"
 
+build_id=$(echo $build_id|tr -d '"'|tr -d '\r')
+
+echo "Trimmed build id is: ===$build_id==="
+
 echo "Waiting for the ci to start"
-build_started=$(ssh $sshoptserr $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+build_started=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_started"
 
 while [ $build_started != 'Running' ]
 do
     sleep 30
-    build_started=$(ssh $sshoptserr $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+    build_started=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 done
 
 echo "Get CI logs"
-ssh $sshoptserr $nfs_node_ip "tail -f /jenkins/jobs/cccp/jobs/cccp-ci-job/builds/1/log"
+#ssh $sshoptserr $nfs_node_ip "tail -f /jenkins/jobs/cccp/jobs/cccp-ci-job/builds/1/log"
 
 echo "CI complete releasing the nodes"
 #cico node done $cico_node_key
