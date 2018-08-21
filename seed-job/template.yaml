@@ -75,7 +75,8 @@ objects:
                             if("${PRE_BUILD_SCRIPT}" != "None")
                             {
                                dir("${PIPELINE_NAME}/${PRE_BUILD_CONTEXT}"){
-                                  sh "sh ${PRE_BUILD_SCRIPT}"
+                                  sh "sh ${PRE_BUILD_SCRIPT} > pre_build_log_file"
+                                  sh "cat pre_build_log_file && rm -rf pre_build_log_file"
                                }
                             }
                             else
