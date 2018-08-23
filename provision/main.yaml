@@ -85,6 +85,13 @@
   tags:
       - ci_nfs/clients
 
+- name: Run pre-requisite
+  import_playbook: /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
+  no_log: True
+  tags:
+      - cluster_openshift
+      - cluster
+
 - name: Deploy Openshift cluster
   import_playbook: /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
   no_log: True
