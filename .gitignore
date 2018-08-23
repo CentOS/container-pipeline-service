@@ -10,3 +10,9 @@ hosts.devcloud
 hosts.prod
 sentry.hosts
 zabbix
+*.pyc
+*.swp
+
+# coverage report residues
+.coverage
+htmlcov/

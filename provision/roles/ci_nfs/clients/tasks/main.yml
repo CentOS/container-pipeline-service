@@ -1,0 +1,8 @@
+---
+- name: Install nfs-utils for NFS sharing
+  when: setup_nfs
+  become: true
+  yum: name=nfs-utils state=present
+  tags:
+  - ci_nfs
+  - test
