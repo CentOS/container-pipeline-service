@@ -103,6 +103,16 @@ echo "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p P
 
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
 
+echo "Waiting for seed job to complete"
+index_read_done=$(ssh $sshopts $openshift_1_node_ip "oc get builds seed-job-1 -o template --template={{.status.phase}}")
+echo "Current build status: $index_read_done"
+
+while [ $index_read_done != 'Complete' ]
+do
+    sleep 30
+    index_read_done=$(ssh $sshopts $openshift_1_node_ip "oc get builds seed-job-1 -o template --template={{.status.phase}}")
+done
+
 echo "create CI job build pipeline"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cijobtemplate.yaml | oc create -f -"
 
@@ -126,7 +136,7 @@ do
 done
 
 echo "Get CI logs"
-#ssh $sshoptserr $nfs_node_ip "tail -f /jenkins/jobs/cccp/jobs/cccp-ci-job/builds/1/log"
+ssh $sshoptserr $nfs_node_ip "tail -f /jenkins/jobs/cccp/jobs/cccp-ci-job/builds/1/log"
 
 echo "CI complete releasing the nodes"
-#cico node done $cico_node_key
+cico node done $cico_node_key
