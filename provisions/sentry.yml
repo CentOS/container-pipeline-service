@@ -1,8 +1,0 @@
----
-- name: Setup sentry
-  hosts: sentry
-  roles:
-      - monitoring/sentry
-  tags:
-      - monitoring
-      - sentry
