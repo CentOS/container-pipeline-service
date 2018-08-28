@@ -142,4 +142,12 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
-
+- description: Repository containing CentOS Container Pipeline service code
+  displayName: Pipeline service repo
+  name: PIPELINE_REPO
+  required: true
+- description: Branch of Pipeline service to checkout to
+  displayName: Pipeline branch
+  name: PIPELINE_BRANCH
+  required: true
+  value: master

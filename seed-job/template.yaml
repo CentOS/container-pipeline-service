@@ -263,9 +263,7 @@ parameters:
   displayName: Pipeline service repo
   name: PIPELINE_REPO
   required: true
-  value: https://github.com/dharmit/ccp-openshift
 - description: Branch of Pipeline service to checkout to
   displayName: Pipeline branch
   name: PIPELINE_BRANCH
   required: true
-  value: master
