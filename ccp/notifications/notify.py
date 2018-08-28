@@ -36,9 +36,13 @@ class BuildNotify(BaseNotify):
 
     def subject_of_email(self, status, build):
         """
-        Returns subject of email
-        status: Status of build - True=Success False=Failure
-        project: Name of the project/build
+        Given the status and build/image name, returns the subject of email
+
+        :param status: Status of container image build
+        :type status bool
+        :param build: Container image name without registry
+        :param type str
+        :return: Subject line of notification email in text
         """
         if status:
             return self.build_success_subj.format(build)
@@ -48,9 +52,13 @@ class BuildNotify(BaseNotify):
     def body_of_email(self, status, repository, cause):
         """
         Generate the body of email using given details
-        status: Status of build - True=Success False=Failure
-        image: Image name
-        cause: Cause of the build
+        :param status: Status of container image build
+        :type status bool
+        :param repository: Repository name of image along with registry name
+        :type repository str
+        :param cause: Cause of the the build
+        :type cause str
+        :return: Email body of notification email in text
         """
         if status:
             body = self.build_success_body.format(
@@ -70,7 +78,18 @@ class BuildNotify(BaseNotify):
                status, namespace, jenkins_url,
                image_name, build_number):
         """
-        Get notifications details and sends email to user
+        Get notifications info and sends email to user
+
+        :param status: Status of build in text ["success", "failure"]
+        :type status bool
+        :param namespace: Namespace in which build ran
+        :type namespace str
+        :param jenkins_url: Jenkins URL where build executed
+        :type jenkins_url str
+        :param image_name: Container image name without registry
+        :type image_name str
+        :param build_number: Container image build number
+        :type build_number str / int
         """
         build_info = self.buildinfo_obj.get_build_info(
             namespace, jenkins_url,

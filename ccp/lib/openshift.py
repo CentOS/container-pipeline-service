@@ -207,7 +207,7 @@ class BuildInfo(object):
                    jenkins_url=jenkins_url,
                    namespace=namespace,
                    job=job,
-                   build_number=build_number))
+                   build_number=str(build_number)))
 
         print ("Opening URL to details of the build\n{}".format(url))
 
