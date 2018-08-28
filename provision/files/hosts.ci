@@ -37,6 +37,8 @@ openshift_disable_check=docker_storage,memory_availability
 setup_nfs=true
 ci_setup=true
 
+oc_login_user=oc_username
+oc_login_pass=oc_passwd
 
 # host group for masters
 [masters]

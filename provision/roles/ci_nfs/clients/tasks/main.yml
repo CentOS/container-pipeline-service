@@ -4,5 +4,5 @@
   become: true
   yum: name=nfs-utils state=present
   tags:
-  - ci_nfs
-  - test
+    - ci_nfs
+    - test

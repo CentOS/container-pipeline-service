@@ -9,7 +9,7 @@
   shell: echo "cccp:\$apr1\$S.Vw.48M\$lflABLdGQRA2dG2rpT9nU1" >> /etc/origin/master/htpasswd
 
 - name: Login as cccp
-  shell: oc login --username='cccp' --password='developer'
+  shell: oc login --username="{{ oc_login_user }}" --password="{{ oc_login_pass }}"
 
 - name: Create cccp project
   shell: oc new-project cccp --display-name="CentOS Container Pipeline"
@@ -24,7 +24,7 @@
   shell: oc create -f /tmp/jenkins-pv.yaml
 
 - name: Login as cccp
-  shell: oc login --username='cccp' --password='developer'
+  shell: oc login --username="{{ oc_login_user }}" --password="{{ oc_login_pass }}"
 
 - name: Deploy Jenkins service
   shell: oc process -p MEMORY_LIMIT=1Gi openshift//jenkins-persistent | oc create -f -

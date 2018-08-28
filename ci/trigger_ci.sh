@@ -14,6 +14,12 @@ openshift_2_node_ip=${node_details[10]}
 cico_node_key=${node_details[11]}
 cluster_subnet_ip="172.19.2.0"
 
+if [ $cico_node_key == "" ]
+then
+    echo "Could not get nodes from CICO exiting"
+    exit 1
+fi
+
 echo "=========================Node Details========================"
 echo "Ansible node hostname: $ansible_node_host"
 echo "Ansible node: $ansible_node"
@@ -75,9 +81,19 @@ ssh $sshoptserr $ansible_node sed -i "s/openshift_2/$openshift_2_node/g" /opt/cc
 ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_1/$openshift_1_node_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/oc_username/cccp/g" /opt/ccp-openshift/provision/files/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshift/provision/files/hosts.ci
+
 
 echo "Run ansible playbook for setting service"
 ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
+service_setup_done=$?
+
+if [ $service_setup_done -ne 0 ]
+then
+    echo "Error while deploying the service in CICO"
+    exit 1
+fi
 
 echo "Cluster is set lets go for tests"
 
@@ -107,17 +123,24 @@ echo "Waiting for seed job to complete"
 index_read_done=$(ssh $sshopts $openshift_1_node_ip "oc get builds seed-job-1 -o template --template={{.status.phase}}")
 echo "Current build status: $index_read_done"
 
-while [ $index_read_done != 'Complete' ]
+while [[ $index_read_done != 'Complete' && $index_read_done != 'Failed' ]]
 do
     sleep 30
     index_read_done=$(ssh $sshopts $openshift_1_node_ip "oc get builds seed-job-1 -o template --template={{.status.phase}}")
 done
 
-echo "create CI job build pipeline"
+if [ $index_read_done == 'Failed' ]
+then
+    echo "ERROR: seed-job failed to process the index"
+    cat /jenkins/jobs/cccp/jobs/cccp-seed-job/builds/1/log
+    exit 1
+fi
+
+echo "create CI success job build pipeline"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cisuccessjob.yaml | oc create -f -"
 
-echo "Start ci pipeline"
-build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-sucess-job -n cccp |cut -f 2 -d ' '")
+echo "Start ci pipeline for success job"
+build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-success-job -n cccp |cut -f 2 -d ' '")
 
 echo "Build started with build id: $build_id"
 
@@ -126,30 +149,68 @@ build_id=$(echo $build_id|tr -d '"'|tr -d '\r')
 echo "Trimmed build id is: ===$build_id==="
 
 echo "Waiting for the ci to start"
-build_started=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
-echo "Current build status: $build_started"
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+echo "Current build status: $build_status"
 
-while [ $build_started != 'Running' ]
+while [[ $build_status != 'Running' ]]
 do
     sleep 30
-    build_started=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 done
 
-echo "CI for success started started"
-while [ $build_started != 'Complete' ]
+echo "CI for success check started"
+echo "Success CI job is: $build_status"
+while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
-    build_started=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
-    echo "Success CI job is: $build_started"
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 done
 
-final_status=$(ssh $sshoptserr $nfs_node_ip "tail -n1 /jenkins/jobs/cccp/jobs/cccp-ci-sucess-job/builds/1/log")
+if [ $build_status == 'Failed' ]
+then
+    ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-bamachrn-python-release/builds/lastFailedBuild/log"
+    exit 1
+else
+    echo "Success Build check Passed: SUCCESS"
+fi
 
-echo "Pipeline status is: $final_status"
+echo "create CI failure job build pipeline"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cifailurejob.yaml | oc create -f -"
 
+echo "Start ci pipeline for success job"
+build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-failure-job -n cccp |cut -f 2 -d ' '")
 
-echo "Get CI logs"
-#ssh $sshoptserr $nfs_node_ip "tail -f /jenkins/jobs/cccp/jobs/cccp-ci-sucess-job/builds/1/log"
+echo "Build started with build id: $build_id"
+
+build_id=$(echo $build_id|tr -d '"'|tr -d '\r')
+
+echo "Trimmed build id is: ===$build_id==="
+
+echo "Waiting for the ci to start"
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+echo "Current build status: $build_status"
+
+while [[ $build_status != 'Running' ]]
+do
+    sleep 30
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+done
+
+echo "CI for Fail check started"
+echo "Fail check CI job is: $build_status"
+while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
+do
+    sleep 30
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+done
+
+if [ $build_status == 'Failed' ]
+then
+    ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-nshaikh-build-fail-test-latest/builds/lastFailedBuild/log"
+    exit 1
+else
+    echo "Failed Build check Passed: SUCCESS"
+fi
 
 echo "CI complete releasing the nodes"
-#cico node done $cico_node_key
+cico node done $cico_node_key

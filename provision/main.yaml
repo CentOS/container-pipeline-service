@@ -6,8 +6,8 @@
         lineinfile: dest=/etc/sudoers state=absent regexp="^Defaults requiretty.*"
         become: true
 
-      - name: Ensure epel is enabled when enable_epel is True
-        yum: name=epel-release state=present
+      - name: Ensure EPEL is enabled when enable_epel is True
+        yum: name=epel-release state=latest
 
       - name: yum update all
         yum: name='*' state=latest
@@ -23,7 +23,6 @@
             - python-rhsm-certificates
             - centos-release-openshift-origin39.noarch
             - python-ipaddress
-            - docker
             - rsync
             - PyYAML
 
@@ -32,9 +31,8 @@
         with_items:
             - NetworkManager
             - firewalld
-            - docker
 
-      - name: Copy /etc/hosts
+      - name: Copy local /etc/hosts to all nodes
         synchronize: src=/etc/hosts dest=/etc/hosts
         delegate_to: localhost
 
@@ -48,7 +46,7 @@
             permanent: true
             zone: public
 
-      - name: Remove Iptables rules
+      - name: Flush iptables rules
         shell: iptables -F
         become: yes
         when: ci_setup
@@ -61,7 +59,7 @@
   tags:
       - cluster
 
-- name: Confiure container registry
+- name: Configure the container registry
   hosts: nfs_registry
   tasks:
       - name: Install docker distribution
@@ -71,6 +69,9 @@
       - name: Start and enable container registry
         systemd: state=started enabled=yes name="docker-distribution"
         become: true
+  tags:
+      - docker-registry
+
 - name: Configure NFS Server for CI
   hosts: nfs_registry
   roles:
@@ -85,7 +86,7 @@
   tags:
       - ci_nfs/clients
 
-- name: Run pre-requisite
+- name: Run pre-requisites
   import_playbook: /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
   no_log: True
   tags:

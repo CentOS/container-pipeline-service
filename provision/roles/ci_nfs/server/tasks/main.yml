@@ -4,8 +4,8 @@
   become: true
   yum: name=nfs-utils state=present
   tags:
-  - ci_nfs
-  - test
+    - ci_nfs
+    - test
 
 - name: Create NFS mount directory
   when: setup_nfs
@@ -15,8 +15,8 @@
     state: directory
     mode: 0777
   tags:
-  - ci_nfs
-  - test
+    - ci_nfs
+    - test
 
 - name: Add entry in /etc/exports to configure NFS mount
   when: setup_nfs
@@ -25,8 +25,8 @@
     destfile: /etc/exports
     line: "/jenkins *(rw,sync,no_subtree_check,all_squash,anonuid=0,anongid=0)"
   tags:
-  - ci_nfs
-  - test
+    - ci_nfs
+    - test
 
 - name: Get script approvals set
   become: true
@@ -37,5 +37,5 @@
   become: true
   service: name=nfs-server enabled=yes state=started
   tags:
-  - ci_nfs
-  - test
+    - ci_nfs
+    - test
