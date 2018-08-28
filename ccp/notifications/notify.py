@@ -6,17 +6,21 @@
 
 import sys
 
+from ccp.notifications.base import BaseNotify
 from ccp.lib.openshift import BuildInfo
 from ccp.lib.email import SendEmail
 
 
-class Notify(object):
+class BuildNotify(BaseNotify):
     """
     Notify class has related methods to notify
     user about build status and details
     """
 
     def __init__(self):
+        # instantiate the base class
+        super(BuildNotify, self).__init__()
+        # create the buildInfo class object
         self.buildinfo_obj = BuildInfo(
             service_account="sa/jenkins",
             required_fields=[
@@ -27,6 +31,7 @@ class Notify(object):
                 "SMTP_SERVER",
                 # this will be derived in BuildInfo
                 "CAUSE_OF_BUILD"])
+        # create the SendEmail utility class object
         self.sendemail_obj = SendEmail()
 
     def subject_of_email(self, status, build):
@@ -35,13 +40,10 @@ class Notify(object):
         status: Status of build - True=Success False=Failure
         project: Name of the project/build
         """
-        s_sub = "SUCCESS: Container build {} is complete"
-        f_sub = "FAILED: Container build {} has failed"
-
         if status:
-            return s_sub.format(build)
+            return self.build_success_subj.format(build)
         else:
-            return f_sub.format(build)
+            return self.build_failure_subj.format(build)
 
     def body_of_email(self, status, repository, cause):
         """
@@ -50,35 +52,17 @@ class Notify(object):
         image: Image name
         cause: Cause of the build
         """
-        success_template = """\
-{0: <20}{1}
-{2: <20}{3}
-{4: <20}{5}"""
-
-        failure_template = """\
-{0: <20}{1}
-{2: <20}{3}"""
-
-        footer = """\
---
-Do you have a query?
-Talk to Pipeline team on #centos-devel at freenode
-CentOS Community Container Pipeline Service
-https://wiki.centos.org/ContainerPipeline
-https://github.com/centos/container-index
-"""
-
         if status:
-            body = success_template.format(
+            body = self.build_success_body.format(
                 "Build Status:", "Success",
                 "Repository:", repository,
                 "Cause of build:", cause)
         else:
-            body = failure_template.format(
+            body = self.build_failure_body.format(
                 "Build Status:", "Failure",
                 "Cause of build:", cause)
 
-        body = body + "\n\n" + footer
+        body = body + "\n\n" + self.email_footer
 
         return body
 
@@ -124,7 +108,7 @@ if __name__ == "__main__":
     image_name = sys.argv[4].strip()
     build_number = sys.argv[5].strip()
 
-    notify_object = Notify()
+    notify_object = BuildNotify()
     notify_object.notify(
         status, namespace, jenkins_url,
         image_name, build_number)
