@@ -13,7 +13,7 @@ class TestNotify(unittest.TestCase):
     """
 
     def setUp(self):
-        self.notify_obj = notify.Notify()
+        self.notify_obj = notify.BuildNotify()
 
     def test_subject_of_email(self):
         """
@@ -25,13 +25,15 @@ class TestNotify(unittest.TestCase):
         self.assertEqual(
             self.notify_obj.subject_of_email(
                 True, job),
-            "SUCCESS: Container build {} is complete".format(job))
+            "[registry.centos.org] SUCCESS: Container build {}"
+            " is complete".format(job))
 
         # Check the FAILED case
         self.assertEqual(
             self.notify_obj.subject_of_email(
                 False, job),
-            "FAILED: Container build {} has failed".format(job))
+            "[registry.centos.org] FAILED: Container build {}"
+            " has failed".format(job))
 
     def test_body_of_email(self):
         """
@@ -43,9 +45,9 @@ class TestNotify(unittest.TestCase):
         repository = "registry.centos.org/foo/bar"
         cause = "Started by admin"
         expected_value = """\
-Build Status:       Success
-Repository:         registry.centos.org/foo/bar
-Cause of build:     Started by admin
+Build Status:                 Success
+Repository:                   registry.centos.org/foo/bar
+Cause of build:               Started by admin
 
 --
 Do you have a query?

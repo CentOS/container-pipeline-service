@@ -375,14 +375,14 @@ origin/master of repo https://github.com/navidshaikh/anomaly."""
         self.assertEqual(
             self.buildinfo_obj.parse_cause_of_build(
                 sample_response),
-            "First build of container"
+            "First build of the container"
         )
 
     def test_parse_cause_of_build_4(self):
         """
         cccp.lib.openshift: Test parsing cause of build case-4 (config update)
         from REST API JSON response containing Jenkins job details
-        case-4: Update to build configurations of container
+        case-4: Update to build configurations of the container
         """
         # trimmed unneeded lines from sample response
         sample_response = {
@@ -403,21 +403,21 @@ origin/master of repo https://github.com/navidshaikh/anomaly."""
         self.assertEqual(
             self.buildinfo_obj.parse_cause_of_build(
                 sample_response),
-            "Update to build configurations of container"
+            "Update to build configurations of the container"
         )
 
     def test_parse_cause_of_build_5(self):
         """
         cccp.lib.openshift: Test parsing cause of build case-5 (failure)
         from REST API JSON response containing Jenkins job details
-        case-5: Update to build configurations of container
+        case-5: Unable to find the cause build.
         """
         self.assertRaises(
             self.buildinfo_obj.parse_cause_of_build({}))
 
         self.assertEqual(
             self.buildinfo_obj.parse_cause_of_build({}),
-            "Unable to find cause of build.")
+            "Unable to find the cause of build.")
 
     def test_parse_jenkins_job(self):
         """
