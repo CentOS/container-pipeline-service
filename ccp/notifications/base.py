@@ -20,13 +20,13 @@ class BaseNotify(object):
             "[registry.centos.org] FAILED: Container build {} has failed"
 
         self.build_success_body = """\
-{0: <20}{1}
-{2: <20}{3}
-{4: <20}{5}"""
+{0:<30}{1}
+{2:<30}{3}
+{4:<30}{5}"""
 
         self.build_failure_body = """\
-{0: <20}{1}
-{2: <20}{3}"""
+{0:<30}{1}
+{2:<30}{3}"""
 
         self.email_footer = """\
 --

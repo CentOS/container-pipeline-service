@@ -79,7 +79,7 @@ class BuildInfo(object):
             cause_of_build = None
 
             if response["number"] == 1:
-                return "First build of container"
+                return "First build of the container"
 
             for _class in response["actions"]:
                 if "_class" not in _class:
@@ -114,8 +114,8 @@ class BuildInfo(object):
                 # OpenShift Build cccp/test-python-release-5 from $GITURL
                 # that's a manual trigger
                         else:
-                            cause_of_build = \
-                                "Update to build configurations of container"
+                            cause_of_build = ("Update to build configurations "
+                                              "of the container")
 
                     # fail over / if _class is not the one expected
                     if not cause_of_build:
@@ -145,7 +145,7 @@ class BuildInfo(object):
                             _class["remoteUrls"][0])
 
             if not cause_of_build:
-                return "Unable to find cause of build."
+                return "Unable to find the cause of build."
             return cause_of_build
 
             # TODO: Other cases of cause to be worked upon
@@ -154,7 +154,7 @@ class BuildInfo(object):
 
         except KeyError as e:
             print ("Invalid JSON response from Jenkins. {}".format(e))
-            return "Unable to find cause of build."
+            return "Unable to find the cause of build."
 
     def parse_jenkins_job(self, response):
         """
