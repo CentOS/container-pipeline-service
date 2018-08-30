@@ -126,9 +126,11 @@ class Project(object):
 
     def get_pipeline_name(self):
         """
-        Returns the pipeline name based on the project object values
+        Returns the pipeline name based on appid, jobid and desired_tag
+        and also converts it to lower case
         """
-        return "{}-{}-{}".format(self.app_id, self.job_id, self.desired_tag)
+        return "{}-{}-{}".format(
+            self.app_id, self.job_id, self.desired_tag).lower()
 
 
 class IndexReader(object):
@@ -240,7 +242,7 @@ class BuildConfigManager(object):
         """
         Applies the build job template that creates pipeline to build
         image, and trigger first time build as well.
-        :param project: The name of project, where the template is to be applied
+        :param project: The name of project,where the template is to be applied
         :param template_location: The location of the template file.
         """
         oc_process = "oc process -f {0} {1}".format(

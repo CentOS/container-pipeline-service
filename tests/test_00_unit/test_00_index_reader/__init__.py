@@ -114,10 +114,21 @@ class TestProject(unittest.TestCase):
         project = index_reader.Project(self.entry, self.namespace)
         self.assertIsNone(project.pre_build_context)
 
-    def test_get_pipeline_name(self):
+    def test_get_pipeline_name_1(self):
         """
-        Test processing pipeline_name based on given values
+        IndexReader: Tests processing pipeline_name
         """
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertEqual(
+            "foo-bar-latest",
+            project.pipeline_name)
+
+    def test_get_pipeline_name_2(self):
+        """
+        IndexReader: Tests processing pipeline_name for upper case params
+        """
+        self.entry["app-id"] = "Foo"
+        self.entry["desired-tag"] = "LatesT"
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual(
             "foo-bar-latest",
