@@ -15,9 +15,9 @@ class BaseNotify(object):
 
     def __init__(self):
         self.build_success_subj = \
-            "[registry.centos.org] SUCCESS: Container build {} is complete"
+            "[registry.centos.org] SUCCESS: Container build {}"
         self.build_failure_subj = \
-            "[registry.centos.org] FAILED: Container build {} has failed"
+            "[registry.centos.org] FAILED: Container build {}"
 
         self.build_success_body = """\
 {0:<30}{1}

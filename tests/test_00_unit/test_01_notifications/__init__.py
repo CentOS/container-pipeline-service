@@ -25,15 +25,15 @@ class TestNotify(unittest.TestCase):
         self.assertEqual(
             self.notify_obj.subject_of_email(
                 True, job),
-            "[registry.centos.org] SUCCESS: Container build {}"
-            " is complete".format(job))
+            "[registry.centos.org] SUCCESS: Container build {}".format(
+                job))
 
         # Check the FAILED case
         self.assertEqual(
             self.notify_obj.subject_of_email(
                 False, job),
-            "[registry.centos.org] FAILED: Container build {}"
-            " has failed".format(job))
+            "[registry.centos.org] FAILED: Container build {}".format(
+                job))
 
     def test_body_of_email(self):
         """
