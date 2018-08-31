@@ -33,8 +33,8 @@ objects:
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
-                    name: 'jnlp',
-                    image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                    name: 'ccp-openshift-slave',
+                    image: ${CCP_OPENSHIFT_SLAVE_IMAGE},
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
@@ -133,14 +133,10 @@ objects:
                     }
                     finally {
                       stage("Notify user"){
-                        dir("${PIPELINE_REPO_DIR}") {
-                          git url: '${PIPELINE_REPO}', branch: '${PIPELINE_BRANCH}'
-                          }
-
                           if (success==true) {
-                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                           } else {
-                            sh "cd ${PIPELINE_REPO_DIR} && PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                             }
                     }
                   }
@@ -175,12 +171,12 @@ objects:
             value: ${PRE_BUILD_CONTEXT}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
-          - name: PIPELINE_REPO_DIR
-            value: ${PIPELINE_REPO_DIR}
           - name: FROM_ADDRESS
             value: ${FROM_ADDRESS}
           - name: SMTP_SERVER
             value: ${SMTP_SERVER}
+          - name: PIPELINE_REPO_DIR
+            value: ${PIPELINE_REPO_DIR}
       triggers:
           - type: ConfigChange
 parameters:
@@ -254,16 +250,13 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
-- description: Directory where Pipeline service code is to be cloned
-  displayName: Pipeline repo directory
+- description: Directory where Pipeline service code is present in slave container
+  displayName: Pipeline service code repo directory
   name: PIPELINE_REPO_DIR
   required: true
-  value: /tmp/pipeline-service
-- description: Repository containing CentOS Container Pipeline service code
-  displayName: Pipeline service repo
-  name: PIPELINE_REPO
+  value: /opt/ccp-openshift
+- description: ccp-openshift-slave container image name (with registry name)
+  displayName: ccp-openshift-slave container image
+  name: $CCP_OPENSHIFT_SLAVE_IMAGE
   required: true
-- description: Branch of Pipeline service to checkout to
-  displayName: Pipeline branch
-  name: PIPELINE_BRANCH
-  required: true
+  value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest
