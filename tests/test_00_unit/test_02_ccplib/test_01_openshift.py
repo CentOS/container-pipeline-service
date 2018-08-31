@@ -302,20 +302,6 @@ class TestBuildInfo(unittest.TestCase):
             }
         }
 
-    def test_get_jenkins_pipeline_job_name(self):
-        """
-        ccp.lib.openshift: Test processing Jenkins pipeline job name
-        given namespace and image_name
-        case-1: Git commit
-        """
-        namespace = "cccp"
-        image_name = "foo/bar:latest"
-        self.assertEqual(
-            self.buildinfo_obj.get_jenkins_pipeline_job_name(
-                namespace,
-                image_name),
-            "cccp-foo-bar-latest")
-
     def test_parse_cause_of_build_1(self):
         """
         ccp.lib.openshift: Test parsing cause of build case-1 (Git commit)

@@ -76,7 +76,7 @@ class BuildNotify(BaseNotify):
 
     def notify(self,
                status, namespace, jenkins_url,
-               image_name, build_number):
+               image_name, build_number, pipeline_name):
         """
         Get notifications info and sends email to user
 
@@ -90,10 +90,12 @@ class BuildNotify(BaseNotify):
         :type image_name str
         :param build_number: Container image build number
         :type build_number str / int
+        :param pipeline_name: Pipeline name
+        :type pipeline_name str
         """
         build_info = self.buildinfo_obj.get_build_info(
             namespace, jenkins_url,
-            image_name, build_number)
+            pipeline_name, build_number)
 
         # convert status to boolean
         # possible values are ["success", "failed"]
@@ -126,8 +128,10 @@ if __name__ == "__main__":
     jenkins_url = sys.argv[3].strip()
     image_name = sys.argv[4].strip()
     build_number = sys.argv[5].strip()
+    pipeline_name = sys.argv[6].strip()
 
     notify_object = BuildNotify()
     notify_object.notify(
         status, namespace, jenkins_url,
-        image_name, build_number)
+        image_name, build_number,
+        pipeline_name)

@@ -62,15 +62,6 @@ class BuildInfo(object):
 
         return urllib2.urlopen(r, context=context)
 
-    def get_jenkins_pipeline_job_name(self, namespace, image_name):
-        """
-        Returns the jenkins pipeline job name.
-        Its formatted at namespace-appid-jobid-desiredtag.
-        """
-        pipeline = image_name.replace("/", "-").replace("_", "-").replace(
-            ":", "-")
-        return "{}-{}".format(namespace, pipeline)
-
     def parse_cause_of_build(self, response):
         """
         Parse the JSON response containing jenkins job details
@@ -104,9 +95,8 @@ class BuildInfo(object):
                             ups_proj = "/".join(
                                 ups_proj[1:-1]) + ":" + ups_proj[-1]
 
-                            cause_of_build = (
-                                "Upstream/parent container {} is rebuilt".format(
-                                    ups_proj))
+                            cause_of_build = ("Upstream/parent container {} is"
+                                              " rebuilt".format(ups_proj))
                             break
                 # jenkins manual trigger is not available
                 # all the builds are intitiated from openshift
@@ -193,20 +183,17 @@ class BuildInfo(object):
 
         return build_info
 
-    def get_build_info(self, namespace, jenkins_url, image_name, build_number):
+    def get_build_info(
+            self, namespace, jenkins_url, pipeline_name, build_number):
         """
         Given build identifiers, use Jenkins REST APIs to figure
         out details of the build
         """
-        # populate the jenkins pipeline job name
-        job = self.get_jenkins_pipeline_job_name(
-            namespace, image_name)
-
         url = ("https://{jenkins_url}/job/{namespace}/job/"
-               "{job}/{build_number}/api/json".format(
+               "{namespace}-{pipeline_name}/{build_number}/api/json".format(
                    jenkins_url=jenkins_url,
                    namespace=namespace,
-                   job=job,
+                   pipeline_name=pipeline_name,
                    build_number=str(build_number)))
 
         print ("Opening URL to details of the build\n{}".format(url))
