@@ -134,6 +134,16 @@ class TestProject(unittest.TestCase):
             "foo-bar-latest",
             project.pipeline_name)
 
+    def test_get_pipeline_name_3(self):
+        """
+        IndexReader: Tests exception while processing pipeline name
+        """
+        self.entry["app-id"] = "-"
+        self.entry["job-id"] = "-"
+        self.entry["desired-tag"] = "-"
+        with self.assertRaises(index_reader.InvalidPipelineName):
+            index_reader.Project(self.entry, self.namespace)
+
 
 if __name__ == "__main__":
     unittest.main()
