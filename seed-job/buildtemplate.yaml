@@ -63,7 +63,11 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
+<<<<<<< HEAD
                             sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP}"
+=======
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${CCP_OPENSHIFT_SLAVE_IMAGE}"
+>>>>>>> Relays CCP_OPENSHIFT_SLAVE_IMAGE parameter from buildtemplate to template
                         }
                     }
                 }

@@ -265,11 +265,14 @@ class BuildConfigManager(object):
     by pipeline service
     """
 
-    def __init__(self, registry_url, namespace, from_address, smtp_server):
+    def __init__(self, registry_url, namespace, from_address, smtp_server,
+                 ccp_openshift_slave_image):
         self.registry_url = registry_url
         self.namespace = namespace
         self.from_address = from_address
         self.smtp_server = smtp_server
+        self.ccp_openshift_slave_image = ccp_openshift_slave_image
+
         self.seed_template_params = """\
 -p GIT_URL={git_url} \
 -p GIT_PATH={git_path} \
@@ -286,7 +289,8 @@ class BuildConfigManager(object):
 -p PRE_BUILD_SCRIPT={pre_build_script} \
 -p REGISTRY_URL={registry_url} \
 -p FROM_ADDRESS={from_address} \
--p SMTP_SERVER={smtp_server}"""
+-p SMTP_SERVER={smtp_server} \
+-p CCP_OPENSHIFT_SLAVE_IMAGE={ccp_openshift_slave_image}"""
 
         self.weekly_scan_template_params = """\
 -p PIPELINE_NAME=wscan-{pipeline_name} \
@@ -296,7 +300,8 @@ class BuildConfigManager(object):
 -p JOB_ID={job_id} \
 -p DESIRED_TAG={desired_tag} \
 -p FROM_ADDRESS={from_address} \
--p SMTP_SERVER={smtp_server}"""
+-p SMTP_SERVER={smtp_server} \
+-p CCP_OPENSHIFT_SLAVE_IMAGE={ccp_openshift_slave_image}"""
 
     @retry(tries=10, delay=3, backoff=2)
     def list_all_buildConfigs(self):
@@ -349,7 +354,8 @@ class BuildConfigManager(object):
             pre_build_script=project.pre_build_script,
             registry_url=self.registry_url,
             from_address=self.from_address,
-            smtp_server=self.smtp_server
+            smtp_server=self.smtp_server,
+            ccp_openshift_slave_image=self.ccp_openshift_slave_image
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
@@ -396,7 +402,8 @@ class BuildConfigManager(object):
             job_id=project.job_id,
             registry_url=self.registry_url,
             from_address=self.from_address,
-            smtp_server=self.smtp_server
+            smtp_server=self.smtp_server,
+            ccp_openshift_slave_image=self.ccp_openshift_slave_image
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
@@ -494,13 +501,15 @@ class Index(object):
     in container index.
     """
 
-    def __init__(self, index, registry_url,
-                 namespace, from_address, smtp_server):
+    def __init__(self, index, registry_url, namespace,
+                 from_address, smtp_server,
+                 ccp_openshift_slave_image):
         # create index reader object
         self.index_reader = IndexReader(index, namespace)
         # create bc_manager object
         self.bc_manager = BuildConfigManager(
-            registry_url, namespace, from_address, smtp_server)
+            registry_url, namespace, from_address, smtp_server,
+            ccp_openshift_slave_image)
         self.infra_projects = ["seed-job"]
 
     def find_stale_jobs(self, oc_projects, index_projects):
@@ -669,3 +678,11 @@ if __name__ == "__main__":
         batch_size,
         batch_polling_interval,
         batch_outstanding_builds_cap)
+
+    ccp_openshift_slave_image = sys.argv[6].strip()
+
+    index_object = Index(index, registry_url, namespace,
+                         from_address, smtp_server,
+                         ccp_openshift_slave_image)
+
+    index_object.run()
