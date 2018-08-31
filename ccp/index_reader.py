@@ -3,11 +3,21 @@ This script parses the container index specified and
 creates the Jenkins pipeline projects from entries of index.
 """
 
+import exceptions
+import re
 import subprocess
 import sys
 import yaml
 
 from glob import glob
+
+
+class InvalidPipelineName(exceptions.Exception):
+    """
+    Exception to be raised when pipeline name populated doesn't
+    confornt to allowed value for openshift template field metadata.name
+    """
+    pass
 
 
 def run_cmd(cmd, shell=False):
@@ -129,8 +139,24 @@ class Project(object):
         Returns the pipeline name based on appid, jobid and desired_tag
         and also converts it to lower case
         """
-        return "{}-{}-{}".format(
+        pipeline_name = "{}-{}-{}".format(
             self.app_id, self.job_id, self.desired_tag).lower()
+
+        # pipeline name which becomes value for metadata.name field in template
+        # must confront to following regex as per oc
+        # We tried to make the string acceptable by converting it to lower case
+        # Below we are adding another gate to make sure the pipeline_name is as
+        # per requirement, otherwise raising an exception with proper message
+        # to indicate the issue
+        pipeline_name_regex = ("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]"
+                               "([-a-z0-9]*[a-z0-9])?)*$")
+        match = re.match(pipeline_name_regex, pipeline_name)
+
+        if not match:
+            msg = ("The pipeline name populated {} can't be used in OpenShift "
+                   "template in metadata.name field. ".format(pipeline_name))
+            raise(InvalidPipelineName(msg))
+        return pipeline_name
 
 
 class IndexReader(object):
@@ -242,7 +268,7 @@ class BuildConfigManager(object):
         """
         Applies the build job template that creates pipeline to build
         image, and trigger first time build as well.
-        :param project: The name of project,where the template is to be applied
+        :param project: The name of project, where template is to be applied
         :param template_location: The location of the template file.
         """
         oc_process = "oc process -f {0} {1}".format(
