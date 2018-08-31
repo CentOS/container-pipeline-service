@@ -31,7 +31,7 @@ objects:
                 containers: [
                   containerTemplate(
                     name: 'seedjob-ccp-openshift-slave',
-                    image: ${CCP_OPENSHIFT_SLAVE_IMAGE},
+                    image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
