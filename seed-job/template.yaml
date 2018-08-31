@@ -133,11 +133,13 @@ objects:
                     }
                     finally {
                       stage("Notify user"){
+                        dir("${PIPELINE_REPO_DIR}") {
                           if (success==true) {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "python ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                           } else {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "python ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                             }
+                        }
                     }
                   }
               }
@@ -257,6 +259,6 @@ parameters:
   value: /opt/ccp-openshift
 - description: ccp-openshift-slave container image name (with registry name)
   displayName: ccp-openshift-slave container image
-  name: $CCP_OPENSHIFT_SLAVE_IMAGE
+  name: CCP_OPENSHIFT_SLAVE_IMAGE
   required: true
   value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest
