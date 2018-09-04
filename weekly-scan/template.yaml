@@ -24,7 +24,7 @@ objects:
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
-                    name: 'wscan-jnlp',
+                    name: 'jnlp',
                     image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
                     ttyEnabled: true,
                     alwaysPullImage: true,

@@ -30,7 +30,7 @@ objects:
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
-                    name: 'seedjob-ccp-openshift-slave',
+                    name: 'jnlp',
                     image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
                     ttyEnabled: true,
                     alwaysPullImage: true,
