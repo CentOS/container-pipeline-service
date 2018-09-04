@@ -27,7 +27,7 @@ class SendEmail(object):
         cc_adds: (optional) A list addresses to mark in Cc
         """
         command = """\
-echo -e '{body}' | mail -r {from_address} {cc_opts} -S \
+echo -e '{body}' | /usr/bin/mailx -r {from_address} {cc_opts} -S \
 {smtp_server} -s "{subject}" {to_addresses}"""
 
         # it would return '' for when cc_add==[]
