@@ -1,5 +1,17 @@
+#!/bin/bash
+mark_failure()
+{
+    echo "====================CI-failed====================="
+    echo "$1"
+    echo "=================================================="
+    echo "CI complete releasing the nodes"
+    cico node done $cico_node_key
+    exit 1
+}
+
 set +e
 export CICO_API_KEY=$(cat ~/duffy.key)
+rtn_code=0
 
 echo "Get nodes from duffy pool"
 IFS=' ' read -ra node_details <<< $(cico node get --count 4 -f value -c hostname -c ip_address -c comment)
@@ -16,8 +28,7 @@ cluster_subnet_ip="172.19.2.0"
 
 if [ $cico_node_key == "" ]
 then
-    echo "Could not get nodes from CICO exiting"
-    exit 1
+    mark_failure "Could not get nodes from CICO exiting"
 fi
 
 echo "=========================Node Details========================"
@@ -86,13 +97,13 @@ ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshif
 
 
 echo "Run ansible playbook for setting service"
-ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
+ssh $sshopts $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml'
+#ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
 service_setup_done=$?
 
 if [ $service_setup_done -ne 0 ]
 then
-    echo "Error while deploying the service in CICO"
-    exit 1
+    mark_failure "Error while deploying the service in CICO"
 fi
 
 echo "Cluster is set lets go for tests"
@@ -129,11 +140,13 @@ do
     index_read_done=$(ssh $sshopts $openshift_1_node_ip "oc get builds seed-job-1 -o template --template={{.status.phase}}")
 done
 
+echo "===========================seed-job-log================="
+cat /jenkins/jobs/cccp/jobs/cccp-seed-job/builds/1/log
+echo "========================================================"
+
 if [ $index_read_done == 'Failed' ]
 then
-    echo "ERROR: seed-job failed to process the index"
-    cat /jenkins/jobs/cccp/jobs/cccp-seed-job/builds/1/log
-    exit 1
+    mark_failure "ERROR: seed-job failed to process the index"
 fi
 
 echo "create CI success job build pipeline"
@@ -168,9 +181,14 @@ done
 
 if [ $build_status == 'Failed' ]
 then
+    echo "=========================Success check build logs==================="
     ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-bamachrn-python-release/builds/lastFailedBuild/log"
-    exit 1
+    echo "===================================================================="
+    mark_failure "Success build check failed: FAILURE"
 else
+    echo "=========================Success check build logs==================="
+    ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-bamachrn-python-release/builds/lastSuccessfulBuild/log"
+    echo "===================================================================="
     echo "Success Build check Passed: SUCCESS"
 fi
 
@@ -204,10 +222,13 @@ do
     build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 done
 
+echo "========================Fail check build logs==========================="
+ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-nshaikh-build-fail-test-latest/builds/lastFailedBuild/log"
+echo "========================================================================"
+
 if [ $build_status == 'Failed' ]
 then
-    ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-nshaikh-build-fail-test-latest/builds/lastFailedBuild/log"
-    exit 1
+    mark_failure "Failed build check failed: FAILURE"
 else
     echo "Failed Build check Passed: SUCCESS"
 fi
