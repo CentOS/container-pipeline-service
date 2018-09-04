@@ -97,8 +97,8 @@ ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshif
 
 
 echo "Run ansible playbook for setting service"
-ssh $sshopts $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml'
-#ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
+#ssh $sshopts $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml'
+ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
 service_setup_done=$?
 
 if [ $service_setup_done -ne 0 ]
@@ -141,7 +141,7 @@ do
 done
 
 echo "===========================seed-job-log================="
-cat /jenkins/jobs/cccp/jobs/cccp-seed-job/builds/1/log
+ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-seed-job/builds/1/log"
 echo "========================================================"
 
 if [ $index_read_done == 'Failed' ]

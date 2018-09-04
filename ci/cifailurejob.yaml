@@ -1,7 +1,7 @@
 apiVersion: "v1"
 kind: "Template"
 metadata:
-  name: "container-pipeline-ci-job"
+  name: "container-pipeline-failure-ci-job"
 objects:
   - apiVersion: "v1"
     kind: "BuildConfig"
@@ -96,7 +96,7 @@ objects:
                         }
                     }
                 }
-                def waitForStageToComplete(build_id,stage_number)
+                def waitForStageToComplete(build_id, stage_number)
                 {
                     echo "build_id: ${build_id} stage: ${stage_number}"
                     waitUntil{
@@ -120,7 +120,7 @@ objects:
                         }
                     }
                 }
-                def checkStageStatus(build_id,stage_number,expected_status)
+                def checkStageStatus(build_id, stage_number, expected_status)
                 {
                     echo "build_id: ${build_id} stage: ${stage_number} expected_status: ${expected_status}"
                     def actual_status = false
