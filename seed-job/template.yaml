@@ -133,13 +133,11 @@ objects:
                     }
                     finally {
                       stage("Notify user"){
-                        dir("${PIPELINE_REPO_DIR}") {
                           if (success==true) {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                           } else {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                             }
-                        }
                     }
                   }
               }
