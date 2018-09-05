@@ -79,6 +79,8 @@ class BuildNotify(BaseNotify):
                image_name, build_number, pipeline_name):
         """
         Get notifications info and sends email to user
+        Prints success message upon successful email delivery, else
+        exits with status 1.
 
         :param status: Status of build in text ["success", "failure"]
         :type status bool
@@ -115,11 +117,16 @@ class BuildNotify(BaseNotify):
 
         print ("Sending email to {}".format(build_info.get("NOTIFY_EMAIL")))
 
-        self.sendemail_obj.email(
+        status, msg = self.sendemail_obj.email(
             build_info.get("SMTP_SERVER"),
             subject, body,
             build_info.get("FROM_ADDRESS"),
             [build_info.get("NOTIFY_EMAIL")])
+        if status:
+            print(msg)
+        else:
+            print("Failed to send email!")
+            sys.exit(1)
 
 
 if __name__ == "__main__":

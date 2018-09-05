@@ -1,7 +1,9 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from ccp.lib.command import run_cmd
+import sys
+
+from ccp.lib.command import run_cmd2
 
 
 class SendEmail(object):
@@ -25,6 +27,9 @@ class SendEmail(object):
         from_add: From address
         to_adds: A list of to addresses
         cc_adds: (optional) A list addresses to mark in Cc
+        returns status, msg
+        status=True/False
+        msg=stdout/stderr
         """
         command = """\
 echo -e '{body}' | /usr/bin/mailx -r {from_address} {cc_opts} -S \
@@ -49,5 +54,9 @@ echo -e '{body}' | /usr/bin/mailx -r {from_address} {cc_opts} -S \
             to_addresses=to_addresses)
 
         # send email
-        run_cmd(command, shell=True)
-        print ("Email sent to {}".format(to_adds))
+        stdout, stderr = run_cmd2(command, shell=True)
+        if stderr:
+            return False, stderr
+        else:
+            return True, "Email sent to {}".format(to_adds)
+
