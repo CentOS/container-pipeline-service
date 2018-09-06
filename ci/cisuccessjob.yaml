@@ -38,6 +38,8 @@ objects:
                 )
                 {
                     node('ccp-pipeline-ci') {
+                        /** *this variable is ment for storing complete build id for the triggred build
+                        * it would be a string in format <build-config-name>-<build-number> */
                         def success_build_id = "success_build_id"
                         stage("Trigger builds"){
                             success_build_id = sh(returnStdout: true, script: "oc start-build bamachrn-python-release -n cccp |cut -f 2 -d ' '").trim()
@@ -45,40 +47,49 @@ objects:
                         }
                         stage("Wait for build to start")
                         {
-                            waitForBuildToStart(success_build_id)
+                            //Wait for the build to get a slave allocated and move from wait queue
+                            waitForSuccessBuildToStart(success_build_id)
                         }
                         stage("Check checkout status")
                         {
+                            /** *Checking for first stage (i.e.  Checkout Source) expected to be 'Successful'
+                            * this is first stage of the pipeline so index starts with '0' */
                             checkStageStatus(success_build_id, 0, "success")
                         }
                         stage("Check pre-build status")
                         {
+                            //Checking second stage (i.e. Pre build source) expected to be 'Successful'
                             checkStageStatus(success_build_id, 1, "success")
                         }
                         stage("Check Dockerfile linter status")
                         {
+                            //Checking third stage (i.e. Lint the Dockerfile) expected to be 'Successful'
                             checkStageStatus(success_build_id, 2, "success")
                         }
                         stage("Check image build status")
                         {
+                            //Checking fourth stage (i.e. Build Docker image) expected to be 'Successful'
                             checkStageStatus(success_build_id, 3, "success")
                         }
                         stage("Check image scan status")
                         {
+                            //Checking fifth stage (i.e. Scan the image) expected to be 'Successful'
                             checkStageStatus(success_build_id, 4, "success")
                         }
                         stage("Check image delivery status")
                         {
+                            //Checking Sixth stage (i.e. Push image to registry) expected to be 'Successful'
                             checkStageStatus(success_build_id, 5, "success")
                         }
                         stage("Check image cleanup status")
                         {
+                            //Checking Seventh stage (i.e. Remove the image from builder) expected to be 'Successful'
                             checkStageStatus(success_build_id, 6, "success")
                         }
 
                     }
                 }
-                def waitForBuildToStart(build_id)
+                def waitForSuccessBuildToStart(build_id)
                 {
                     waitUntil{
                         def build_started = sh(returnStdout: true, script: "oc get builds ${build_id} -o template --template={{.status.phase}}")
