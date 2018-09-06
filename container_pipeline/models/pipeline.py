@@ -85,6 +85,9 @@ class Build(models.Model):
     # field to contain link for pipeline service code logs if build fails
     service_debug_logs = models.CharField(
         max_length=100, blank=True, null=True, default=None)
+    test_tag = models.CharField(
+        max_length=80, null=True, default=None
+    )
 
     class Meta:
         app_label = 'container_pipeline'

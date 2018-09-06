@@ -5,10 +5,11 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-REG_PATH="/var/lib/registry/docker/registry/v2/repositories/";
+REGISTRY_STORAGE=${REGISTRY_STORAGE:-"/var/lib/registry"}
+REGISTRY_REPOSITORIES="${REGISTRY_STORAGE}/registry/v2/repositories/";
 MANIFEST_LIST="/tmp/registry_manifests.txt"
 
-pushd ${REG_PATH}
+pushd ${REGISTRY_REPOSITORIES}
 
 echo "Searching for revision tags to remove ... ";
 

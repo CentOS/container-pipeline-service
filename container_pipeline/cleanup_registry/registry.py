@@ -94,9 +94,16 @@ def delete_revision_tags_from_local():
 
 def mark_removal_from_local_registry(verbose, container_namespace,
                                      container_name, container_tag,
-                                     build_running=False):
-    print_msg("Marking mismatched containers for removal...",
-              verbose)
+                                     delete=True):
+    print_msg(
+        str.format(
+            "Marking {}{}:{} mismatched container for removal ...",
+            str(container_namespace) + "/" if container_namespace else "",
+            container_name,
+            container_tag
+        ),
+        verbose
+    )
 
     if container_namespace:
         namespace_path = path.join(REGISTRY_REPOSITORIES, container_namespace)
@@ -106,6 +113,21 @@ def mark_removal_from_local_registry(verbose, container_namespace,
     manifests = name_path + MANIFESTS
     tags = manifests + TAGS
     # Delete the tag
-    if not build_running:
+    if delete:
         del_tag = path.join(tags, container_tag)
         rm(del_tag)
+
+
+def delete_from_registry(verbose,
+                         config="/etc/docker-distribution/registry/config.yml"
+                         ):
+    """
+    Deletes marked images from registry by invoking inbuild docker
+    distribution gc.
+    """
+    cmd = [
+        "registry",
+        "garbage-collect",
+        config
+    ]
+    run_cmd(cmd, no_shell=not verbose)

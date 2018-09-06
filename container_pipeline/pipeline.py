@@ -128,7 +128,8 @@ def main(args):
 
     Build.objects.create(uuid=job['uuid'], project=project,
                          status='queued',
-                         start_time=timezone.now())
+                         start_time=timezone.now(),
+                         test_tag=test_tag)
 
     try:
         trigger_dockerfile_linter(job)

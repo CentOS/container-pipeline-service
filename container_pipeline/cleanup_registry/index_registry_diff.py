@@ -1,5 +1,5 @@
 from container_pipeline.lib.index import get_entries
-from container_pipeline.lib.registry import RegistryInfo
+from container_pipeline.cleanup_registry.registry import RegistryInfo
 from container_pipeline.utils import get_gc_container_name
 
 
