@@ -27,31 +27,31 @@ objects:
         spec:
           template:
             metadata:
-              spec:
-                containers:
-                  - name: weekly-scan-controller
-                    image: ${JENKINS_SLAVE_IMAGE_NAME}
-                    command: ["/bin/sh",  "/opt/entry/script"]
-                    volumeMounts:
-                      - name: entryscript
-                        mountPath: /opt/entry
-                        readOnly: true
-                    env:
-                      - name: OS_MASTER
-                        valueFrom:
-                          configMapKeyRef:
-                            name: os-master-config
-                            key: url
-                      - name: OS_TOKEN
-                        valueFrom:
-                          secretKeyRef:
-                            name: ${JENKINS_SECRET_NAME}
-                            key: token
-                volumes:
-                  - name: entryscript
-                    configMap:
-                      name: weekly-scan-master-controller-script
-                restartPolicy: OnFailure
+            spec:
+              containers:
+                - name: weekly-scan-controller
+                  image: ${JENKINS_SLAVE_IMAGE_NAME}
+                  command: ["/bin/sh",  "/opt/entry/script"]
+                  volumeMounts:
+                    - name: entryscript
+                      mountPath: /opt/entry
+                      readOnly: true
+                  env:
+                    - name: OS_MASTER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: os-master-config
+                          key: url
+                    - name: OS_TOKEN
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${JENKINS_SECRET_NAME}
+                          key: token
+              volumes:
+                - name: entryscript
+                  configMap:
+                    name: weekly-scan-master-controller-script
+              restartPolicy: OnFailure
 parameters:
   - description: The amount of delay to give before triggering each weekly scan.
     displayName: Batch Trigger Delay
