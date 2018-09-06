@@ -434,7 +434,7 @@ oc get builds -o name -o template --template='{{range .items }} \
         output = output.strip().split(' ')
         output = [each for each in output
                   if not each.startswith(tuple(filter_builds))
-                                         and each]
+                  and each]
         return output
 
 
@@ -523,6 +523,7 @@ class Index(object):
         # Split the projects to process in equal sized chunks
         generator_obj = self.batch(index_projects, batch_size)
 
+        interval_cycle = 1
         for batch in generator_obj:
             outstanding_builds = True
             while outstanding_builds:
@@ -534,11 +535,11 @@ class Index(object):
                     filter_builds=self.infra_projects)
 
                 if outstanding_builds:
-                    _print("Waiting for completion of builds {}".format(
+                    _print("Waiting for completion of builds {}\n".format(
                         outstanding_builds))
                     time.sleep(poll_cycle)
 
-            _print("Processing projects batch: {}".format(
+            _print("Processing projects batch: {}\n".format(
                 [each.pipeline_name for each in batch]))
 
             for project in batch:
@@ -550,11 +551,8 @@ class Index(object):
                            "Moving on.".format(project.pipeline_name))
                     _print("Error: {}".format(str(e)))
                 else:
-                    # sleep for $poll_cycle seconds after processing each batch
-                    # to have them appeared on the console
-                    _print("Waiting for {} seconds to process current "
-                           "batch".format(poll_cycle))
-                    time.sleep(poll_cycle)
+                    # grace period between configuring jobs
+                    time.sleep(interval_cycle)
 
         _print("Processing weekly scan projects..")
         for project in index_projects:
@@ -565,7 +563,8 @@ class Index(object):
                        "for {}. Moving on.".format(project.pipeline_name))
                 _print("Error: {}".format(str(e)))
             else:
-                time.sleep(5)
+                # grace period between configuring jobs
+                time.sleep(interval_cycle)
 
 
 if __name__ == "__main__":
