@@ -1,0 +1,12 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "os-master-config"
+objects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: os-master-config
+      namespace: ${NAMESPACE}
+    data:
+      url: ${OS_MASTER_URL}

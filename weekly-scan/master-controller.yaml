@@ -1,0 +1,69 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: weekly-scan-master-controller
+  labels:
+    type: "controller-job"
+objects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: weekly-scan-master-controller-script
+      namespace: ${NAMESPACE}
+    data:
+      script: |-
+        oc login ${OS_MASTER} --insecure-skip-tls-verify=true --token=${OS_TOKEN};
+        for item in `oc get bc -o name --selector type=weeklyscan`; do
+            oc start-build ${item};
+            sleep ${BATCH_DELAY}
+        done
+  - apiVersion: batch/v1beta1
+    kind: CronJob
+    metadata:
+      name: weekly-scan-master-controller-cron
+    spec:
+      schedule: "*/1 * * * *"
+      jobTemplate:
+        spec:
+          template:
+            metadata:
+              spec:
+                containers:
+                  - name: weekly-scan-controller
+                    image: ${JENKINS_SLAVE_IMAGE_NAME}
+                    command: ["/bin/sh",  "/opt/entry/script"]
+                    volumeMounts:
+                      - name: entryscript
+                        mountPath: /opt/entry
+                        readOnly: true
+                    env:
+                      - name: OS_MASTER
+                        valueFrom:
+                          configMapKeyRef:
+                            name: os-master-config
+                            key: url
+                      - name: OS_TOKEN
+                        valueFrom:
+                          secretKeyRef:
+                            name: ${JENKINS_SECRET_NAME}
+                            key: token
+                volumes:
+                  - name: entryscript
+                    configMap:
+                      name: weekly-scan-master-controller-script
+                restartPolicy: OnFailure
+parameters:
+  - description: The amount of delay to give before triggering each weekly scan.
+    displayName: Batch Trigger Delay
+    name: BATCH_DELAY
+    value: "1000"
+    required: true
+  - description: The jenkins slave image name.
+    displayName: Jenkins Slave Image
+    name: JENKINS_SLAVE_IMAGE_NAME
+    value: registry.centos.org/pipeline-images/ccp-openshift-slave
+    required: true
+  - description: The name of jenkins token to mount.
+    displayName: Jenkins Token Secret Name
+    name: JENKINS_SECRET_NAME
+    required: true
