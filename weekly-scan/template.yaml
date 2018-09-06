@@ -2,8 +2,8 @@ apiVersion: "v1"
 kind: "Template"
 metadata:
   name: "weekly-scan-job-template"
-  labels:
-    type: "weekly-scan"
+labels:
+  type: "weekly-scan"
 objects:
   - apiVersion: "v1"
     kind: "BuildConfig"

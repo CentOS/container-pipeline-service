@@ -3,8 +3,8 @@ kind: "Template"
 metadata:
   name: weekly-scan-master-controller
   namespace: ${NAMESPACE}
-  labels:
-    type: "controller-job"
+labels:
+  type: "controller-job"
 objects:
   - kind: ConfigMap
     apiVersion: v1
@@ -13,11 +13,16 @@ objects:
       namespace: ${NAMESPACE}
     data:
       script: |-
+        GOT_ANY='0'
         oc login ${OS_MASTER} --insecure-skip-tls-verify=true --token=${OS_TOKEN};
         for item in `oc get bc -o name --selector type=weeklyscan`; do
+            GOT_ANY='1'
             oc start-build ${item};
             sleep ${BATCH_DELAY}
         done
+        if [ ${GOT_ANY} == '0' ]; then
+            echo "No projects to trigger"
+        fi
   - apiVersion: batch/v1beta1
     kind: CronJob
     metadata:
