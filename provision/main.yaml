@@ -1,0 +1,108 @@
+---
+- name: Perform common tasks for all hosts
+  hosts: all
+  tasks:
+      - name: Disable requiretty in sudoers
+        lineinfile: dest=/etc/sudoers state=absent regexp="^Defaults requiretty.*"
+        become: true
+
+      - name: Ensure EPEL is enabled when enable_epel is True
+        yum: name=epel-release state=latest
+
+      - name: yum update all
+        yum: name='*' state=latest
+
+      - name: SELinux permissive
+        selinux: policy=targeted state=permissive
+
+      - name: Install packages
+        yum: package={{ item }} state=latest
+        with_items:
+            - NetworkManager
+            - firewalld
+            - python-rhsm-certificates
+            - centos-release-openshift-origin39.noarch
+            - python-ipaddress
+            - rsync
+            - PyYAML
+
+      - name: Start services
+        systemd: state=started enabled=yes name={{ item }}
+        with_items:
+            - NetworkManager
+            - firewalld
+
+      - name: Copy local /etc/hosts to all nodes
+        synchronize: src=/etc/hosts dest=/etc/hosts
+        delegate_to: localhost
+
+      - name: Get all the ports open for machines in cluster
+        become: true
+        when: ci_setup
+        firewalld:
+            source: "{{ cluster_subnet }}"
+            state: enabled
+            immediate: yes
+            permanent: true
+            zone: public
+
+      - name: Flush iptables rules
+        shell: iptables -F
+        become: yes
+        when: ci_setup
+
+      - name: Copy source code to all machines
+        synchronize:
+            src: ../../
+            dest: /opt/ccp-openshift
+            mode: push
+  tags:
+      - cluster
+
+- name: Configure the container registry
+  hosts: nfs_registry
+  tasks:
+      - name: Install docker distribution
+        yum: name="docker-distribution" state=latest
+        become: true
+
+      - name: Start and enable container registry
+        systemd: state=started enabled=yes name="docker-distribution"
+        become: true
+  tags:
+      - docker-registry
+
+- name: Configure NFS Server for CI
+  hosts: nfs_registry
+  roles:
+      - ci_nfs/server
+  tags:
+      - ci_nfs/server
+
+- name: Configure NFS clients on all the nodes for CI
+  hosts: all
+  roles:
+      - ci_nfs/clients
+  tags:
+      - ci_nfs/clients
+
+- name: Run pre-requisites
+  import_playbook: /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
+  no_log: True
+  tags:
+      - cluster_openshift
+      - cluster
+
+- name: Deploy Openshift cluster
+  import_playbook: /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+  no_log: True
+  tags:
+      - cluster_openshift
+      - cluster
+
+- name: Configure jenkins with PV and script permission
+  hosts: masters
+  roles:
+      - setup_jenkins
+  tags:
+      - jenkins

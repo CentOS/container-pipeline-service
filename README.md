@@ -1,152 +1,169 @@
-![CentOS Community Container Pipeline](docs/logos/logo.png)
+To spin up things in an OpenShift cluster based on the contents in this
+repository, please make sure you have a minishift based VM or a CentOS VM with
+root privileges. You'll also need to spin up Docker Distribution (registry) on
+same VM or different VM.
 
-[![Build Status Widget]][Build Status]
+### Docker Distribution (registry) setup
 
-----
-
-CentOS Community Container Pipeline (CCCP) is an open-source platform to containerize applications based on CentOS.
-
-**CCCP:** Builds the application (from a git repository) → Packages with the appropriate runtime → Tests and analyzes the image → Pushes image to a public registry
-
-----
-
-## Use Case
-
-I have a certain stack I develop with (be it Django, Golang, NodeJS, Redis, RabbitMQ, etc.) using my favourite OS (CentOS) as a base platform. 
-
-How do I package that application into a container that's updated automatically every time I push changes? What about security and updates, how do I automate that each time I push any changes?
-
-That's where CCCP comes in. 
-
-CCCP will:
-
-  - Scan the image for updates, fixes, capabilities and push it to a public registry (by default, http://registry.centos.org)
-  - Automatically rebuild when a change is detected within the repository. Such as an RPM package or base image (`FROM` in Dockerfile) update
-  - Notifications / alerts regarding scan results (by e-mail)
-
-## How do I host my application?
-
-Similar to projects such as [Homebrew](https://github.com/Homebrew/homebrew-core) it's as easy as opening up a pull request.
-
-A developer wishing to host their container image will open up a pull request to the [CentOS Container Index](https://github.com/CentOS/container-index). 
-
-Once the pull request is merged, CCCP:
-
-  1. Links the Dockerfile
-  2. Builds the image
-  3. Scans / analyzes it
-  4. Pushes to [registry.centos.org](https://registry.centos.org)
-  5. Notifies the developer (email)
-
-Once a project is in the [CentOS Container Index](https://github.com/CentOS/container-index), the CentOS Container Pipeline Service service automatically tracks the project's Git repo and branch and rebuilds it every time there is a future change.
-
-## How everything works
-
-1. **Project onboard / the main "index"**
-
-First off, the pipeline points to an index. For the CentOS community and in our example, this refers to the: [CentOS Container Index](https://github.com/CentOS/container-index). 
-
-2. **Jenkins and OpenShift tracking**
-
-Jenkins is utilized in order to track each application's Git repository as well as branch for any changes. This triggers a new build on **OpenShift** when a change is pushed.
-
-Changes to the application's repository, update to the base image or any RPMs that are part of the image will trigger a new build
-
-3. **Building the image**
-
-The container image is built within OpenShift and then pushed to an internal registry. This results in an image tagged `image:test`.
-
-4. **Test the application**
-
-Tests as well as any scripts may be specified within the `yaml` file. For example, the `JenkinsBuilder` image uses a test to "tag" the resulting image (https://github.com/CentOS/container-pipeline-service/blob/master/jenkinsbuilder/project-defaults.yml#L20).
-
-5. **Scan and analyze the image**
-
-Scanning and analysis is done by using [Atomic](https://github.com/projectatomic/atomic).
-
-Multiple [Atomic Scanners](/atomic_scanners) are ran on the built image:
-
-- [pipeline-scanner](atomic_scanners/pipeline-scanner): Scans for any outdated yum packages
-- [container-capabilities-scanner](atomic_scanners/container-capabilities-scanner): Scans for any security vulnerabitlies in the `RUN` command
-- [atomic_scanners](atomic_scanners/misc-package-updates): Scans for outdated npm, pip and gem packages
-
-After scanning and analysis, the resulting image is tagged and pushed to the registry as `image:rc`
-
-6. **Push to the public registry (https://registry.centos.org)**
-
-Finally, the image is re-tagged to its final name based on the value within the `yaml` file and pushed to https://registry.centos.org 
-
-7. **Notification**
-
-An email is sent out the developer mentioning the status of the build and scan process as well as a link to read the detailed logs.
-
-**Notes:**
-
-All the communication between the stages mentioned above happens via [beanstalkd](http://kr.github.io/beanstalkd/) tubes.
-
-## Architecture
-
-Here's the graphical representation of what is going on underneath-the-hood:
-
-![Container Pipeline Diagram](docs/diagrams/architecture.png)
-
-## Want to deploy your own pipeline?
-
-This will allow you to bring up a single or multi-node setup of the Container Pipeline Service.
-
-We use Ansible Playbooks in order to provision the service. As long as your OS is accesible over SSH, you can set up the host(s):
-
-```sh
-$ git clone https://github.com/CentOS/container-pipeline-service/
-$ cd container-pipeline-service/provisions
-
-# Copy sample hosts file and edit as needed
-$ cp hosts.sample hosts
-```
-
-You can either have this span multiple-hosts or you can have an all-in-one setup by using the same host value in the `hosts` file.
-
-**An SSL certificate is required on the host running the registry:**
-
-Replace `registry.domain.com` with your own.
+The system on which you'd like to setup the registry, execute following
+commands:
 
 ```bash
-$ export REGISTRY=registry.domain.com
-$ cd /etc/pki/tls/
-$ openssl genrsa -out private/$REGISTRY.key 2048
-$ openssl req -x509 -days 366 -new -key private/$REGISTRY.key -out certs/$REGISTRY.pem
+$ yum install -y docker-distribution
+$ systemctl enable --now docker-distribution
 ```
 
-**Provision using Ansible:**
+Also make sure that the firewall rules are not blocking access to the registry
+(port 5000 by default.)
 
-```sh
-# Provision the hosts. This assumes that you have added the usernames,
-# passwords or private keys used to access the hosts in the hosts file
-$ ansible-playbook -i hosts main.yml
+### OpenShift setup
+
+**Minishift:**
+
+Start the minishift VM using below command:
+
+```bash
+$ minishift start  \
+--disk-size 50GB  \
+--memory 8GB  \
+--iso-url centos  \
+--openshift-version 3.9.0  \
+--insecure-registry <registry-ip>:<port>
 ```
 
-## Contribute to the CentOS Community Container Pipeline Service
+Memory and storage can be varied based on availability. It is recommended to
+have 4GB memory and 20GB disk space as minimum. However, make sure to use
+`--iso-url centos` part in above command as we have setup things on CentOS based
+minishift VM.
 
-We're always looking for ideas and improvements for the service! If you're interested in contributing to this repository, follow these simple steps:
+**CentOS VM**
 
-- open an issue on GitHub describing the feature/bug
-- fork the repository
-- work on your branch for the fix of the issue
-- raise a pull request
+A CentOS VM with 8GB memory and 50GB disk space should suffice. You can adjust
+the resources based on availability. It is recommended to have 4GB memory and
+20GB disk space as minimum.
 
-Before a PR is merged, it must:
+In the VM, install docker and enable openshift origin repos:
 
-- pass the CI done on [CentOS CI](https://ci.centos.org/)
-- be code reviewed by the maintainers
-- have maintainers' LGTM (Looks Good To Me)
+```bash
+$ yum install -y docker git centos-release-openshift-origin
+$ yum install -y origin-clients
+```
 
-## Community
+Edit Docker config to support OpenShift's internal registry and the external
+registry we created in earlier step. Update `/etc/docker/daemon.json`
 
-__Chat (Mattermost):__ Our prefered method to reach the main developers is through Mattermost at [chat.openshift.io](https://chat.openshift.io/developers/channels/container-apps).
+```json
+{
+"insecure-registries":["172.30.0.0/16", "<registry-ip>:<port>"]
+}
+```
 
-__IRC:__ If you prefer IRC, we can reached at **#centos-devel** on Freenode.
+Now enable docker and bring up the oc cluster
 
-__Email:__ You could always e-mail us as well at centos-devel@centos.org 
+```bash
+$ systemctl enable --now docker
+$ oc cluster up --public-hostname=<IP address of the VM>
+```
 
-[Build Status]: https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/
-[Build Status Widget]: https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/badge/icon
+This will bring up the OpenShift cluster with latest verion of OpenShift origin.
+
+**Bringing up the service**
+
+Once the VM is ready with OpenShift cluster in it, spin up a Jenkins server
+that can be used by the Jenkins Pipeline buildconfigs. Also, since we're going
+to be building images using Jenkins pods, we need to add few capabilities to
+the Jenkins service account.
+
+Do this on host system:
+
+```bash
+$ oc login -u developer
+$ oc process -p MEMORY_LIMIT=1Gi openshift//jenkins-persistent| oc create -f -
+
+# to enable parallel builds
+$ oc set env dc/jenkins \
+JENKINS_JAVA_OVERRIDES="-Dhudson.slaves.NodeProvisioner.initialDelay=0,-Dhudson.slaves.NodeProvisioner.MARGIN=50,-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85"
+
+$ oc login -u system:admin
+$ oc adm policy add-scc-to-user privileged system:serviceaccount:${openshift-namespace}:jenkins
+$ oc adm policy add-role-to-user system:image-builder system:serviceaccount:${openshift-namespace}:jenkins
+```
+
+where `openshift-namespace` is the name of the OpenShift project in which
+you're working.
+
+This spins up a persistent Jenkins deployment which has 1 GB memory alloted to
+it. The Jenkins service spun up by this template is recognized and used by the
+Jenkins Pipelines.
+
+**Configuring DaemonSet**
+
+Scanning is one of the build pipeline phase the service offers.
+In scanning, we introspect the image built. In order to make scanning module
+available on all the possible builder nodes, we configure and deploy
+DaemonSet. The DeamonSet spins up a pod per builder node, which avails
+a docker volume for all the containers on the node. The scan stage in pipeline
+uses the volume for performing scan phase.
+
+DaemonSet needs to be deployed using cluster admin.
+Configure it with cluster admin user:
+
+```bash
+# on host system
+$ git clone https://github.com/dharmit/ccp-openshift/
+$ cd ccp-openshift
+$ oc login -u system:admin
+$ oc create -f daemon-set/scan_data.yml
+```
+
+Note: The labels and name of pod defined for DaemonSet are used in pipeline
+[template](seed-job/template.yaml) to identify the container created using DaemonSet.
+Please keep the mentioned fields intact in DaemonSet template.
+
+Now, login to the OpenShift cluster as user `developer` and create a build from the buildconfig under
+`seed-job` directory in cloned `ccp-openshift` repo:
+
+```bash
+# on host system
+$ oc login -u developer
+$ oc process -p PIPELINE_REPO=${PIPELINE_REPO}  \
+-p PIPELINE_BRANCH=${PIPELINE_BRANCH}  \
+-p REGISTRY_URL=${REGISTRY_URL}  \
+-p NAMESPACE=`oc project -q`  \
+-p FROM_ADDRESS=${FROM_ADDRESS}  \
+-p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -
+```
+
+If you're a developer working on your fork, export appropriate values for the
+variables used above. Otherwise you can use the command:
+
+```bash
+$ oc process -p PIPELINE_REPO=https://github.com/dharmit/ccp-openshift  \
+-p PIPELINE_BRANCH=master  \
+-p REGISTRY_URL=${REGISTRY_URL}  \
+-p NAMESPACE=`oc project -q`  \
+-p FROM_ADDRESS=${FROM_ADDRESS}  \
+-p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -
+```
+
+`REGISTRY_URL` is the IP:port combination of remote registry. For example
+`192.168.122.38:5000`.
+
+`FROM_ADDRESS` is the address from which emails will be sent to the end users.
+`SMTP_SERVER` is the server to be used to send emails.
+
+Now check in the OpenShift web console under Build -> Pipelines and see if a
+Jenkins Pipeline has been created. Be patient because the image being used is
+quite large (2.2 GB) at the moment.
+
+To be able to build multiple container images at the same time, edit the
+Jenkins deployment and add an environment variable `JENKINS_JAVA_OVERRIDES` to
+it with the value
+`-Dhudson.slaves.NodeProvisioner.initialDelay=0,-Dhudson.slaves.NodeProvisioner.MARGIN=50,-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85`.
+
+Since you changed the configuration, wait for the a new deployment to take
+effect. Once it's done, exec into the Jenkins pod and check the output of `ps
+-ef`. The three configuration options we added above should up in the `java`
+command as space-separated and not comma-separated. Refer [this
+diff](https://github.com/openshift/openshift-docs/pull/7259/files?short_path=05f80f3#diff-05f80f3ab954ce57c630417065819109)
+to ensure that values are passed properly.

@@ -1,0 +1,177 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "container-pipeline-success-ci-job"
+objects:
+  - apiVersion: "v1"
+    kind: "BuildConfig"
+    metadata:
+        name: ci-success-job
+    spec:
+      strategy:
+        type: "JenkinsPipeline"
+        jenkinsPipelineStrategy:
+          jenkinsfile: |
+                import groovy.json.JsonSlurperClassic
+                podTemplate(
+                    cloud: 'openshift',
+                    name: 'ccp-pipeline-ci',
+                    label: 'ccp-pipeline-ci',
+                    serviceAccount: 'jenkins',
+                    containers: [
+                      containerTemplate(
+                        name: 'jnlp',
+                        image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                        ttyEnabled: true,
+                        alwaysPullImage: true,
+                        workingDir: '/tmp',
+                        privileged: true,
+                        args: '${computer.jnlpmac} ${computer.name}'
+                      )
+                    ],
+                    volumes: [
+                      hostPathVolume(
+                        hostPath: '/var/run/docker.sock',
+                        mountPath: '/var/run/docker.sock'
+                      )
+                    ]
+                )
+                {
+                    node('ccp-pipeline-ci') {
+                        /** *this variable is ment for storing complete build id for the triggred build
+                        * it would be a string in format <build-config-name>-<build-number> */
+                        def success_build_id = "success_build_id"
+                        stage("Trigger builds"){
+                            success_build_id = sh(returnStdout: true, script: "oc start-build bamachrn-python-release -n cccp |cut -f 2 -d ' '").trim()
+                            echo "Success check build id: ${success_build_id}"
+                        }
+                        stage("Wait for build to start")
+                        {
+                            //Wait for the build to get a slave allocated and move from wait queue
+                            waitForSuccessBuildToStart(success_build_id)
+                        }
+                        stage("Check checkout status")
+                        {
+                            /** *Checking for first stage (i.e.  Checkout Source) expected to be 'Successful'
+                            * this is first stage of the pipeline so index starts with '0' */
+                            checkStageStatus(success_build_id, 0, "success")
+                        }
+                        stage("Check pre-build status")
+                        {
+                            //Checking second stage (i.e. Pre build source) expected to be 'Successful'
+                            checkStageStatus(success_build_id, 1, "success")
+                        }
+                        stage("Check Dockerfile linter status")
+                        {
+                            //Checking third stage (i.e. Lint the Dockerfile) expected to be 'Successful'
+                            checkStageStatus(success_build_id, 2, "success")
+                        }
+                        stage("Check image build status")
+                        {
+                            //Checking fourth stage (i.e. Build Docker image) expected to be 'Successful'
+                            checkStageStatus(success_build_id, 3, "success")
+                        }
+                        stage("Check image scan status")
+                        {
+                            //Checking fifth stage (i.e. Scan the image) expected to be 'Successful'
+                            checkStageStatus(success_build_id, 4, "success")
+                        }
+                        stage("Check image delivery status")
+                        {
+                            //Checking Sixth stage (i.e. Push image to registry) expected to be 'Successful'
+                            checkStageStatus(success_build_id, 5, "success")
+                        }
+                        stage("Check image cleanup status")
+                        {
+                            //Checking Seventh stage (i.e. Remove the image from builder) expected to be 'Successful'
+                            checkStageStatus(success_build_id, 6, "success")
+                        }
+
+                    }
+                }
+                def waitForSuccessBuildToStart(build_id)
+                {
+                    waitUntil{
+                        def build_started = sh(returnStdout: true, script: "oc get builds ${build_id} -o template --template={{.status.phase}}")
+                        echo "Build status: ${build_started}"
+                        if (build_started == 'New'|| build_started == 'Pending'){
+                            echo "Build is in ${build_started} state waiting..."
+                            sleep 10
+                            echo "Rechecking the status"
+                            false
+                        }
+                        else{
+                            echo "Build started going for stage checking now"
+                            sleep 10
+                            true
+                        }
+                    }
+                }
+                def waitForStageToComplete(build_id, stage_number)
+                {
+                    echo "build_id: ${build_id} stage: ${stage_number}"
+                    waitUntil{
+                        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+                        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+                        if ( build_status_obj.stages[stage_number] == null ){
+                            sleep 30
+                            false
+                        }
+                        else{
+                            if ( build_status_obj.stages[stage_number]['status'] != 'SUCCESS' && build_status_obj.stages[stage_number]['status'] != 'FAILED')
+                            {
+                                echo "Stage status is: ${build_status_obj.stages[stage_number]['status']} waiting to complete"
+                                false
+                            }
+                            else
+                            {
+                                echo "Stage complete"
+                                true
+                            }
+                        }
+                    }
+                }
+                def checkStageStatus(build_id, stage_number, expected_status)
+                {
+                    echo "build_id: ${build_id} stage: ${stage_number} expected_status: ${expected_status}"
+                    def actual_status = false
+
+                    if ( expected_status != "not_available" )
+                    {
+                        waitForStageToComplete(build_id,stage_number)
+
+                        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+                        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+                        def stage_name = build_status_obj.stages[stage_number]['name']
+                        def stage_status = build_status_obj.stages[stage_number]['status']
+                        echo "Stage name: ${stage_name}   Stage status: ${stage_status}"
+                        if ( stage_status.toLowerCase() == expected_status.toLowerCase() )
+                        {
+                            echo "Stage assertion passed"
+                            actual_status = true
+                        }
+                        else
+                        {
+                            echo "Stage assertion failed"
+                        }
+                    }
+                    else
+                    {
+                        echo "Th stage $stage_number, should not be present in the pipeline, checking for it"
+                        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+                        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+                        if ( build_status_obj.stages[stage_number] == null ){
+                            echo "Stage not found as expected, assertion passed"
+                            actual_status = true
+                        }
+                        else
+                        {
+                            echo "Assertion failed"
+                        }
+                    }
+                    if (!actual_status)
+                    {
+                        currentBuild.result = 'FAILURE'
+                        error "Check failed: Going to fail state"
+                    }
+                }
