@@ -14,6 +14,7 @@ objects:
     data:
       script: |-
         GOT_ANY='0'
+        OS_TOKEN=`cat /opt/jenkins-secret/token`
         oc login ${OS_MASTER} --insecure-skip-tls-verify=true --token=${OS_TOKEN};
         for item in `oc get bc -o name --selector type=weeklyscan`; do
             GOT_ANY='1'
@@ -42,21 +43,22 @@ objects:
                     - name: entryscript
                       mountPath: /opt/entry
                       readOnly: true
+                    - name: jenkins-secret
+                      mountPath: /opt/jenkins-secret
+                      readOnly: true
                   env:
                     - name: OS_MASTER
                       valueFrom:
                         configMapKeyRef:
                           name: os-master-config
                           key: url
-                    - name: OS_TOKEN
-                      valueFrom:
-                        secretKeyRef:
-                          name: ${JENKINS_SECRET_NAME}
-                          key: token
               volumes:
                 - name: entryscript
                   configMap:
                     name: weekly-scan-master-controller-script
+                - name: jenkins-secret
+                  secret:
+                    secretName: ${JENKINS_SECRET_NAME}
               restartPolicy: OnFailure
 parameters:
   - description: The amount of delay to give before triggering each weekly scan.
