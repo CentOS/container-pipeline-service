@@ -9,13 +9,12 @@ objects:
     apiVersion: v1
     metadata:
       name: weekly-scan-master-controller-script
-      namespace: ${NAMESPACE}
     data:
       script: |-
         GOT_ANY='0'
         OS_TOKEN=`cat /opt/jenkins-secret/token`
         oc login ${OS_MASTER} --insecure-skip-tls-verify=true --token=${OS_TOKEN};
-        for item in `oc get bc -o name --selector type=weeklyscan`; do
+        for item in `oc get bc -o name --selector type=weekly-scan`; do
             GOT_ANY='1'
             oc start-build ${item};
             sleep ${BATCH_DELAY}
