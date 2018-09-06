@@ -7,15 +7,10 @@ objects:
     apiVersion: v1
     metadata:
       name: os-master-config
-      namespace: ${NAMESPACE}
     data:
       url: ${OS_MASTER_URL}
 parameters:
   - description: The url of openshift master, including https and port
     displayName: Openshift Master URL
     name: OS_MASTER_URL
-    required: true
-  - description: The namespace where we need to create this
-    displayName: Openshift Namespace
-    name: NAMESPACE
     required: true

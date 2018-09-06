@@ -2,7 +2,6 @@ apiVersion: "v1"
 kind: "Template"
 metadata:
   name: weekly-scan-master-controller
-  namespace: ${NAMESPACE}
 labels:
   type: "controller-job"
 objects:
@@ -74,8 +73,4 @@ parameters:
   - description: The name of jenkins token to mount.
     displayName: Jenkins Token Secret Name
     name: JENKINS_SECRET_NAME
-    required: true
-  - description: The namespace where we need to create this
-    displayName: Openshift Namespace
-    name: NAMESPACE
     required: true
