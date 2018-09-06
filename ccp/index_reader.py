@@ -433,8 +433,8 @@ oc get builds -o name -o template --template='{{range .items }} \
         output = run_cmd(command, shell=True)
         output = output.strip().split(' ')
         output = [each for each in output
-                  if not each.startswith(tuple(filter_builds)
-                                         and each)]
+                  if not each.startswith(tuple(filter_builds))
+                                         and each]
         return output
 
 
