@@ -144,6 +144,14 @@ class TestProject(unittest.TestCase):
         with self.assertRaises(index_reader.InvalidPipelineName):
             index_reader.Project(self.entry, self.namespace)
 
+    def test_load_project_entry_failure_case(self):
+        """
+        IndexReader: Tests exception while loading invalid index entry
+        """
+        self.entry.pop("target-file")
+        with self.assertRaises(Exception):
+            index_reader.Project(self.entry, self.namespace)
+
 
 if __name__ == "__main__":
     unittest.main()

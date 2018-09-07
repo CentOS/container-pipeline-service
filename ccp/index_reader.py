@@ -131,8 +131,9 @@ class Project(object):
             self.pre_build_script = self.process_pre_build_script(
                 entry.get("prebuild-script", None))
         except Exception as e:
-            print ("Error processing container index entry.")
-            raise(e)
+            print("Error processing container index entry {}. "
+                  "Moving on".format(entry))
+            print("Error: {}".format(str(e)))
 
     def get_pipeline_name(self):
         """
@@ -202,9 +203,15 @@ class IndexReader(object):
             app = self.read_yaml(yamlfile)
             for entry in app['Projects']:
                 # create a project object here with all properties
-                project = Project(entry, self.namespace)
-                # append to the list of projects
-                projects.append(project)
+                try:
+                    project = Project(entry, self.namespace)
+                except Exception as e:
+                    print("Error processing index entry {}. Moving on.".format(
+                          entry))
+                    print("Error: {}".format(e))
+                else:
+                    # append to the list of projects
+                    projects.append(project)
 
         return projects
 
@@ -444,7 +451,12 @@ class Index(object):
 
         # oc process and oc apply to all fresh and existing jobs
         for project in index_projects:
-            self.bc_manager.apply_buildconfigs(project)
+            try:
+                self.bc_manager.apply_buildconfigs(project)
+            except Exception as e:
+                print("Error applying/creating build config for {}. "
+                      "Moving on.".format(project.pipeline_name))
+                print("Error: {}".format(str(e)))
 
 
 if __name__ == "__main__":
