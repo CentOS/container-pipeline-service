@@ -1,8 +1,13 @@
+# Setup on Openshift Origin 3.9
+
 **This document describes the steps to be followed to bring up a multi-master
-and multi-node (2 masters, 2 nodes) OpenShift cluster based on RPM installation
-on [CentOS DevCloud](https://wiki.centos.org/DevCloud). Steps to set things up
-on any other infrastructure should be pretty much the same with infrastructure
-specific adjustments that might be required.**
+and multi-node (2 masters, 2 nodes) OpenShift cluster based on RPM installation**
+
+## Setup the nodes
+
+Bring up 5 nodes (including the Ansible controller, 2 for master and 2 for slave)
+
+### [CentOS DevCloud](https://wiki.centos.org/DevCloud)
 
 A separate system is expected to be reserved as Ansible Controller node from
 which we will perform the installation of the cluster. A system similar to
@@ -56,7 +61,14 @@ ssh -t centos@$op3_ip "sh script.sh"
 ssh -t centos@$op4_ip "sh script.sh"
 ```
 
-Now the systems are ready. We need to create one more system on DevCloud for
+
+### Other Infrastructure
+
+Please make sure you have nodes as expected above one Ansible controller and 4 nodes 2 masters and 2 nodes.
+
+## Setup NFS Storage
+
+Now the systems are ready. We need to create one more system in the infra for
 NFS storage to be used by Jenkins and container registry. If you're in a
 different infrastructure and your administrator can provide you with access to
 NFS storage, you might skip this step and modify things accordingly at a later
@@ -105,10 +117,14 @@ $ systemctl enable --now docker-distribution
 ```
 
 Once the VMs are properly setup and NFS is exported, it’s time to setup the cluster.
-Install openshift-ansible RPM on Ansible controller VM.
+
+## Setup Ansible Controller
+
+Please ensure atleast ansible 2.4.3 is installed. In case of CentOS 7 nodes, 2.4.3 is not available in default repositories, but you may install and install openshift-ansible RPM on Ansible controller VM. 
 
 ```bash
-$ yum install centos-release-openshift-origin37.noarch
+$ yum install http://cbs.centos.org/kojifiles/packages/ansible/2.4.3.0/1.el7/noarch/ansible-2.4.3.0-1.el7.noarch.rpm
+$ yum install centos-release-openshift-origin39.noarch
 $ yum install openshift-ansible
 ```
 
@@ -190,6 +206,7 @@ os-master-2.lon1.centos.org openshift_node_labels="{'region': 'infra','zone': 'd
 os-node-1.lon1.centos.org openshift_node_labels="{'region':'primary','zone': 'default','purpose':'prod'}" openshift_schedulable=true openshift_ip=172.29.33.36
 os-node-2.lon1.centos.org openshift_node_labels="{'region':'primary','zone': 'default','purpose':'prod'}" openshift_schedulable=true openshift_ip=172.29.33.32
 ```
+## Setting up the cluster
 
 Now, we will perform some pre-install steps that will setup these nodes for
 OpenShift installation. Use the following Ansible inventory file:
@@ -229,7 +246,7 @@ OpenShift installation. Use the following Ansible inventory file:
             - NetworkManager
             - firewalld
             - python-rhsm-certificates
-            - centos-release-openshift-origin37.noarch
+            - centos-release-openshift-origin39.noarch
             - python-ipaddress
 
       - name: Start serices
@@ -263,7 +280,7 @@ OpenShift installation. Use the following Ansible inventory file:
 Run the pre-install tasks with:
 
 ```bash
-$ ansible-playbook -i hosts.37 pre-install.yml
+$ ansible-playbook -i hosts pre-install.yml
 ```
 
 Last step in above playbook is to reboot the nodes because:
@@ -277,7 +294,7 @@ command. I prefer to time it so that I get a rough idea about how long the clust
 took:
 
 ```bash
-$ time ansible-playbook -i hosts.37 /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml -vvv
+$ time ansible-playbook -i hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml -vvv
 ```
 
 Once the cluster is setup, we need to bring up a Jenkins server using the jenkins
