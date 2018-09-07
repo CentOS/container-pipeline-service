@@ -1,6 +1,0 @@
-[Unit]
-Description=cccp-imagescanner.service
-
-[Service]
-ExecStart=/opt/cccp-service/manage.py imagescanner
-Restart=on-failure

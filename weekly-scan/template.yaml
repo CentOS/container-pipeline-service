@@ -1,0 +1,145 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "weekly-scan-job-template"
+objects:
+  - apiVersion: "v1"
+    kind: "BuildConfig"
+    metadata:
+      name: ${PIPELINE_NAME}
+    spec:
+      strategy:
+        type: "JenkinsPipeline"
+        jenkinsPipelineStrategy:
+          jenkinsfile: |
+            properties([
+                pipelineTriggers([
+                    cron('0 23 * * 6'),
+                ])
+            ])
+            podTemplate(
+                cloud: 'openshift',
+                name: 'ccp-pipeline',
+                label: 'ccp-pipeline',
+                serviceAccount: 'jenkins',
+                containers: [
+                  containerTemplate(
+                    name: 'wscan-jnlp',
+                    image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                    ttyEnabled: true,
+                    alwaysPullImage: true,
+                    workingDir: '/tmp',
+                    privileged: true,
+                    args: '${computer.jnlpmac} ${computer.name}'
+                  )
+                ],
+                volumes: [
+                  hostPathVolume(
+                    hostPath: '/var/run/docker.sock',
+                    mountPath: '/var/run/docker.sock'
+                  )
+                ]
+            )
+            {
+                node('ccp-pipeline') {
+                    def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
+                    def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
+                    def image_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
+                    def daemonset_name = "scan-data_scan-data"
+                    def image_in_registry = false
+                    def success = false
+                    try{
+                        stage('Check if image exists in registry'){
+                            sh "curl ${image_tags} | grep ${DESIRED_TAG}"
+                            image_in_registry = true
+                        }
+                        stage('Pull the docker image'){
+                            sh "docker pull ${image_name_with_registry}"
+                        }
+                        stage('Scan the image') {
+                            parallel (
+                                "RPM updates": {
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/yumupdates.py > yum-check-update 2>&1")
+                                  sh "cat yum-check-update"
+                                },
+                                "Verify RPMs": {
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/rpmverify.py > rpm-verify 2>&1")
+                                  sh "cat rpm-verify"
+                                },
+                                "Miscellaneous updates": {
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1")
+                                  sh "cat misc-updates"
+                                },
+                                "Container capabilities": {
+                                  def run_label = sh (script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
+                                  sh (returnStdout: true, script: "docker run --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /bin/python ${image_name} /opt/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
+                                  sh "cat capabilities"
+                                }
+                            )
+                        }
+                        stage('Remove the docker image'){
+                            sh "docker rmi ${image_name_with_registry}"
+                            success = true
+                        }
+                    }
+                    finally {
+                        if (image_in_registry==true) {
+                            if (success==true) {
+                                sh "echo -e 'Weekly scan for ${image_name_with_registry} was successful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'SUCCESS: Weekly scan for ${image_name_with_registry} is complete' ${NOTIFY_EMAIL} "
+                            } else {
+                                sh "echo -e 'Weekly scan for ${image_name_with_registry} was unsuccessful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Weekly scan ${image_name_with_registry} has failed' ${NOTIFY_EMAIL} "
+                            }
+                        } else {
+                          sh "echo -e 'Weekly scan for ${image_name} was unsuccessful as image not in registry' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Weekly scan ${image_name} has failed, as image not in registry' ${NOTIFY_EMAIL} "
+                        }
+                    }
+                }
+            }
+          env:
+          - name: NOTIFY_EMAIL
+            value: ${NOTIFY_EMAIL}
+          - name: REGISTRY_URL
+            value: ${REGISTRY_URL}
+          - name: IMAGE_NAME
+            value: ${IMAGE_NAME}
+          - name: PIPELINE_NAME
+            value: ${PIPELINE_NAME}
+          - name: APP_ID
+            value: ${APP_ID}
+          - name: JOB_ID
+            value: ${JOB_ID}
+          - name: DESIRED_TAG
+            value: ${DESIRED_TAG}
+parameters:
+- description: Email to send notification to
+  displayName: Notification email
+  name: NOTIFY_EMAIL
+  required: true
+- description: Name of the Pipeline as we want to show up on OpenShift console
+  displayName: Pipeline Name
+  name: PIPELINE_NAME
+  required: true
+- description: URL of the registry to which image is to be pushed
+  name: REGISTRY_URL
+  displayName: Registry URL
+- description: app_id is analogoues to username in Docker Hub
+  displayName: App ID
+  name: APP_ID
+  required: true
+- description: job_id is analogoues to repo name in Docker Hub
+  displayName: Job ID
+  name: JOB_ID
+  required: true
+- description: Tag for the resulting image
+  displayName: Desired Tag
+  name: DESIRED_TAG
+  required: true
+- description: From address to be used when sending email
+  displayName: From email address
+  name: FROM_ADDRESS
+  required: true
+- description: SMTP server to use to send emails
+  displayName: SMTP server address
+  name: SMTP_SERVER
+  required: true
+
