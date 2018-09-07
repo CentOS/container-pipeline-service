@@ -62,7 +62,7 @@ parameters:
   - description: The amount of delay to give before triggering each weekly scan.
     displayName: Batch Trigger Delay
     name: BATCH_DELAY
-    value: "1000"
+    value: "300"
     required: true
   - description: The jenkins slave image name.
     displayName: Jenkins Slave Image
