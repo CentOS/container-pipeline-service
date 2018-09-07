@@ -3,7 +3,6 @@ This script parses the container index specified and
 creates the Jenkins pipeline projects from entries of index.
 """
 
-import exceptions
 import re
 import subprocess
 import sys
@@ -12,10 +11,18 @@ import yaml
 from glob import glob
 
 
-class InvalidPipelineName(exceptions.Exception):
+class InvalidPipelineName(Exception):
     """
     Exception to be raised when pipeline name populated doesn't
     confornt to allowed value for openshift template field metadata.name
+    """
+    pass
+
+
+class ErrorAccessingIndexEntryAttributes(Exception):
+    """
+    Exception to be raised when there are errors accessing
+    index entry attributes
     """
     pass
 
@@ -131,9 +138,7 @@ class Project(object):
             self.pre_build_script = self.process_pre_build_script(
                 entry.get("prebuild-script", None))
         except Exception as e:
-            print("Error processing container index entry {}. "
-                  "Moving on".format(entry))
-            print("Error: {}".format(str(e)))
+            raise(ErrorAccessingIndexEntryAttributes(str(e)))
 
     def get_pipeline_name(self):
         """

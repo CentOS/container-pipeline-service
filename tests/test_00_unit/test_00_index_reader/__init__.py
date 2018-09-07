@@ -149,7 +149,8 @@ class TestProject(unittest.TestCase):
         IndexReader: Tests exception while loading invalid index entry
         """
         self.entry.pop("target-file")
-        with self.assertRaises(Exception):
+        with self.assertRaises(
+                index_reader.ErrorAccessingIndexEntryAttributes):
             index_reader.Project(self.entry, self.namespace)
 
 
