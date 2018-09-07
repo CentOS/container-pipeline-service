@@ -352,8 +352,10 @@ few steps before that. We need to:
   $ oc set env dc/jenkins JENKINS_JAVA_OVERRIDES="-Dhudson.slaves.NodeProvisioner.initialDelay=0,-Dhudson.slaves.NodeProvisioner.MARGIN=50,-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85"
 
   # add required permissions
-  $ oc login -u system:admin$ oc adm policy add-scc-to-user privilegedsystem:serviceaccount:cccp:jenkins
-  $ oc adm policy add-role-to-user system:image-buildersystem:serviceaccount:cccp:jenkins
+  $ oc login -u system:admin
+  $ oc adm policy add-scc-to-user privileged system:serviceaccount:cccp:jenkins
+  $ oc adm policy add-role-to-user system:image-builder system:serviceaccount:cccp:jenkins
+
   ```
 
 Now go to the OpenShift web console and check if Jenkins deployment has come up
