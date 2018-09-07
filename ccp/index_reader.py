@@ -11,20 +11,8 @@ import yaml
 
 from glob import glob
 
-
-class InvalidPipelineName(Exception):
-    """
-    Exception to be raised when pipeline name populated doesn't
-    confornt to allowed value for openshift template field metadata.name
-    """
-    pass
-
-class ErrorAccessingIndexEntryAttributes(Exception):
-    """
-    Exception to be raised when there are errors accessing
-    index entry attributes
-    """
-    pass
+from ccp.exceptions import InvalidPipelineName, \
+    ErrorAccessingIndexEntryAttributes
 
 
 def _print(msg):
@@ -220,7 +208,7 @@ class IndexReader(object):
                     project = Project(entry, self.namespace)
                 except Exception as e:
                     _print("Error processing index entry {}. Moving on.".format(
-                          entry))
+                        entry))
                     _print("Error: {}".format(e))
                 else:
                     # append to the list of projects
