@@ -11,8 +11,8 @@ import yaml
 
 from glob import glob
 
-from ccp.exceptions import InvalidPipelineName, \
-    ErrorAccessingIndexEntryAttributes
+from ccp.exceptions import InvalidPipelineName
+from ccp.exceptions import ErrorAccessingIndexEntryAttributes
 
 
 def _print(msg):
@@ -207,8 +207,8 @@ class IndexReader(object):
                 try:
                     project = Project(entry, self.namespace)
                 except Exception as e:
-                    _print("Error processing index entry {}. Moving on.".format(
-                        entry))
+                    _print("Error processing index entry {}. "
+                           "Moving on.".format(entry))
                     _print("Error: {}".format(e))
                 else:
                     # append to the list of projects
