@@ -28,8 +28,8 @@ objects:
             ])
             podTemplate(
                 cloud: 'openshift',
-                name: 'ccp-pipeline',
-                label: 'ccp-pipeline',
+                name: 'ccp-pipeline-master',
+                label: 'ccp-pipeline-master',
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
@@ -50,7 +50,7 @@ objects:
                 ]
             )
             {
-                node('ccp-pipeline') {
+                node('ccp-pipeline-master') {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def daemonset_name = "scan-data_scan-data"
