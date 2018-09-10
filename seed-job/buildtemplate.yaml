@@ -25,8 +25,8 @@ objects:
             ])
             podTemplate(
                 cloud: 'openshift',
-                name: 'ccp-pipeline',
-                label: 'ccp-pipeline',
+                name: 'ccp-pipeline-seed',
+                label: 'ccp-pipeline-seed',
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
@@ -41,7 +41,7 @@ objects:
                 ],
             )
             {
-                node ('ccp-pipeline'){
+                node ('ccp-pipeline-seed'){
                     stage('Checkout Sources') {
                         dir("${CONTAINER_INDEX_DIR}") {
                             git url: '${CONTAINER_INDEX_REPO}', branch: '${CONTAINER_INDEX_BRANCH}'
