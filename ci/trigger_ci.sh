@@ -26,8 +26,9 @@ openshift_2_node_ip=${node_details[10]}
 cico_node_key=${node_details[11]}
 cluster_subnet_ip="172.19.2.0"
 
-if [ $cico_node_key == "" ]
+if [ ${#cico_node_key} -le 3 ]
 then
+    cico_node_key=${node_details[2]}
     mark_failure "Could not get nodes from CICO exiting"
 fi
 
