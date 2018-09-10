@@ -1,0 +1,161 @@
+- job:
+    name: centos-container-pipeline-service-container-index
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-index
+    triggers:
+        - github-pull-request:
+            admin-list:
+              - kbsingh
+              - bamachrn
+              - mohammedzee1000
+              - dharmit
+              - navidshaikh
+            white-list:
+              - kbsingh
+              - bamachrn
+              - mohammedzee1000
+              - dharmit
+              - navidshaikh
+            cron: '* * * * *'
+            github-hooks: false
+            permit-all: true
+
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-index.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${ghprbactualcommit}"
+    builders:
+        - shell: |
+            git rebase origin/${ghprbTargetBranch}
+            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/cccp_ci_container_index.sh > cccp_ci_container_index.sh
+            sh ./cccp_ci_container_index.sh
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-openshift'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service/
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            trigger-phrase: '#dotests'
+            only-trigger-phrase: true
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci functional tests"
+            started-status: "centos-ci functional tests started"
+            success-status: "centos-ci functional tests succeeded"
+            failure-status: "centos-ci functional tests failed"
+            error-status: "centos-ci functional tests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${sha1}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              cd ci
+              sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1}
+            else
+              echo "It is not on openshit branch"
+            fi
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-unittests'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service/
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            trigger-phrase: '#dotests-unittests'
+            only-trigger-phrase: true
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci unit tests"
+            started-status: "centos-ci unit tests started"
+            success-status: "centos-ci unit tests succeeded"
+            failure-status: "centos-ci unit tests failed"
+            error-status: "centos-ci unit tests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${sha1}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              bash ci/ccp_ci_unittests.sh
+            else
+              echo "It is not on openshit branch"
+            fi
