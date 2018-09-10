@@ -19,8 +19,8 @@ objects:
             ])
             podTemplate(
                 cloud: 'openshift',
-                name: 'ccp-pipeline',
-                label: 'ccp-pipeline',
+                name: 'ccp-pipeline-weekly',
+                label: 'ccp-pipeline-weekly',
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
@@ -41,7 +41,7 @@ objects:
                 ]
             )
             {
-                node('ccp-pipeline') {
+                node('ccp-pipeline-weekly') {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def image_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
