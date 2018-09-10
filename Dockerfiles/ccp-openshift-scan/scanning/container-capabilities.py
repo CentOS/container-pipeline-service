@@ -59,7 +59,7 @@ def run_scan(command):
     Runs the container capabilities scan and prints error message
     if provided command is empty
     """
-    if not command:
+    if not command or command == "null":
         print ("\n RUN label is not available in image under test.")
     else:
         check_args(command)
