@@ -114,14 +114,44 @@ class TestProject(unittest.TestCase):
         project = index_reader.Project(self.entry, self.namespace)
         self.assertIsNone(project.pre_build_context)
 
-    def test_get_pipeline_name(self):
+    def test_get_pipeline_name_1(self):
         """
-        Test processing pipeline_name based on given values
+        IndexReader: Tests processing pipeline_name
         """
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual(
             "foo-bar-latest",
             project.pipeline_name)
+
+    def test_get_pipeline_name_2(self):
+        """
+        IndexReader: Tests processing pipeline_name for upper case params
+        """
+        self.entry["app-id"] = "Foo"
+        self.entry["desired-tag"] = "LatesT"
+        project = index_reader.Project(self.entry, self.namespace)
+        self.assertEqual(
+            "foo-bar-latest",
+            project.pipeline_name)
+
+    def test_get_pipeline_name_3(self):
+        """
+        IndexReader: Tests exception while processing pipeline name
+        """
+        self.entry["app-id"] = "-"
+        self.entry["job-id"] = "-"
+        self.entry["desired-tag"] = "-"
+        with self.assertRaises(index_reader.InvalidPipelineName):
+            index_reader.Project(self.entry, self.namespace)
+
+    def test_load_project_entry_failure_case(self):
+        """
+        IndexReader: Tests exception while loading invalid index entry
+        """
+        self.entry.pop("target-file")
+        with self.assertRaises(
+                index_reader.ErrorAccessingIndexEntryAttributes):
+            index_reader.Project(self.entry, self.namespace)
 
 
 if __name__ == "__main__":

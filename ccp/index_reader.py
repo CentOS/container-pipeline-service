@@ -3,11 +3,28 @@ This script parses the container index specified and
 creates the Jenkins pipeline projects from entries of index.
 """
 
+import re
 import subprocess
 import sys
 import yaml
 
 from glob import glob
+
+
+class InvalidPipelineName(Exception):
+    """
+    Exception to be raised when pipeline name populated doesn't
+    confornt to allowed value for openshift template field metadata.name
+    """
+    pass
+
+
+class ErrorAccessingIndexEntryAttributes(Exception):
+    """
+    Exception to be raised when there are errors accessing
+    index entry attributes
+    """
+    pass
 
 
 def run_cmd(cmd, shell=False):
@@ -121,14 +138,31 @@ class Project(object):
             self.pre_build_script = self.process_pre_build_script(
                 entry.get("prebuild-script", None))
         except Exception as e:
-            print ("Error processing container index entry.")
-            raise(e)
+            raise(ErrorAccessingIndexEntryAttributes(str(e)))
 
     def get_pipeline_name(self):
         """
-        Returns the pipeline name based on the project object values
+        Returns the pipeline name based on appid, jobid and desired_tag
+        and also converts it to lower case
         """
-        return "{}-{}-{}".format(self.app_id, self.job_id, self.desired_tag)
+        pipeline_name = "{}-{}-{}".format(
+            self.app_id, self.job_id, self.desired_tag).lower()
+
+        # pipeline name which becomes value for metadata.name field in template
+        # must confront to following regex as per oc
+        # We tried to make the string acceptable by converting it to lower case
+        # Below we are adding another gate to make sure the pipeline_name is as
+        # per requirement, otherwise raising an exception with proper message
+        # to indicate the issue
+        pipeline_name_regex = ("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]"
+                               "([-a-z0-9]*[a-z0-9])?)*$")
+        match = re.match(pipeline_name_regex, pipeline_name)
+
+        if not match:
+            msg = ("The pipeline name populated {} can't be used in OpenShift "
+                   "template in metadata.name field. ".format(pipeline_name))
+            raise(InvalidPipelineName(msg))
+        return pipeline_name
 
 
 class IndexReader(object):
@@ -174,9 +208,15 @@ class IndexReader(object):
             app = self.read_yaml(yamlfile)
             for entry in app['Projects']:
                 # create a project object here with all properties
-                project = Project(entry, self.namespace)
-                # append to the list of projects
-                projects.append(project)
+                try:
+                    project = Project(entry, self.namespace)
+                except Exception as e:
+                    print("Error processing index entry {}. Moving on.".format(
+                          entry))
+                    print("Error: {}".format(e))
+                else:
+                    # append to the list of projects
+                    projects.append(project)
 
         return projects
 
@@ -240,7 +280,7 @@ class BuildConfigManager(object):
         """
         Applies the build job template that creates pipeline to build
         image, and trigger first time build as well.
-        :param project: The name of project, where the template is to be applied
+        :param project: The name of project, where template is to be applied
         :param template_location: The location of the template file.
         """
         oc_process = "oc process -f {0} {1}".format(
@@ -416,7 +456,12 @@ class Index(object):
 
         # oc process and oc apply to all fresh and existing jobs
         for project in index_projects:
-            self.bc_manager.apply_buildconfigs(project)
+            try:
+                self.bc_manager.apply_buildconfigs(project)
+            except Exception as e:
+                print("Error applying/creating build config for {}. "
+                      "Moving on.".format(project.pipeline_name))
+                print("Error: {}".format(str(e)))
 
 
 if __name__ == "__main__":
