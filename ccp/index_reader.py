@@ -432,8 +432,8 @@ class Index(object):
     in container index.
     """
 
-    def __init__(self, index, registry_url, namespace,
-                 from_address, smtp_server):
+    def __init__(self, index, registry_url,
+                 namespace, from_address, smtp_server):
         # create index reader object
         self.index_reader = IndexReader(index, namespace)
         # create bc_manager object
@@ -450,7 +450,8 @@ class Index(object):
 
         return list(set(oc_projects) - set(index_projects))
 
-    def run(self):
+    def run(self, batch_size, polling_interval,
+            batch_outstanding_builds_cap):
         """
         Orchestrate container index processing
         """
@@ -492,7 +493,12 @@ class Index(object):
         _print("Number of projects to be updated/created: {}".format(
             len(index_projects)))
 
-        self.batch_process_projects(index_projects)
+        self.batch_process_projects(
+            index_projects,
+            batch_size,
+            polling_interval,
+            batch_outstanding_builds_cap
+        )
 
     def batch(self, target, batch_size):
         """
@@ -503,29 +509,44 @@ class Index(object):
             yield target[i:i + batch_size]
 
     def batch_process_projects(self,
-                               index_projects, batch_size=5, poll_cycle=120):
+                               index_projects, batch_size, polling_interval,
+                               batch_outstanding_builds_cap):
         """
         Given a list of projects, oc apply the buildconfigs
-        in batches and oc apply the weekly scan jobs at the end
+        in batches of size $batch_size and oc apply the weekly
+        scan jobs at the end.
+        Watch the outstanding builds at $polling_interval and
+        schedule next batch if current outstanding jobs are
+        less than or equal to $batch_outstanding_builds_cap.
         """
         # Split the projects to process in equal sized chunks
         generator_obj = self.batch(index_projects, batch_size)
 
-        interval_cycle = 1
+        _print("Starting index processing with\n"
+               "Batch size={}\nBatch polling Interval (in seconds)={}\n"
+               "Batch outstndaing builds cap count={}\n".format(
+                   batch_size,
+                   polling_interval,
+                   batch_outstanding_builds_cap))
+        # iterate over batches of projects to be processed
         for batch in generator_obj:
-            outstanding_builds = True
-            while outstanding_builds:
-                # Check if builds are in status.phase other than Complete
-                # or Failed. We dont care about builds which are failed
-                # or complete to queue up next batch of jobs to process
+            # Check if builds are in status.phase other than Complete
+            # or Failed. We dont care about builds which are failed
+            # or complete to queue up next batch of jobs to process
+            outstanding_builds = self.bc_manager.list_builds_except(
+                status=["Complete", "Failed"],
+                filter_builds=self.infra_projects)
+
+            # wait until current outstanding builds are more than
+            # configured cap for outstanding builds
+            while len(outstanding_builds) > batch_outstanding_builds_cap:
+                _print("Waiting for completion of builds {}\n".format(
+                    outstanding_builds))
+                time.sleep(polling_interval)
+
                 outstanding_builds = self.bc_manager.list_builds_except(
                     status=["Complete", "Failed"],
                     filter_builds=self.infra_projects)
-
-                if outstanding_builds:
-                    _print("Waiting for completion of builds {}\n".format(
-                        outstanding_builds))
-                    time.sleep(poll_cycle)
 
             _print("Processing projects batch: {}\n".format(
                 [each.pipeline_name for each in batch]))
@@ -539,8 +560,8 @@ class Index(object):
                            "Moving on.".format(project.pipeline_name))
                     _print("Error: {}".format(str(e)))
                 else:
-                    # grace period between configuring jobs
-                    time.sleep(interval_cycle)
+                    # grace period of 1 sec between configuring jobs
+                    time.sleep(1)
 
         _print("Processing weekly scan projects..")
         for project in index_projects:
@@ -551,12 +572,12 @@ class Index(object):
                        "for {}. Moving on.".format(project.pipeline_name))
                 _print("Error: {}".format(str(e)))
             else:
-                # grace period between configuring jobs
-                time.sleep(interval_cycle)
+                # grace period of 1 sec between configuring jobs
+                time.sleep(1)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 9:
         _print("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
@@ -565,8 +586,15 @@ if __name__ == "__main__":
     namespace = sys.argv[3].strip()
     from_address = sys.argv[4].strip()
     smtp_server = sys.argv[5].strip()
+    batch_size = int(sys.argv[6].strip())
+    batch_polling_interval = int(sys.argv[7].strip())
+    batch_outstanding_builds_cap = int(sys.argv[8].strip())
 
-    index_object = Index(index, registry_url, namespace,
-                         from_address, smtp_server)
+    index_object = Index(
+        index, registry_url, namespace,
+        from_address, smtp_server)
 
-    index_object.run()
+    index_object.run(
+        batch_size,
+        batch_polling_interval,
+        batch_outstanding_builds_cap)

@@ -63,7 +63,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP}"
                         }
                     }
                 }
@@ -83,6 +83,12 @@ objects:
             value: ${PIPELINE_REPO_DIR}
           - name: NAMESPACE
             value: ${NAMESPACE}
+          - name: BATCH_SIZE
+            value: ${BATCH_SIZE}
+          - name: BATCH_POLLING_INTERVAL
+            value: ${BATCH_POLLING_INTERVAL}
+          - name: BATCH_OUTSTANDING_BUILDS_CAP
+            value: ${BATCH_OUTSTANDING_BUILDS_CAP}
       triggers:
           - type: ConfigChange
 parameters:
@@ -129,3 +135,18 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
+- description: Number of builds in a batch to process
+  displayName: Size of batch
+  name: BATCH_SIZE
+  required: true
+  value: "5"
+- description: Outstanding builds check polling interval in seconds between batches
+  displayName: Outstanding builds check polling interval
+  name: BATCH_POLLING_INTERVAL
+  required: true
+  value: "30"
+- description: Maximum number of outstanding builds cap before starting next batch
+  displayName: Maximum outstanding builds cap before scheduling next batch
+  name: BATCH_OUTSTANDING_BUILDS_CAP
+  required: true
+  value: "3"
