@@ -67,7 +67,7 @@
                 - mohammedzee1000
                 - cdrage
             trigger-phrase: '#dotests'
-            only-trigger-phrase: true
+            only-trigger-phrase: false
             github-hooks: true
             permit-all: false
             auto-close-on-fail: false
@@ -127,7 +127,7 @@
                 - mohammedzee1000
                 - cdrage
             trigger-phrase: '#dotests-unittests'
-            only-trigger-phrase: true
+            only-trigger-phrase: false
             github-hooks: true
             permit-all: false
             auto-close-on-fail: false
