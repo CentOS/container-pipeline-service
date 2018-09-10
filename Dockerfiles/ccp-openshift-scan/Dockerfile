@@ -4,4 +4,4 @@ ADD scanning /opt/scanning
 
 VOLUME ["/opt/scanning"]
 
-CMD ["/bin/tail", "-f", "/dev/null"]
+CMD ["/bin/sleep", "infinity"]
