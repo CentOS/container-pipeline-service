@@ -7,6 +7,7 @@
 
 
 import re
+import sys
 
 import scan_lib
 
@@ -86,7 +87,7 @@ class RPMVerify(object):
         """
         cmd = ["/bin/rpm", "-qf", filepath]
         out, _ = scan_lib.run_cmd_out_err(cmd)
-        return out.split("\n")[0]
+        return out.split("\n")[0].strip()
 
     def filter_expected_dirs_modifications(self, filepath):
         """
@@ -144,6 +145,9 @@ class RPMVerify(object):
 
             rpm = self.source_rpm_of_file(filepath)
 
+            if not rpm:
+                continue
+
             result.append({
                 "issue": match.groups()[0],
                 "config": match.groups()[1] == 'c',
@@ -170,7 +174,7 @@ class RPMVerify(object):
                    "binaries are intact in image.")
             return
         for line in result:
-            print ("\nFile: {}".format(line.get("filename")))
+            print ("\nFile: {0}".format(line.get("filename")))
 
             # find out what all issues with file are
             file_issues_encoded = line["issue"].strip().replace(".", "")
@@ -184,7 +188,7 @@ class RPMVerify(object):
 
             print ("Issue with file:")
             for issue in file_issues:
-                print ("\t- {}".format(issue))
+                print ("\t- {0}".format(issue))
 
             print ("RPM info:")
             for key, value in line.get("rpm", {}).iteritems():
@@ -198,5 +202,5 @@ if __name__ == "__main__":
         rpmverify.print_result(result)
     except Exception as e:
         print ("Error occurred in RPM Verify scanner execution.")
-        print ("Error: %s".format(e))
+        print ("Error: {0}".format(e))
         sys.exit(1)
