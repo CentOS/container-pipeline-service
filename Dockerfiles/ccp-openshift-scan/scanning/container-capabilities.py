@@ -46,7 +46,7 @@ def check_args(cmd):
             if not found_sec_arg:
                 print("\nThis container uses privileged "
                       "security switches:")
-            print("\nINFO: {}\n\t{}".format(sec_arg, security_args[sec_arg]))
+            print("\nINFO: {0}\n\t{1}".format(sec_arg, security_args[sec_arg]))
             found_sec_arg = True
     if found_sec_arg:
         print("\nFor more information on these switches and their "
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         example = ('python container-capabilities.py'
                    ' "docker run --privileged $IMAGE /bin/true"')
-        print ("Please provide one argument as\n{}".format(example))
+        print ("Please provide one argument as\n{0}".format(example))
         sys.exit(1)
 
     try:
@@ -77,5 +77,5 @@ if __name__ == "__main__":
         run_scan(cli_arg)
     except Exception as e:
         print ("Error occurred in Container Capabilities scanner execution.")
-        print ("Error: %s".format(e))
+        print ("Error: {0}".format(e))
         sys.exit(1)

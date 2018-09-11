@@ -32,7 +32,7 @@ def find_pip_updates(executable="/usr/bin/pip"):
 
     if err:
         if binary_does_not_exist(err):
-            return "{} is not installed".format(executable)
+            return "{0} is not installed".format(executable)
         else:
             return "Failed to find the pip updates."
     else:
@@ -56,7 +56,7 @@ def find_npm_updates(executable="/usr/bin/npm"):
 
     if err:
         if binary_does_not_exist(err):
-            return "{} is not installed".format(executable)
+            return "{0} is not installed".format(executable)
         else:
             return "Failed to find the npm updates."
     else:
@@ -80,7 +80,7 @@ def find_gem_updates(executable="/usr/bin/gem"):
 
     if err:
         if binary_does_not_exist(err):
-            return "{} is not installed".format(executable)
+            return "{0} is not installed".format(executable)
         else:
             return "Failed to find the gem updates."
     else:
@@ -94,7 +94,7 @@ def print_updates(binary):
     """
     Prints the updates found using given binary
     """
-    print ("\n{} updates scan:".format(binary))
+    print ("\n{0} updates scan:".format(binary))
 
     if binary == "npm":
         result = find_npm_updates()
@@ -122,14 +122,14 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         example = "python misc_package_updates.py npm"
-        print ("Please provide at least one argument as\n{}".format(example))
-        print ("Valid arguments: {}".format(valid_args))
+        print ("Please provide at least one argument as\n{0}".format(example))
+        print ("Valid arguments: {0}".format(valid_args))
         sys.exit(1)
 
     cli_arg = sys.argv[1].strip()
 
     if cli_arg not in valid_args:
-        print ("Please provide valid args among {}".format(valid_args))
+        print ("Please provide valid args among {0}".format(valid_args))
         sys.exit(1)
 
     try:
@@ -141,5 +141,5 @@ if __name__ == "__main__":
             print_updates(cli_arg)
     except Exception as e:
         print ("Error occurred in Misc Package Updates scanner execution.")
-        print ("Error: %s".format(e))
+        print ("Error: {0}".format(e))
         sys.exit(1)
