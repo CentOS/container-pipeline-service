@@ -3,7 +3,8 @@ kind: "Template"
 metadata:
   name: "weekly-scan-job-template"
 labels:
-  type: "weekly-scan"
+  type: "pipeline"
+  app: "weekly-scan"
 objects:
   - apiVersion: "v1"
     kind: "BuildConfig"

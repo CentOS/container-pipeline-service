@@ -1,3 +1,4 @@
+# Move to top level if used by other people
 apiVersion: "v1"
 kind: "Template"
 metadata:

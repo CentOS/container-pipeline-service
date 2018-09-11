@@ -3,18 +3,19 @@ kind: "Template"
 metadata:
   name: weekly-scan-master-controller
 labels:
-  type: "controller-job"
+  type: "scheduler"
+  app: "weekly-scan"
 objects:
   - kind: ConfigMap
     apiVersion: v1
     metadata:
-      name: weekly-scan-master-controller-script
+      name: weekly-scan-scheduler-script
     data:
       script: |-
         GOT_ANY='0'
-        OS_TOKEN=`cat /opt/jenkins-secret/token`
+        OS_TOKEN=`cat /tmp/jenkins-secret/token`
         oc login ${OS_MASTER} --insecure-skip-tls-verify=true --token=${OS_TOKEN};
-        for item in `oc get bc -o name --selector type=weekly-scan`; do
+        for item in `oc get bc -o name --selector app=weekly-scan --selector type=pipeline`; do
             GOT_ANY='1'
             oc start-build ${item};
             sleep ${BATCH_DELAY}
@@ -25,7 +26,7 @@ objects:
   - apiVersion: batch/v1beta1
     kind: CronJob
     metadata:
-      name: weekly-scan-master-controller-cron
+      name: weekly-scan-scheduler
     spec:
       schedule: "*/1 * * * *"
       jobTemplate:
@@ -34,15 +35,15 @@ objects:
             metadata:
             spec:
               containers:
-                - name: weekly-scan-controller
+                - name: weekly-scan-scheduler
                   image: ${JENKINS_SLAVE_IMAGE_NAME}
-                  command: ["/bin/sh",  "/opt/entry/script"]
+                  command: ["/bin/sh",  "/tmp/entry/script"]
                   volumeMounts:
-                    - name: entryscript
-                      mountPath: /opt/entry
+                    - name: weeklyscanscript
+                      mountPath: /tmp/entry
                       readOnly: true
                     - name: jenkins-secret
-                      mountPath: /opt/jenkins-secret
+                      mountPath: /tmp/jenkins-secret
                       readOnly: true
                   env:
                     - name: OS_MASTER
@@ -51,15 +52,15 @@ objects:
                           name: os-master-config
                           key: url
               volumes:
-                - name: entryscript
+                - name: weeklyscanscript
                   configMap:
-                    name: weekly-scan-master-controller-script
+                    name: weekly-scan-scheduler-script
                 - name: jenkins-secret
                   secret:
                     secretName: ${JENKINS_SECRET_NAME}
               restartPolicy: OnFailure
 parameters:
-  - description: The amount of delay to give before triggering each weekly scan.
+  - description: The delay in seconds to give before triggering each weekly scan.
     displayName: Batch Trigger Delay
     name: BATCH_DELAY
     value: "300"
