@@ -185,7 +185,8 @@ class IndexReader(object):
                 data = yaml.load(fin, Loader=yaml.BaseLoader)
         except yaml.YAMLError as exc:
             _print("Failed to read {}".format(filepath))
-            raise(exc)
+            _print("Error: {}".format(exc))
+            return None
         else:
             return data
 
@@ -202,6 +203,11 @@ class IndexReader(object):
                 continue
 
             app = self.read_yaml(yamlfile)
+            # if YAML file reading has failed, log the error and
+            # filename and continue processing rest of index
+            if not app:
+                continue
+
             for entry in app['Projects']:
                 # create a project object here with all properties
                 try:
@@ -403,8 +409,19 @@ oc get builds -o name -o template \
         List the builds except the phase(s) provided
         default status=["Complete", "Failed"] <-- This will return
         all the builds except the status.phase in ["Complete", "Failed"].
+        If provided a list of $filter_builds, it will filter mentioned builds
+        from outstanding builds. The builds name has build number string
+        appended, for eg seed-job-1, seed-job-2, thus filtering checks
+        if outstanding build name starts with given $filter_builds.
 
         If status=[], return all the builds
+
+        :arg status: Status of outstanding builds to filter
+        :type status: List
+        :arg filter_builds: Builds to filter from outstanding builds
+        :type filter_builds: List
+        :return: List of outstanding builds
+        :rtype: List
         """
         if not status:
             return self.list_all_builds()
