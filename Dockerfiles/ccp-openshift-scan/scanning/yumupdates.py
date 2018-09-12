@@ -10,48 +10,62 @@ class SysStdoutSuppressor(object):
     on sys.stdout.
     It just mutes the sys.stdout and takes care of raising
     the exception if encountered in calling method.
+
+    Refer <https://www.python.org/dev/peps/pep-0343/> for
+    explanation on __enter__ and  __exit__ methods.
+
+    Excerpts from referece:
+    Context managers provide __enter__() and __exit__() methods
+    that are invoked on entry to and exit from the body of the with statement.
     """
 
     def __enter__(self):
+        """
+        This method is executed when the caller method enters in
+        the context manager
+        """
         self.stdout = sys.stdout
         sys.stdout = self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, value, traceback):
+        """
+        This method is executed when the caller method exits from
+        the context manager
+        """
         # revert back sys.stdout to original form before exiting
         sys.stdout = self.stdout
-        if type is not None:
+        if exc_type is not None:
             raise(value)
 
     def write(self, x):
         """
-        Overriding sys.stdout.write, this method won't print
-        on stdout
+        Overriding sys.stdout.write method,
+        this method won't print on stdout, which is what we want.
         """
         pass
 
 
 class YumUpdates(object):
     """
-    Class with related methods to find the yum updates
-    available using python yum API client
+    This class contains methods to find yum updates and print
+    information of RPM updates.
+    It uses yum python API client to find the updates.
     """
 
     def __init__(self):
         """
-        Instantiate
-        :arg needed_fields: Properties of RPM object  while processing
+        Instantiate the YumUpdates class and creates
+        yum.YumBase class's object
         """
         self.yum_obj = yum.YumBase()
-        self.needed_fields = ["name", "vra", "repo"]
 
     def find_updates(self):
         """
-        Find yum updates and returns the needed_fields attributes of RPM
-        as dictionary for available RPM updates. Returns empty dictionary
-        if no updates are required.
+        Find yum updates and returns the updates as list of dictionaries
+        with information for package viz: Name, Installed version,
+        Update and source yum repo.
 
-        :return: List of dictionaries of needed_fields as keys and value
-                 as its output
+        :return: List of dictionaries with info about package updates
         :rtype: List
         """
         # narrow the package filter to updates
@@ -93,7 +107,7 @@ class YumUpdates(object):
         :type updates: List
         """
         if not updates:
-            print("No RPM updates available as per configured yum repos.")
+            print("No RPM updates available in the configured yum repos.")
             return
 
         # print the number of updates available
