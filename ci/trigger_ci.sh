@@ -117,7 +117,7 @@ if [ $slave_image_built -ne 0 ]
 then
     echo "==========================Slave image build logs==============================="
     cat /tmp/slave_image_build_logs.txt
-    echo "========================================================================="
+    echo "==============================================================================="
     mark_failure "ERROR: Jenkins slave image could not be built or pushed to the registry"
 fi
 
