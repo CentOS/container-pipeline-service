@@ -449,18 +449,24 @@ class Index(object):
     def __init__(self, index, registry_url, namespace,
                  from_address, smtp_server,
                  ccp_openshift_slave_image,
-                 notify_cc_emails):
+                 notify_cc_emails,
+                 infra_projects=["seed-job"],
+                 ci_projects=["ci-success-job", "ci-failure-job"]):
+
         # create index reader object
         self.index_reader = IndexReader(index, namespace)
+
         # create bc_manager object
         self.bc_manager = BuildConfigManager(
             registry_url, namespace, from_address, smtp_server,
             ccp_openshift_slave_image, notify_cc_emails)
-        self.infra_projects = ["seed-job"]
 
-    def find_stale_jobs(self,
-                        oc_projects, index_projects,
-                        exception_jobs=["ci-job"]):
+        # set the infra_projects and ci_projects to be filtered
+        # out while removing the stale jobs
+        self.infra_projects = infra_projects
+        self.ci_projects = ci_projects
+
+    def find_stale_jobs(self, os_projects, index_projects, ci_projects):
         """
         Given oc projects and index projects, figure out stale
         projects and return.
@@ -469,17 +475,26 @@ class Index(object):
         from found stale jobs and won't be removed from OpenShift.
         The desired target for exception list is for: ci-job
 
+        :arg os_projects: Projects list in OpenShift
+        :type os_projects: List
+        :arg index_projects: Projects list read from index
+        :type index_projects: List
+        :arg ci_projects: CI projects list to be filtered from stale_projects
+        :type ci_projects: List
+        :return: Stale jobs list to be removed, [] if None
+        :rtype: List
+
         """
         # diff existing oc projects from index projects
 
-        stale_jobs = list(set(oc_projects) - set(index_projects))
+        stale_jobs = list(set(os_projects) - set(index_projects))
 
         if stale_jobs:
             # remove the exception list from found stale jobs
-            print ("Removing exception job(s) {} from found stale jobs, "
-                   "mentioned jobs won't be removed OpenShift..".format(
-                       exception_jobs))
-            return list(set(stale_jobs) - set(exception_jobs))
+            print ("Removing CI job(s) {} from found stale jobs, "
+                   "mentioned jobs won't be removed from OpenShift..".format(
+                       ci_projects))
+            return list(set(stale_jobs) - set(ci_projects))
         return stale_jobs
 
     def run(self, batch_size, polling_interval,
@@ -502,14 +517,18 @@ class Index(object):
         _print("Number of projects in index {}".format(len(index_projects)))
 
         # list existing jobs in openshift
-        oc_projects = self.bc_manager.list_all_buildConfigs()
+        os_projects = self.bc_manager.list_all_buildConfigs()
 
-        # filter out infra projects and return only pipeline name
-        # bc names are like buildconfig.build.openshift.io/app_id-job_id-dt
-        oc_projects = [bc.split("/")[1] for bc in oc_projects
-                       if bc.split("/")[1] not in self.infra_projects]
+        # filter out infra projects + CI projects and return only pipeline name
+        # bc names are like buildconfig.build.openshift.io/app_id-jobiid-dt
+        # filtering will make sure, the count of openshift
+        # projects listed is right
+        filter_list = self.infra_projects + self.ci_projects
 
-        _print("Number of projects in OpenShift {}".format(len(oc_projects)))
+        os_projects = [bc.split("/")[1] for bc in os_projects
+                       if bc.split("/")[1] not in filter_list]
+
+        _print("Number of projects in OpenShift {}".format(len(os_projects)))
 
         # names of pipelines for all projects in container index
         index_project_names = [project.pipeline_name for project in
@@ -522,7 +541,7 @@ class Index(object):
 
         # find stale projects based on pipeline-name
         stale_projects = self.find_stale_jobs(
-            oc_projects, index_project_names_with_wscan
+            os_projects, index_project_names_with_wscan, self.ci_projects
         )
 
         if stale_projects:
