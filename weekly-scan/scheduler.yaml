@@ -12,17 +12,16 @@ objects:
       name: weekly-scan-scheduler-script
     data:
       script: |-
-        GOT_ANY='0'
         OS_TOKEN=`cat /tmp/jenkins-secret/token`
         oc login ${OS_MASTER} --insecure-skip-tls-verify=true --token=${OS_TOKEN};
+        if [[ `oc get bc -o name --selector app=weekly-scan --selector type=pipeline | wc -l` == 0 ]]; then
+            echo "No projects to trigger";
+            exit 0
+        fi
         for item in `oc get bc -o name --selector app=weekly-scan --selector type=pipeline`; do
-            GOT_ANY='1'
             oc start-build ${item};
             sleep ${BATCH_DELAY}
         done
-        if [ ${GOT_ANY} == '0' ]; then
-            echo "No projects to trigger"
-        fi
   - apiVersion: batch/v1beta1
     kind: CronJob
     metadata:
