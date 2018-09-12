@@ -108,12 +108,12 @@ then
 fi
 
 echo "Build jenkins slave to include current code base"
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift/Dockerfiles/ccp-openshift-slave && docker build -t $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest . && docker push $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && docker build -t $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest -f Dockerfiles/ccp-openshift-slave/Dockerfile . && docker push $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest"
 slave_image_built=$?
 
 if [ $slave_image_built -ne 0 ]
 then
-    mark_failure "ERROR: jenkins slave image could not be created from local source"
+    mark_failure "ERROR: jenkins slave image could not be built or pushed to registry"
 fi
 
 
