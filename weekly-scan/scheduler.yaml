@@ -1,7 +1,7 @@
 apiVersion: "v1"
 kind: "Template"
 metadata:
-  name: weekly-scan-master-controller
+  name: weekly-scan-scheduler-template
 labels:
   type: "scheduler"
   app: "weekly-scan"
