@@ -103,7 +103,9 @@ service_setup_done=$?
 
 if [ $service_setup_done -ne 0 ]
 then
+    echo "===========================Service provision logs========================"
     cat /tmp/service_provision_logs.txt
+    echo "========================================================================="
     mark_failure "Error deploying the service in CICO"
 fi
 
@@ -113,7 +115,9 @@ slave_image_built=$?
 
 if [ $slave_image_built -ne 0 ]
 then
+    echo "==========================Slave image build logs==============================="
     cat /tmp/slave_image_build_logs.txt
+    echo "========================================================================="
     mark_failure "ERROR: Jenkins slave image could not be built or pushed to the registry"
 fi
 
