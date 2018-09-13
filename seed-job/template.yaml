@@ -156,6 +156,8 @@ objects:
             value: ${DESIRED_TAG}
           - name: NOTIFY_EMAIL
             value: ${NOTIFY_EMAIL}
+          - name: NOTIFY_CC_EMAILS
+            value: ${NOTIFY_CC_EMAILS}
           - name: DEPENDS_ON
             value: ${DEPENDS_ON}
           - name: BUILD_CONTEXT
@@ -197,6 +199,11 @@ parameters:
   displayName: Notification email
   name: NOTIFY_EMAIL
   required: true
+- description: Comma separated email addresses to add in Cc
+  displayName: Notification Cc emails
+  name: NOTIFY_CC_EMAILS
+  required: false
+  value: "null"
 - description: Parent image for the project
   displayName: Parent image
   name: DEPENDS_ON

@@ -25,6 +25,7 @@ class BuildNotify(BaseNotify):
             service_account="sa/jenkins",
             required_fields=[
                 "NOTIFY_EMAIL",
+                "NOTIFY_CC_EMAILS",
                 "DESIRED_TAG",
                 "REGISTRY_URL",
                 "FROM_ADDRESS",
@@ -115,13 +116,24 @@ class BuildNotify(BaseNotify):
         # body should have repository name (without tag)
         body = self.body_of_email(status, repository, cause)
 
+        # NOTIFY_CC_EMAILS list
+        cc_emails = build_info.get("NOTIFY_CC_EMAILS", False)
+        if cc_emails and cc_emails != "null":
+            # convert comma seprated emails to list of emails
+            cc_emails = [e.strip() for e in cc_emails.strip(
+            ).split(",") if e]
+        else:
+            cc_emails = []
+
         print ("Sending email to {}".format(build_info.get("NOTIFY_EMAIL")))
 
         status, msg = self.sendemail_obj.email(
             build_info.get("SMTP_SERVER"),
             subject, body,
             build_info.get("FROM_ADDRESS"),
-            [build_info.get("NOTIFY_EMAIL")])
+            [build_info.get("NOTIFY_EMAIL")],
+            cc_emails)
+
         if status:
             print(msg)
         else:

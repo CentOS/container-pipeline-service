@@ -266,12 +266,13 @@ class BuildConfigManager(object):
     """
 
     def __init__(self, registry_url, namespace, from_address, smtp_server,
-                 ccp_openshift_slave_image):
+                 ccp_openshift_slave_image, notify_cc_emails):
         self.registry_url = registry_url
         self.namespace = namespace
         self.from_address = from_address
         self.smtp_server = smtp_server
         self.ccp_openshift_slave_image = ccp_openshift_slave_image
+        self.notify_cc_emails = notify_cc_emails
 
         self.seed_template_params = """\
 -p GIT_URL={git_url} \
@@ -282,6 +283,7 @@ class BuildConfigManager(object):
 -p DESIRED_TAG={desired_tag} \
 -p DEPENDS_ON={depends_on} \
 -p NOTIFY_EMAIL={notify_email} \
+-p NOTIFY_CC_EMAILS={notify_cc_emails} \
 -p PIPELINE_NAME={pipeline_name} \
 -p APP_ID={app_id} \
 -p JOB_ID={job_id} \
@@ -355,7 +357,8 @@ class BuildConfigManager(object):
             registry_url=self.registry_url,
             from_address=self.from_address,
             smtp_server=self.smtp_server,
-            ccp_openshift_slave_image=self.ccp_openshift_slave_image
+            ccp_openshift_slave_image=self.ccp_openshift_slave_image,
+            notify_cc_emails=self.notify_cc_emails,
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
@@ -503,13 +506,14 @@ class Index(object):
 
     def __init__(self, index, registry_url, namespace,
                  from_address, smtp_server,
-                 ccp_openshift_slave_image):
+                 ccp_openshift_slave_image,
+                 notify_cc_emails):
         # create index reader object
         self.index_reader = IndexReader(index, namespace)
         # create bc_manager object
         self.bc_manager = BuildConfigManager(
             registry_url, namespace, from_address, smtp_server,
-            ccp_openshift_slave_image)
+            ccp_openshift_slave_image, notify_cc_emails)
         self.infra_projects = ["seed-job"]
 
     def find_stale_jobs(self, oc_projects, index_projects):
@@ -657,7 +661,7 @@ class Index(object):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 10:
+    if len(sys.argv) != 11:
         _print("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
@@ -670,10 +674,12 @@ if __name__ == "__main__":
     batch_polling_interval = int(sys.argv[7].strip())
     batch_outstanding_builds_cap = int(sys.argv[8].strip())
     ccp_openshift_slave_image = sys.argv[9].strip()
+    notify_cc_emails = sys.argv[10].strip()
 
     index_object = Index(
         index, registry_url, namespace,
-        from_address, smtp_server, ccp_openshift_slave_image
+        from_address, smtp_server, ccp_openshift_slave_image,
+        notify_cc_emails
         )
 
     index_object.run(

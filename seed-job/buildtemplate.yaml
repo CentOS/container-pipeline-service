@@ -49,7 +49,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP} ${CCP_OPENSHIFT_SLAVE_IMAGE}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP} ${CCP_OPENSHIFT_SLAVE_IMAGE} ${NOTIFY_CC_EMAILS}"
                         }
                     }
                 }
@@ -71,6 +71,8 @@ objects:
             value: ${BATCH_POLLING_INTERVAL}
           - name: BATCH_OUTSTANDING_BUILDS_CAP
             value: ${BATCH_OUTSTANDING_BUILDS_CAP}
+          - name: NOTIFY_CC_EMAILS
+            value: ${NOTIFY_CC_EMAILS}
       triggers:
           - type: ConfigChange
 parameters:
@@ -105,6 +107,11 @@ parameters:
   displayName: From email address
   name: FROM_ADDRESS
   required: true
+- description: Comma separated email addresses to add in Cc
+  displayName: Notification Cc emails
+  name: NOTIFY_CC_EMAILS
+  required: false
+  value: "null"
 - description: SMTP server to use to send emails
   displayName: SMTP server address
   name: SMTP_SERVER
