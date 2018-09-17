@@ -9,6 +9,7 @@ import sys
 import time
 import yaml
 
+from functools import wraps
 from glob import glob
 
 from ccp.exceptions import InvalidPipelineName
@@ -40,6 +41,41 @@ def run_cmd(cmd, shell=False):
         return subprocess.check_output(cmd, shell=True)
     else:
         return subprocess.check_output(cmd.split(), shell=False)
+
+
+def retry(tries=10, delay=2, backoff=2):
+    """
+    Retry calling decorated function using an exponential backoff.
+
+    :param tries: number of times to try before giving up
+    :type tries: int
+    :param delay: initial delay between retries in seconds
+    :type delay: int
+    :param backoff: backoff multiplier e.g. value of 2 will double the delay
+        each retry
+    :type backoff: int
+    """
+    def deco_retry(f):
+
+        @wraps(f)
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                except Exception as e:
+                    msg = "Error {0}, retrying in {1} seconds".format(
+                        str(e), mdelay)
+                    _print(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    # (backoff * mdelay) seconds in next retry
+                    mdelay *= backoff
+            # executing as is after tries are lapsed
+            return f(*args, **kwargs)
+        return f_retry
+
+    return deco_retry
 
 
 class Project(object):
@@ -262,6 +298,7 @@ class BuildConfigManager(object):
 -p FROM_ADDRESS={from_address} \
 -p SMTP_SERVER={smtp_server}"""
 
+    @retry(tries=10, delay=3, backoff=2)
     def list_all_buildConfigs(self):
         """
         List all available buildConfigs
@@ -274,6 +311,7 @@ class BuildConfigManager(object):
         else:
             return bcs.strip().split("\n")
 
+    @retry(tries=10, delay=3, backoff=2)
     def apply_build_job(self,
                         project,
                         template_location="seed-job/template.yaml"
@@ -326,6 +364,7 @@ class BuildConfigManager(object):
                 project.pipeline_name))
             self.start_build(project.pipeline_name)
 
+    @retry(tries=10, delay=3, backoff=2)
     def apply_weekly_scan(self,
                           project,
                           template_location="weekly-scan/template.yaml"
@@ -363,6 +402,7 @@ class BuildConfigManager(object):
         output = run_cmd(command, shell=True)
         _print(output)
 
+    @retry(tries=10, delay=3, backoff=2)
     def apply_buildconfigs(self,
                            project,
                            ):
@@ -374,6 +414,7 @@ class BuildConfigManager(object):
         self.apply_build_job(project)
         self.apply_weekly_scan(project)
 
+    @retry(tries=10, delay=3, backoff=2)
     def start_build(self, pipeline_name):
         """
         Given a pipeline name, start the build for same
@@ -382,6 +423,7 @@ class BuildConfigManager(object):
             pipeline_name, self.namespace)
         _print(run_cmd(command))
 
+    @retry(tries=10, delay=3, backoff=2)
     def delete_buildconfigs(self, bcs):
         """
         Deletes the given list of bcs
@@ -391,6 +433,7 @@ class BuildConfigManager(object):
             _print("Deleting buildConfig {}".format(bc))
             run_cmd(command.format(self.namespace, bc))
 
+    @retry(tries=5, delay=3, backoff=2)
     def list_all_builds(self):
         """
         List all the builds
@@ -401,6 +444,7 @@ oc get builds -o name -o template \
         output = run_cmd(command, shell=True)
         return output.strip().split()
 
+    @retry(tries=10, delay=3, backoff=2)
     def list_builds_except(
             self,
             status=["Complete", "Failed"],
@@ -435,6 +479,7 @@ oc get builds -o name -o template \
 oc get builds -o name -o template --template='{{range .items }} \
 {{if and %s }} {{.metadata.name}}:{{.status.phase}} \
 {{end}}{{end}}'""" % condition
+
         output = run_cmd(command, shell=True)
         output = output.strip().split(' ')
         output = [each for each in output
@@ -470,7 +515,16 @@ class Index(object):
     def run(self, batch_size, polling_interval,
             batch_outstanding_builds_cap):
         """
-        Orchestrate container index processing
+        Orchestrate container index processing and performs
+        following operations
+         - reads the projects in the container index
+         - reads the pipeline projects from OpenShift
+         - finds diff between Index projects vs OpenShift projects
+         - removes stale projects diff
+         - creates new jobs based on diff
+         - updates and triggers jobs having updated configs
+         - creates/updates weekly scan projects
+         - triggers batch processing method for above operations
         """
         # list all jobs in index, list of project objects
         index_projects = self.index_reader.read_projects()
@@ -517,13 +571,13 @@ class Index(object):
             batch_outstanding_builds_cap
         )
 
-    def batch(self, target, batch_size):
+    def batch(self, target_list, batch_size):
         """
         Returns a generator object yielding chunks of list
         of length=batch_size from target list
         """
-        for i in range(0, len(target), batch_size):
-            yield target[i:i + batch_size]
+        for i in range(0, len(target_list), batch_size):
+            yield target_list[i:i + batch_size]
 
     def batch_process_projects(self,
                                index_projects, batch_size, polling_interval,
