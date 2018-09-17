@@ -11,7 +11,7 @@ objects:
     data:
       url: ${OS_MASTER_URL}
 parameters:
-  - description: The url of openshift master, including https and port
+  - description: The URL of OpenShift master, including https and port
     displayName: Openshift Master URL
     name: OS_MASTER_URL
     required: true

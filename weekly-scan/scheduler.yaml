@@ -27,7 +27,7 @@ objects:
     metadata:
       name: weekly-scan-scheduler
     spec:
-      schedule: "*/1 * * * *"
+      schedule: "0 23 * * 6"
       jobTemplate:
         spec:
           template:
@@ -35,7 +35,7 @@ objects:
             spec:
               containers:
                 - name: weekly-scan-scheduler
-                  image: ${JENKINS_SLAVE_IMAGE_NAME}
+                  image: ${CCP_OPENSHIFT_SLAVE_IMAGE}
                   command: ["/bin/sh",  "/tmp/entry/script"]
                   volumeMounts:
                     - name: weeklyscanscript
@@ -57,19 +57,19 @@ objects:
                 - name: jenkins-secret
                   secret:
                     secretName: ${JENKINS_SECRET_NAME}
-              restartPolicy: OnFailure
+                    #              restartPolicy: OnFailure
 parameters:
   - description: The delay in seconds to give before triggering each weekly scan.
     displayName: Batch Trigger Delay
     name: BATCH_DELAY
-    value: "300"
+    value: "180"
     required: true
   - description: The jenkins slave image name.
     displayName: Jenkins Slave Image
-    name: JENKINS_SLAVE_IMAGE_NAME
+    name: CCP_OPENSHIFT_SLAVE_IMAGE
     value: registry.centos.org/pipeline-images/ccp-openshift-slave
     required: true
-  - description: The name of jenkins token to mount.
-    displayName: Jenkins Token Secret Name
+  - description: The name of Jenkins token to mount.
+    displayName: Jenkins token secret name
     name: JENKINS_SECRET_NAME
     required: true
