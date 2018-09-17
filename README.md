@@ -167,3 +167,18 @@ effect. Once it's done, exec into the Jenkins pod and check the output of `ps
 command as space-separated and not comma-separated. Refer [this
 diff](https://github.com/openshift/openshift-docs/pull/7259/files?short_path=05f80f3#diff-05f80f3ab954ce57c630417065819109)
 to ensure that values are passed properly.
+
+Now lets setup weekly scan triggering mechanism. Note the pipelines will be created by seed job, but without triggers.
+
+First, setup a ConfigMap that contains URL of openshift master as below. Note, ports if any, must be included.
+```bash
+$ oc process -p OS_MASTER_URL="https://os-master.example.com:8443" -f weekly-scan/os-master-config.yaml | oc apply -f -
+```
+
+Now, we need the Jenkins token to be made available. To do this, do the following
+
+```bash
+$ oc get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' # Name will be something like jenkins-token-blah
+$ oc process -p JENKINS_SECRET_NAME=jenkins-token-blah -f weekly-scan/scheduler.yaml | oc apply -f -
+```
+
