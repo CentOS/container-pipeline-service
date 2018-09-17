@@ -6,25 +6,22 @@ creates the Jenkins pipeline projects from entries of index.
 import re
 import subprocess
 import sys
+import time
 import yaml
 
+from functools import wraps
 from glob import glob
 
-
-class InvalidPipelineName(Exception):
-    """
-    Exception to be raised when pipeline name populated doesn't
-    confornt to allowed value for openshift template field metadata.name
-    """
-    pass
+from ccp.exceptions import InvalidPipelineName
+from ccp.exceptions import ErrorAccessingIndexEntryAttributes
 
 
-class ErrorAccessingIndexEntryAttributes(Exception):
+def _print(msg):
     """
-    Exception to be raised when there are errors accessing
-    index entry attributes
+    _prints the given msg
     """
-    pass
+    print (msg)
+    sys.stdout.flush()
 
 
 def run_cmd(cmd, shell=False):
@@ -44,6 +41,41 @@ def run_cmd(cmd, shell=False):
         return subprocess.check_output(cmd, shell=True)
     else:
         return subprocess.check_output(cmd.split(), shell=False)
+
+
+def retry(tries=10, delay=2, backoff=2):
+    """
+    Retry calling decorated function using an exponential backoff.
+
+    :param tries: number of times to try before giving up
+    :type tries: int
+    :param delay: initial delay between retries in seconds
+    :type delay: int
+    :param backoff: backoff multiplier e.g. value of 2 will double the delay
+        each retry
+    :type backoff: int
+    """
+    def deco_retry(f):
+
+        @wraps(f)
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                except Exception as e:
+                    msg = "Error {0}, retrying in {1} seconds".format(
+                        str(e), mdelay)
+                    _print(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    # (backoff * mdelay) seconds in next retry
+                    mdelay *= backoff
+            # executing as is after tries are lapsed
+            return f(*args, **kwargs)
+        return f_retry
+
+    return deco_retry
 
 
 class Project(object):
@@ -188,8 +220,9 @@ class IndexReader(object):
             with open(filepath) as fin:
                 data = yaml.load(fin, Loader=yaml.BaseLoader)
         except yaml.YAMLError as exc:
-            print ("Failed to read {}".format(filepath))
-            raise(exc)
+            _print("Failed to read {}".format(filepath))
+            _print("Error: {}".format(exc))
+            return None
         else:
             return data
 
@@ -206,18 +239,22 @@ class IndexReader(object):
                 continue
 
             app = self.read_yaml(yamlfile)
+            # if YAML file reading has failed, log the error and
+            # filename and continue processing rest of index
+            if not app:
+                continue
+
             for entry in app['Projects']:
                 # create a project object here with all properties
                 try:
                     project = Project(entry, self.namespace)
                 except Exception as e:
-                    print("Error processing index entry {}. Moving on.".format(
-                          entry))
-                    print("Error: {}".format(e))
+                    _print("Error processing index entry {}. "
+                           "Moving on.".format(entry))
+                    _print("Error: {}".format(e))
                 else:
                     # append to the list of projects
                     projects.append(project)
-
         return projects
 
 
@@ -261,6 +298,7 @@ class BuildConfigManager(object):
 -p FROM_ADDRESS={from_address} \
 -p SMTP_SERVER={smtp_server}"""
 
+    @retry(tries=10, delay=3, backoff=2)
     def list_all_buildConfigs(self):
         """
         List all available buildConfigs
@@ -273,6 +311,7 @@ class BuildConfigManager(object):
         else:
             return bcs.strip().split("\n")
 
+    @retry(tries=10, delay=3, backoff=2)
     def apply_build_job(self,
                         project,
                         template_location="seed-job/template.yaml"
@@ -280,7 +319,7 @@ class BuildConfigManager(object):
         """
         Applies the build job template that creates pipeline to build
         image, and trigger first time build as well.
-        :param project: The name of project, where template is to be applied
+        :param project: Name of project, where the template is to be applied
         :param template_location: The location of the template file.
         """
         oc_process = "oc process -f {0} {1}".format(
@@ -314,17 +353,18 @@ class BuildConfigManager(object):
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
-        print (output)
+        _print(output)
 
         # if a buildConfig has config update, oc apply returns
         # "buildconfig.build.openshift.io "$PIPELINE_NAME" configured"
         # possible values are ["unchanged", "created", "configured"]
         # we are looking for "configured" string for updated pipelines
         if "configured" in output:
-            print ("{} is updated, starting build..".format(
+            _print("{} is updated, starting build..".format(
                 project.pipeline_name))
             self.start_build(project.pipeline_name)
 
+    @retry(tries=10, delay=3, backoff=2)
     def apply_weekly_scan(self,
                           project,
                           template_location="weekly-scan/template.yaml"
@@ -360,8 +400,9 @@ class BuildConfigManager(object):
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
-        print (output)
+        _print(output)
 
+    @retry(tries=10, delay=3, backoff=2)
     def apply_buildconfigs(self,
                            project,
                            ):
@@ -373,22 +414,78 @@ class BuildConfigManager(object):
         self.apply_build_job(project)
         self.apply_weekly_scan(project)
 
+    @retry(tries=10, delay=3, backoff=2)
     def start_build(self, pipeline_name):
         """
         Given a pipeline name, start the build for same
         """
         command = "oc start-build {} -n {}".format(
             pipeline_name, self.namespace)
-        print (run_cmd(command))
+        _print(run_cmd(command))
 
+    @retry(tries=10, delay=3, backoff=2)
     def delete_buildconfigs(self, bcs):
         """
         Deletes the given list of bcs
         """
         command = "oc delete -n {} bc {}"
         for bc in bcs:
-            print ("Deleting buildConfig {}".format(bc))
+            _print("Deleting buildConfig {}".format(bc))
             run_cmd(command.format(self.namespace, bc))
+
+    @retry(tries=5, delay=3, backoff=2)
+    def list_all_builds(self):
+        """
+        List all the builds
+        """
+        command = """\
+oc get builds -o name -o template \
+--template='{{range .items }}{{.metadata.name}}:{{.status.phase}} {{end}}'"""
+        output = run_cmd(command, shell=True)
+        return output.strip().split()
+
+    @retry(tries=10, delay=3, backoff=2)
+    def list_builds_except(
+            self,
+            status=["Complete", "Failed"],
+            filter_builds=["seed-job"]):
+        """
+        List the builds except the phase(s) provided
+        default status=["Complete", "Failed"] <-- This will return
+        all the builds except the status.phase in ["Complete", "Failed"].
+        If provided a list of $filter_builds, it will filter mentioned builds
+        from outstanding builds. The builds name has build number string
+        appended, for eg seed-job-1, seed-job-2, thus filtering checks
+        if outstanding build name starts with given $filter_builds.
+
+        If status=[], return all the builds
+
+        :arg status: Status of outstanding builds to filter
+        :type status: List
+        :arg filter_builds: Builds to filter from outstanding builds
+        :type filter_builds: List
+        :return: List of outstanding builds
+        :rtype: List
+        """
+        if not status:
+            return self.list_all_builds()
+
+        conditional = '(ne .status.phase "{}") '
+        condition = ''
+        for phase in status:
+            condition = condition + conditional.format(phase)
+
+        command = """\
+oc get builds -o name -o template --template='{{range .items }} \
+{{if and %s }} {{.metadata.name}}:{{.status.phase}} \
+{{end}}{{end}}'""" % condition
+
+        output = run_cmd(command, shell=True)
+        output = output.strip().split(' ')
+        output = [each for each in output
+                  if not each.startswith(tuple(filter_builds))
+                  and each]
+        return output
 
 
 class Index(object):
@@ -397,8 +494,8 @@ class Index(object):
     in container index.
     """
 
-    def __init__(self, index, registry_url, namespace,
-                 from_address, smtp_server):
+    def __init__(self, index, registry_url,
+                 namespace, from_address, smtp_server):
         # create index reader object
         self.index_reader = IndexReader(index, namespace)
         # create bc_manager object
@@ -415,14 +512,24 @@ class Index(object):
 
         return list(set(oc_projects) - set(index_projects))
 
-    def run(self):
+    def run(self, batch_size, polling_interval,
+            batch_outstanding_builds_cap):
         """
-        Orchestrate container index processing
+        Orchestrate container index processing and performs
+        following operations
+         - reads the projects in the container index
+         - reads the pipeline projects from OpenShift
+         - finds diff between Index projects vs OpenShift projects
+         - removes stale projects diff
+         - creates new jobs based on diff
+         - updates and triggers jobs having updated configs
+         - creates/updates weekly scan projects
+         - triggers batch processing method for above operations
         """
         # list all jobs in index, list of project objects
         index_projects = self.index_reader.read_projects()
 
-        print ("Number of projects in index {}".format(len(index_projects)))
+        _print("Number of projects in index {}".format(len(index_projects)))
 
         # list existing jobs in openshift
         oc_projects = self.bc_manager.list_all_buildConfigs()
@@ -432,7 +539,7 @@ class Index(object):
         oc_projects = [bc.split("/")[1] for bc in oc_projects
                        if bc.split("/")[1] not in self.infra_projects]
 
-        print ("Number of projects in OpenShift {}".format(len(oc_projects)))
+        _print("Number of projects in OpenShift {}".format(len(oc_projects)))
 
         # names of pipelines for all projects in container index
         index_project_names = [project.pipeline_name for project in
@@ -449,24 +556,100 @@ class Index(object):
         )
 
         if stale_projects:
-            print ("List of stale projects:\n{}".format(
+            _print("List of stale projects:\n{}".format(
                 "\n".join(stale_projects)))
             # delete all the stal projects/buildconfigs
             self.bc_manager.delete_buildconfigs(stale_projects)
 
-        # oc process and oc apply to all fresh and existing jobs
+        _print("Number of projects to be updated/created: {}".format(
+            len(index_projects)))
+
+        self.batch_process_projects(
+            index_projects,
+            batch_size,
+            polling_interval,
+            batch_outstanding_builds_cap
+        )
+
+    def batch(self, target_list, batch_size):
+        """
+        Returns a generator object yielding chunks of list
+        of length=batch_size from target list
+        """
+        for i in range(0, len(target_list), batch_size):
+            yield target_list[i:i + batch_size]
+
+    def batch_process_projects(self,
+                               index_projects, batch_size, polling_interval,
+                               batch_outstanding_builds_cap):
+        """
+        Given a list of projects, oc apply the buildconfigs
+        in batches of size $batch_size and oc apply the weekly
+        scan jobs at the end.
+        Watch the outstanding builds at $polling_interval and
+        schedule next batch if current outstanding jobs are
+        less than or equal to $batch_outstanding_builds_cap.
+        """
+        # Split the projects to process in equal sized chunks
+        generator_obj = self.batch(index_projects, batch_size)
+
+        _print("Starting index processing with\n"
+               "Batch size={}\nBatch polling Interval (in seconds)={}\n"
+               "Batch outstndaing builds cap count={}\n".format(
+                   batch_size,
+                   polling_interval,
+                   batch_outstanding_builds_cap))
+        # iterate over batches of projects to be processed
+        for batch in generator_obj:
+            # Check if builds are in status.phase other than Complete
+            # or Failed. We dont care about builds which are failed
+            # or complete to queue up next batch of jobs to process
+            outstanding_builds = self.bc_manager.list_builds_except(
+                status=["Complete", "Failed"],
+                filter_builds=self.infra_projects)
+
+            # wait until current outstanding builds are more than
+            # configured cap for outstanding builds
+            while len(outstanding_builds) > batch_outstanding_builds_cap:
+                _print("Waiting for completion of builds {}\n".format(
+                    outstanding_builds))
+                time.sleep(polling_interval)
+
+                outstanding_builds = self.bc_manager.list_builds_except(
+                    status=["Complete", "Failed"],
+                    filter_builds=self.infra_projects)
+
+            _print("Processing projects batch: {}\n".format(
+                [each.pipeline_name for each in batch]))
+
+            for project in batch:
+                # oc process and oc apply to all fresh and existing jobs
+                try:
+                    self.bc_manager.apply_build_job(project)
+                except Exception as e:
+                    _print("Error applying/creating build config for {}. "
+                           "Moving on.".format(project.pipeline_name))
+                    _print("Error: {}".format(str(e)))
+                else:
+                    # grace period of 1 sec between configuring jobs
+                    time.sleep(1)
+
+        _print("Processing weekly scan projects..")
         for project in index_projects:
             try:
-                self.bc_manager.apply_buildconfigs(project)
+                self.bc_manager.apply_weekly_scan(project)
             except Exception as e:
-                print("Error applying/creating build config for {}. "
-                      "Moving on.".format(project.pipeline_name))
-                print("Error: {}".format(str(e)))
+                _print("Error applying/creating weekly scan build config "
+                       "for {}. Moving on.".format(project.pipeline_name))
+                _print("Error: {}".format(str(e)))
+            else:
+                # grace period of 1 sec between configuring jobs
+                time.sleep(1)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
-        print ("Incomplete set of input variables, please refer README.")
+    if len(sys.argv) != 9:
+        _print("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
     index = sys.argv[1].strip()
@@ -474,8 +657,15 @@ if __name__ == "__main__":
     namespace = sys.argv[3].strip()
     from_address = sys.argv[4].strip()
     smtp_server = sys.argv[5].strip()
+    batch_size = int(sys.argv[6].strip())
+    batch_polling_interval = int(sys.argv[7].strip())
+    batch_outstanding_builds_cap = int(sys.argv[8].strip())
 
-    index_object = Index(index, registry_url, namespace,
-                         from_address, smtp_server)
+    index_object = Index(
+        index, registry_url, namespace,
+        from_address, smtp_server)
 
-    index_object.run()
+    index_object.run(
+        batch_size,
+        batch_polling_interval,
+        batch_outstanding_builds_cap)
