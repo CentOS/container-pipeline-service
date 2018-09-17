@@ -135,17 +135,19 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
-- description: Number of builds in a batch to process
+- description: Number of builds to process in a batch
   displayName: Size of batch
   name: BATCH_SIZE
   required: true
   value: "5"
-- description: Outstanding builds check polling interval in seconds between batches
-  displayName: Outstanding builds check polling interval
+- description: Polling interval (in seconds) between two batches to check if any builds are outstanding
+  displayName: Polling interval between two batches for check of outstanding build(s)
   name: BATCH_POLLING_INTERVAL
   required: true
   value: "30"
-- description: Maximum number of outstanding builds cap before starting next batch
+- description: 'Maximum number of outstanding builds cap before starting next batch.
+                For example setting this to three causes the next batch to be processed
+                if there are at most three builds being processed on OpenShift.'
   displayName: Maximum outstanding builds cap before scheduling next batch
   name: BATCH_OUTSTANDING_BUILDS_CAP
   required: true
