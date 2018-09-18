@@ -274,7 +274,7 @@ class BuildConfigManager(object):
         self.ccp_openshift_slave_image = ccp_openshift_slave_image
         self.notify_cc_emails = notify_cc_emails
 
-        self.seed_template_params = """\
+        self.template_params = """\
 -p GIT_URL={git_url} \
 -p GIT_PATH={git_path} \
 -p GIT_BRANCH={git_branch} \
@@ -289,6 +289,7 @@ class BuildConfigManager(object):
 -p JOB_ID={job_id} \
 -p PRE_BUILD_CONTEXT={pre_build_context} \
 -p PRE_BUILD_SCRIPT={pre_build_script} \
+-p NAMESPACE={namespace} \
 -p REGISTRY_URL={registry_url} \
 -p FROM_ADDRESS={from_address} \
 -p SMTP_SERVER={smtp_server} \
@@ -331,7 +332,7 @@ class BuildConfigManager(object):
         """
         oc_process = "oc process -f {0} {1}".format(
             template_location,
-            self.seed_template_params
+            self.template_params
         )
 
         oc_apply = "oc apply -n {} -f -".format(self.namespace)
@@ -354,6 +355,7 @@ class BuildConfigManager(object):
             job_id=project.job_id,
             pre_build_context=project.pre_build_context,
             pre_build_script=project.pre_build_script,
+            namespace=self.namespace,
             registry_url=self.registry_url,
             from_address=self.from_address,
             smtp_server=self.smtp_server,

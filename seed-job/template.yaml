@@ -135,9 +135,9 @@ objects:
                       stage("Notify user"){
                           sh "mkfifo /var/spool/postfix/public/pickup && postfix start"
                           if (success==true) {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py success ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                           } else {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py failed cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py failed ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                             }
                     }
                   }
@@ -180,6 +180,8 @@ objects:
             value: ${SMTP_SERVER}
           - name: PIPELINE_REPO_DIR
             value: ${PIPELINE_REPO_DIR}
+          - name: NAMESPACE
+            value: ${NAMESPACE}
       triggers:
           - type: ConfigChange
 parameters:
@@ -247,6 +249,10 @@ parameters:
 - description: Pre Build context is path from where prebuild_script is triggered in the repo
   displayName: Prebuild Context
   name: PRE_BUILD_CONTEXT
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true
 - description: URL of the registry to which image is to be pushed
   name: REGISTRY_URL
   displayName: Registry URL
