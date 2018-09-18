@@ -98,22 +98,23 @@ ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshif
 
 
 echo "Run ansible playbook for setting service"
-#ssh $sshopts $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml'
-ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
+ssh $sshoptserr $ansible_node "cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml" >> /tmp/service_provision_logs.txt
 service_setup_done=$?
 
 if [ $service_setup_done -ne 0 ]
 then
-    mark_failure "Error while deploying the service in CICO"
+    cat /tmp/service_provision_logs.txt
+    mark_failure "Error deploying the service in CICO"
 fi
 
-echo "Build jenkins slave to include current code base"
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && docker build -t $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest -f Dockerfiles/ccp-openshift-slave/Dockerfile . && docker push $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest"
+echo "Build Jenkins slave image to include the code base in this PR"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && docker build -t $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest -f Dockerfiles/ccp-openshift-slave/Dockerfile . && docker push $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest" >> /tmp/slave_image_build_logs.txt
 slave_image_built=$?
 
 if [ $slave_image_built -ne 0 ]
 then
-    mark_failure "ERROR: jenkins slave image could not be built or pushed to registry"
+    cat /tmp/slave_image_build_logs.txt
+    mark_failure "ERROR: Jenkins slave image could not be built or pushed to the registry"
 fi
 
 
