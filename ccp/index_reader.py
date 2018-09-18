@@ -4,78 +4,17 @@ creates the Jenkins pipeline projects from entries of index.
 """
 
 import re
-import subprocess
 import sys
 import time
 import yaml
 
-from functools import wraps
 from glob import glob
 
 from ccp.exceptions import InvalidPipelineName
 from ccp.exceptions import ErrorAccessingIndexEntryAttributes
-
-
-def _print(msg):
-    """
-    _prints the given msg
-    """
-    print (msg)
-    sys.stdout.flush()
-
-
-def run_cmd(cmd, shell=False):
-    """
-    Runs the given shell command
-
-    :param cmd: Command to run
-    :param shell: Whether to run raw shell commands with '|' and redirections
-    :type cmd: str
-    :type shell: boolean
-
-    :return: Command output
-    :rtype: str
-    :raises: subprocess.CalledProcessError
-    """
-    if shell:
-        return subprocess.check_output(cmd, shell=True)
-    else:
-        return subprocess.check_output(cmd.split(), shell=False)
-
-
-def retry(tries=10, delay=2, backoff=2):
-    """
-    Retry calling decorated function using an exponential backoff.
-
-    :param tries: number of times to try before giving up
-    :type tries: int
-    :param delay: initial delay between retries in seconds
-    :type delay: int
-    :param backoff: backoff multiplier e.g. value of 2 will double the delay
-        each retry
-    :type backoff: int
-    """
-    def deco_retry(f):
-
-        @wraps(f)
-        def f_retry(*args, **kwargs):
-            mtries, mdelay = tries, delay
-            while mtries > 1:
-                try:
-                    return f(*args, **kwargs)
-                except Exception as e:
-                    msg = "Error {0}, retrying in {1} seconds".format(
-                        str(e), mdelay)
-                    _print(msg)
-                    time.sleep(mdelay)
-                    mtries -= 1
-                    # (backoff * mdelay) seconds in next retry
-                    mdelay *= backoff
-            # executing as is after tries are lapsed
-            return f(*args, **kwargs)
-        return f_retry
-
-    return deco_retry
+from ccp.lib.retry import retry
+from ccp.lib._print import _print
+from ccp.lib.command import run_cmd
 
 
 class Project(object):

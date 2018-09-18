@@ -8,8 +8,10 @@ import sys
 import urllib2
 
 from ccp.lib.command import run_cmd
+from ccp.lib.retry import retry
 
 
+@retry(tries=10, delay=3, backoff=2)
 def get_jenkins_access_token(service_account="sa/jenkins"):
     """
     For given service account, get the Jenkins API access
@@ -46,9 +48,10 @@ class BuildInfo(object):
 
     def get_url(self, url, token, context=None):
         """
-        Gets the given URL and uses given token for authorization
+        Opens the given URL using the given token for authorization
+        and using given context if any and
+        returns the response received from opening URL.
         """
-
         # create request object
         r = urllib2.Request(url)
 
@@ -66,11 +69,11 @@ class BuildInfo(object):
         """
         Parse the JSON response containing jenkins job details
         """
+        cause_of_build = None
         try:
-            cause_of_build = None
 
             if response["number"] == 1:
-                return "First build of the container"
+                return "First build of the container image"
 
             for _class in response["actions"]:
                 if "_class" not in _class:
@@ -95,8 +98,8 @@ class BuildInfo(object):
                             ups_proj = "/".join(
                                 ups_proj[1:-1]) + ":" + ups_proj[-1]
 
-                            cause_of_build = ("Upstream/parent container {} is"
-                                              " rebuilt".format(ups_proj))
+                            cause_of_build = ("Parent container image "
+                                              "{} is rebuilt".format(ups_proj))
                             break
                 # jenkins manual trigger is not available
                 # all the builds are intitiated from openshift
@@ -105,7 +108,7 @@ class BuildInfo(object):
                 # that's a manual trigger
                         else:
                             cause_of_build = ("Update to build configurations "
-                                              "of the container")
+                                              "of the container image")
 
                     # fail over / if _class is not the one expected
                     if not cause_of_build:

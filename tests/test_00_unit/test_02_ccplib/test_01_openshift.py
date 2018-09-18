@@ -347,7 +347,7 @@ origin/master of repo https://github.com/navidshaikh/anomaly."""
         self.assertEqual(
             self.buildinfo_obj.parse_cause_of_build(
                 sample_response),
-            "Upstream/parent container test/anomaly:latest is rebuilt"
+            "Parent container image test/anomaly:latest is rebuilt"
         )
 
     def test_parse_cause_of_build_3(self):
@@ -361,7 +361,7 @@ origin/master of repo https://github.com/navidshaikh/anomaly."""
         self.assertEqual(
             self.buildinfo_obj.parse_cause_of_build(
                 sample_response),
-            "First build of the container"
+            "First build of the container image"
         )
 
     def test_parse_cause_of_build_4(self):
@@ -389,7 +389,7 @@ origin/master of repo https://github.com/navidshaikh/anomaly."""
         self.assertEqual(
             self.buildinfo_obj.parse_cause_of_build(
                 sample_response),
-            "Update to build configurations of the container"
+            "Update to build configurations of the container image"
         )
 
     def test_parse_cause_of_build_5(self):
