@@ -35,20 +35,27 @@ class BuildNotify(BaseNotify):
         # create the SendEmail utility class object
         self.sendemail_obj = SendEmail()
 
-    def subject_of_email(self, status, build):
+    def subject_of_email(self, status, image_name, registry_url):
         """
         Given the status and build/image name, returns the subject of email
 
         :param status: Status of container image build
         :type status bool
-        :param build: Container image name without registry
+        :param image_name: Container image name without registry
+        :param type str
+        :param registry_url: Configured registry URL
         :param type str
         :return: Subject line of notification email in text
         """
+        # registry name without ports
+        registry = registry_url.strip().split(":")[0]
+
         if status:
-            return self.build_success_subj.format(build)
+            return self.build_success_subj.format(
+                registry=registry, image_name=image_name)
         else:
-            return self.build_failure_subj.format(build)
+            return self.build_failure_subj.format(
+                registry=registry, image_name=image_name)
 
     def body_of_email(self, status, repository, cause):
         """
@@ -111,7 +118,8 @@ class BuildNotify(BaseNotify):
         cause = build_info.get("CAUSE_OF_BUILD")
 
         # subject should have image_name without registry
-        subject = self.subject_of_email(status, image_name)
+        subject = self.subject_of_email(
+            status, image_name, build_info.get("REGISTRY_URL"))
 
         # body should have repository name (without tag)
         body = self.body_of_email(status, repository, cause)

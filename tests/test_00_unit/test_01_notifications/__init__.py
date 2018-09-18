@@ -14,26 +14,45 @@ class TestNotify(unittest.TestCase):
 
     def setUp(self):
         self.notify_obj = notify.BuildNotify()
+        self.image_name = "a/b:c"
+        self.registry = "registry.centos.org"
 
-    def test_subject_of_email(self):
+    def test_subject_of_email_1(self):
         """
-        Notitications: Tests processing subject of email
+        Notitications: Tests subject success case registry without port
         """
-        job = "ccp-a-b-c"
+        # Check the SUCCESS case
+        self.assertEqual(
+            self.notify_obj.subject_of_email(
+                True, self.image_name, self.registry),
+            "[{}] SUCCESS: Container build {}".format(
+                self.registry, self.image_name))
+
+    def test_subject_of_email_2(self):
+        """
+        Notitications: Tests subject success case registry with port
+        """
+        # case for registry name with port
+        self.registry = "registry.centos.org:5000"
 
         # Check the SUCCESS case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                True, job),
+                True, self.image_name, self.registry),
+            # using registry name without port
             "[registry.centos.org] SUCCESS: Container build {}".format(
-                job))
+                self.image_name))
 
+    def test_subject_of_email_3(self):
+        """
+        Notitications: Tests subject failure case
+        """
         # Check the FAILED case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                False, job),
-            "[registry.centos.org] FAILED: Container build {}".format(
-                job))
+                False, self.image_name, self.registry),
+            "[{}] FAILED: Container build {}".format(
+                self.registry, self.image_name))
 
     def test_body_of_email(self):
         """
@@ -51,10 +70,8 @@ Cause of build:               Started by admin
 
 --
 Do you have a query?
-Talk to Pipeline team on #centos-devel at freenode
-CentOS Community Container Pipeline Service
+Talk to CentOS Container Pipeline team on #centos-devel at freenode
 https://wiki.centos.org/ContainerPipeline
-https://github.com/centos/container-index
 """
 
         self.assertEqual(

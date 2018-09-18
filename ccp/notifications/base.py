@@ -15,10 +15,10 @@ class BaseNotify(object):
 
     def __init__(self):
         self.build_success_subj = \
-            "[registry.centos.org] SUCCESS: Container build {}"
+            "[{registry}] SUCCESS: Container build {image_name}"
         self.build_failure_subj = \
-            "[registry.centos.org] FAILED: Container build {}"
-
+            "[{registry}] FAILED: Container build {image_name}"
+        # <30 is adding space formatting for aligning the key values
         self.build_success_body = """\
 {0:<30}{1}
 {2:<30}{3}
@@ -31,8 +31,6 @@ class BaseNotify(object):
         self.email_footer = """\
 --
 Do you have a query?
-Talk to Pipeline team on #centos-devel at freenode
-CentOS Community Container Pipeline Service
+Talk to CentOS Container Pipeline team on #centos-devel at freenode
 https://wiki.centos.org/ContainerPipeline
-https://github.com/centos/container-index
 """
