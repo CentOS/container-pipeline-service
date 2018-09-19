@@ -1,6 +1,10 @@
 - job:
     name: 'centos-container-pipeline-service-job-openshift'
     description: |
+        This job is a service job for managing all the CI jobs from container-pipeline-service https://github.com/centos/container-pipeline-service
+
+        This job is currently tracking openshift branch of the repo and gets triggered when commits are pushed to the openshift branch of the repo
+
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     properties:

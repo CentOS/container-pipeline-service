@@ -1,6 +1,14 @@
 - job:
-    name: 'centos-container-pipeline-service-container-index'
+    name: 'centos-container-index-ci'
     description: |
+        This job is for running the CI jobs for the PRs raised to
+        https://github.com/centos/container-index.git
+        It runs the CI tests from the pipeline service repository
+        (https://github.com/centos/container-pipeline-service)
+
+        This job gets triggered when there is a PR raised to container-index
+        or \#dotests on the raised PRs
+
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     properties:
@@ -27,10 +35,10 @@
             permit-all: false
             auto-close-on-fail: false
             status-context: "centos-ci container-index ci tests"
-            started-status: "centos-ci container-index ci  tests started"
-            success-status: "centos-ci container-index ci  tests succeeded"
-            failure-status: "centos-ci container-index ci  tests failed"
-            error-status: "centos-ci container-index ci  tests errored"
+            started-status: "centos-ci container-index ci tests started"
+            success-status: "centos-ci container-index ci tests succeeded"
+            failure-status: "centos-ci container-index ci tests failed"
+            error-status: "centos-ci container-index ci tests errored"
     wrappers:
         - ansicolor
     scm:
@@ -51,6 +59,12 @@
 - job:
     name: 'centos-container-pipeline-service-ci-pr-functional'
     description: |
+        This job is for running the functional CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service
+
+        This job gets triggered when there is a PR raised to container-pipeline-service
+        or \#dotests on the raised PRs
+
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     ci_project: container
@@ -105,12 +119,18 @@
               cd ci
               sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1}
             else
-              echo "PRs target branch is not openshift"
+              echo "PR's target branch is not openshift"
             fi
 
 - job:
     name: 'centos-container-pipeline-service-ci-pr-unittests'
     description: |
+        This job is for running the unit tests CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service
+
+        This job gets triggered when there is a PR raised to container-pipeline-service
+        or \#dotests-unittests on the raised PRs
+
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     ci_project: container
@@ -164,5 +184,5 @@
               git rebase origin/${ghprbTargetBranch}
               bash ci/ccp_ci_unittests.sh
             else
-              echo "PRs target branch is not openshift"
+              echo "PR's target branch is not openshift"
             fi
