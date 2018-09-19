@@ -6,15 +6,15 @@ creates the Jenkins pipeline projects from entries of index.
 import re
 import sys
 import time
-import yaml
-
 from glob import glob
 
-from ccp.exceptions import InvalidPipelineName
+import yaml
+
 from ccp.exceptions import ErrorAccessingIndexEntryAttributes
-from ccp.lib.retry import retry
-from ccp.lib._print import _print
-from ccp.lib.command import run_cmd
+from ccp.exceptions import InvalidPipelineName
+from ccp.lib.utils._print import _print
+from ccp.lib.utils.command import run_cmd
+from ccp.lib.utils.retry import retry
 
 
 class Project(object):

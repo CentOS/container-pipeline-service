@@ -7,8 +7,8 @@ import ssl
 import sys
 import urllib2
 
-from ccp.lib.command import run_cmd
-from ccp.lib.retry import retry
+from ccp.lib.utils.command import run_cmd
+from ccp.lib.utils.retry import retry
 
 
 @retry(tries=10, delay=3, backoff=2)

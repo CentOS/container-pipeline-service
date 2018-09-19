@@ -1,9 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import sys
-
-from ccp.lib.command import run_cmd2
+from ccp.lib.utils.command import run_cmd2
 
 
 class SendEmail(object):
