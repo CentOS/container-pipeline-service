@@ -1,5 +1,5 @@
 - job:
-    name: centos-container-pipeline-service-job-openshift
+    name: 'centos-container-pipeline-service-job-openshift'
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     node: container

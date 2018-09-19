@@ -1,5 +1,5 @@
 - job:
-    name: centos-container-pipeline-service-container-index
+    name: 'centos-container-pipeline-service-container-index'
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
@@ -21,9 +21,16 @@
               - dharmit
               - navidshaikh
             cron: '* * * * *'
-            github-hooks: false
-            permit-all: true
-
+            trigger-phrase: '#dotests'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci container-index ci tests"
+            started-status: "centos-ci container-index ci  tests started"
+            success-status: "centos-ci container-index ci  tests succeeded"
+            failure-status: "centos-ci container-index ci  tests failed"
+            error-status: "centos-ci container-index ci  tests errored"
     wrappers:
         - ansicolor
     scm:
@@ -42,7 +49,7 @@
             sh ./cccp_ci_container_index.sh
 
 - job:
-    name: 'centos-container-pipeline-service-ci-pr-openshift'
+    name: 'centos-container-pipeline-service-ci-pr-functional'
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
@@ -98,7 +105,7 @@
               cd ci
               sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1}
             else
-              echo "It is not on openshit branch"
+              echo "PRs target branch is not openshift"
             fi
 
 - job:
@@ -157,5 +164,5 @@
               git rebase origin/${ghprbTargetBranch}
               bash ci/ccp_ci_unittests.sh
             else
-              echo "It is not on openshit branch"
+              echo "PRs target branch is not openshift"
             fi
