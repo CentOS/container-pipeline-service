@@ -34,7 +34,7 @@ objects:
                 containers: [
                   containerTemplate(
                     name: 'jnlp',
-                    image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                    image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
@@ -132,14 +132,16 @@ objects:
                         }
                     }
                     finally {
-                        if (success==true) {
-                            sh "echo -e 'Build request for ${image_name_with_registry} was successful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'SUCCESS: Container build ${image_name_with_registry} is complete' ${NOTIFY_EMAIL} "
-                        } else {
-                            sh "echo -e 'Build request for ${image_name_with_registry} was unsuccessful' | mail -r ${FROM_ADDRESS} -S smtp=${SMTP_SERVER} -s 'FAILED: Container build ${image_name_with_registry} has failed' ${NOTIFY_EMAIL} "
-
-                        }
+                      stage("Notify user"){
+                          sh "mkfifo /var/spool/postfix/public/pickup && postfix start"
+                          if (success==true) {
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py success ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                          } else {
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py failed ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            }
                     }
-                }
+                  }
+              }
             }
           env:
           - name: GIT_URL
@@ -154,6 +156,8 @@ objects:
             value: ${DESIRED_TAG}
           - name: NOTIFY_EMAIL
             value: ${NOTIFY_EMAIL}
+          - name: NOTIFY_CC_EMAILS
+            value: ${NOTIFY_CC_EMAILS}
           - name: DEPENDS_ON
             value: ${DEPENDS_ON}
           - name: BUILD_CONTEXT
@@ -170,6 +174,14 @@ objects:
             value: ${PRE_BUILD_CONTEXT}
           - name: REGISTRY_URL
             value: ${REGISTRY_URL}
+          - name: FROM_ADDRESS
+            value: ${FROM_ADDRESS}
+          - name: SMTP_SERVER
+            value: ${SMTP_SERVER}
+          - name: PIPELINE_REPO_DIR
+            value: ${PIPELINE_REPO_DIR}
+          - name: NAMESPACE
+            value: ${NAMESPACE}
       triggers:
           - type: ConfigChange
 parameters:
@@ -189,6 +201,11 @@ parameters:
   displayName: Notification email
   name: NOTIFY_EMAIL
   required: true
+- description: Comma separated email addresses to add in Cc
+  displayName: Notification Cc emails
+  name: NOTIFY_CC_EMAILS
+  required: false
+  value: "null"
 - description: Parent image for the project
   displayName: Parent image
   name: DEPENDS_ON
@@ -232,6 +249,10 @@ parameters:
 - description: Pre Build context is path from where prebuild_script is triggered in the repo
   displayName: Prebuild Context
   name: PRE_BUILD_CONTEXT
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true
 - description: URL of the registry to which image is to be pushed
   name: REGISTRY_URL
   displayName: Registry URL
@@ -243,3 +264,13 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
+- description: Directory where Pipeline service code is present in slave container
+  displayName: Pipeline service code repo directory
+  name: PIPELINE_REPO_DIR
+  required: true
+  value: /opt/ccp-openshift
+- description: ccp-openshift-slave container image name (with registry name)
+  displayName: ccp-openshift-slave container image
+  name: CCP_OPENSHIFT_SLAVE_IMAGE
+  required: true
+  value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest

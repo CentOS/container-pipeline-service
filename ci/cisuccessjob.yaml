@@ -86,7 +86,11 @@ objects:
                             //Checking Seventh stage (i.e. Remove the image from builder) expected to be 'Successful'
                             checkStageStatus(success_build_id, 6, "success")
                         }
-
+                        stage("Check notification status")
+                        {
+                            //Checking Eigth stage (i.e. Notify User) expected to be 'Successful'
+                            checkStageStatus(success_build_id, 7, "success")
+                        }
                     }
                 }
                 def waitForSuccessBuildToStart(build_id)

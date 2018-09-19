@@ -29,14 +29,14 @@ class TestProject(unittest.TestCase):
 
     def test_load_entries(self):
         """
-        Tests creating Project class object which loads entries
+        IndexReader: Tests creating Project class object which loads entries
         """
         obj = index_reader.Project(self.entry, self.namespace)
         self.assertTrue(isinstance(obj, index_reader.Project))
 
     def test_string_representation(self):
         """
-        Test __str__ representation of Project object
+        IndexReader: Tests __str__ representation of Project object
         """
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual(
@@ -46,7 +46,7 @@ class TestProject(unittest.TestCase):
 
     def test_replace_dot_slash_colon_(self):
         """
-        Test the helper method to replace . / : _ with hyphen
+        IndexReader: Tests the helper method to replace . / : _ with hyphen
         """
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual(
@@ -56,7 +56,7 @@ class TestProject(unittest.TestCase):
 
     def test_process_depends_on(self):
         """
-        Tests depends_on field processing and defaults
+        IndexReader: Tests depends_on field processing and defaults
         """
         # test the default value
         project = index_reader.Project(self.entry, self.namespace)
@@ -77,7 +77,7 @@ class TestProject(unittest.TestCase):
 
     def test_process_desired_tag(self):
         """
-        Tests desired tag processing and defaults
+        IndexReader: Tests desired tag processing and defaults
         """
         # test a custom value
         self.entry["desired-tag"] = "release"
@@ -91,7 +91,7 @@ class TestProject(unittest.TestCase):
 
     def test_pre_build_script(self):
         """
-        Test processing pre_build_script
+        IndexReader: Tests processing pre_build_script
         """
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual(
@@ -104,7 +104,7 @@ class TestProject(unittest.TestCase):
 
     def test_pre_build_context(self):
         """
-        Test processing pre_build_context
+        IndexReader: Tests processing pre_build_context
         """
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual("/", project.pre_build_context)
@@ -116,7 +116,7 @@ class TestProject(unittest.TestCase):
 
     def test_get_pipeline_name_1(self):
         """
-        IndexReader: Tests processing pipeline_name
+        IndexReader: Tests processing pipeline_name based on given values
         """
         project = index_reader.Project(self.entry, self.namespace)
         self.assertEqual(

@@ -73,18 +73,23 @@ objects:
                         }
                         stage("Check image scan status")
                         {
-                             //Checking fifth stage (i.e. Scan the image) should not be present in the failed pipeline
-                            checkStageStatus(failure_build_id, 4, "not_available")
+                             //Checking sixth stage (i.e. Scan the image) should not be present in the failed pipeline
+                            checkStageStatus(failure_build_id, 5, "not_available")
                         }
                         stage("Check image delivery status")
                         {
-                             //Checking Sixth stage (i.e. Push image to registry) should not be present in the failed pipeline
-                            checkStageStatus(failure_build_id, 5, "not_available")
+                             //Checking Seventh stage (i.e. Push image to registry) should not be present in the failed pipeline
+                            checkStageStatus(failure_build_id, 6, "not_available")
                         }
                         stage("Check image cleanup status")
                         {
-                            //Checking Seventh stage (i.e. Remove the image from builder) should not be present in the failed pipeline
-                            checkStageStatus(failure_build_id, 6, "not_available")
+                            //Checking Eighth stage (i.e. Remove the image from builder) should not be present in the failed pipeline
+                            checkStageStatus(failure_build_id, 7, "not_available")
+                        }
+                        stage("Check notification status")
+                        {
+                            //Checking fifth stage (i.e. Notify User) expected to be 'Successful'
+                            checkStageStatus(failure_build_id, 4, "success")
                         }
 
                     }

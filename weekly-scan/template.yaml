@@ -24,8 +24,8 @@ objects:
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
-                    name: 'wscan-jnlp',
-                    image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                    name: 'jnlp',
+                    image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
                     ttyEnabled: true,
                     alwaysPullImage: true,
                     workingDir: '/tmp',
@@ -142,4 +142,8 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
-
+- description: ccp-openshift-slave container image name (with registry name)
+  displayName: ccp-openshift-slave container image
+  name: CCP_OPENSHIFT_SLAVE_IMAGE
+  required: true
+  value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest

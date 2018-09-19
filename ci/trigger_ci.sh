@@ -98,38 +98,55 @@ ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshif
 
 
 echo "Run ansible playbook for setting service"
-#ssh $sshopts $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml'
-ssh $sshoptserr $ansible_node 'cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml' >> /dev/null
+ssh $sshoptserr $ansible_node "cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml" >> /tmp/service_provision_logs.txt
 service_setup_done=$?
 
 if [ $service_setup_done -ne 0 ]
 then
-    mark_failure "Error while deploying the service in CICO"
+    echo "===========================Service provision logs========================"
+    cat /tmp/service_provision_logs.txt
+    echo "========================================================================="
+    mark_failure "Error deploying the service in CICO"
 fi
+
+echo "Build Jenkins slave image to include the code base in this PR"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && docker build -t $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest -f Dockerfiles/ccp-openshift-slave/Dockerfile . && docker push $nfs_node:5000/pipeline-images/ccp-openshift-slave:latest" >> /tmp/slave_image_build_logs.txt
+slave_image_built=$?
+
+if [ $slave_image_built -ne 0 ]
+then
+    echo "==========================Slave image build logs==============================="
+    cat /tmp/slave_image_build_logs.txt
+    echo "==============================================================================="
+    mark_failure "ERROR: Jenkins slave image could not be built or pushed to the registry"
+fi
+
 
 echo "Cluster is set lets go for tests"
 
-# cico node done ${node_details[2]}
-
 echo "Setting variables for pipeline run"
-export PIPELINE_REPO=$git_repo
-export PIPELINE_BRANCH=$git_actual_commit
-export PIPELINE_BASE_BRANCH=$git_branch
 
 export REGISTRY_URL=$nfs_node:5000
 export CONTAINER_INDEX_REPO=https://github.com/CentOS/container-index
 export CONTAINER_INDEX_BRANCH=ci
 export FROM_ADDRESS=container-build-reports@centos.org
 export SMTP_SERVER=smtp://mail.centos.org
+export CCP_OPENSHIFT_SLAVE_IMAGE=$nfs_node:5000/pipeline-images/ccp-openshift-slave:latest
 
 echo "Delete build configs if present"
 ssh $sshoptserr $openshift_1_node_ip "oc login --username='cccp' --password='developer'"
 ssh $sshoptserr $openshift_1_node_ip 'for i in `oc get bc -o name`; do oc delete $i; done'
 
 echo "Command to run"
-echo "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
+echo "cd /opt/ccp-openshift && oc process REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f seed-job/buildtemplate.yaml | oc create -f -"
 
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -f seed-job/buildtemplate.yaml | oc create -f -"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f seed-job/buildtemplate.yaml | oc create -f -"
+seed_job_created=$?
+
+if [ $seed_job_created -ne 0 ]
+then
+    mark_failure "Error while creating seed job build config"
+fi
 
 echo "Waiting for seed job to complete"
 index_read_done=$(ssh $sshopts $openshift_1_node_ip "oc get builds seed-job-1 -o template --template={{.status.phase}}")
