@@ -113,14 +113,78 @@
             echo ${sha1}
             echo ${GIT_URL}
             echo ${GIT_BRANCH}
+            CI_DEBUG=0
             if [ ${ghprbTargetBranch} == "openshift" ]
             then
               git rebase origin/${ghprbTargetBranch}
               cd ci
-              sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1}
+              sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
             else
               echo "PR's target branch is not openshift"
             fi
+
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-functional-debug'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service/
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            trigger-phrase: '#dotests-debug'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci functional tests"
+            started-status: "centos-ci functional tests started"
+            success-status: "centos-ci functional tests succeeded"
+            failure-status: "centos-ci functional tests failed"
+            error-status: "centos-ci functional tests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${sha1}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            CI_DEBUG=1
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              cd ci
+              sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
+            else
+              echo "PRs target branch is not openshift"
+            fi
+
 
 - job:
     name: 'centos-container-pipeline-service-ci-pr-unittests'

@@ -5,7 +5,14 @@ mark_failure()
     echo "$1"
     echo "=================================================="
     echo "CI complete releasing the nodes"
-    cico node done $cico_node_key
+    if [ $CI_DEBUG -eq 0]
+    then
+        cico node done $cico_node_key
+    else
+        echo "============================================================"
+        echo "DEBUG mode is set for CI, keeping nodes for debugging"
+        echo "============================================================"
+    fi
     exit 1
 }
 
@@ -48,10 +55,13 @@ echo "=============================================================\n\n"
 git_repo=$1
 git_branch=$2
 git_actual_commit=$3
+CI_DEBUG=$4
+
 echo "========================Git repo details====================="
 echo "Base git repo: $git_repo "
 echo "Base git branch: $git_branch"
 echo "Acutal git commit: $git_actual_commit"
+echo "DEBUG mode is set to: $CI_DEBUG"
 echo "=============================================================\n\n"
 
 export sshopts="-tt -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
@@ -251,5 +261,12 @@ else
     echo "Failed Build check Passed: SUCCESS"
 fi
 
-echo "CI complete releasing the nodes"
-cico node done $cico_node_key
+if [ $CI_DEBUG -eq 0]
+then
+    echo "CI is complete releasing the nodes"
+    cico node done $cico_node_key
+else
+    echo "============================================================"
+    echo "DEBUG mode is set for CI, keeping nodes for debugging"
+    echo "============================================================"
+fi
