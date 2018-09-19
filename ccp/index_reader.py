@@ -238,6 +238,7 @@ class BuildConfigManager(object):
 -p PIPELINE_NAME=wscan-{pipeline_name} \
 -p REGISTRY_URL={registry_url} \
 -p NOTIFY_EMAIL={notify_email} \
+-p NOTIFY_CC_EMAILS={notify_cc_emails} \
 -p APP_ID={app_id} \
 -p JOB_ID={job_id} \
 -p DESIRED_TAG={desired_tag} \
@@ -347,7 +348,8 @@ class BuildConfigManager(object):
             registry_url=self.registry_url,
             from_address=self.from_address,
             smtp_server=self.smtp_server,
-            ccp_openshift_slave_image=self.ccp_openshift_slave_image
+            ccp_openshift_slave_image=self.ccp_openshift_slave_image,
+            notify_cc_emails=self.notify_cc_emails
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)

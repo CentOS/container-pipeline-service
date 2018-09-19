@@ -18,6 +18,12 @@ class BaseNotify(object):
             "[{registry}] SUCCESS: Container build {image_name}"
         self.build_failure_subj = \
             "[{registry}] FAILED: Container build {image_name}"
+
+        self.weekly_success_subj = \
+            "[{registry}] SUCCESS: Weekly scan for {image_name}"
+        self.weekly_failure_subj = \
+            "[{registry}] FAILED: Weekly scan for {image_name}"
+
         # <30 is adding space formatting for aligning the key values
         self.build_success_body = """\
 {0:<30}{1}
@@ -28,6 +34,13 @@ class BaseNotify(object):
 {0:<30}{1}
 {2:<30}{3}"""
 
+        self.weekly_body = """\
+{0:<30}{1}
+{2:<30}{3}"""
+
+        self.weekly_image_absent_body = "{0:<30}{1}"
+
+        # email footer to be added in all types of notifications
         self.email_footer = """\
 --
 Do you have a query?
