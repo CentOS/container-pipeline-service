@@ -1,0 +1,188 @@
+- job:
+    name: 'centos-container-index-ci'
+    description: |
+        This job is for running the CI jobs for the PRs raised to
+        https://github.com/centos/container-index.git
+        It runs the CI tests from the pipeline service repository
+        (https://github.com/centos/container-pipeline-service)
+
+        This job gets triggered when there is a PR raised to container-index
+        or \#dotests on the raised PRs
+
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-index
+    triggers:
+        - github-pull-request:
+            admin-list:
+              - kbsingh
+              - bamachrn
+              - mohammedzee1000
+              - dharmit
+              - navidshaikh
+            white-list:
+              - kbsingh
+              - bamachrn
+              - mohammedzee1000
+              - dharmit
+              - navidshaikh
+            cron: '* * * * *'
+            trigger-phrase: '#dotests'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci container-index ci tests"
+            started-status: "centos-ci container-index ci tests started"
+            success-status: "centos-ci container-index ci tests succeeded"
+            failure-status: "centos-ci container-index ci tests failed"
+            error-status: "centos-ci container-index ci tests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-index.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${ghprbactualcommit}"
+    builders:
+        - shell: |
+            git rebase origin/${ghprbTargetBranch}
+            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/cccp_ci_container_index.sh > cccp_ci_container_index.sh
+            sh ./cccp_ci_container_index.sh
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-functional'
+    description: |
+        This job is for running the functional CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service
+
+        This job gets triggered when there is a PR raised to container-pipeline-service
+        or \#dotests on the raised PRs
+
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service/
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            trigger-phrase: '#dotests'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci functional tests"
+            started-status: "centos-ci functional tests started"
+            success-status: "centos-ci functional tests succeeded"
+            failure-status: "centos-ci functional tests failed"
+            error-status: "centos-ci functional tests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${sha1}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              cd ci
+              sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1}
+            else
+              echo "PR's target branch is not openshift"
+            fi
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-unittests'
+    description: |
+        This job is for running the unit tests CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service
+
+        This job gets triggered when there is a PR raised to container-pipeline-service
+        or \#dotests-unittests on the raised PRs
+
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service/
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            trigger-phrase: '#dotests-unittests'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci unit tests"
+            started-status: "centos-ci unit tests started"
+            success-status: "centos-ci unit tests succeeded"
+            failure-status: "centos-ci unit tests failed"
+            error-status: "centos-ci unit tests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${sha1}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              bash ci/ccp_ci_unittests.sh
+            else
+              echo "PR's target branch is not openshift"
+            fi
