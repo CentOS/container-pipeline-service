@@ -3,7 +3,8 @@
 **This document discusses setting up logging infrastructure in the OpenShift
 cluster. It assumes that you have an OpenShift 3.9 cluster already setup.**
 
- If you don't have an OpenShift 3.9 cluster setup already, you can refer the installation guide [setup-openshift-372.md](setup-openshift-372.md) to install a 3.9 cluster or if you have a 3.7 cluster use [upgrade-372-390.md](../upgrade-openshift/upgrade-372-390.md) to *upgrade* OpenShift 3.9 cluster.
+ If you don't have an OpenShift 3.9 cluster setup already, you can refer the installation guide [setup-openshift-372.md](setup-openshift-372.md) to install a 3.9 cluster.
+ if you have a 3.7 cluster use [upgrade-372-390.md](../upgrade-openshift/upgrade-372-390.md) to *upgrade* to a 3.9 cluster.
 
 Logging infrastructure that we're going to setup in our cluster is going to be
 based on EFK (Elasitcsearch - Fluentd - Kibana). OpenShift has this integrated
