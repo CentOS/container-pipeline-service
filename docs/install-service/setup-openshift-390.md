@@ -391,12 +391,33 @@ $ git clone https://github.com/dharmit/ccp-openshift
 $ cd ccp-openshift
 $ oc login -u system:admin
 $ oc create -f daemon-set/scan_data.yaml
-$ oc annotate
+$ oc annotate namespace <openshift-namespace> openshift.io/node-selector=""
 ```
 
 Note: The labels defined for DaemonSet are used in pipeline seed-job/template.yaml
 to identify the container created using DaemonSet. Please keep the labels
 intact in DaemonSet template.
+
+#### Build and push the slave image with code
+
+If this is a production deployment for CentOS Container Pipeline Service, you
+may skip this step, as we use default registry.centos.org image which is built
+by an instance of this pipeline. You are free to setup your own pipeline with
+previously installed / existing registry. But even then, a first time manual
+build will be required.
+
+For any other case, read on:
+
+You can *build the image* using the following command from the *root of this
+repository*. Make sure to tag appropriately for pushing (*with Registry URL* in
+tag). and then, push it. You are free to setup your own pipeline with previously
+installed / existing registry. *But make sure the name your give here is
+replaced in the template below*
+
+```bash
+$ docker build -t ${CCP_OPENSHIFT_SLAVE_IMAGE} -f Dockerfiles/ccp-openshift-slave/Dockerfile .
+$ docker push ${CCP_OPENSHIFT_SLAVE_IMAGE}
+```
 
 #### Create the seed job
 
@@ -407,9 +428,34 @@ that will create the actual container images for projects covered in the index. 
 registry by yourself, you can use the NFS VM created for same). Replace  master with the branch you’d like to deploy.
 
 ```bash
-$ oc process -p PIPELINE_REPO=${PIPELINE_REPO}\
-     -p PIPELINE_BRANCH=${PIPELINE_BRANCH}\
+$ oc process -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO}\
+     -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH}\
      -p REGISTRY_URL=${REGISTRY_URL}\
      -p NAMESPACE=`oc project -q`\
+     -p FROM_ADDRESS=${FROM_ADDRESS}\
+     -p SMTP_SERVER=${SMTP_SERVER}\
+     -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE}\
      -f seed-job/buildtemplate.yaml | oc create -f -
 ```
+This is of course, the bare minimum. To use more parameters, just add more -p
+with appropriate parameters.
+
+The full list of parameters is below. Pay special attention to parameters
+marked as *None/Must override* as they dont even have defaults so will fail
+if nothing is provided:
+
+| PARAMETER                    | REQUIRED | DEFAULT                                                        | PURPOSE                                                                                                                                                         |
+|------------------------------|----------|----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| REGISTRY_URL                 | True     | None/Must override                                             | URL of the registry to which image is to be pushed                                                                                                              |
+| CONTAINER_INDEX_REPO         | True     | https://github.com/dharmit/ccp-openshift-index                 | Git URL of Container Index to use. Recommended to overide                                                                                                       |
+| CONTAINER_INDEX_BRANCH       | True     | master                                                         | The git branch of Container Index to use                                                                                                                        |
+| NAMESPACE                    | True     | None/Must override                                             | Namespace to which the resulting Jenkins Pipelines should belong                                                                                                |
+| FROM_ADDRESS                 | True     | None/Must override                                             | From address to be used when sending email                                                                                                                      |
+| SMTP_SERVER                  | True     | None/Must override                                             | SMTP server to use to send emails                                                                                                                               |
+| CCP_OPENSHIFT_SLAVE_IMAGE    | True     | registry.centos.org/pipeline-images/ccp-openshift-slave:latest | The jenkins slave image. This contains code, so if you are using on your own, including development environment, please build your own slave and override here. |
+| NOTIFY_CC_EMAILS             | False    | null                                                           | Comma seperated list of email ids where all notifications will be forwarded.                                                                                    |
+| PIPELINE_REPO_DIR            | True     | /opt/ccp-openshift                                             | Path in slave which contains pipeline code. You will almost always never need to override, unless you modify how slave is built.                                |
+| CONTAINER_INDEX_DIR          | True     | /tmp/container-index                                           | Directory where container index is to be cloned. Again almost never needs to be overridden                                                                      |
+| BATCH_SIZE                   | True     | 5                                                              | Number of builds to process in a batch. Increase if you have resources.                                                                                         |
+| BATCH_POLLING_INTERVAL       | True     | 30                                                             | Polling interval (in seconds) between two batches to check if any builds are outstanding. Increase if you need more delay.                                      |
+| BATCH_OUTSTANDING_BUILDS_CAP | True     | 3                                                              | If these many builds are still pending, next batch will not be processed.                                                                                       |
