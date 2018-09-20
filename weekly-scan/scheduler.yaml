@@ -57,7 +57,7 @@ objects:
                 - name: jenkins-secret
                   secret:
                     secretName: ${JENKINS_SECRET_NAME}
-                    #              restartPolicy: OnFailure
+              restartPolicy: Never
 parameters:
   - description: The delay in seconds to give before triggering each weekly scan.
     displayName: Batch Trigger Delay
