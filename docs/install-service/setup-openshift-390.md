@@ -5,7 +5,7 @@ and multi-node (2 masters, 2 nodes) OpenShift cluster based on RPM installation*
 
 ## Setup the nodes
 
-Bring up 5 nodes (including the Ansible controller, 2 for master and 2 for slave)
+Bring up 5 nodes (including 1 Ansible controller, 2 for master and 2 for slave)
 
 ### [CentOS DevCloud](https://wiki.centos.org/DevCloud)
 
@@ -64,7 +64,7 @@ ssh -t centos@$op4_ip "sh script.sh"
 
 ### Other Infrastructure
 
-Please make sure you have nodes as expected above one Ansible controller and 4 nodes 2 masters and 2 nodes.
+Please make sure you have nodes as expected above 1 Ansible controller and 4 nodes 2 masters and 2 nodes.
 
 ## Setup NFS Storage
 
@@ -171,10 +171,10 @@ debug_level=4
 openshift_master_api_port=8443
 # openshift_master_console_port=8756
 openshift_deployment_type=origin
-openshift_release=v3.7
+openshift_release=v3.9
 os_firewall_use_firewalld=true
 openshift_clock_enabled=false
-openshift_pkg_version=-3.7.2
+openshift_pkg_version=-3.9.0
 openshift_enable_service_catalog=false
 openshift_docker_insecure_registries=172.29.33.8:5000
 openshift_docker_additional_registries=172.29.33.8:5000
@@ -207,6 +207,8 @@ os-node-1.lon1.centos.org openshift_node_labels="{'region':'primary','zone': 'de
 os-node-2.lon1.centos.org openshift_node_labels="{'region':'primary','zone': 'default','purpose':'prod'}" openshift_schedulable=true openshift_ip=172.29.33.32
 ```
 ## Setting up the cluster
+
+### Pre-install for all nodes, except ansible controller
 
 Now, we will perform some pre-install steps that will setup these nodes for
 OpenShift installation. Use the following Ansible inventory file:
@@ -249,7 +251,7 @@ OpenShift installation. Use the following Ansible inventory file:
             - centos-release-openshift-origin39.noarch
             - python-ipaddress
 
-      - name: Start serices
+      - name: Start services
         systemd: state=started enabled=yes name={{ item }}
         with_items:
             - NetworkManager
@@ -289,8 +291,10 @@ Last step in above playbook is to reboot the nodes because:
 - We want to make sure that mount point entry in `/etc/fstab` file is working
   as expected.
 
+### Setup openshift in cluster
+
 Now we do the actual OpenShift cluster installation. Start the cluster installation with this
-command. I prefer to time it so that I get a rough idea about how long the cluster setup
+command. We prefer to time it so that we get a rough idea about how long the cluster setup
 took:
 
 ```bash
@@ -319,28 +323,32 @@ few steps before that. We need to:
   following yml template:
   ```bash
   $ cat jenkins-pv.yml
+  ```
+  Output :
+  ```yaml
   apiVersion: v1
   kind: PersistentVolume
   metadata:
-  name: jenkins
-  namespace: cccp
+    name: jenkins
   spec:
-  capacity:
-  storage: 5Gi
-  accessModes:
-  - ReadWriteOnce
-  nfs:
-  path: /jenkins
-  server: 172.29.33.8
-  persistentVolumeReclaimPolicy: Recycle
-
+    capacity:
+      storage: 5Gi
+    accessModes:
+    - ReadWriteOnce
+    nfs:
+      path: /jenkins
+      server: 172.29.33.8
+    persistentVolumeReclaimPolicy: Recycle
+  ```
+  Login and ceate the PV :
+  ```bash
   $ oc login -u system:admin --config ~/.kube/config
 
   $ oc create -f jenkins-pv.yml
   ```
 - Bring up a Jenkins server using the jenkins persistent template. This has to
   be done as normal user and not as admin user. ​ Make sure that the
-  Jenkins PV you created in above step is formated/emptied. ​ I spent about
+  Jenkins PV you created in above step is formated/emptied. ​ We spent about
   2 days trying to debug issues arising out of stale data on that NFS storage.
   Also add an extra environment variable to make sure that parallel builds work
   as expected:
@@ -366,7 +374,11 @@ To access Jenkins web console, you’ll need to check the OpenShift web console 
 route that was created with nip.io subdomain. This should be visible on the
 project/namespace’s homepage on OpenShift console.
 
-Configuring DaemonSet: Scanning is one of the build pipeline phase the service
+### Deploy the application
+
+#### Configuring DaemonSet
+
+Scanning is one of the build pipeline phase the service
 offers. In scanning, we introspect the image built. In order to make scanning
 module available on all the possible builder nodes, we configure and deploy
 DaemonSet. The DeamonSet spins up a pod per builder node, which avails a docker
@@ -379,11 +391,14 @@ $ git clone https://github.com/dharmit/ccp-openshift
 $ cd ccp-openshift
 $ oc login -u system:admin
 $ oc create -f daemon-set/scan_data.yaml
+$ oc annotate
 ```
 
 Note: The labels defined for DaemonSet are used in pipeline seed-job/template.yaml
 to identify the container created using DaemonSet. Please keep the labels
 intact in DaemonSet template.
+
+#### Create the seed job
 
 Finally create the Jenkins Pipeline build to parse the container-index. This will create a
 seed-job which will parse the container index and create more Jenkins Pipeline builds
@@ -392,5 +407,9 @@ that will create the actual container images for projects covered in the index. 
 registry by yourself, you can use the NFS VM created for same). Replace  master with the branch you’d like to deploy.
 
 ```bash
-$ oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml | oc create -f -
+$ oc process -p PIPELINE_REPO=${PIPELINE_REPO}\
+     -p PIPELINE_BRANCH=${PIPELINE_BRANCH}\
+     -p REGISTRY_URL=${REGISTRY_URL}\
+     -p NAMESPACE=`oc project -q`\
+     -f seed-job/buildtemplate.yaml | oc create -f -
 ```
