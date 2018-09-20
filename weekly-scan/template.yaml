@@ -47,7 +47,11 @@ objects:
                     def image_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
                     def daemonset_name = "scan-data_scan-data"
                     def image_in_registry = false
+                    // setting this to ensure the user is notified correctly if the required stages in weekly scan are complete
                     def success = false
+                    // setting this to ensure the image is removed from the system if its being pulled or/and scanned
+                    def image_is_pulled = false
+
                     try{
                         stage('Check if image exists in registry'){
                             sh "curl ${image_tags} | grep ${DESIRED_TAG}"
@@ -55,6 +59,7 @@ objects:
                         }
                         stage('Pull the docker image'){
                             sh "docker pull ${image_name_with_registry}"
+                            image_is_pulled = true
                         }
                         stage('Scan the image') {
                             parallel (
@@ -76,9 +81,7 @@ objects:
                                   sh "cat capabilities"
                                 }
                             )
-                        }
-                        stage('Remove the docker image'){
-                            sh "docker rmi ${image_name_with_registry}"
+                            // image pull - scan is successful in weeklyscan case
                             success = true
                         }
                     }
@@ -94,10 +97,20 @@ objects:
                           } else {
                             sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py image_absent ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                         }
-                      }
-                    }
-                }
-            }
+
+                          if (image_is_pulled == true) {
+
+                            // this stage should be triggered only if image_is_pulled
+                            // or if image_is_pulled and there are failures in subsequent stage(s) after image is pulled (i.e. scan stage)
+                            // we need to make sure the image is removed in either case
+                            stage('Remove the image') {
+                              sh (script: "docker rmi $image_name_with_registry", returnStatus: true)
+                            }
+                          }
+                        }
+                     }
+                  }
+              }
           env:
           - name: NAMESPACE
             value: ${NAMESPACE}
