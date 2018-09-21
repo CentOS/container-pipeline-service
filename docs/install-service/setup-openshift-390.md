@@ -459,3 +459,21 @@ if nothing is provided:
 | BATCH_SIZE                   | True     | 5                                                              | Number of builds to process in a batch. Increase if you have resources.                                                                                         |
 | BATCH_POLLING_INTERVAL       | True     | 30                                                             | Polling interval (in seconds) between two batches to check if any builds are outstanding. Increase if you need more delay.                                      |
 | BATCH_OUTSTANDING_BUILDS_CAP | True     | 3                                                              | If these many builds are still pending, next batch will not be processed.                                                                                       |
+
+#### Create weekly-scan scheduler
+
+Weekly scan pipelines, while initialized by seed job, are not scheduled and
+managed by it. There is a seperate scheduler to handle that. To add the
+scheduler, do the following
+
+First, setup a ConfigMap that contains URL of openshift master as below. Note, ports if any, must be included.
+```bash
+$ oc process -p OS_MASTER_URL="https://os-master.example.com:8443" -f weekly-scan/os-master-config.yaml | oc apply -f -
+```
+
+Now, we need the Jenkins token to be made available. To do this, do the following
+
+```bash
+$ oc get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' # Name will be something like jenkins-token-blah
+$ oc process -p JENKINS_SECRET_NAME=jenkins-token-blah -f weekly-scan/scheduler.yaml | oc apply -f -
+```
