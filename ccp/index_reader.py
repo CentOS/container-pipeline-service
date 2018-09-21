@@ -309,11 +309,20 @@ class BuildConfigManager(object):
         # if a buildConfig has config update, oc apply returns
         # "buildconfig.build.openshift.io "$PIPELINE_NAME" configured"
         # possible values are ["unchanged", "created", "configured"]
-        # we are looking for "configured" string for updated pipelines
-        if "configured" in output:
-            _print("{} is updated, starting build..".format(
-                project.pipeline_name))
-            self.start_build(project.pipeline_name)
+        # we are looking for "configured" string for updated pipeline
+        # templates.
+        # Update: 21 Sept 2018 :
+        # We are seeing hundreds of build triggered due to configChange,
+        # which is unnecessary, because configChange can merely be
+        # any parameter change in the template.
+        # The parameters we care about for re-triggering builds are
+        # taken care already by master-job, SCM polling, where each index
+        # entry's git-url and git-branch are already being monitored.
+        # Thus stopping the behavior to start-build of configured pipelines.
+        # if "configured" in output:
+        #    _print("{} is updated, starting build..".format(
+        #        project.pipeline_name))
+        #    self.start_build(project.pipeline_name)
 
     @retry(tries=10, delay=3, backoff=2)
     def apply_weekly_scan(self,
