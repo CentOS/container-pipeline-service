@@ -87,18 +87,20 @@ objects:
                           sh "mkfifo /var/spool/postfix/public/pickup && postfix start"
                           if (image_in_registry==true) {
                             if (success==true) {
-                              sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py success cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                              sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py success ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                             } else {
-                              sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py failure cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                              sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py failure ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                             }
                           } else {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py image_absent cccp `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py image_absent ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                         }
                       }
                     }
                 }
             }
           env:
+          - name: NAMESPACE
+            value: ${NAMESPACE}
           - name: NOTIFY_EMAIL
             value: ${NOTIFY_EMAIL}
           - name: NOTIFY_CC_EMAILS
@@ -122,6 +124,10 @@ objects:
           - name: SMTP_SERVER
             value: ${SMTP_SERVER}
 parameters:
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true
 - description: Email to send notification to
   displayName: Notification email
   name: NOTIFY_EMAIL
