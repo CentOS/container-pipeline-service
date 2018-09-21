@@ -1,8 +1,13 @@
+# Setup on Openshift Origin 3.9
+
 **This document describes the steps to be followed to bring up a multi-master
-and multi-node (2 masters, 2 nodes) OpenShift cluster based on RPM installation
-on [CentOS DevCloud](https://wiki.centos.org/DevCloud). Steps to set things up
-on any other infrastructure should be pretty much the same with infrastructure
-specific adjustments that might be required.**
+and multi-node (2 masters, 2 nodes) OpenShift cluster based on RPM installation**
+
+## Setup the nodes
+
+Bring up 5 nodes (including 1 Ansible controller, 2 for master and 2 for slave)
+
+### [CentOS DevCloud](https://wiki.centos.org/DevCloud)
 
 A separate system is expected to be reserved as Ansible Controller node from
 which we will perform the installation of the cluster. A system similar to
@@ -56,7 +61,14 @@ ssh -t centos@$op3_ip "sh script.sh"
 ssh -t centos@$op4_ip "sh script.sh"
 ```
 
-Now the systems are ready. We need to create one more system on DevCloud for
+
+### Other Infrastructure
+
+Please make sure you have nodes as expected above 1 Ansible controller and 4 nodes 2 masters and 2 nodes.
+
+## Setup NFS Storage
+
+Now the systems are ready. We need to create one more system in the infra for
 NFS storage to be used by Jenkins and container registry. If you're in a
 different infrastructure and your administrator can provide you with access to
 NFS storage, you might skip this step and modify things accordingly at a later
@@ -105,10 +117,14 @@ $ systemctl enable --now docker-distribution
 ```
 
 Once the VMs are properly setup and NFS is exported, it’s time to setup the cluster.
-Install openshift-ansible RPM on Ansible controller VM.
+
+## Setup Ansible Controller
+
+Please ensure atleast ansible 2.4.3 is installed. In case of CentOS 7 nodes, 2.4.3 is not available in default repositories, but you may install and install openshift-ansible RPM on Ansible controller VM. 
 
 ```bash
-$ yum install centos-release-openshift-origin37.noarch
+$ yum install http://cbs.centos.org/kojifiles/packages/ansible/2.4.3.0/1.el7/noarch/ansible-2.4.3.0-1.el7.noarch.rpm
+$ yum install centos-release-openshift-origin39.noarch
 $ yum install openshift-ansible
 ```
 
@@ -155,10 +171,10 @@ debug_level=4
 openshift_master_api_port=8443
 # openshift_master_console_port=8756
 openshift_deployment_type=origin
-openshift_release=v3.7
+openshift_release=v3.9
 os_firewall_use_firewalld=true
 openshift_clock_enabled=false
-openshift_pkg_version=-3.7.2
+openshift_pkg_version=-3.9.0
 openshift_enable_service_catalog=false
 openshift_docker_insecure_registries=172.29.33.8:5000
 openshift_docker_additional_registries=172.29.33.8:5000
@@ -190,6 +206,9 @@ os-master-2.lon1.centos.org openshift_node_labels="{'region': 'infra','zone': 'd
 os-node-1.lon1.centos.org openshift_node_labels="{'region':'primary','zone': 'default','purpose':'prod'}" openshift_schedulable=true openshift_ip=172.29.33.36
 os-node-2.lon1.centos.org openshift_node_labels="{'region':'primary','zone': 'default','purpose':'prod'}" openshift_schedulable=true openshift_ip=172.29.33.32
 ```
+## Setting up the cluster
+
+### Pre-install for all nodes, except ansible controller
 
 Now, we will perform some pre-install steps that will setup these nodes for
 OpenShift installation. Use the following Ansible inventory file:
@@ -229,10 +248,10 @@ OpenShift installation. Use the following Ansible inventory file:
             - NetworkManager
             - firewalld
             - python-rhsm-certificates
-            - centos-release-openshift-origin37.noarch
+            - centos-release-openshift-origin39.noarch
             - python-ipaddress
 
-      - name: Start serices
+      - name: Start services
         systemd: state=started enabled=yes name={{ item }}
         with_items:
             - NetworkManager
@@ -263,7 +282,7 @@ OpenShift installation. Use the following Ansible inventory file:
 Run the pre-install tasks with:
 
 ```bash
-$ ansible-playbook -i hosts.37 pre-install.yml
+$ ansible-playbook -i hosts pre-install.yml
 ```
 
 Last step in above playbook is to reboot the nodes because:
@@ -272,12 +291,14 @@ Last step in above playbook is to reboot the nodes because:
 - We want to make sure that mount point entry in `/etc/fstab` file is working
   as expected.
 
+### Setup openshift in cluster
+
 Now we do the actual OpenShift cluster installation. Start the cluster installation with this
-command. I prefer to time it so that I get a rough idea about how long the cluster setup
+command. We prefer to time it so that we get a rough idea about how long the cluster setup
 took:
 
 ```bash
-$ time ansible-playbook -i hosts.37 /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml -vvv
+$ time ansible-playbook -i hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml -vvv
 ```
 
 Once the cluster is setup, we need to bring up a Jenkins server using the jenkins
@@ -302,28 +323,32 @@ few steps before that. We need to:
   following yml template:
   ```bash
   $ cat jenkins-pv.yml
+  ```
+  Output :
+  ```yaml
   apiVersion: v1
   kind: PersistentVolume
   metadata:
-  name: jenkins
-  namespace: cccp
+    name: jenkins
   spec:
-  capacity:
-  storage: 5Gi
-  accessModes:
-  - ReadWriteOnce
-  nfs:
-  path: /jenkins
-  server: 172.29.33.8
-  persistentVolumeReclaimPolicy: Recycle
-
+    capacity:
+      storage: 5Gi
+    accessModes:
+    - ReadWriteOnce
+    nfs:
+      path: /jenkins
+      server: 172.29.33.8
+    persistentVolumeReclaimPolicy: Recycle
+  ```
+  Login and ceate the PV :
+  ```bash
   $ oc login -u system:admin --config ~/.kube/config
 
   $ oc create -f jenkins-pv.yml
   ```
 - Bring up a Jenkins server using the jenkins persistent template. This has to
   be done as normal user and not as admin user. ​ Make sure that the
-  Jenkins PV you created in above step is formated/emptied. ​ I spent about
+  Jenkins PV you created in above step is formated/emptied. ​ We spent about
   2 days trying to debug issues arising out of stale data on that NFS storage.
   Also add an extra environment variable to make sure that parallel builds work
   as expected:
@@ -336,8 +361,10 @@ few steps before that. We need to:
   $ oc set env dc/jenkins JENKINS_JAVA_OVERRIDES="-Dhudson.slaves.NodeProvisioner.initialDelay=0,-Dhudson.slaves.NodeProvisioner.MARGIN=50,-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85"
 
   # add required permissions
-  $ oc login -u system:admin$ oc adm policy add-scc-to-user privilegedsystem:serviceaccount:cccp:jenkins
-  $ oc adm policy add-role-to-user system:image-buildersystem:serviceaccount:cccp:jenkins
+  $ oc login -u system:admin
+  $ oc adm policy add-scc-to-user privileged system:serviceaccount:cccp:jenkins
+  $ oc adm policy add-role-to-user system:image-builder system:serviceaccount:cccp:jenkins
+
   ```
 
 Now go to the OpenShift web console and check if Jenkins deployment has come up
@@ -347,7 +374,11 @@ To access Jenkins web console, you’ll need to check the OpenShift web console 
 route that was created with nip.io subdomain. This should be visible on the
 project/namespace’s homepage on OpenShift console.
 
-Configuring DaemonSet: Scanning is one of the build pipeline phase the service
+### Deploy the application
+
+#### Configuring DaemonSet
+
+Scanning is one of the build pipeline phase the service
 offers. In scanning, we introspect the image built. In order to make scanning
 module available on all the possible builder nodes, we configure and deploy
 DaemonSet. The DeamonSet spins up a pod per builder node, which avails a docker
@@ -360,11 +391,35 @@ $ git clone https://github.com/dharmit/ccp-openshift
 $ cd ccp-openshift
 $ oc login -u system:admin
 $ oc create -f daemon-set/scan_data.yaml
+$ oc annotate namespace <openshift-namespace> openshift.io/node-selector=""
 ```
 
 Note: The labels defined for DaemonSet are used in pipeline seed-job/template.yaml
 to identify the container created using DaemonSet. Please keep the labels
 intact in DaemonSet template.
+
+#### Build and push the slave image with code
+
+If this is a production deployment for CentOS Container Pipeline Service, you
+may skip this step, as we use default registry.centos.org image which is built
+by an instance of this pipeline. You are free to setup your own pipeline with
+previously installed / existing registry. But even then, a first time manual
+build will be required.
+
+For any other case, read on:
+
+You can *build the image* using the following command from the *root of this
+repository*. Make sure to tag appropriately for pushing (*with Registry URL* in
+tag). and then, push it. You are free to setup your own pipeline with previously
+installed / existing registry. *But make sure the name your give here is
+replaced in the template below*
+
+```bash
+$ docker build -t ${CCP_OPENSHIFT_SLAVE_IMAGE} -f Dockerfiles/ccp-openshift-slave/Dockerfile .
+$ docker push ${CCP_OPENSHIFT_SLAVE_IMAGE}
+```
+
+#### Create the seed job
 
 Finally create the Jenkins Pipeline build to parse the container-index. This will create a
 seed-job which will parse the container index and create more Jenkins Pipeline builds
@@ -373,5 +428,52 @@ that will create the actual container images for projects covered in the index. 
 registry by yourself, you can use the NFS VM created for same). Replace  master with the branch you’d like to deploy.
 
 ```bash
-$ oc process -p PIPELINE_REPO=${PIPELINE_REPO} -p PIPELINE_BRANCH=${PIPELINE_BRANCH} -p REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=`oc project -q` -f seed-job/buildtemplate.yaml | oc create -f -
+$ oc process -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO}\
+     -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH}\
+     -p REGISTRY_URL=${REGISTRY_URL}\
+     -p NAMESPACE=`oc project -q`\
+     -p FROM_ADDRESS=${FROM_ADDRESS}\
+     -p SMTP_SERVER=${SMTP_SERVER}\
+     -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE}\
+     -f seed-job/buildtemplate.yaml | oc create -f -
+```
+This is of course, the bare minimum. To use more parameters, just add more -p
+with appropriate parameters.
+
+The full list of parameters is below. Pay special attention to parameters
+marked as *None/Must override* as they dont even have defaults so will fail
+if nothing is provided:
+
+| PARAMETER                    | REQUIRED | DEFAULT                                                        | PURPOSE                                                                                                                                                         |
+|------------------------------|----------|----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| REGISTRY_URL                 | True     | None/Must override                                             | URL of the registry to which image is to be pushed                                                                                                              |
+| CONTAINER_INDEX_REPO         | True     | https://github.com/dharmit/ccp-openshift-index                 | Git URL of Container Index to use. Recommended to overide                                                                                                       |
+| CONTAINER_INDEX_BRANCH       | True     | master                                                         | The git branch of Container Index to use                                                                                                                        |
+| NAMESPACE                    | True     | None/Must override                                             | Namespace to which the resulting Jenkins Pipelines should belong                                                                                                |
+| FROM_ADDRESS                 | True     | None/Must override                                             | From address to be used when sending email                                                                                                                      |
+| SMTP_SERVER                  | True     | None/Must override                                             | SMTP server to use to send emails                                                                                                                               |
+| CCP_OPENSHIFT_SLAVE_IMAGE    | True     | registry.centos.org/pipeline-images/ccp-openshift-slave:latest | The jenkins slave image. This contains code, so if you are using on your own, including development environment, please build your own slave and override here. |
+| NOTIFY_CC_EMAILS             | False    | null                                                           | Comma seperated list of email ids where all notifications will be forwarded.                                                                                    |
+| PIPELINE_REPO_DIR            | True     | /opt/ccp-openshift                                             | Path in slave which contains pipeline code. You will almost always never need to override, unless you modify how slave is built.                                |
+| CONTAINER_INDEX_DIR          | True     | /tmp/container-index                                           | Directory where container index is to be cloned. Again almost never needs to be overridden                                                                      |
+| BATCH_SIZE                   | True     | 5                                                              | Number of builds to process in a batch. Increase if you have resources.                                                                                         |
+| BATCH_POLLING_INTERVAL       | True     | 30                                                             | Polling interval (in seconds) between two batches to check if any builds are outstanding. Increase if you need more delay.                                      |
+| BATCH_OUTSTANDING_BUILDS_CAP | True     | 3                                                              | If these many builds are still pending, next batch will not be processed.                                                                                       |
+
+#### Create weekly-scan scheduler
+
+Weekly scan pipelines, while initialized by seed job, are not scheduled and
+managed by it. There is a seperate scheduler to handle that. To add the
+scheduler, do the following
+
+First, setup a ConfigMap that contains URL of openshift master as below. Note, ports if any, must be included.
+```bash
+$ oc process -p OS_MASTER_URL="https://os-master.example.com:8443" -f weekly-scan/os-master-config.yaml | oc apply -f -
+```
+
+Now, we need the Jenkins token to be made available. To do this, do the following
+
+```bash
+$ oc get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' # Name will be something like jenkins-token-blah
+$ oc process -p JENKINS_SECRET_NAME=jenkins-token-blah -f weekly-scan/scheduler.yaml | oc apply -f -
 ```
