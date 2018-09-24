@@ -154,7 +154,7 @@
                 - mohammedzee1000
                 - cdrage
             trigger-phrase: '#dotests-debug'
-            only-trigger-phrase: false
+            only-trigger-phrase: true
             github-hooks: true
             permit-all: false
             auto-close-on-fail: false
