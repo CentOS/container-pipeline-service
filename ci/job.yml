@@ -158,11 +158,11 @@
             github-hooks: true
             permit-all: false
             auto-close-on-fail: false
-            status-context: "centos-ci functional tests"
-            started-status: "centos-ci functional tests started"
-            success-status: "centos-ci functional tests succeeded"
-            failure-status: "centos-ci functional tests failed"
-            error-status: "centos-ci functional tests errored"
+            status-context: "centos-ci functional-debug tests"
+            started-status: "centos-ci functional-debug tests started"
+            success-status: "centos-ci functional-debug tests succeeded"
+            failure-status: "centos-ci functional-debug tests failed"
+            error-status: "centos-ci functional-debug tests errored"
     wrappers:
         - ansicolor
     scm:
@@ -225,11 +225,11 @@
             github-hooks: true
             permit-all: false
             auto-close-on-fail: false
-            status-context: "centos-ci unit tests"
-            started-status: "centos-ci unit tests started"
-            success-status: "centos-ci unit tests succeeded"
-            failure-status: "centos-ci unit tests failed"
-            error-status: "centos-ci unit tests errored"
+            status-context: "centos-ci unittests"
+            started-status: "centos-ci unittests started"
+            success-status: "centos-ci unittests succeeded"
+            failure-status: "centos-ci unittests failed"
+            error-status: "centos-ci unittests errored"
     wrappers:
         - ansicolor
     scm:
@@ -246,10 +246,76 @@
             echo ${sha1}
             echo ${GIT_URL}
             echo ${GIT_BRANCH}
+            CI_DEBUG=0
             if [ ${ghprbTargetBranch} == "openshift" ]
             then
               git rebase origin/${ghprbTargetBranch}
-              bash ci/ccp_ci_unittests.sh
+              bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
             else
-              echo "PR's target branch is not openshift"
+              echo "PR's target branch is not openshift."
+            fi
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-unittests-debug'
+    description: |
+        This job is for running the unit tests CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service.
+
+        This job triggers when \#dotests-unittests-debug is commented on a PR. If the unittests CI job fails, it keep the duff node(s) for 2 hours before releasing, so that the devs can debug.
+
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    ci_project: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service.git
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+                - cdrage
+            trigger-phrase: '#dotests-unittests-debug'
+            only-trigger-phrase: true
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci unittests-debug"
+            started-status: "centos-ci unittests-debug started"
+            success-status: "centos-ci unittests-debug succeeded"
+            failure-status: "centos-ci unittests-debug failed"
+            error-status: "centos-ci unittests-debug errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${sha1}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            CI_DEBUG=1
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
+            else
+              echo "PR's target branch is not openshift."
             fi
