@@ -4,14 +4,14 @@ mark_failure()
     echo "====================CI-failed====================="
     echo "$1"
     echo "=================================================="
-    echo "CI complete releasing the nodes"
-    if [ $CI_DEBUG -eq 0]
+    if [ $CI_DEBUG -eq 0 ]
     then
+        echo "CI is complete, releasing the nodes."
         cico node done $cico_node_key
     else
-        echo "================================================================"
-        echo "DEBUG mode is set for CI, keeping nodes for 2 hour for debugging"
-        echo "================================================================"
+        echo "====================================================================="
+        echo "DEBUG mode is set for CI, keeping the nodes for 2 hour for debugging."
+        echo "====================================================================="
         sleep $DEBUG_PERIOD
     fi
     exit 1
@@ -264,12 +264,13 @@ else
     echo "Failed Build check Passed: SUCCESS"
 fi
 
-if [ $CI_DEBUG -eq 0]
+if [ $CI_DEBUG -eq 0 ]
 then
-    echo "CI is complete releasing the nodes"
+    echo "Functional CI is complete, releasing the nodes."
     cico node done $cico_node_key
 else
     echo "============================================================"
     echo "DEBUG mode is set for CI, keeping nodes for debugging"
     echo "============================================================"
+    sleep $DEBUG_PERIOD
 fi
