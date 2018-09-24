@@ -60,10 +60,10 @@
     name: 'centos-container-pipeline-service-ci-pr-functional'
     description: |
         This job is for running the functional CI jobs for the PRs raised to
-        https://github.com/centos/container-pipeline-service
+        https://github.com/centos/container-pipeline-service.
 
         This job gets triggered when there is a PR raised to container-pipeline-service
-        or \#dotests on the raised PRs
+        or \#dotests is commented on the raised PRs.
 
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
@@ -117,16 +117,20 @@
             if [ ${ghprbTargetBranch} == "openshift" ]
             then
               git rebase origin/${ghprbTargetBranch}
-              cd ci
-              sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
+              sh ci/trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
             else
-              echo "PR's target branch is not openshift"
+              echo "PR's target branch is not openshift."
             fi
 
 
 - job:
     name: 'centos-container-pipeline-service-ci-pr-functional-debug'
     description: |
+        This job is for running the functional CI debug jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service.
+
+        This job triggers when \#dotests-debug is commented on a PR. If the functional CI job fails, it keeps the duffy nodes for 2 hours before releasing, so that the devs can debug.
+
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     ci_project: container
@@ -181,7 +185,7 @@
               git rebase origin/${ghprbTargetBranch}
               sh ci/trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
             else
-              echo "PRs target branch is not openshift"
+              echo "PRs target branch is not openshift."
             fi
 
 
