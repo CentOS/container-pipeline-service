@@ -54,7 +54,11 @@ objects:
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def daemonset_name = "scan-data_scan-data"
+                    // setting this to ensure the user is notificatied only after the mandatory stages are complete
+                    // i.e. (checkout, prebuild) - lint - build - scan - deliver
                     def success = false
+                    // setting this to ensure the image is removed from the system if its locally built
+                    def image_is_built = false
                     try {
                         stage('Checkout Source') {
                             checkout([
@@ -97,6 +101,7 @@ objects:
                                 sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
                                 sh "docker images"
                             }
+                            image_is_built = true
                         }
                         stage('Scan the image') {
                             parallel (
@@ -122,14 +127,10 @@ objects:
                         stage("Push image to registry") {
                             sh "docker tag ${image_name} ${image_name_with_registry}"
                             sh "docker push ${image_name_with_registry}"
-                        }
-                        // this stage should be triggered after image is delivered to the registry
-                        stage('Remove the image'){
-                            sh "docker rmi ${image_name_with_registry}"
-                            sh "docker rmi ${image_name}"
                             // image lint - build - scan - deliver is successful
                             success = true
                         }
+
                     }
                     finally {
                       stage("Notify user"){
@@ -140,6 +141,16 @@ objects:
                             sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/notify.py failed ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
                             }
                     }
+                      if (image_is_built == true) {
+                        // this stage should be triggered only if image_is_built
+                        // or if image_is_built and there are failures in subsequent stages after building the image
+                        // we need to make sure the image is removed in either case
+                        stage('Remove the image') {
+                          // don't fail the pipeline if image removal failed due to some error
+                          // the dangling images removal should be handled seprately by some cron etc
+                          sh (script: "docker rmi ${image_name_with_registry}; docker rmi ${image_name}", returnStatus: true)
+                        }
+                      }
                   }
               }
             }
