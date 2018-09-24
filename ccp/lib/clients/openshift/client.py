@@ -14,9 +14,11 @@ class OpenShiftCmdClient(CmdClient):
         )
 
     @retry(tries=10, delay=3, backoff=2)
-    def get_sa_token_from_openshift(self, sa="sa/jenkins"):
+    def get_sa_token_from_openshift(self, namespace, sa="sa/jenkins"):
         """
         Gets service account token assuming user is already logged in
+        :param namespace: The namespace of the service account.
+        :type namespace str
         :param sa: Default sa/jenkins: The service account whose token is
         needed
         :type sa str
@@ -24,10 +26,11 @@ class OpenShiftCmdClient(CmdClient):
         :rtype: str
         :raises Exception
         """
-        c1 = "%s get %s --template='{{range .secrets}}" % \
-             (self.base_command, sa)
+        c1 = "%s get %s -n %s --template='{{range .secrets}}" % \
+             (self.base_command, sa, namespace)
         c1 = c1 + "{{ .name }} {{end}}' "
-        c2 = "xargs -n 1 %s get secret --template=" % self.base_command
+        c2 = "xargs -n 1 %s get secret -n %s --template=" \
+             % (self.base_command, namespace)
         c2 = c2 + "'{{ if .data.token }}{{ .data.token }}{{end}}'"
         c3 = "head -n 1"
         c4 = "base64 -d -"
