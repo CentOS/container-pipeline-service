@@ -70,7 +70,7 @@
     ci_project: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-pipeline-service/
+            url: https://github.com/CentOS/container-pipeline-service.git
     triggers:
         - github-pull-request:
             admin-list:
@@ -132,7 +132,7 @@
     ci_project: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-pipeline-service/
+            url: https://github.com/CentOS/container-pipeline-service.git
     triggers:
         - github-pull-request:
             admin-list:
@@ -179,8 +179,7 @@
             if [ ${ghprbTargetBranch} == "openshift" ]
             then
               git rebase origin/${ghprbTargetBranch}
-              cd ci
-              sh trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
+              sh ci/trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
             else
               echo "PRs target branch is not openshift"
             fi
@@ -200,7 +199,7 @@
     ci_project: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-pipeline-service/
+            url: https://github.com/CentOS/container-pipeline-service.git
     triggers:
         - github-pull-request:
             admin-list:
