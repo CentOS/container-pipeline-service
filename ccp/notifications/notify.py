@@ -13,7 +13,7 @@ from ccp.lib.email import SendEmail
 
 class BuildNotify(BaseNotify):
     """
-    Notify class has related methods to notify
+    BuildNotify class has related methods to notify
     user about build status and details
     """
 
