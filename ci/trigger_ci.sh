@@ -9,9 +9,10 @@ mark_failure()
     then
         cico node done $cico_node_key
     else
-        echo "============================================================"
-        echo "DEBUG mode is set for CI, keeping nodes for debugging"
-        echo "============================================================"
+        echo "================================================================"
+        echo "DEBUG mode is set for CI, keeping nodes for 2 hour for debugging"
+        echo "================================================================"
+        sleep $DEBUG_PERIOD
     fi
     exit 1
 }
@@ -19,6 +20,8 @@ mark_failure()
 set +e
 export CICO_API_KEY=$(cat ~/duffy.key)
 rtn_code=0
+# debug period = 2 hours = 7200 seconds
+DEBUG_PERIOD=7200
 
 echo "Get nodes from duffy pool"
 IFS=' ' read -ra node_details <<< $(cico node get --count 4 -f value -c hostname -c ip_address -c comment)
