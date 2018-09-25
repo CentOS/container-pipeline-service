@@ -1,0 +1,51 @@
+# Create an OSEv3 group that contains the masters and nodes groups
+[OSEv3:children]
+masters
+nodes
+etcd
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+# SSH user, this user should allow ssh based auth without requiring a password
+# If ansible_ssh_user is not root, ansible_become must be set to true
+ansible_ssh_user=ANSIBLE_SSH_USER
+
+debug_level=4
+
+openshift_master_api_port=8443
+openshift_deployment_type=origin
+openshift_release=v3.9
+os_firewall_use_firewalld=false
+openshift_disable_swap=false
+openshift_clock_enabled=false
+openshift_pkg_version=-3.9.0
+#openshift_image_tag=v3.9.0
+openshift_enable_service_catalog=false
+openshift_docker_insecure_registries=REGISTRY_URL
+openshift_docker_additional_registries=registry.centos.org
+openshift_master_default_subdomain={{ hostvars[groups['masters'][0]].openshift_ip }}.nip.io
+#cluster_subnet=cluster_subnet_ip/8
+
+# uncomment the following to enable htpasswd authentication; defaults to DenyAllPasswordIdentityProvider
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+#pre-configure dev user
+openshift_master_htpasswd_users={'dev': '$apr1$aIR9qk/K$kdEBbyak6ciQcwLnABi.b/'}
+
+# default selectors for router and registry services
+openshift_router_selector='region=infra'
+openshift_registry_selector='region=infra'
+openshift_disable_check=docker_storage,memory_availability
+
+# host group for masters
+[masters]
+MASTER_1_IP_OR_HOSTNAME
+MASTER_2_IP_OR_HOSTNAME
+
+# host group for etcd
+[etcd]
+MASTER_1_IP_OR_HOSTNAME
+
+# host group for nodes, includes region info
+[nodes]
+NODE_1_IP_OR_HOSTNAME openshift_node_group_name="node-config-infra" openshift_node_labels="{'region': 'infra','zone': 'default','purpose':'infra'}" openshift_schedulable=true openshift_ip=node_1_ip
+NODE_2_IP_OR_HOSTNAME openshift_node_group_name="node-config-compute" openshift_node_labels="{'region':'primary','zone': 'default','purpose':'prod'}" openshift_schedulable=true openshift_ip=node_2_ip
