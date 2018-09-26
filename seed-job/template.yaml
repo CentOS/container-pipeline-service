@@ -52,8 +52,17 @@ objects:
             {
                 node('ccp-pipeline-master') {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
+
+                    //For the library images like centos and languages we push the image without an app_id
+                    // this makes sure we can pull or push the images like 'registry/centos:7'
+                    if("${APP_ID}" == "library")
+                    {
+                        image_name = "${JOB_ID}:${DESIRED_TAG}"
+                    }
+
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def daemonset_name = "scan-data_scan-data"
+
                     // setting this to ensure the user is notificatied only after the mandatory stages are complete
                     // i.e. (checkout, prebuild) - lint - build - scan - deliver
                     def success = false
