@@ -16,6 +16,7 @@ class TestNotify(unittest.TestCase):
         self.notify_obj = notify.BuildNotify()
         self.image_name = "a/b:c"
         self.registry = "registry.centos.org"
+        self.email_subject_prefix = "null"
 
     def test_subject_of_email_1(self):
         """
@@ -24,7 +25,8 @@ class TestNotify(unittest.TestCase):
         # Check the SUCCESS case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                True, self.image_name, self.registry),
+                True, self.image_name, self.registry,
+                self.email_subject_prefix),
             "[{}] SUCCESS: Container build {}".format(
                 self.registry, self.image_name))
 
@@ -38,7 +40,8 @@ class TestNotify(unittest.TestCase):
         # Check the SUCCESS case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                True, self.image_name, self.registry),
+                True, self.image_name, self.registry,
+                self.email_subject_prefix),
             # using registry name without port
             "[registry.centos.org] SUCCESS: Container build {}".format(
                 self.image_name))
@@ -50,7 +53,8 @@ class TestNotify(unittest.TestCase):
         # Check the FAILED case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                False, self.image_name, self.registry),
+                False, self.image_name, self.registry,
+                self.email_subject_prefix),
             "[{}] FAILED: Container build {}".format(
                 self.registry, self.image_name))
 

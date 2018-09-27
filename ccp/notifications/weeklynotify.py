@@ -27,22 +27,36 @@ class WeeklyScanNotify(BaseNotify):
             required_fields=[
                 "NOTIFY_EMAIL",
                 "NOTIFY_CC_EMAILS",
+                "REGISTRY_ALIAS",
                 "REGISTRY_URL",
                 "FROM_ADDRESS",
                 "SMTP_SERVER"])
         # create send email utility object for sending emails
         self.sendemail_obj = SendEmail()
 
-    def body_of_email(self, status, repository):
+    def body_of_email(self, status, image_name, registry_url, registry_alias):
         """
         Generate the body of email for weekly scan notification email
 
         :param status: Status of build - True=Success False=Failure
         :type status bool
-        :param repository: Repository name with https:// prefix
-        :type repository str
+        :param image_name: Name of the image
+        :type image_name str
+        :param registry_url: Configured registry URL
+        :type registry_url str
+        :param registry_alias: Registry alias to be used in repository name,
+            if it's value is "null", the $registry_url is used instead
+        :type registry_alias str
         :return: Body of email in text
         """
+        if registry_alias == "null":
+            # get the repository name (without tag)
+            repository = "https://" + registry_url + \
+                "/" + image_name.split(":")[0]
+        else:
+            # if registry_alias is not "null", use it
+            repository = "https://" + registry_alias + \
+                "/" + image_name.split(":")[0]
 
         if status:
             body = self.weekly_body.format(
@@ -92,6 +106,10 @@ class WeeklyScanNotify(BaseNotify):
             namespace, jenkins_url,
             pipeline_name, build_number)
 
+        registry_url = build_info.get("REGISTRY_URL")
+        # if its value is not "null", it will be used instead of registry_url
+        registry_alias = build_info.get("REGISTRY_ALIAS")
+
         # possible values are ["success", "failed", "image_absent"]
         if status == "image_absent":
             body = self.image_absent_email_body()
@@ -99,14 +117,16 @@ class WeeklyScanNotify(BaseNotify):
             # convert status to boolean
             status = True if status == "success" else False
 
-            # get the repository name (without tag)
-            repository = "https://" + build_info.get("REGISTRY_URL") + \
-                "/" + image_name.split(":")[0]
             # body should have repository name (without tag)
-            body = self.body_of_email(status, repository)
+            body = self.body_of_email(
+                status, image_name, registry_url, registry_alias)
 
-        # registry name without ports
-        registry = build_info.get("REGISTRY_URL").strip().split(":")[0]
+        if registry_alias == "null":
+            # registry name without ports for email subject prefix
+            registry = build_info.get("REGISTRY_URL").strip().split(":")[0]
+        else:
+            # if registry_alias is not "null", use it for email subject prefix
+            registry = registry_alias
 
         # format the subject of email
         if status and status != "image_absent":
@@ -121,7 +141,7 @@ class WeeklyScanNotify(BaseNotify):
         if cc_emails and cc_emails != "null":
             # convert comma separated emails to list of emails
             cc_emails = [e.strip() for e in cc_emails.strip(
-                ).split(",") if e]
+            ).split(",") if e]
         else:
             cc_emails = []
 
