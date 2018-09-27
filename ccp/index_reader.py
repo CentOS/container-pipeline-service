@@ -395,14 +395,17 @@ class BuildConfigManager(object):
         _print(run_cmd(command))
 
     @retry(tries=10, delay=3, backoff=2)
-    def delete_buildconfigs(self, bcs):
+    def delete_buildconfigs(self, bcs, wait_between_delete=5):
         """
         Deletes the given list of bcs
         """
-        command = "oc delete -n {} bc {}"
+        command = ("oc delete -n {} bc {} --ignore-not-found=true "
+                   "--now=true --include-uninitialized=true")
+
         for bc in bcs:
             _print("Deleting buildConfig {}".format(bc))
             run_cmd(command.format(self.namespace, bc))
+            time.sleep(wait_between_delete)
 
     @retry(tries=5, delay=3, backoff=2)
     def list_all_builds(self):
