@@ -607,7 +607,7 @@ class Index(object):
             # or Failed. We dont care about builds which are failed
             # or complete to queue up next batch of jobs to process
             outstanding_builds = self.bc_manager.list_builds_except(
-                status=["Complete", "Failed"],
+                status=["Complete", "Failed", "Cancelled"],
                 filter_builds=self.infra_projects)
 
             # wait until current outstanding builds are more than
@@ -618,7 +618,7 @@ class Index(object):
                 time.sleep(polling_interval)
 
                 outstanding_builds = self.bc_manager.list_builds_except(
-                    status=["Complete", "Failed"],
+                    status=["Complete", "Failed", "Cancelled"],
                     filter_builds=self.infra_projects)
 
             _print("Processing projects batch: {}\n".format(
