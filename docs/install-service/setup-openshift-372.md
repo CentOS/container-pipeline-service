@@ -191,6 +191,11 @@ openshift_router_selector='region=infra'
 openshift_registry_selector='region=infra'
 openshift_disable_check=docker_storage,memory_availability
 
+# Openshift enable regular node cleanup. Note doing so may cause loss of logs (oc logs), but jenkins
+# logs will be retrieveable. Update values, if you think your cluster can handle more
+# Ref: https://docs.okd.io/latest/admin_guide/garbage_collection.html
+openshift_node_kubelet_args={'max-pods': ['80'], 'resolv-conf': ['/etc/resolv.conf'],  'image-gc-high-threshold': ['80'], 'image-gc-low-threshold': ['70'], 'minimum-container-ttl-duration': '2h', 'maximum-dead-containers': '50', 'maximum-dead-containers-per-container': '2'}
+
 # host group for masters
 [masters]
 os-master-[1:2].lon1.centos.org
