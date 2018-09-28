@@ -26,6 +26,7 @@ class BuildNotify(BaseNotify):
             required_fields=[
                 "NOTIFY_EMAIL",
                 "NOTIFY_CC_EMAILS",
+                "REGISTRY_ALIAS",
                 "DESIRED_TAG",
                 "REGISTRY_URL",
                 "FROM_ADDRESS",
@@ -35,20 +36,29 @@ class BuildNotify(BaseNotify):
         # create the SendEmail utility class object
         self.sendemail_obj = SendEmail()
 
-    def subject_of_email(self, status, image_name, registry_url):
+    def subject_of_email(self,
+                         status, image_name, registry_url,
+                         registry_alias):
         """
         Given the status and build/image name, returns the subject of email
 
         :param status: Status of container image build
         :type status bool
         :param image_name: Container image name without registry
-        :param type str
+        :type image_name str
         :param registry_url: Configured registry URL
-        :param type str
+        :type registry_url str
+        :param registry_alias: Prefix to be added to email subject,
+            if it's value is "null", the $registry_url is used instead
+        :type registry_alias str
         :return: Subject line of notification email in text
         """
-        # registry name without ports
-        registry = registry_url.strip().split(":")[0]
+        if registry_alias == "null":
+            # registry name without ports
+            registry = registry_url.strip().split(":")[0]
+        else:
+            # if registry_alias is not "null", use it
+            registry = registry_alias
 
         if status:
             return self.build_success_subj.format(
@@ -57,17 +67,32 @@ class BuildNotify(BaseNotify):
             return self.build_failure_subj.format(
                 registry=registry, image_name=image_name)
 
-    def body_of_email(self, status, repository, cause):
+    def body_of_email(self, status, image_name, cause,
+                      registry_url, registry_alias):
         """
         Generate the body of email using given details
         :param status: Status of container image build
         :type status bool
-        :param repository: Repository name of image along with registry name
-        :type repository str
+        :param image_name: Container image name without registry
+        :type image_name str
         :param cause: Cause of the the build
         :type cause str
+        :param registry_url: Configured registry URL
+        :type registry_url str
+        :param registry_alias: Registry alias to be used in repository name,
+            if it's value is "null", the $registry_url is used instead
+        :type registry_alias str
         :return: Email body of notification email in text
         """
+        if registry_alias == "null":
+            # get the repository name (without tag)
+            repository = "https://" + registry_url + \
+                "/" + image_name.split(":")[0]
+        else:
+            # if registry_alias is not "null", use it
+            repository = "https://" + registry_alias + \
+                "/" + image_name.split(":")[0]
+
         if status:
             body = self.build_success_body.format(
                 "Build Status:", "Success",
@@ -111,18 +136,18 @@ class BuildNotify(BaseNotify):
         # possible values are ["success", "failed"]
         status = True if status == "success" else False
 
-        # get the repository name (without tag)
-        repository = "https://" + build_info.get("REGISTRY_URL") + \
-            "/" + image_name.split(":")[0]
-
         cause = build_info.get("CAUSE_OF_BUILD")
 
         # subject should have image_name without registry
         subject = self.subject_of_email(
-            status, image_name, build_info.get("REGISTRY_URL"))
+            status, image_name, build_info.get("REGISTRY_URL"),
+            build_info.get("REGISTRY_ALIAS"))
 
         # body should have repository name (without tag)
-        body = self.body_of_email(status, repository, cause)
+        body = self.body_of_email(
+            status, image_name, cause,
+            build_info.get("REGISTRY_URL"),
+            build_info.get("REGISTRY_ALIAS"))
 
         # NOTIFY_CC_EMAILS list
         cc_emails = build_info.get("NOTIFY_CC_EMAILS", False)

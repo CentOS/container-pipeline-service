@@ -178,6 +178,8 @@ objects:
             value: ${NOTIFY_EMAIL}
           - name: NOTIFY_CC_EMAILS
             value: ${NOTIFY_CC_EMAILS}
+          - name: REGISTRY_ALIAS
+            value: ${REGISTRY_ALIAS}
           - name: DEPENDS_ON
             value: ${DEPENDS_ON}
           - name: BUILD_CONTEXT
@@ -224,6 +226,11 @@ parameters:
 - description: Comma separated email addresses to add in Cc
   displayName: Notification Cc emails
   name: NOTIFY_CC_EMAILS
+  required: false
+  value: "null"
+- description: Registry alias to be referenced in email subject and body instead of actual REGISTRY_URL
+  displayName: Registry alias to be referenced in email subject and body
+  name: REGISTRY_ALIAS
   required: false
   value: "null"
 - description: Parent image for the project

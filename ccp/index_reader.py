@@ -205,13 +205,15 @@ class BuildConfigManager(object):
     """
 
     def __init__(self, registry_url, namespace, from_address, smtp_server,
-                 ccp_openshift_slave_image, notify_cc_emails):
+                 ccp_openshift_slave_image, notify_cc_emails,
+                 registry_alias):
         self.registry_url = registry_url
         self.namespace = namespace
         self.from_address = from_address
         self.smtp_server = smtp_server
         self.ccp_openshift_slave_image = ccp_openshift_slave_image
         self.notify_cc_emails = notify_cc_emails
+        self.registry_alias = registry_alias
 
         self.template_params = """\
 -p GIT_URL={git_url} \
@@ -223,6 +225,7 @@ class BuildConfigManager(object):
 -p DEPENDS_ON={depends_on} \
 -p NOTIFY_EMAIL={notify_email} \
 -p NOTIFY_CC_EMAILS={notify_cc_emails} \
+-p REGISTRY_ALIAS={registry_alias} \
 -p PIPELINE_NAME={pipeline_name} \
 -p APP_ID={app_id} \
 -p JOB_ID={job_id} \
@@ -240,6 +243,7 @@ class BuildConfigManager(object):
 -p REGISTRY_URL={registry_url} \
 -p NOTIFY_EMAIL={notify_email} \
 -p NOTIFY_CC_EMAILS={notify_cc_emails} \
+-p REGISTRY_ALIAS={registry_alias} \
 -p APP_ID={app_id} \
 -p JOB_ID={job_id} \
 -p DESIRED_TAG={desired_tag} \
@@ -303,6 +307,7 @@ class BuildConfigManager(object):
             smtp_server=self.smtp_server,
             ccp_openshift_slave_image=self.ccp_openshift_slave_image,
             notify_cc_emails=self.notify_cc_emails,
+            registry_alias=self.registry_alias,
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
@@ -361,7 +366,8 @@ class BuildConfigManager(object):
             from_address=self.from_address,
             smtp_server=self.smtp_server,
             ccp_openshift_slave_image=self.ccp_openshift_slave_image,
-            notify_cc_emails=self.notify_cc_emails
+            notify_cc_emails=self.notify_cc_emails,
+            registry_alias=self.registry_alias,
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
@@ -463,6 +469,7 @@ class Index(object):
                  from_address, smtp_server,
                  ccp_openshift_slave_image,
                  notify_cc_emails,
+                 registry_alias,
                  infra_projects=["seed-job"],
                  ci_projects=["ci-success-job", "ci-failure-job"]):
 
@@ -472,7 +479,8 @@ class Index(object):
         # create bc_manager object
         self.bc_manager = BuildConfigManager(
             registry_url, namespace, from_address, smtp_server,
-            ccp_openshift_slave_image, notify_cc_emails)
+            ccp_openshift_slave_image, notify_cc_emails,
+            registry_alias)
 
         # set the infra_projects and ci_projects to be filtered
         # out while removing the stale jobs
@@ -650,7 +658,7 @@ class Index(object):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 11:
+    if len(sys.argv) != 12:
         _print("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
@@ -664,12 +672,13 @@ if __name__ == "__main__":
     batch_outstanding_builds_cap = int(sys.argv[8].strip())
     ccp_openshift_slave_image = sys.argv[9].strip()
     notify_cc_emails = sys.argv[10].strip()
+    registry_alias = sys.argv[11].strip()
 
     index_object = Index(
         index, registry_url, namespace,
         from_address, smtp_server, ccp_openshift_slave_image,
-        notify_cc_emails
-        )
+        notify_cc_emails, registry_alias
+    )
 
     index_object.run(
         batch_size,

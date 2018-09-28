@@ -14,6 +14,9 @@ class TestWeeklyNotify(unittest.TestCase):
 
     def setUp(self):
         self.notify_obj = weeklynotify.WeeklyScanNotify()
+        self.image_name = "foo/bar:latest"
+        self.registry_url = "registry.centos.org"
+        self.registry_alias = "null"
 
     def test_body_of_email(self):
         """
@@ -21,7 +24,6 @@ class TestWeeklyNotify(unittest.TestCase):
         """
 
         status = True
-        repository = "https://registry.centos.org/foo/bar"
         expected_value = """\
 Scan status:                  Success
 Repository:                   https://registry.centos.org/foo/bar
@@ -34,7 +36,9 @@ https://wiki.centos.org/ContainerPipeline
         self.assertEqual(
             self.notify_obj.body_of_email(
                 status,
-                repository),
+                self.image_name,
+                self.registry_url,
+                self.registry_alias),
             expected_value)
 
     def test_image_absent_email_body(self):

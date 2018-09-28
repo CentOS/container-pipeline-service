@@ -136,6 +136,8 @@ objects:
             value: ${FROM_ADDRESS}
           - name: SMTP_SERVER
             value: ${SMTP_SERVER}
+          - name: REGISTRY_ALIAS
+            value: ${REGISTRY_ALIAS}
 parameters:
 - description: Namespace to which the resulting Jenkins Pipelines should belong
   displayName: OpenShift namespace
@@ -148,6 +150,11 @@ parameters:
 - description: Comma separated email addresses to add in Cc
   displayName: Notification Cc emails
   name: NOTIFY_CC_EMAILS
+  required: false
+  value: "null"
+- description: Registry alias to be referenced in email subject and body instead of actual REGISTRY_URL
+  displayName: Registry alias to be referenced in email subject and body
+  name: REGISTRY_ALIAS
   required: false
   value: "null"
 - description: Name of the Pipeline as we want to show up on OpenShift console

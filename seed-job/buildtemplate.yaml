@@ -49,7 +49,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP} ${CCP_OPENSHIFT_SLAVE_IMAGE} ${NOTIFY_CC_EMAILS}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP} ${CCP_OPENSHIFT_SLAVE_IMAGE} ${NOTIFY_CC_EMAILS} ${REGISTRY_ALIAS}"
                         }
                     }
                 }
@@ -73,6 +73,8 @@ objects:
             value: ${BATCH_OUTSTANDING_BUILDS_CAP}
           - name: NOTIFY_CC_EMAILS
             value: ${NOTIFY_CC_EMAILS}
+          - name: REGISTRY_ALIAS
+            value: ${REGISTRY_ALIAS}
       triggers:
           - type: ConfigChange
 parameters:
@@ -116,6 +118,11 @@ parameters:
   displayName: SMTP server address
   name: SMTP_SERVER
   required: true
+- description: Registry alias to be referenced in email subject and body instead of actual REGISTRY_URL
+  displayName: Registry alias to be referenced in email subject and body
+  name: REGISTRY_ALIAS
+  required: false
+  value: "null"
 - description: Number of builds to process in a batch
   displayName: Size of batch
   name: BATCH_SIZE

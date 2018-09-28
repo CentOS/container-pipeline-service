@@ -15,7 +15,8 @@ class TestNotify(unittest.TestCase):
     def setUp(self):
         self.notify_obj = notify.BuildNotify()
         self.image_name = "a/b:c"
-        self.registry = "registry.centos.org"
+        self.registry_url = "registry.centos.org"
+        self.registry_alias = "null"
 
     def test_subject_of_email_1(self):
         """
@@ -24,9 +25,13 @@ class TestNotify(unittest.TestCase):
         # Check the SUCCESS case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                True, self.image_name, self.registry),
+                True,
+                self.image_name,
+                self.registry_url,
+                self.registry_alias),
             "[{}] SUCCESS: Container build {}".format(
-                self.registry, self.image_name))
+                self.registry_url,
+                self.image_name))
 
     def test_subject_of_email_2(self):
         """
@@ -38,7 +43,8 @@ class TestNotify(unittest.TestCase):
         # Check the SUCCESS case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                True, self.image_name, self.registry),
+                True, self.image_name, self.registry,
+                self.registry_alias),
             # using registry name without port
             "[registry.centos.org] SUCCESS: Container build {}".format(
                 self.image_name))
@@ -50,9 +56,13 @@ class TestNotify(unittest.TestCase):
         # Check the FAILED case
         self.assertEqual(
             self.notify_obj.subject_of_email(
-                False, self.image_name, self.registry),
+                False,
+                self.image_name,
+                self.registry_url,
+                self.registry_alias),
             "[{}] FAILED: Container build {}".format(
-                self.registry, self.image_name))
+                self.registry_url,
+                self.image_name))
 
     def test_body_of_email(self):
         """
@@ -61,11 +71,10 @@ class TestNotify(unittest.TestCase):
 
         # check the SUCCESS case
         status = "Success"
-        repository = "registry.centos.org/foo/bar"
         cause = "Started by admin"
         expected_value = """\
 Build Status:                 Success
-Repository:                   registry.centos.org/foo/bar
+Repository:                   https://registry.centos.org/a/b
 Cause of build:               Started by admin
 
 --
@@ -77,8 +86,10 @@ https://wiki.centos.org/ContainerPipeline
         self.assertEqual(
             self.notify_obj.body_of_email(
                 status,
-                repository,
-                cause),
+                self.image_name,
+                cause,
+                self.registry_url,
+                self.registry_alias),
             expected_value)
 
 
