@@ -4,6 +4,7 @@ This file contains ready to use Jenkins workflow Client.
 
 from ccp.lib.clients.jenkins.base import OpenshiftJenkinsBaseAPIClient, \
     jenkins_jobs_from_jobs_ordered_list
+from ccp.lib.utils.retry import retry
 
 
 class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
@@ -45,6 +46,7 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
             namespace=namespace
         )
 
+    @retry(tries=10, delay=2, backoff=2)
     def get_build_runs(self, job_ordered_list):
         """
         Gets the build runs of specified job/subjob from API server
@@ -62,6 +64,7 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
             )
         )
 
+    @retry(tries=10, delay=2, backoff=2)
     def describe_build_run(self, job_ordered_list, build_number):
         """
         Describes a particular build run of job/subjob from API server
@@ -82,6 +85,7 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
             )
         )
 
+    @retry(tries=10, delay=2, backoff=2)
     def describe_execution_node(
             self, job_ordered_list, build_number, node_number
     ):
@@ -104,6 +108,7 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
             )
         )
 
+    @retry(tries=10, delay=2, backoff=2)
     def get_logs_of_execution_node(
             self, job_ordered_list, build_number, node_number
     ):

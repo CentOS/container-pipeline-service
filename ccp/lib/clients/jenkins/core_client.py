@@ -4,6 +4,7 @@ This file contains ready to use Jenkins Core Client.
 
 from ccp.lib.clients.jenkins.base import OpenshiftJenkinsBaseAPIClient, \
     jenkins_jobs_from_jobs_ordered_list
+from ccp.lib.utils.retry import retry
 
 
 class OpenshiftJenkinsCoreAPIClient(OpenshiftJenkinsBaseAPIClient):
@@ -41,6 +42,7 @@ class OpenshiftJenkinsCoreAPIClient(OpenshiftJenkinsBaseAPIClient):
             namespace=namespace
         )
 
+    @retry(tries=10, delay=2, backoff=2)
     def get_build_info(self, job_ordered_list, build_number):
         """
         Queries jenkins server about the build and retrieves the information
