@@ -41,7 +41,7 @@ class OpenshiftJenkinsCoreAPIClient(OpenshiftJenkinsBaseAPIClient):
             namespace=namespace
         )
 
-    def _get_build_info(self, job_ordered_list, build_number):
+    def get_build_info(self, job_ordered_list, build_number):
         """
         Queries jenkins server about the build and retrieves the information
         :param job_ordered_list: he ordered list of jobs, with parents,
