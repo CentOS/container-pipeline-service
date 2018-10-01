@@ -6,3 +6,4 @@ RUN yum install -y PyYAML docker mailx postfix epel-release && \
     npm install -g dockerfile_lint
 
 ADD ./ /opt/ccp-openshift/
+VOLUME ["/opt/ccp-openshift/ccp/scanning"]
