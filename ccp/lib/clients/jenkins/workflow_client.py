@@ -1,5 +1,5 @@
 """
-This file contains ready to use Jenkins Clients.
+This file contains ready to use Jenkins workflow Client.
 """
 
 from ccp.lib.clients.jenkins.base import OpenshiftJenkinsBaseAPIClient, \
