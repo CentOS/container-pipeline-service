@@ -87,18 +87,18 @@ rsync -e "ssh -t -o LogLevel=error -o UserKnownHostsFile=/dev/null -o StrictHost
 
 echo "Prepare ansible inventory for service setup"
 # generate inventory file for service deployment
-ssh $sshoptserr $ansible_node sed -i "s/nfs_serv/$nfs_node/g" /opt/ccp-openshift/provision/files/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/openshift_1/$openshift_1_node/g" /opt/ccp-openshift/provision/files/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/openshift_2/$openshift_2_node/g" /opt/ccp-openshift/provision/files/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_1/$openshift_1_node_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/files/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/oc_username/cccp/g" /opt/ccp-openshift/provision/files/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshift/provision/files/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/nfs_serv/$nfs_node/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_1/$openshift_1_node/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_2/$openshift_2_node/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_1/$openshift_1_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/oc_username/cccp/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshift/provision/hosts.ci
 
 
 echo "Run ansible playbook for setting service"
-ssh $sshoptserr $ansible_node "cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/files/hosts.ci main.yaml" >> /tmp/service_provision_logs.txt
+ssh $sshoptserr $ansible_node "cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/hosts.ci main.yaml" >> /tmp/service_provision_logs.txt
 service_setup_done=$?
 
 if [ $service_setup_done -ne 0 ]
