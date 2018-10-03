@@ -7,12 +7,25 @@ mark_failure()
     echo "==================Unittests-CI-failed================="
     echo "$1"
     echo "======================================================"
-    cico node done $CICO_ssid
+    if [ $CI_DEBUG -eq 0 ]
+    then
+      echo "Unittests CI is complete, releasing the node(s)."
+      cico node done $CICO_ssid
+    else
+      echo "========================================================================"
+      echo "DEBUG mode is set for CI, keeping the node(s) for 2 hours for debugging."
+      echo "========================================================================"
+      sleep $DEBUG_PERIOD
+    fi
     exit 1
 }
 
 export CICO_API_KEY=$(cat ~/duffy.key)
 rtn_code=0
+# debug period = 2 hours = 7200 seconds
+DEBUG_PERIOD=7200
+# grab the CI_DEBUG flag's value, 0 or 1
+CI_DEBUG=$1
 
 echo "Requesting the node(s) from duffy pool.."
 
@@ -25,10 +38,13 @@ then
   mark_failure "Could not get a node from duffy, exiting!"
 fi
 
+
 echo "=====================Node Details========================="
 echo "duffy node $CICO_hostname"
-echo "duff node ssid ${CICO_ssid}"
+echo "duff node ssid $CICO_ssid"
+echo "DEBUG mode is set to: $CI_DEBUG"
 echo "=========================================================="
+
 
 sshopts="-t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
 ssh_cmd="ssh $sshopts $CICO_hostname"
@@ -57,6 +73,16 @@ fi
 $ssh_cmd "cd payload && nosetests -w . -vv tests/"
 rtn_code=$?
 
-cico node done $CICO_ssid
+
+if [ $CI_DEBUG -eq 0 ]
+then
+    echo "Unittests CI is complete, releasing the nodes."
+    cico node done $CICO_ssid
+else
+    echo "========================================================================"
+    echo "DEBUG mode is set for CI, keeping the node(s) for 2 hours for debugging."
+    echo "========================================================================"
+    sleep $DEBUG_PERIOD
+fi
 
 exit $rtn_code
