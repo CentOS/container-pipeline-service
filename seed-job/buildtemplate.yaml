@@ -27,6 +27,7 @@ objects:
                 cloud: 'openshift',
                 name: 'ccp-pipeline-seed',
                 label: 'ccp-pipeline-seed',
+                namespace: '${NAMESPACE}',
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(

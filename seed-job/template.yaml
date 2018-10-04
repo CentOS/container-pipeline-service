@@ -30,6 +30,7 @@ objects:
                 cloud: 'openshift',
                 name: 'ccp-pipeline-master',
                 label: 'ccp-pipeline-master',
+                namespace: '${NAMESPACE}',
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
