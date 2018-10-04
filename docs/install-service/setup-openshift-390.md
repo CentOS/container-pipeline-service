@@ -121,8 +121,8 @@ Once the VMs are properly setup and NFS is exported, it’s time to setup the cl
 ## Setup Ansible Controller
 
 Please ensure atleast ansible 2.4.3 is installed. In case of CentOS 7 nodes,
-2.4.3 is not available in default repositories, but you may install that and
-`openshift-ansible` RPM on Ansible controller VM.
+2.4.3 is not available in default repositories, but you may install
+`openshift-ansible` RPM on Ansible controller VM using following command:
 
 ```bash
 $ yum install http://cbs.centos.org/kojifiles/packages/ansible/2.4.3.0/1.el7/noarch/ansible-2.4.3.0-1.el7.noarch.rpm
@@ -219,17 +219,17 @@ OpenShift installation. Use the following Ansible inventory file:
 ---
 - hosts: all
   tasks:
-      - name: yum update all
+      - name: yum update all the nodes
         yum: name='*' state=latest
         async: 1000
         poll: 5
 
-      - name: reboot the server
+      - name: Reboot the nodes
         shell: sleep 2 && shutdown -r now
         async: 1
         poll: 0
 
-      - name: Wait for server come back
+      - name: Wait for nodes to come back
         wait_for: >
              host={{ inventory_hostname }}
              port=22
@@ -237,11 +237,11 @@ OpenShift installation. Use the following Ansible inventory file:
              timeout=600
         delegate_to: localhost
 
-      - name: Copy /etc/hosts
+      - name: Copy /etc/hosts to all the nodes
         synchronize: src=/etc/hosts dest=/etc/hosts
         delegate_to: localhost
 
-      - name: SELinux permissive
+      - name: Make SELinux permissive
         selinux: policy=targeted state=permissive
 
       - name: Install packages
@@ -253,32 +253,63 @@ OpenShift installation. Use the following Ansible inventory file:
             - centos-release-openshift-origin39.noarch
             - python-ipaddress
 
-      - name: Start services
+      - name: Start NetworkManager and firewalld services
         systemd: state=started enabled=yes name={{ item }}
         with_items:
             - NetworkManager
             - firewalld
 
-      - name: Check if /dev/vdb is mounted on /mnt
-        shell: df -h | grep mnt
-        register: dfh
-        ignore_errors: True
+      - name: Install lvm2
+        yum: name=lvm2 state=latest
 
-      - name: Run shell commands to use /dev/vdb for /var
+      - name: Run shell commands to use /dev/vdb for /logging
         shell: |
             umount /mnt
             wipefs -o 0x52 /dev/vdb
             wipefs -o 0x0 /dev/vdb
             wipefs -o 0x1fe /dev/vdb
-            mkfs.ext4 /dev/vdb
-            mount /dev/vdb /mnt
+            pvcreate /dev/vdb
+            vgcreate devcloud /dev/vdb
+            lvcreate -L 25G -n var devcloud
+            lvcreate -l 100%FREE -n logging devcloud
+            mkfs.ext4 /dev/devcloud/var
+            mkfs.ext4 /dev/devcloud/logging
+            mount /dev/devcloud/var /mnt
             rsync -aqxP /var/* /mnt
-            sed -i 's/mnt/var/' /etc/fstab
-        when: dfh.rc==0
+            mkdir /logging
+            chmod 777 /logging
 
-      - name: Reboot nodes
-        shell: reboot
-        when: dfh.rc==0
+      - name: Add mount entries for /var and /logging
+        mount:
+            src: "{{item.src}}"
+            path: "{{item.path}}"
+            fstype: ext4
+            state: present
+        with_items:
+          - {src: '/dev/devcloud/var', path: '/var'}
+          - {src: '/dev/devcloud/logging', path: '/logging'}
+
+      - name: Reboot the nodes
+        shell: sleep 2 && shutdown -r now
+        async: 1
+        poll: 0
+
+      - name: Wait for nodes to come back
+        wait_for: >
+             host={{ inventory_hostname }}
+             port=22
+             delay=15
+             timeout=600
+        delegate_to: localhost
+
+      - name: Remove vdb mount entry
+        mount:
+            src: /dev/vdb
+            path: /mnt
+            state: absent
+
+      - name: Create /mnt dir back after removing fstab entry
+        shell: mkdir /mnt
 ```
 
 Run the pre-install tasks with:
@@ -295,11 +326,13 @@ Last step in above playbook is to reboot the nodes because:
 
 ### Setup openshift in cluster
 
-Now we do the actual OpenShift cluster installation. Start the cluster installation with this
-command. We prefer to time it so that we get a rough idea about how long the cluster setup
-took:
+Now we do the actual OpenShift cluster installation. Start the cluster installation with following
+commands. There are some pre-requisites operations for the cluster, followed up with actual
+cluster installation operations. We prefer to time it so that we get a rough idea about how long
+the cluster setup took:
 
 ```bash
+$ time ansible-playbook -i hosts /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yaml -vvv
 $ time ansible-playbook -i hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml -vvv
 ```
 
@@ -425,7 +458,7 @@ $ docker push ${CCP_OPENSHIFT_SLAVE_IMAGE}
 
 Finally create the Jenkins Pipeline build to parse the container-index. This will create a
 seed-job which will parse the container index and create more Jenkins Pipeline builds
-that will create the actual container images for projects covered in the index. 
+that will create the actual container images for projects covered in the index.
 
 ```bash
 $ oc process -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} \
