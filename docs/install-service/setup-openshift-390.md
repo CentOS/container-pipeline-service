@@ -422,8 +422,9 @@ volume for performing scan phase. DaemonSet needs to be deployed using cluster
 admin. Configure it with cluster admin user:
 
 ```bash
-$ git clone https://github.com/dharmit/ccp-openshift
-$ cd ccp-openshift
+$ git clone https://github.com/centos/container-pipeline-service.git
+$ cd container-pipeline-service
+$ git checkout openshift
 $ oc login -u system:admin
 $ oc create -f daemon-set/scan_data.yaml
 $ oc annotate namespace <openshift-namespace> openshift.io/node-selector=""
