@@ -30,6 +30,7 @@ objects:
                 cloud: 'openshift',
                 name: 'ccp-pipeline-master',
                 label: 'ccp-pipeline-master',
+                namespace: '${NAMESPACE}',
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
@@ -39,7 +40,9 @@ objects:
                     alwaysPullImage: true,
                     workingDir: '/tmp',
                     privileged: true,
-                    args: '${computer.jnlpmac} ${computer.name}'
+                    args: '${computer.jnlpmac} ${computer.name}',
+                    resourceRequestCpu: '${MASTER_JOB_CPU}',
+                    resourceRequestMemory: '${MASTER_JOB_MEMORY}'
                   )
                 ],
                 volumes: [
@@ -301,3 +304,11 @@ parameters:
   name: CCP_OPENSHIFT_SLAVE_IMAGE
   required: true
   value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest
+- description: Amount of CPU to be requested from OpenShift to start master-job slave pod
+  displayName: master job CPU
+  name: MASTER_JOB_CPU
+  required: true
+- description: Amount of memory to be requested from OpenShift to start master-job slave pod
+  displayName: master job memory
+  name: MASTER_JOB_MEMORY
+  required: true

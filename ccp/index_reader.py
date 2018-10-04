@@ -206,7 +206,7 @@ class BuildConfigManager(object):
 
     def __init__(self, registry_url, namespace, from_address, smtp_server,
                  ccp_openshift_slave_image, notify_cc_emails,
-                 registry_alias):
+                 registry_alias, master_job_cpu, master_job_memory):
         self.registry_url = registry_url
         self.namespace = namespace
         self.from_address = from_address
@@ -214,6 +214,8 @@ class BuildConfigManager(object):
         self.ccp_openshift_slave_image = ccp_openshift_slave_image
         self.notify_cc_emails = notify_cc_emails
         self.registry_alias = registry_alias
+        self.master_job_cpu = master_job_cpu
+        self.master_job_memory = master_job_memory
 
         self.template_params = """\
 -p GIT_URL={git_url} \
@@ -226,6 +228,8 @@ class BuildConfigManager(object):
 -p NOTIFY_EMAIL={notify_email} \
 -p NOTIFY_CC_EMAILS={notify_cc_emails} \
 -p REGISTRY_ALIAS={registry_alias} \
+-p MASTER_JOB_CPU={master_job_cpu} \
+-p MASTER_JOB_MEMORY={master_job_memory} \
 -p PIPELINE_NAME={pipeline_name} \
 -p APP_ID={app_id} \
 -p JOB_ID={job_id} \
@@ -308,6 +312,8 @@ class BuildConfigManager(object):
             ccp_openshift_slave_image=self.ccp_openshift_slave_image,
             notify_cc_emails=self.notify_cc_emails,
             registry_alias=self.registry_alias,
+            master_job_cpu=self.master_job_cpu,
+            master_job_memory=self.master_job_memory
         )
         # process and apply buildconfig
         output = run_cmd(command, shell=True)
@@ -470,6 +476,7 @@ class Index(object):
                  ccp_openshift_slave_image,
                  notify_cc_emails,
                  registry_alias,
+                 master_job_cpu, master_job_memory,
                  infra_projects=["seed-job"],
                  ci_projects=["ci-success-job", "ci-failure-job"]):
 
@@ -480,7 +487,7 @@ class Index(object):
         self.bc_manager = BuildConfigManager(
             registry_url, namespace, from_address, smtp_server,
             ccp_openshift_slave_image, notify_cc_emails,
-            registry_alias)
+            registry_alias, master_job_cpu, master_job_memory)
 
         # set the infra_projects and ci_projects to be filtered
         # out while removing the stale jobs
@@ -658,7 +665,7 @@ class Index(object):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 12:
+    if len(sys.argv) != 14:
         _print("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
@@ -673,11 +680,13 @@ if __name__ == "__main__":
     ccp_openshift_slave_image = sys.argv[9].strip()
     notify_cc_emails = sys.argv[10].strip()
     registry_alias = sys.argv[11].strip()
+    master_job_cpu = sys.argv[12].strip()
+    master_job_memory = sys.argv[13].strip()
 
     index_object = Index(
         index, registry_url, namespace,
         from_address, smtp_server, ccp_openshift_slave_image,
-        notify_cc_emails, registry_alias
+        notify_cc_emails, registry_alias, master_job_cpu, master_job_memory
     )
 
     index_object.run(
