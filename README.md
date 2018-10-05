@@ -29,7 +29,7 @@ CCCP will:
 - Automatically rebuild when a change is detected within the repository. Such
   as an update in base image (`FROM` in Dockerfile) or a `git push` to the
   project's git repository
-- Notifications / alerts regarding scan results (by e-mail)
+- Notifications / alerts regarding build status and scan results (by e-mail)
 
 
 ## How do I host my application?
@@ -73,9 +73,8 @@ and rebuilds it every time there is a future change.
 
 3. **Building the image**
 
-    The container image is built within OpenShift and then pushed to an
-    internal registry. This results in an image tagged `image:test`.
-
+    The container image is built by OpenShift.
+ 
 4. **Scan and analyze the image**
 
     Scanning happens by running scripts in the container image to check for:
@@ -83,13 +82,11 @@ and rebuilds it every time there is a future change.
     - updates for packages installed via `pip`, `npm` and `gem`
     - capabilities of the container created from resulting container image by
       analyzing `RUN` label in the Dockerfile
-    - verify the installed RPMs by running `rpm -Va` in the resulting container
-      image
+    - verify the installed RPMs 
 
 5. **Push to the public registry (https://registry.centos.org)**
 
-    Finally, the image is re-tagged to its final name based on the value within
-    the `yaml` file and pushed to https://registry.centos.org 
+    Finally, the image is pushed to https://registry.centos.org
 
 6. **Notification**
 
