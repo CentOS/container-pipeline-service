@@ -53,6 +53,40 @@ class OpenShiftCmdClient(CmdClient):
         with open(token_location, "r") as f:
             return "".join(f.readlines())
 
+    def login(self, server=None, token=None, username=None, password=None):
+        """
+        Logs into an openshift cluster with token or username and password.
+        :param server: Default None: The openshift server to log into. If none
+        is provided then we assume oc is already aware which server it needs
+        to log into
+        :type server str
+        :param token: Default None: The token to login with. Overrides username
+        and password as preferred login method
+        :type token str
+        :param username: Default none : The username to login with. Use only if
+        token is not used.
+        :type username str
+        :param password: The password to login with. Use only if token is not
+        provided. Not recommended
+        :type password str
+        :return: The output ot the command
+        :rtype str
+        :raises Exception
+        """
+        command = str.format(
+            "{base_command} login{token_param}{user_param}{server_param}",
+            base_command=self.base_command,
+            token_param="" if not token else " --token={}".format(
+                token
+            ),
+            user_param="" if token else " -u {} -p {}".format(
+                username,
+                password
+            ),
+            server_param="" if not server else str(server)
+        )
+        return self.run_command(cmd=command)
+
     @retry(tries=10, delay=3, backoff=2)
     def process_template(
             self, template_path, params, namespace, apply_template=True
