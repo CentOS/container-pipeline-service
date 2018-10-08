@@ -120,7 +120,9 @@ Once the VMs are properly setup and NFS is exported, it’s time to setup the cl
 
 ## Setup Ansible Controller
 
-Please ensure atleast ansible 2.4.3 is installed. In case of CentOS 7 nodes, 2.4.3 is not available in default repositories, but you may install and install openshift-ansible RPM on Ansible controller VM.
+Please ensure atleast ansible 2.4.3 is installed. In case of CentOS 7 nodes,
+2.4.3 is not available in default repositories, but you may install that and
+`openshift-ansible` RPM on Ansible controller VM.
 
 ```bash
 $ yum install http://cbs.centos.org/kojifiles/packages/ansible/2.4.3.0/1.el7/noarch/ansible-2.4.3.0-1.el7.noarch.rpm
@@ -422,18 +424,22 @@ $ docker push ${CCP_OPENSHIFT_SLAVE_IMAGE}
 
 Finally create the Jenkins Pipeline build to parse the container-index. This will create a
 seed-job which will parse the container index and create more Jenkins Pipeline builds
-that will create the actual container images for projects covered in the index. Replace
-172.29.33.8 with the IP address of your remote registry (you need to configure external
-registry by yourself, you can use the NFS VM created for same). Replace  master with the branch you’d like to deploy.
+that will create the actual container images for projects covered in the index. 
 
 ```bash
-$ oc process -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO}\
-     -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH}\
-     -p REGISTRY_URL=${REGISTRY_URL}\
+$ oc process -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} \
+     -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_BRANCH} \
+     -p REGISTRY_URL=${REGISTRY_URL} \
      -p NAMESPACE=`oc project -q`\
-     -p FROM_ADDRESS=${FROM_ADDRESS}\
-     -p SMTP_SERVER=${SMTP_SERVER}\
-     -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE}\
+     -p FROM_ADDRESS=${FROM_ADDRESS} \
+     -p SMTP_SERVER=${SMTP_SERVER} \
+     -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} \
+     -p NOTIFY_CC_EMAILS=${NOTIFY_CC_EMAILS} \
+     -p BATCH_SIZE=${BATCH_SIZE} \
+     -p SEED_JOB_CPU=${SEED_JOB_CPU} \
+     -p SEED_JOB_MEMORY=${SEED_JOB_MEMORY} \
+     -p MASTER_JOB_CPU=${MASTER_JOB_CPU} \
+     -p MASTER_JOB_MEMORY=${MASTER_JOB_MEMORY} \
      -f seed-job/buildtemplate.yaml | oc create -f -
 ```
 This is of course, the bare minimum. To use more parameters, just add more -p
@@ -458,6 +464,10 @@ if nothing is provided:
 | BATCH_SIZE                   | True     | 5                                                              | Number of builds to process in a batch. Increase if you have resources.                                                                                         |
 | BATCH_POLLING_INTERVAL       | True     | 30                                                             | Polling interval (in seconds) between two batches to check if any builds are outstanding. Increase if you need more delay.                                      |
 | BATCH_OUTSTANDING_BUILDS_CAP | True     | 3                                                              | If these many builds are still pending, next batch will not be processed.                                                                                       |
+| SEED_JOB_CPU                 | True     | None/Must override    | Number of CPUs to be requested from OpenShift to start seed-job slave pod  |
+| SEED_JOB_MEMORY | True  | None/Must override | Amount of memory to be requested from OpenShift to start seed-job slave pod
+| MASTER_JOB_CPU                 | True     | None/Must override    | Number of CPUs to be requested from OpenShift to start master-job slave pod  |
+| MASTER_JOB_MEMORY | True  | None/Must override | Amount of memory to be requested from OpenShift to start master-job slave pod
 
 
 #### Create weekly-scan scheduler
