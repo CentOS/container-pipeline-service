@@ -148,7 +148,7 @@ parameters:
   name: CCP_OPENSHIFT_SLAVE_IMAGE
   required: true
   value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest
-- description: Amount of CPU to be requested from OpenShift to start seed-job slave pod
+- description: Number of CPUs to be requested from OpenShift to start seed-job slave pod
   displayName: seed job CPU
   name: SEED_JOB_CPU
   required: true
@@ -156,7 +156,7 @@ parameters:
   displayName: seed job memory
   name: SEED_JOB_MEMORY
   required: true
-- description: Amount of CPU to be requested from OpenShift to start master-job slave pod
+- description: Number of CPUs to be requested from OpenShift to start master-job slave pod
   displayName: master job CPU
   name: MASTER_JOB_CPU
   required: true
