@@ -1,6 +1,6 @@
 type: scanner
 scanner_name: pipeline-scanner
-image_name: registry.centos.org/pipeline-images/pipeline-scanner
+image_name: pipeline-scanner:rhel7
 default_scan: yum-update
 scans: [
   { name: yum-update,

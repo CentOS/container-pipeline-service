@@ -1,6 +1,6 @@
 type: scanner
 scanner_name: container-capabilities-scanner
-image_name: registry.centos.org/pipeline-images/container-capabilities-scanner
+image_name: container-capabilities-scanner:rhel7
 default_scan: check-capabilities
 custom_args: ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "IMAGE_NAME=$IMAGE_NAME"]
 scans: [

@@ -1,6 +1,6 @@
 type: scanner
 scanner_name: misc-package-updates
-image_name: registry.centos.org/pipeline-images/misc-package-updates
+image_name: misc-package-updates:rhel7
 default_scan: pip-updates
 custom_args: ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "IMAGE_NAME=$IMAGE_NAME"]
 scans: [
