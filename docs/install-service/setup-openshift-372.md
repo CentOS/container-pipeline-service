@@ -464,10 +464,10 @@ if nothing is provided:
 | BATCH_SIZE                   | True     | 5                                                              | Number of builds to process in a batch. Increase if you have resources.                                                                                         |
 | BATCH_POLLING_INTERVAL       | True     | 30                                                             | Polling interval (in seconds) between two batches to check if any builds are outstanding. Increase if you need more delay.                                      |
 | BATCH_OUTSTANDING_BUILDS_CAP | True     | 3                                                              | If these many builds are still pending, next batch will not be processed.                                                                                       |
-| SEED_JOB_CPU                 | True     | None/Must override    | Number of CPUs to be requested from OpenShift to start seed-job slave pod  |
-| SEED_JOB_MEMORY | True  | None/Must override | Amount of memory to be requested from OpenShift to start seed-job slave pod
-| MASTER_JOB_CPU                 | True     | None/Must override    | Number of CPUs to be requested from OpenShift to start master-job slave pod  |
-| MASTER_JOB_MEMORY | True  | None/Must override | Amount of memory to be requested from OpenShift to start master-job slave pod
+| SEED_JOB_CPU                 | True     | 1 | Number of CPUs to be requested from OpenShift to start seed-job slave pod  |
+| SEED_JOB_MEMORY | True  | 1 GiB | Amount of memory to be requested from OpenShift to start seed-job slave pod
+| MASTER_JOB_CPU                 | True     | 1 | Number of CPUs to be requested from OpenShift to start master-job slave pod  |
+| MASTER_JOB_MEMORY | True  | 1 GiB | Amount of memory to be requested from OpenShift to start master-job slave pod
 
 
 #### Create weekly-scan scheduler
