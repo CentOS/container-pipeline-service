@@ -27,6 +27,7 @@ class OpenshiftJenkinsBaseAPIClient(APIClient):
             server,
             secure=True,
             verify_ssl=True,
+            token=None,
             token_from_mount=None,
             sa="sa/jenkins",
             namespace="default"
@@ -38,8 +39,13 @@ class OpenshiftJenkinsBaseAPIClient(APIClient):
         :param secure: Default True: Use SSL for queries.
         :type secure bool
         :param verify_ssl: Default True: Verify SSL certificate.
+        :type verify_ssl bool
+        :param token: Default None: If provided then, this is set as the token
+        to use to login to OpenShift. Overrides all other ways of providing
+        token
+        :type token str
         :param token_from_mount: Default None: Set if you have token mounted
-        at a path. Otherwise, ensure the openshift context is already set.
+        at a path. Otherwise, ensure the OpenShift context is already set.
         :type token_from_mount str
         :param sa: Default 'sa/jenkins': Name of the service account whose
         token is to be used.
@@ -48,11 +54,12 @@ class OpenshiftJenkinsBaseAPIClient(APIClient):
         :type namespace str
         """
 
-        c = OpenShiftCmdClient()
-        token = c.get_token_from_mounted_secret(token_from_mount)\
-            if token_from_mount else c.get_sa_token_from_openshift(
-            sa=sa, namespace=namespace
-        )
+        if not token:
+            c = OpenShiftCmdClient()
+            token = c.get_token_from_mounted_secret(token_from_mount)\
+                if token_from_mount else c.get_sa_token_from_openshift(
+                sa=sa, namespace=namespace
+            )
         super(OpenshiftJenkinsBaseAPIClient, self).__init__(
             server=server,
             secure=secure,

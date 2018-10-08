@@ -17,6 +17,7 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
             server,
             secure=True,
             verify_ssl=True,
+            token=None,
             token_from_mount=None,
             sa="sa/jenkins",
             namespace="default"
@@ -28,6 +29,10 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
         :param secure: Default True: Use SSL for queries.
         :type secure bool
         :param verify_ssl: Default True: Verify SSL certificate.
+        :param token: Default None: If provided then, this is set as the token
+        to use to login to OpenShift. Overrides all other ways of providing
+        token
+        :type token str
         :param token_from_mount: Default None: Set if you have token mounted
         at a path. Otherwise, ensure the openshift context is already set.
         :type token_from_mount str
@@ -41,6 +46,7 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
             server=server,
             secure=secure,
             verify_ssl=verify_ssl,
+            token=token,
             token_from_mount=token_from_mount,
             sa=sa,
             namespace=namespace
