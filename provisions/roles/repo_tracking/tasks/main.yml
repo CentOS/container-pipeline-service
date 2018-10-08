@@ -22,6 +22,11 @@
     replace="OPTIONS='--selinux-enabled --log-driver=journald --signature-verification=false -H localhost:2367 -H unix:///var/run/docker.sock'"
   become: true
 
+- name: Reload docker daemon systemd service
+  become: yes
+  systemd: name=docker state=reloaded
+  tags: repo_tracking
+
 - name: Enable and start Docker service
   service: name=docker state=started
   become: true

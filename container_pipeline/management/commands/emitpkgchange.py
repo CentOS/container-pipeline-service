@@ -11,26 +11,36 @@ class Command(BaseCommand):
     help = 'Emit package change for test'
     args = '[<pkg_name1>,<pkg_name2> upstream_id]'
 
+    def add_arguments(self, parser):
+        # get all the args in arguments
+        parser.add_argument('arguments', nargs='+', type=str)
+
     def handle(self, *args, **options):
-        argc = len(args)
-        if argc > 0:
-            upstream = args[1] if argc > 1 else None
-            for arg in args[0].split(','):
-                try:
-                    n, a, v, r = get_navr_from_pkg_name(arg)
-                except:
-                    logger.error('Unable to parse package name: %s' % arg)
-                    continue
-                logger.debug('Emitting package.added message for: %s' % arg)
-                fedmsg.publish(topic='package.added',
-                               modname='container_pipeline',
-                               msg={
-                                   'upstream': upstream,
-                                   'package': {
-                                       'name': n,
-                                       'arch': a,
-                                       'version': v,
-                                       'release': r,
-                                       'epoch': '0'
-                                   }
-                               })
+        arguments = options["arguments"]
+
+        # <pkg_name1>,<pkg_name2>
+        packages = arguments[0]
+
+        # to check if upstream is given or not
+        argc = len(arguments)
+        upstream = arguments[1] if argc > 1 else None
+
+        for arg in packages.split(','):
+            try:
+                n, a, v, r = get_navr_from_pkg_name(arg)
+            except:
+                logger.error('Unable to parse package name: %s' % arg)
+                continue
+            logger.debug('Emitting package.added message for: %s' % arg)
+            fedmsg.publish(topic='package.added',
+                           modname='container_pipeline',
+                           msg={
+                               'upstream': upstream,
+                               'package': {
+                                   'name': n,
+                                   'arch': a,
+                                   'version': v,
+                                   'release': r,
+                                   'epoch': '0'
+                               }
+                           })

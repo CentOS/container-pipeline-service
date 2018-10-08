@@ -87,26 +87,45 @@ def scan_image(image):
         return
 
     image.pull()
+    if not image.is_image_pulled():
+        print "Image can not be pulled."
+        import sys
+        sys.exit(1)
     populate_packages(image)
     populate_upstreams(image)
     image.scanned = True
     image.last_scanned = timezone.now()
     image.save()
-    image.remove()
+    # image.remove()
 
 
 class Command(BaseCommand):
     help = 'Scan container images'
-    args = '[onetime <image_name1> <image_name2> ...]'
+    args = '[--onetime <image_name1> <image_name2> ...]'
+
+    def add_arguments(self, parser):
+        # since if not give --onetime, the script should also work
+        parser.add_argument('--onetime', required=False, nargs="+")
 
     def handle(self, *args, **options):
+        # either None or list of images
+        images = options["onetime"]
         try:
             logger.debug('Scanning not already scanned images')
             filters = {}
+            if images:
+                filters['name__in'] = images
+            # scan only those images which are not scanned
+            filters['scanned'] = False
+            """ Keeping this old code for reference as this seem to have a bug
             if args:
                 if args[0] != 'onetime':
+                    # this case is never going to reach as we are using
+                    # argparse now, it needs args if defined
+                    # if given options it processes the options
                     filters['name__in'] = args
                 filters['scanned'] = False
+            """
             for image in ContainerImage.objects.filter(**filters):
                 try:
                     scan_image(image)
