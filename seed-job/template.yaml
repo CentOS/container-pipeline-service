@@ -308,9 +308,7 @@ parameters:
   displayName: master job CPU
   name: MASTER_JOB_CPU
   required: true
-  value: "1"
 - description: Amount of memory to be requested from OpenShift to start master-job slave pod
   displayName: master job memory
   name: MASTER_JOB_MEMORY
   required: true
-  value: 1GiB
