@@ -157,7 +157,7 @@ parameters:
   displayName: seed job memory
   name: SEED_JOB_MEMORY
   required: true
-  value: 1GiB
+  value: 1Gi
 - description: Number of CPUs to be requested from OpenShift to start master-job slave pod
   displayName: master job CPU
   name: MASTER_JOB_CPU
@@ -167,4 +167,4 @@ parameters:
   displayName: master job memory
   name: MASTER_JOB_MEMORY
   required: true
-  value: 1GiB
+  value: 1Gi
