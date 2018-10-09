@@ -7,7 +7,7 @@
         (https://github.com/centos/container-pipeline-service)
 
         This job gets triggered when there is a PR raised to container-index
-        or \#dotests on the raised PRs
+        or #dotests on the raised PRs
 
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
@@ -63,11 +63,10 @@
         https://github.com/centos/container-pipeline-service.
 
         This job gets triggered when there is a PR raised to container-pipeline-service
-        or \#dotests is commented on the raised PRs.
+        or #dotests is commented on the raised PRs.
 
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
-    ci_project: container
     properties:
         - github:
             url: https://github.com/CentOS/container-pipeline-service.git
@@ -79,14 +78,13 @@
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
             white-list:
                 - kbsingh
                 - bamachrn
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
+            cron: '* * * * *'
             trigger-phrase: '#dotests'
             only-trigger-phrase: false
             github-hooks: true
@@ -107,7 +105,7 @@
             branches: master
             refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
             branches:
-                - "${sha1}"
+                - "${ghprbactualcommit}"
     builders:
         - shell: |
             echo ${sha1}
@@ -129,11 +127,10 @@
         This job is for running the functional CI debug jobs for the PRs raised to
         https://github.com/centos/container-pipeline-service.
 
-        This job triggers when \#dotests-debug is commented on a PR. If the functional CI job fails, it keeps the duffy nodes for 2 hours before releasing, so that the devs can debug.
+        This job triggers when #dotests-debug is commented on a PR. If the functional CI job fails, it keeps the duffy nodes for 2 hours before releasing, so that the devs can debug.
 
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
-    ci_project: container
     properties:
         - github:
             url: https://github.com/CentOS/container-pipeline-service.git
@@ -145,14 +142,13 @@
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
             white-list:
                 - kbsingh
                 - bamachrn
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
+            cron: '* * * * *'
             trigger-phrase: '#dotests-debug'
             only-trigger-phrase: true
             github-hooks: true
@@ -173,7 +169,7 @@
             branches: master
             refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
             branches:
-                - "${sha1}"
+                - "${ghprbactualcommit}"
     builders:
         - shell: |
             echo ${sha1}
@@ -196,11 +192,10 @@
         https://github.com/centos/container-pipeline-service
 
         This job gets triggered when there is a PR raised to container-pipeline-service
-        or \#dotests-unittests on the raised PRs
+        or #dotests-unittests on the raised PRs
 
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
-    ci_project: container
     properties:
         - github:
             url: https://github.com/CentOS/container-pipeline-service.git
@@ -212,14 +207,13 @@
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
             white-list:
                 - kbsingh
                 - bamachrn
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
+            cron: '* * * * *'
             trigger-phrase: '#dotests-unittests'
             only-trigger-phrase: false
             github-hooks: true
@@ -240,7 +234,7 @@
             branches: master
             refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
             branches:
-                - "${sha1}"
+                - "${ghprbactualcommit}"
     builders:
         - shell: |
             echo ${sha1}
@@ -261,11 +255,10 @@
         This job is for running the unit tests CI jobs for the PRs raised to
         https://github.com/centos/container-pipeline-service.
 
-        This job triggers when \#dotests-unittests-debug is commented on a PR. If the unittests CI job fails, it keep the duff node(s) for 2 hours before releasing, so that the devs can debug.
+        This job triggers when #dotests-unittests-debug is commented on a PR. If the unittests CI job fails, it keep the duff node(s) for 2 hours before releasing, so that the devs can debug.
 
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
-    ci_project: container
     properties:
         - github:
             url: https://github.com/CentOS/container-pipeline-service.git
@@ -277,14 +270,13 @@
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
             white-list:
                 - kbsingh
                 - bamachrn
                 - dharmit
                 - navidshaikh
                 - mohammedzee1000
-                - cdrage
+            cron: '* * * * *'
             trigger-phrase: '#dotests-unittests-debug'
             only-trigger-phrase: true
             github-hooks: true
@@ -305,7 +297,7 @@
             branches: master
             refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
             branches:
-                - "${sha1}"
+                - "${ghprbactualcommit}"
     builders:
         - shell: |
             echo ${sha1}
