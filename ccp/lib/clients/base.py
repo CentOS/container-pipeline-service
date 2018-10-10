@@ -11,6 +11,8 @@ class Client(object):
 class CmdClient(Client):
     """
     Base class for all Command Clients
+    These clients execute commands on behalf of program and
+    return any output for processing.
     """
 
     def __init__(self, base_command):

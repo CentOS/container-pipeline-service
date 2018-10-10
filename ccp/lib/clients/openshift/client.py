@@ -22,7 +22,7 @@ class OpenShiftCmdClient(CmdClient):
         :param sa: Default sa/jenkins: The service account whose token is
         needed
         :type sa str
-        :return: The token, it was able to successfully retrieve it
+        :return: The token, if it was able to successfully retrieve it
         :rtype: str
         :raises Exception
         """
@@ -43,6 +43,11 @@ class OpenShiftCmdClient(CmdClient):
     def get_token_from_mounted_secret(
             self, secret_mount_path="/tmp/jenkins-secret"
     ):
+        """
+        Get token from a mounted secret.
+        :param secret_mount_path: The path where the secret is mounted
+        :return: The token, if it was able to retrieve it.
+        """
         token_location = secret_mount_path + "/token"
         if not path.exists(token_location):
             raise Exception(
@@ -53,6 +58,7 @@ class OpenShiftCmdClient(CmdClient):
         with open(token_location, "r") as f:
             return "".join(f.readlines())
 
+    @retry(tries=10, delay=2, backoff=2)
     def login(self, server=None, token=None, username=None, password=None):
         """
         Logs into an openshift cluster with token or username and password.
@@ -69,7 +75,7 @@ class OpenShiftCmdClient(CmdClient):
         :param password: The password to login with. Use only if token is not
         provided. Not recommended
         :type password str
-        :return: The output ot the command
+        :return: output of executed command
         :rtype str
         :raises Exception
         """
@@ -102,10 +108,16 @@ class OpenShiftCmdClient(CmdClient):
         :type params dict
         :type namespace str
         :type apply_template bool
-        :returns output of command execution
+        :returns output of executed command
         :rtype str
         :raises Exception
         """
+        if not path.exists(template_path):
+            raise Exception(
+                "Invalid path of template file at {}".format(
+                    template_path
+                )
+            )
         p = ""
         for k, v in params:
             p = p + " -p {param_name}={param_value}".format(
@@ -152,7 +164,7 @@ class OpenShiftCmdClient(CmdClient):
         :param bc: The name of the BuildConfig to delete
         :type namespace str
         :type bc str
-        :return: The output of the command
+        :return: output of executed command
         :rtype str
         :raises Exception
         """
