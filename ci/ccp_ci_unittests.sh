@@ -49,29 +49,36 @@ echo "=========================================================="
 sshopts="-t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root"
 ssh_cmd="ssh $sshopts $CICO_hostname"
 
+echo "====Installing necessary packages for running tests on the duffy node===="
 # install the needed packages on the duffy node which will the tests
-$ssh_cmd "yum -y install epel-release && yum -y install rsync git PyYAML python-networkx python2-nose"
+$ssh_cmd "yum -y install epel-release && yum -y install rsync git PyYAML python-networkx python2-nose" >> /tmp/unittests_setup_log.txt
 package_installed_success=$?
 
-if [ $package_installed_success -ne 0]
+if [ $package_installed_success -ne 0 ]
 then
-
+  echo "==================Package Installation Logs============"
+  cat /tmp/unittests_setup_log.txt
+  echo "======================================================="
   mark_failure "Failed to install required packages on duffy node, exiting!"
 fi
+echo "====Duffy node is setup with necessary dependencies===="
 
-
+echo "======Copying source code to the duffy node======"
 # sync the codebase from PR to duffy node
 rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload
 rsync_success=$?
 
-if [ $rsync_success -ne 0]
+if [ $rsync_success -ne 0 ]
 then
   mark_failure "Failed to rsync the PR source code on duffy node, exiting!"
 fi
+echo "======Source code coppied to the duffy node======"
 
+echo "==================Running the unit tests==============="
 # run the unittests on duffy node
 $ssh_cmd "cd payload && nosetests -w . -vv tests/"
 rtn_code=$?
+echo "======================================================="
 
 
 if [ $CI_DEBUG -eq 0 ]

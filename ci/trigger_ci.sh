@@ -96,7 +96,7 @@ echo "Setup ansible controller node for running openshift 39 deployment"
 ssh $sshopts $ansible_node 'yum install -y git && yum install -y rsync && yum install -y gcc libffi-devel python-devel openssl-devel && yum install -y epel-release && yum install -y PyYAML python-networkx python-nose python-pep8 python-jinja2 rsync centos-release-openshift-origin39.noarch && yum install -y http://cbs.centos.org/kojifiles/packages/ansible/2.5.5/1.el7/noarch/ansible-2.5.5-1.el7.noarch.rpm && yum install -y openshift-ansible' >> /dev/null
 
 echo "Copy source code to ansible controller node"
-rsync -e "ssh -t -o LogLevel=error -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root" -Ha ../ $ansible_node:/opt/ccp-openshift
+rsync -e "ssh -t -o LogLevel=error -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root" -Ha $(pwd)/ $ansible_node:/opt/ccp-openshift
 
 echo "Prepare ansible inventory for service setup"
 # generate inventory file for service deployment
@@ -108,7 +108,12 @@ ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /
 ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_username/cccp/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshift/provision/hosts.ci
+inventory_updated=$?
 
+if [ $inventory_updated -ne 0 ]
+then
+    mark_failure "Source code is not in proper location"
+fi
 
 echo "Run ansible playbook for setting service"
 ssh $sshoptserr $ansible_node "cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/hosts.ci main.yaml" >> /tmp/service_provision_logs.txt
