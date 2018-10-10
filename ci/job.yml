@@ -69,7 +69,7 @@
     node: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-pipeline-service.git
+            url: https://github.com/CentOS/container-pipeline-service
     triggers:
         - github-pull-request:
             admin-list:
@@ -133,7 +133,7 @@
     node: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-pipeline-service.git
+            url: https://github.com/CentOS/container-pipeline-service
     triggers:
         - github-pull-request:
             admin-list:
@@ -198,7 +198,7 @@
     node: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-pipeline-service.git
+            url: https://github.com/CentOS/container-pipeline-service
     triggers:
         - github-pull-request:
             admin-list:
@@ -261,7 +261,7 @@
     node: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-pipeline-service.git
+            url: https://github.com/CentOS/container-pipeline-service
     triggers:
         - github-pull-request:
             admin-list:
