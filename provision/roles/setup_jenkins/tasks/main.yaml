@@ -47,6 +47,3 @@
 
 - name: Remove default node selector for cccp project
   shell: oc annotate namespace cccp openshift.io/node-selector=""
-
-- name: Run the demon sets for scanner
-  shell: oc create -f /opt/ccp-openshift/daemon-set/scan_data.yml
