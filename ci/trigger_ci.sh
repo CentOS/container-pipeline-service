@@ -108,7 +108,12 @@ ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /
 ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_username/cccp/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshift/provision/hosts.ci
+inventory_updated=$?
 
+if [ $inventory_updated -ne 0 ]
+then
+    mark_failure "Source code is not in proper location"
+fi
 
 echo "Run ansible playbook for setting service"
 ssh $sshoptserr $ansible_node "cd /opt/ccp-openshift/provision && ansible-playbook -i /opt/ccp-openshift/provision/hosts.ci main.yaml" >> /tmp/service_provision_logs.txt
