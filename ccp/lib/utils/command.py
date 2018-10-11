@@ -1,38 +1,20 @@
 # -*- coding: utf-8 -*-
+from ccp.lib.exceptions import CommandOutputError
 import subprocess
 
 
-def run_cmd(cmd, shell=False):
+def run_command(cmd, shell=False):
     """
-    Runs a shell command.
-
-    :param cmd: Command to run
-    :param shell: Whether to run raw shell commands with '|' and redirections
-    :type cmd: str
-    :type shell: boolean
-
+    Runs a shell command
+    :param cmd: The command that needs to be run.
+    :param shell: Default False: Whether to run raw shell commands with '|' and
+    redirections
     :return: Command output
-    :rtype: str
-    :raises: subprocess.CalledProcessError
-    """
-    if shell:
-        return subprocess.check_output(cmd, shell=True)
-    else:
-        return subprocess.check_output(cmd.split(), shell=False)
-
-
-def run_cmd2(cmd, shell=False):
-    """
-    Runs a shell command.
-
-    :param cmd: Command to run
-    :param shell: Whether to run raw shell commands with '|' and redirections
-    :type cmd: str
-    :type shell: boolean
-
-    :return: Command's stdout and stderr
-    :rtype: tuple
-    :raises: subprocess.CalledProcessError
+    :raises subprocess.CalledProcessError
+    :raises ccp.lib.exceptions.CommandOutputError
     """
     p = subprocess.Popen(cmd, shell=shell)
-    return p.communicate()
+    out, err = p.communicate()
+    if err:
+        raise CommandOutputError(err)
+    return out
