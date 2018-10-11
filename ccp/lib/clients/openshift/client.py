@@ -1,6 +1,7 @@
 from ccp.lib.clients.base import CmdClient
 from ccp.lib.utils.retry import retry
 from os import path
+from ccp.lib.utils.command import run_command
 
 
 class OpenShiftCmdClient(CmdClient):
@@ -25,6 +26,8 @@ class OpenShiftCmdClient(CmdClient):
         :return: The token, if it was able to successfully retrieve it
         :rtype: str
         :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
         """
         c1 = "%s get %s -n %s --template='{{range .secrets}}" % \
              (self.base_command, sa, namespace)
@@ -37,7 +40,7 @@ class OpenShiftCmdClient(CmdClient):
         command = "{} | {} | {} | {}".format(
             c1, c2, c3, c4
         )
-        return self.run_command(command, shell=True)
+        return run_command(command, shell=True)
 
     @retry(tries=5, delay=3, backoff=3)
     def get_token_from_mounted_secret(
@@ -78,6 +81,8 @@ class OpenShiftCmdClient(CmdClient):
         :return: output of executed command
         :rtype str
         :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
         """
         command = str.format(
             "{base_command} login{token_param}{user_param}{server_param}",
@@ -91,7 +96,7 @@ class OpenShiftCmdClient(CmdClient):
             ),
             server_param="" if not server else str(server)
         )
-        return self.run_command(cmd=command)
+        return run_command(cmd=command)
 
     @retry(tries=10, delay=3, backoff=2)
     def process_template(
@@ -111,6 +116,8 @@ class OpenShiftCmdClient(CmdClient):
         :returns output of executed command
         :rtype str
         :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
         """
         if not path.exists(template_path):
             raise Exception(
@@ -134,7 +141,7 @@ class OpenShiftCmdClient(CmdClient):
                 ns=namespace
             ) if apply_template else ""
         )
-        return self.run_command(cmd=command, shell=True)
+        return run_command(cmd=command, shell=True)
 
     @retry(tries=10, delay=3, backoff=2)
     def start_build(self, namespace, bc):
@@ -149,11 +156,13 @@ class OpenShiftCmdClient(CmdClient):
         :return: The output of the executed command
         :rtype str
         :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
         """
         command = "{base_cmd} start-build {build_name} -n {namespace}".format(
             base_cmd=self.base_command, build_name=bc, namespace=namespace
         )
-        return self.run_command(cmd=command, shell=False)
+        return run_command(cmd=command, shell=False)
 
     @retry(tries=10, delay=3, backoff=2)
     def delete_build_config(self, namespace, bc):
@@ -167,13 +176,15 @@ class OpenShiftCmdClient(CmdClient):
         :return: output of executed command
         :rtype str
         :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
         """
         command = "{base_command} delete -n {namespace} bc {bc}".format(
             base_command=self.base_command,
             namespace=namespace,
             bc=bc,
         )
-        return self.run_command(cmd=command, shell=False)
+        return run_command(cmd=command, shell=False)
 
     @retry(tries=10, delay=3, backoff=2)
     def list_build_configs(self, namespace, filter_out=None, selectors=None):
@@ -190,6 +201,8 @@ class OpenShiftCmdClient(CmdClient):
         :return: A list of BuildConfigs in namespace, after filtering
         :rtype list
         :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
         """
         if not filter_out or not isinstance(filter_out, list):
             filter_out = []
@@ -204,7 +217,7 @@ class OpenShiftCmdClient(CmdClient):
             namespace=namespace,
             s=selector_params
         )
-        out = self.run_command(cmd=command)
+        out = run_command(cmd=command)
         if not out.strip():
             return []
         out = out.strip().split('\n')
@@ -224,6 +237,8 @@ class OpenShiftCmdClient(CmdClient):
         :return: List of builds that matched all conditions
         :rtype list
         :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
         """
         filter_str = ""
         close_str = "{{end}}"
@@ -250,7 +265,7 @@ class OpenShiftCmdClient(CmdClient):
             namespace=namespace,
             t=template_str
         )
-        out = self.run_command(cmd=command, shell=True)
+        out = run_command(cmd=command, shell=True)
         if not out.strip():
             return []
         out = out.strip().split(' ')

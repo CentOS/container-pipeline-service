@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from ccp.lib.utils.command import run_cmd2
+from ccp.lib.utils.command import run_command
 
 
 class SendEmail(object):
@@ -52,7 +52,7 @@ echo -e '{body}' | /usr/bin/mailx -r {from_address} {cc_opts} -S \
             to_addresses=to_addresses)
 
         # send email
-        stdout, stderr = run_cmd2(command, shell=True)
+        stdout, stderr = run_command(command, shell=True)
         if stderr:
             return False, stderr
         else:

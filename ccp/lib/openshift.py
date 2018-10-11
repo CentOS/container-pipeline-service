@@ -7,7 +7,7 @@ import ssl
 import sys
 import urllib2
 
-from ccp.lib.utils.command import run_cmd
+from ccp.lib.utils.command import run_command
 from ccp.lib.utils.retry import retry
 
 
@@ -26,7 +26,7 @@ base64 -d -""" % service_account
 
     print ("Get Jenkins service account token\n{}".format(command))
     # run the oc command
-    token = run_cmd(command, shell=True)
+    token = run_command(command, shell=True)
     # strip any extra characters while reading stdout
     return token.strip()
 
