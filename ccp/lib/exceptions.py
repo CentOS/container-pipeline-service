@@ -11,6 +11,13 @@ class InvalidPipelineName(Exception):
     pass
 
 
+class CommandOutputError(Exception):
+    """
+    Exception to be raised when running a command does not fail but command
+    gives an error message.
+    """
+
+
 class ErrorAccessingIndexEntryAttributes(Exception):
     """
     Exception to be raised when there are errors accessing
