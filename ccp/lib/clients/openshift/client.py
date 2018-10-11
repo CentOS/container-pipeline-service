@@ -9,10 +9,42 @@ class OpenShiftCmdClient(CmdClient):
     Client for interacting with Openshift.
     """
 
-    def __init__(self):
+    def __init__(
+            self,
+            base_command_args=None,
+            insecure=True,
+            ca_path=None,
+            client_cert_path=None,
+            client_key_path=None
+
+    ):
+        """
+        Initialize OpenshiftCmdClient
+        :param base_command_args: Any special args you wish to give to base
+        command
+        :type base_command_args list
+        :param insecure: Default True: If true, then connection is insecure even
+        with https so certs verification is ignored
+        :type insecure bool
+        :param ca_path: Default None: If set, this is used to verify
+        certs, assuming insecure is False
+        :type ca_path str
+        :param client_cert_path: Default None: If provided then client cert path
+        is used.
+        :type client_cert_path str
+        :param client_key_path: Default None: If provided, then client key path
+        is used.
+        :type client_key_path str
+        """
         super(OpenShiftCmdClient, self).__init__(
-            "/usr/bin/oc"
+            "/usr/bin/oc{}".format(
+                " " + " ".join(base_command_args) if base_command_args else ""
+            )
         )
+        self.insecure = insecure
+        self.secure_ca_path = ca_path
+        self.secure_client_cert_path = client_cert_path
+        self.secure_client_key_path = client_key_path
 
     @retry(tries=10, delay=3, backoff=2)
     def get_sa_token_from_openshift(self, namespace, sa="sa/jenkins"):
@@ -62,7 +94,17 @@ class OpenShiftCmdClient(CmdClient):
             return "".join(f.readlines())
 
     @retry(tries=10, delay=2, backoff=2)
-    def login(self, server=None, token=None, username=None, password=None):
+    def login(
+            self,
+            server=None,
+            token=None,
+            username=None,
+            password=None,
+            insecure=True,
+            ca_path=None,
+            client_cert_path=None,
+            client_key_path=None
+    ):
         """
         Logs into an openshift cluster with token or username and password.
         :param server: Default None: The openshift server to log into. If none
@@ -78,15 +120,42 @@ class OpenShiftCmdClient(CmdClient):
         :param password: The password to login with. Use only if token is not
         provided. Not recommended
         :type password str
+        :param insecure: Default True: If true, then connection is insecure even
+        with https so certs verification is ignored
+        :type insecure bool
+        :param ca_path: Default None: If set, this is used to verify
+        certs, assuming insecure is False
+        :type ca_path str
+        :param client_cert_path: Default None: If provided then client cert path
+        is used.
+        :type client_cert_path str
+        :param client_key_path: Default None: If provided, then client key path
+        is used.
+        :type client_key_path str
         :return: output of executed command
         :rtype str
         :raises Exception
         :raises subprocess.CalledProcessError
         :raises ccp.lib.exceptions.CommandOutputError
         """
+        ca_path = ca_path or self.secure_ca_path
+        client_cert_path = client_cert_path or self.secure_client_cert_path
+        client_key_path = client_key_path or self.secure_client_key_path
+        cert_params = "{}{}{}".format(
+            "" if not ca_path else "--certificate-authority=" + ca_path,
+            "" if not client_cert_path else "--client-certificate=" +
+                                            client_cert_path,
+            "" if not client_key_path else "--client-key=" + client_key_path
+        )
         command = str.format(
-            "{base_command} login{token_param}{user_param}{server_param}",
+            "{base_command}{secure_params} login{token_param}{user_param}"
+            "{server_param}",
             base_command=self.base_command,
+            secure_params="{insecure_param}{cert_params}".format(
+                insecure_param="--insecure-skip-tls-verify=true" if insecure
+                else "",
+                cert_params=cert_params
+            ),
             token_param="" if not token else " --token={}".format(
                 token
             ),
