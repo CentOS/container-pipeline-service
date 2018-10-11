@@ -27,6 +27,7 @@ objects:
                 cloud: 'openshift',
                 name: 'ccp-pipeline-seed',
                 label: 'ccp-pipeline-seed',
+                namespace: '${NAMESPACE}',
                 serviceAccount: 'jenkins',
                 containers: [
                   containerTemplate(
@@ -36,7 +37,9 @@ objects:
                     alwaysPullImage: true,
                     workingDir: '/tmp',
                     privileged: true,
-                    args: '${computer.jnlpmac} ${computer.name}'
+                    args: '${computer.jnlpmac} ${computer.name}',
+                    resourceRequestCpu: '${SEED_JOB_CPU}',
+                    resourceRequestMemory: '${SEED_JOB_MEMORY}'
                   )
                 ],
             )
@@ -49,7 +52,7 @@ objects:
                     }
                     stage('Parse index') {
                         dir("${PIPELINE_REPO_DIR}") {
-                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP} ${CCP_OPENSHIFT_SLAVE_IMAGE} ${NOTIFY_CC_EMAILS} ${REGISTRY_ALIAS}"
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP} ${CCP_OPENSHIFT_SLAVE_IMAGE} ${NOTIFY_CC_EMAILS} ${REGISTRY_ALIAS} ${MASTER_JOB_CPU} ${MASTER_JOB_MEMORY}"
                         }
                     }
                 }
@@ -145,3 +148,23 @@ parameters:
   name: CCP_OPENSHIFT_SLAVE_IMAGE
   required: true
   value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest
+- description: Number of CPUs to be requested from OpenShift to start seed-job slave pod
+  displayName: seed job CPU
+  name: SEED_JOB_CPU
+  required: true
+  value: "1"
+- description: Amount of memory to be requested from OpenShift to start seed-job slave pod
+  displayName: seed job memory
+  name: SEED_JOB_MEMORY
+  required: true
+  value: 1Gi
+- description: Number of CPUs to be requested from OpenShift to start master-job slave pod
+  displayName: master job CPU
+  name: MASTER_JOB_CPU
+  required: true
+  value: "1"
+- description: Amount of memory to be requested from OpenShift to start master-job slave pod
+  displayName: master job memory
+  name: MASTER_JOB_MEMORY
+  required: true
+  value: 1Gi
