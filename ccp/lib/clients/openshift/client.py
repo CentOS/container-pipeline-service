@@ -1,7 +1,7 @@
 from ccp.lib.clients.base import CmdClient
 from ccp.lib.utils.retry import retry
 from os import path
-from ccp.lib.utils.command import run_command
+from ccp.lib.utils.command import run_command_exception_on_stderr
 
 
 class OpenShiftCmdClient(CmdClient):
@@ -72,7 +72,7 @@ class OpenShiftCmdClient(CmdClient):
         command = "{} | {} | {} | {}".format(
             c1, c2, c3, c4
         )
-        return run_command(command, shell=True)
+        return run_command_exception_on_stderr(command, shell=True)
 
     @retry(tries=5, delay=3, backoff=3)
     def get_token_from_mounted_secret(
@@ -165,7 +165,7 @@ class OpenShiftCmdClient(CmdClient):
             ),
             server_param="" if not server else str(server)
         )
-        return run_command(cmd=command)
+        return run_command_exception_on_stderr(cmd=command)
 
     @retry(tries=10, delay=3, backoff=2)
     def process_template(
@@ -210,7 +210,7 @@ class OpenShiftCmdClient(CmdClient):
                 ns=namespace
             ) if apply_template else ""
         )
-        return run_command(cmd=command, shell=True)
+        return run_command_exception_on_stderr(cmd=command, shell=True)
 
     @retry(tries=10, delay=3, backoff=2)
     def start_build(self, namespace, bc):
@@ -231,7 +231,7 @@ class OpenShiftCmdClient(CmdClient):
         command = "{base_cmd} start-build {build_name} -n {namespace}".format(
             base_cmd=self.base_command, build_name=bc, namespace=namespace
         )
-        return run_command(cmd=command, shell=False)
+        return run_command_exception_on_stderr(cmd=command, shell=False)
 
     @retry(tries=10, delay=3, backoff=2)
     def delete_build_config(self, namespace, bc):
@@ -253,7 +253,7 @@ class OpenShiftCmdClient(CmdClient):
             namespace=namespace,
             bc=bc,
         )
-        return run_command(cmd=command, shell=False)
+        return run_command_exception_on_stderr(cmd=command, shell=False)
 
     @retry(tries=10, delay=3, backoff=2)
     def list_build_configs(self, namespace, filter_out=None, selectors=None):
@@ -286,7 +286,7 @@ class OpenShiftCmdClient(CmdClient):
             namespace=namespace,
             s=selector_params
         )
-        out = run_command(cmd=command)
+        out = run_command_exception_on_stderr(cmd=command)
         if not out.strip():
             return []
         out = out.strip().split('\n')
@@ -334,7 +334,7 @@ class OpenShiftCmdClient(CmdClient):
             namespace=namespace,
             t=template_str
         )
-        out = run_command(cmd=command, shell=True)
+        out = run_command_exception_on_stderr(cmd=command, shell=True)
         if not out.strip():
             return []
         out = out.strip().split(' ')
