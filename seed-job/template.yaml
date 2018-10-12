@@ -111,7 +111,6 @@ objects:
                         stage('Build the container image') {
                             dir("${PIPELINE_NAME}/${GIT_PATH}"){
                                 sh "docker build --no-cache -t ${image_name} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
-                                sh "docker images"
                             }
                             image_is_built = true
                         }
