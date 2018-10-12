@@ -262,7 +262,7 @@ class BuildConfigManager(object):
         returns list of buildConfigs available
         """
         command = "oc get bc -o name -n {}".format(self.namespace)
-        bcs, _ = run_command(command)
+        bcs, _ = run_command(command, shell=True)
         if not bcs.strip():
             return []
         else:
