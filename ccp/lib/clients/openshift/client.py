@@ -2,6 +2,7 @@ from ccp.lib.clients.base import CmdClient
 from ccp.lib.utils.retry import retry
 from os import path
 from ccp.lib.utils.command import run_command_exception_on_stderr
+from ccp.lib.exceptions import TemplateDoesNotExistError
 
 
 class OpenShiftCmdClient(CmdClient):
@@ -91,7 +92,7 @@ class OpenShiftCmdClient(CmdClient):
                 )
             )
         with open(token_location, "r") as f:
-            return "".join(f.readlines())
+            return f.read()
 
     @retry(tries=10, delay=2, backoff=2)
     def login(
@@ -147,35 +148,36 @@ class OpenShiftCmdClient(CmdClient):
                                             client_cert_path,
             "" if not client_key_path else "--client-key=" + client_key_path
         )
+        insecure_param = "--insecure-skip-tls-verify=true" if insecure else ""
+        secure_params = "{insecure_param}{cert_params}".format(
+            insecure_param=insecure_param,
+            cert_params=cert_params
+        )
+        token_param = "" if not token else "--token={}".format(token)
+        user_param = "" if token else " -u {} -p {}".format(
+            username,
+            password
+        )
         command = str.format(
             "{base_command}{secure_params} login{token_param}{user_param}"
             "{server_param}",
             base_command=self.base_command,
-            secure_params="{insecure_param}{cert_params}".format(
-                insecure_param="--insecure-skip-tls-verify=true" if insecure
-                else "",
-                cert_params=cert_params
-            ),
-            token_param="" if not token else " --token={}".format(
-                token
-            ),
-            user_param="" if token else " -u {} -p {}".format(
-                username,
-                password
-            ),
+            secure_params=secure_params,
+            token_param=token_param,
+            user_param=user_param,
             server_param="" if not server else str(server)
         )
         return run_command_exception_on_stderr(cmd=command)
 
     @retry(tries=10, delay=3, backoff=2)
     def process_template(
-            self, template_path, params, namespace, apply_template=True
+            self, params, template_path, namespace, apply_template=True
     ):
         """
         Processes a specified template, and applies to to a namespace
-        :param template_path: The path to the template file to process
         :param params: The key value pair of parameters with which the template
         is to be processed
+        :param template_path: The path to the template file to process
         :param namespace: The namespace in which the template is to be applied
         :param apply_template: Default True: Apply the template
         :type template_path: str
@@ -187,39 +189,38 @@ class OpenShiftCmdClient(CmdClient):
         :raises Exception
         :raises subprocess.CalledProcessError
         :raises ccp.lib.exceptions.CommandOutputError
+        :raises ccp.lib.exceptions.TemplateDoesNotExistError
         """
         if not path.exists(template_path):
-            raise Exception(
-                "Invalid path of template file at {}".format(
+            raise TemplateDoesNotExistError(
+                "Template does not exist at {}".format(
                     template_path
                 )
             )
-        p = ""
-        for k, v in params:
-            p = p + " -p {param_name}={param_value}".format(
-                param_name=k,
-                param_value=v
-            )
+        p = "".join(
+            str(" -p {}={}").format(i, k) for i, k in params.iteritems()
+        )
+        apply_cmd = " | {base_command} apply -n {ns} -f -".format(
+            base_command=self.base_command,
+            ns=namespace
+        ) if apply_template else ""
         command = str.format(
             "{base_command} process{params} -f {template_path}{apply_cmd}",
             base_command=self.base_command,
             params=p,
             template_path=template_path,
-            apply_cmd=" | {base_command} apply -n {ns} -f -".format(
-                base_command=self.base_command,
-                ns=namespace
-            ) if apply_template else ""
+            apply_cmd=apply_cmd
         )
         return run_command_exception_on_stderr(cmd=command, shell=True)
 
     @retry(tries=10, delay=3, backoff=2)
-    def start_build(self, namespace, bc):
+    def start_build(self, bc, namespace):
         """
         Starts build on a BuildConfig with build_name in specified
         namespace
+        :param bc: The name of the BuildConfig
         :param namespace: The namespace in which the build is to be
         started
-        :param bc: The name of the BuildConfig
         :type namespace: str
         :type bc: str
         :return: The output of the executed command
@@ -234,12 +235,12 @@ class OpenShiftCmdClient(CmdClient):
         return run_command_exception_on_stderr(cmd=command, shell=False)
 
     @retry(tries=10, delay=3, backoff=2)
-    def delete_build_config(self, namespace, bc):
+    def delete_build_config(self, bc, namespace):
         """
         Deletes a specified BuildConfig in a specified namespace
+        :param bc: The name of the BuildConfig to delete
         :param namespace: The namespcae from which the BuildConfig is to be
         removed
-        :param bc: The name of the BuildConfig to delete
         :type namespace: str
         :type bc: str
         :return: output of executed command
@@ -248,7 +249,7 @@ class OpenShiftCmdClient(CmdClient):
         :raises subprocess.CalledProcessError
         :raises ccp.lib.exceptions.CommandOutputError
         """
-        command = "{base_command} delete -n {namespace} bc {bc}".format(
+        command = "{base_command} delete bc {bc} -n {namespace}".format(
             base_command=self.base_command,
             namespace=namespace,
             bc=bc,
@@ -275,12 +276,10 @@ class OpenShiftCmdClient(CmdClient):
         """
         if not filter_out or not isinstance(filter_out, list):
             filter_out = []
-        selector_params = ""
-        for k, v in selectors:
-            selector_params = selector_params + " --selector {k}={v}".format(
-                k=k,
-                v=v
-            )
+        selector_params = "".join(
+            str(" --selector {k}={v}").format(k, v)
+            for k, v in selectors.iteritems()
+        )
         command = "{base_command} get bc -o name -n {namespace}{s}".format(
             base_command=self.base_command,
             namespace=namespace,
@@ -309,9 +308,12 @@ class OpenShiftCmdClient(CmdClient):
         :raises subprocess.CalledProcessError
         :raises ccp.lib.exceptions.CommandOutputError
         """
+        # Initialize filter_str and close_str to values they will have
+        # if filter_out is not provided.
         filter_str = ""
         close_str = "{{end}}"
 
+        # Ensure filter_out is a list
         if not filter_out:
             filter_out = []
 
@@ -321,7 +323,7 @@ class OpenShiftCmdClient(CmdClient):
             for phase in status_filter:
                 condition = condition + conditional.format(phase)
             filter_str = "{{if and %s }}" % condition
-            close_str = close_str * 2
+            close_str = "{{end}}{{end}}"
 
         template_str = "{}{}{}".format(
             "{{range .items }}",

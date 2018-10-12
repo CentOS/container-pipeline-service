@@ -183,8 +183,9 @@ class BuildInfo(object):
         print ("Opening URL to details of the build\n{}".format(url))
 
         try:
-            token = OpenShiftCmdClient().get_sa_token_from_openshift(
-                self.service_account
+            c = OpenShiftCmdClient()
+            token = c.get_sa_token_from_openshift(
+                sa=self.service_account
             )
             response = self.get_url(url, token)
             response = json.loads(response.read())
