@@ -16,7 +16,6 @@ class OpenShiftCmdClient(CmdClient):
             ca_path=None,
             client_cert_path=None,
             client_key_path=None
-
     ):
         """
         Initialize OpenshiftCmdClient
