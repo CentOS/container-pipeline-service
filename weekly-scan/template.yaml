@@ -64,20 +64,20 @@ objects:
                         stage('Scan the image') {
                             parallel (
                                 "RPM updates": {
-                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name}` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/yumupdates.py > yum-check-update 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/yumupdates.py > yum-check-update 2>&1")
                                   sh "cat yum-check-update"
                                 },
                                 "Verify RPMs": {
-                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name}` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/rpmverify.py > rpm-verify 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/rpmverify.py > rpm-verify 2>&1")
                                   sh "cat rpm-verify"
                                 },
                                 "Miscellaneous updates": {
-                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name}` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/misc_package_updates.py all > misc-updates 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/misc_package_updates.py all > misc-updates 2>&1")
                                   sh "cat misc-updates"
                                 },
                                 "Container capabilities": {
                                   def run_label = sh (script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
-                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name}` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
                                   sh "cat capabilities"
                                 }
                             )
