@@ -22,19 +22,19 @@ class OpenShiftCmdClient(CmdClient):
         Initialize OpenshiftCmdClient
         :param base_command_args: Any special args you wish to give to base
         command
-        :type base_command_args list
+        :type base_command_args: list
         :param insecure: Default True: If true, then connection is insecure even
         with https so certs verification is ignored
-        :type insecure bool
+        :type insecure: bool
         :param ca_path: Default None: If set, this is used to verify
         certs, assuming insecure is False
-        :type ca_path str
+        :type ca_path: str
         :param client_cert_path: Default None: If provided then client cert path
         is used.
-        :type client_cert_path str
+        :type client_cert_path: str
         :param client_key_path: Default None: If provided, then client key path
         is used.
-        :type client_key_path str
+        :type client_key_path: str
         """
         super(OpenShiftCmdClient, self).__init__(
             "/usr/bin/oc{}".format(
@@ -51,10 +51,10 @@ class OpenShiftCmdClient(CmdClient):
         """
         Gets service account token assuming user is already logged in
         :param namespace: The namespace of the service account.
-        :type namespace str
+        :type namespace: str
         :param sa: Default sa/jenkins: The service account whose token is
         needed
-        :type sa str
+        :type sa: str
         :return: The token, if it was able to successfully retrieve it
         :rtype: str
         :raises Exception
@@ -81,6 +81,7 @@ class OpenShiftCmdClient(CmdClient):
         """
         Get token from a mounted secret.
         :param secret_mount_path: The path where the secret is mounted
+        :type secret_mount_path: str
         :return: The token, if it was able to retrieve it.
         """
         token_location = secret_mount_path + "/token"
@@ -110,28 +111,28 @@ class OpenShiftCmdClient(CmdClient):
         :param server: Default None: The openshift server to log into. If none
         is provided then we assume oc is already aware which server it needs
         to log into
-        :type server str
+        :type server: str
         :param token: Default None: The token to login with. Overrides username
         and password as preferred login method
-        :type token str
+        :type token: str
         :param username: Default none : The username to login with. Use only if
         token is not used.
-        :type username str
+        :type username: str
         :param password: The password to login with. Use only if token is not
         provided. Not recommended
-        :type password str
+        :type password: str
         :param insecure: Default True: If true, then connection is insecure even
         with https so certs verification is ignored
-        :type insecure bool
+        :type insecure: bool
         :param ca_path: Default None: If set, this is used to verify
         certs, assuming insecure is False
-        :type ca_path str
+        :type ca_path: str
         :param client_cert_path: Default None: If provided then client cert path
         is used.
-        :type client_cert_path str
+        :type client_cert_path: str
         :param client_key_path: Default None: If provided, then client key path
         is used.
-        :type client_key_path str
+        :type client_key_path: str
         :return: output of executed command
         :rtype str
         :raises Exception
@@ -178,10 +179,10 @@ class OpenShiftCmdClient(CmdClient):
         is to be processed
         :param namespace: The namespace in which the template is to be applied
         :param apply_template: Default True: Apply the template
-        :type template_path str
-        :type params dict
-        :type namespace str
-        :type apply_template bool
+        :type template_path: str
+        :type params: dict
+        :type namespace: str
+        :type apply_template: bool
         :returns output of executed command
         :rtype str
         :raises Exception
@@ -220,8 +221,8 @@ class OpenShiftCmdClient(CmdClient):
         :param namespace: The namespace in which the build is to be
         started
         :param bc: The name of the BuildConfig
-        :type namespace str
-        :type bc str
+        :type namespace: str
+        :type bc: str
         :return: The output of the executed command
         :rtype str
         :raises Exception
@@ -240,8 +241,8 @@ class OpenShiftCmdClient(CmdClient):
         :param namespace: The namespcae from which the BuildConfig is to be
         removed
         :param bc: The name of the BuildConfig to delete
-        :type namespace str
-        :type bc str
+        :type namespace: str
+        :type bc: str
         :return: output of executed command
         :rtype str
         :raises Exception
@@ -264,9 +265,9 @@ class OpenShiftCmdClient(CmdClient):
         :param filter_out: Default None: A list of BuildConfig names to filter
         out.
         :param selectors Filter by selectors, provides list of labels
-        :type namespace str
-        :type filter_out list
-        :type selectors dict
+        :type namespace: str
+        :type filter_out: list
+        :type selectors: dict
         :return: A list of BuildConfigs in namespace, after filtering
         :rtype list
         :raises Exception
@@ -300,9 +301,9 @@ class OpenShiftCmdClient(CmdClient):
         :param status_filter: Default None : List of statuses to look for. If
         provided, only builds with specified statuses are returned.
         :param filter_out: Default None : List of builds to filter out.
-        :type namespace str
-        :type status_filter list
-        :type filter_out list
+        :type namespace: str
+        :type status_filter: list
+        :type filter_out: list
         :return: List of builds that matched all conditions
         :rtype list
         :raises Exception

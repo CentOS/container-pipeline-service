@@ -19,7 +19,7 @@ class CmdClient(Client):
         """
         Iniitalize the Cmd Client
         :param base_command: The core command to be used by client
-        :type base_command str
+        :type base_command: str
         """
         super(Client, self).__init__()
         self.base_command = base_command
