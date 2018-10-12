@@ -25,6 +25,7 @@
             - python-ipaddress
             - rsync
             - PyYAML
+            - python-requests
 
       - name: Start services
         systemd: state=started enabled=yes name={{ item }}
