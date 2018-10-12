@@ -18,6 +18,12 @@ class CommandOutputError(Exception):
     """
 
 
+class TemplateDoesNotExistError(Exception):
+    """
+    Exception to be raised when a template file does not exist
+    """
+
+
 class ErrorAccessingIndexEntryAttributes(Exception):
     """
     Exception to be raised when there are errors accessing
