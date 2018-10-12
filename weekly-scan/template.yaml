@@ -57,7 +57,7 @@ objects:
                             sh "curl ${image_tags} | grep ${DESIRED_TAG}"
                             image_in_registry = true
                         }
-                        stage('Pull the docker image'){
+                        stage('Pull the container image'){
                             sh "docker pull ${image_name_with_registry}"
                             image_is_pulled = true
                         }

@@ -68,7 +68,7 @@ objects:
                         }
                         stage("Check image build status")
                         {
-                            //Checking fourth stage (i.e. Build Docker image) expected to be 'Failure' as we are checking for failure case
+                            //Checking fourth stage (i.e. Build container image) expected to be 'Failure' as we are checking for failure case
                             checkStageStatus(failure_build_id, 3, "failed")
                         }
                         stage("Check image scan status")
