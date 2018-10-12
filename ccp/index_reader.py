@@ -262,7 +262,7 @@ class BuildConfigManager(object):
         returns list of buildConfigs available
         """
         command = "oc get bc -o name -n {}".format(self.namespace)
-        bcs = run_command(command)
+        bcs, _ = run_command(command)
         if not bcs.strip():
             return []
         else:
@@ -316,7 +316,7 @@ class BuildConfigManager(object):
             master_job_memory=self.master_job_memory
         )
         # process and apply buildconfig
-        output = run_command(command, shell=True)
+        output, _ = run_command(command, shell=True)
         _print(output)
 
         # if a buildConfig has config update, oc apply returns
@@ -376,7 +376,7 @@ class BuildConfigManager(object):
             registry_alias=self.registry_alias,
         )
         # process and apply buildconfig
-        output = run_command(command, shell=True)
+        output, _ = run_command(command, shell=True)
         _print(output)
 
     @retry(tries=10, delay=3, backoff=2)
@@ -398,7 +398,8 @@ class BuildConfigManager(object):
         """
         command = "oc start-build {} -n {}".format(
             pipeline_name, self.namespace)
-        _print(run_command(command))
+        out, _ = run_command(command)
+        _print(out)
 
     @retry(tries=10, delay=3, backoff=2)
     def delete_buildconfigs(self, bcs, wait_between_delete=5):
@@ -421,7 +422,7 @@ class BuildConfigManager(object):
         command = """\
 oc get builds -o name -o template \
 --template='{{range .items }}{{.metadata.name}}:{{.status.phase}} {{end}}'"""
-        output = run_command(command, shell=True)
+        output, _ = run_command(command, shell=True)
         return output.strip().split()
 
     @retry(tries=10, delay=3, backoff=2)
@@ -460,7 +461,7 @@ oc get builds -o name -o template --template='{{range .items }} \
 {{if and %s }} {{.metadata.name}}:{{.status.phase}} \
 {{end}}{{end}}'""" % condition
 
-        output = run_command(command, shell=True)
+        output, _ = run_command(command, shell=True)
         output = output.strip().split(' ')
         output = [each for each in output
                   if not each.startswith(tuple(filter_builds))
