@@ -252,6 +252,7 @@ OpenShift installation. Use the following Ansible inventory file:
             - python-rhsm-certificates
             - centos-release-openshift-origin39.noarch
             - python-ipaddress
+            - python-requests
 
       - name: Start NetworkManager and firewalld services
         systemd: state=started enabled=yes name={{ item }}

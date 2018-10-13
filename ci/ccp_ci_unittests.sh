@@ -51,7 +51,7 @@ ssh_cmd="ssh $sshopts $CICO_hostname"
 
 echo "====Installing necessary packages for running tests on the duffy node===="
 # install the needed packages on the duffy node which will the tests
-$ssh_cmd "yum -y install epel-release && yum -y install rsync git PyYAML python-networkx python2-nose" >> /tmp/unittests_setup_log.txt
+$ssh_cmd "yum -y install epel-release && yum -y install rsync git PyYAML python-networkx python2-nose python-requests" >> /tmp/unittests_setup_log.txt
 package_installed_success=$?
 
 if [ $package_installed_success -ne 0 ]
