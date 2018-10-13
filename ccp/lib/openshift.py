@@ -185,6 +185,7 @@ class BuildInfo(object):
         try:
             c = OpenShiftCmdClient()
             token = c.get_sa_token_from_openshift(
+                namespace,
                 sa=self.service_account
             )
             response = self.get_url(url, token)
