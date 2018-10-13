@@ -21,22 +21,23 @@ class OpenshiftJenkinsCoreAPIClient(OpenshiftJenkinsBaseAPIClient):
         """
         Initialize Openshift Jenkins Client
         :param server: The URL/IP of jenkins server on openshift.
-        :type server str
+        :type server: str
         :param secure: Default True: Use SSL for queries.
-        :type secure bool
+        :type secure: bool
         :param verify_ssl: Default True: Verify SSL certificate.
+        :type verify_ssl: bool
         :param token: Default None: If provided then, this is set as the token
         to use to login to OpenShift. Overrides all other ways of providing
         token
-        :type token str
+        :type token: str
         :param token_from_mount: Default None: Set if you have token mounted
         at a path. Otherwise, ensure the openshift context is already set.
-        :type token_from_mount str
+        :type token_from_mount: str
         :param sa: Default 'sa/jenkins': Name of the service account whose
         token is to be used.
-        :type sa str
+        :type sa: str
         :param namespace: The namespace of the Jenkins secret, if not mounted
-        :type namespace str
+        :type namespace: str
         """
         super(OpenshiftJenkinsCoreAPIClient, self).__init__(
             server=server,
@@ -54,10 +55,10 @@ class OpenshiftJenkinsCoreAPIClient(OpenshiftJenkinsBaseAPIClient):
         Queries jenkins server about the build and retrieves the information
         :param job_ordered_list: he ordered list of jobs, with parents,
         followed by children
-        :type job_ordered_list list
+        :type job_ordered_list: list
         :param build_number: The number of the build, whose information is
         neded
-        :type build_number str
+        :type build_number: str
         :return: The response from jenkins
         :raises Exception
         """
