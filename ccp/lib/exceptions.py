@@ -16,12 +16,14 @@ class CommandOutputError(Exception):
     Exception to be raised when running a command does not fail but command
     gives an error message.
     """
+    pass
 
 
 class TemplateDoesNotExistError(Exception):
     """
     Exception to be raised when a template file does not exist
     """
+    pass
 
 
 class ErrorAccessingIndexEntryAttributes(Exception):
