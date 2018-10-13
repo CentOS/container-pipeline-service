@@ -37,8 +37,8 @@ class OpenShiftCmdClient(CmdClient):
         :type client_key_path: str
         """
         super(OpenShiftCmdClient, self).__init__(
-            "/usr/bin/oc{}".format(
-                " " + " ".join(base_command_args) if base_command_args else ""
+            "/usr/bin/oc {}".format(
+                " ".join(base_command_args) if base_command_args else ""
             )
         )
         self.insecure = insecure
