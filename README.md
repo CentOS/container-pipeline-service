@@ -14,13 +14,13 @@ appropriate runtime → Scans the image → Pushes image to a public registry
 ## Use Case
 
 I have a certain stack I develop with (be it Django, Golang, NodeJS, Redis,
-RabbitMQ, etc.) using my CentOS as a base platform. 
+RabbitMQ, etc.) using my CentOS as a base platform.
 
 How do I package that application into a container that's updated automatically
 every time I push changes? What about security and updates, how do I automate
 that each time I push any changes?
 
-That's where CCCP comes in. 
+That's where CCCP comes in.
 
 CCCP will:
 
@@ -39,7 +39,7 @@ Similar to projects such as
 up a pull request.
 
 A developer wishing to host their container image will open up a pull request
-to the [CentOS Container Index](https://github.com/CentOS/container-index). 
+to the [CentOS Container Index](https://github.com/CentOS/container-index).
 
 Once the pull request is merged, CCCP:
 
@@ -60,21 +60,21 @@ and rebuilds it every time there is a future change.
 
     First off, the pipeline points to an index. For the CentOS community and in
     our example, this refers to the: [CentOS Container
-    Index](https://github.com/CentOS/container-index). 
+    Index](https://github.com/CentOS/container-index).
 
 2. **Jenkins and OpenShift tracking**
 
     Jenkins is utilized in order to track each application's Git repository as
     well as branch for any changes. This triggers a new build on **OpenShift**
     when a change is pushed.
-    
+
     Changes to the application's repository, update to the base image or any
     RPMs that are part of the image will trigger a new build
 
 3. **Building the image**
 
     The container image is built by OpenShift.
- 
+
 4. **Scan and analyze the image**
 
     Scanning happens by running scripts in the container image to check for:
@@ -82,7 +82,7 @@ and rebuilds it every time there is a future change.
     - updates for packages installed via `pip`, `npm` and `gem`
     - capabilities of the container created from resulting container image by
       analyzing `RUN` label in the Dockerfile
-    - verify the installed RPMs 
+    - verify the installed RPMs
 
 5. **Push to the public registry (https://registry.centos.org)**
 
@@ -128,7 +128,7 @@ through Mattermost at
 
 __IRC:__ If you prefer IRC, we can reached at **#centos-devel** on Freenode.
 
-__Email:__ You could always e-mail us as well at centos-devel@centos.org 
+__Email:__ You could always e-mail us as well at centos-devel@centos.org
 
 [Build Status]:
 https://ci.centos.org/view/Container/job/centos-container-pipeline-service-ci-pr/

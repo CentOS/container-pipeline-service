@@ -45,7 +45,7 @@ objects:
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def image_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
-                    def daemonset_name = "scan-data_scan-data"
+                    def slave_container_name = "jnlp_ccp-pipeline-weekly"
                     def image_in_registry = false
                     // setting this to ensure the user is notified correctly if the required stages in weekly scan are complete
                     def success = false
@@ -64,20 +64,20 @@ objects:
                         stage('Scan the image') {
                             parallel (
                                 "RPM updates": {
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/scanning/yumupdates.py > yum-check-update 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/yumupdates.py > yum-check-update 2>&1")
                                   sh "cat yum-check-update"
                                 },
                                 "Verify RPMs": {
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/scanning/rpmverify.py > rpm-verify 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/rpmverify.py > rpm-verify 2>&1")
                                   sh "cat rpm-verify"
                                 },
                                 "Miscellaneous updates": {
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/scanning/misc_package_updates.py all > misc-updates 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/misc_package_updates.py all > misc-updates 2>&1")
                                   sh "cat misc-updates"
                                 },
                                 "Container capabilities": {
                                   def run_label = sh (script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${daemonset_name}` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
                                   sh "cat capabilities"
                                 }
                             )
