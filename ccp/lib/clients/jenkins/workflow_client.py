@@ -58,14 +58,16 @@ class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
         """
         Gets the build runs of specified job/subjob from API server
         :param job_ordered_list: The ordered list of jobs, with parents,
-        followed by children
-        :type job_ordered_list: list
+        followed by children. It can also be preprocessed string.
+        :type job_ordered_list: Union[list, str]
         :raises Exception
         :return: The Response returned by API server, if it is received.
         """
         return self._query(
             "{}/wfapi/runs".format(
                 jenkins_jobs_from_jobs_ordered_list(
+                    job_ordered_list
+                ) if isinstance(job_ordered_list, list) else str(
                     job_ordered_list
                 )
             )
@@ -76,8 +78,8 @@ class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
         """
         Describes a particular build run of job/subjob from API server
         :param job_ordered_list: The ordered list of jobs, with parents,
-        followed by children
-        :type job_ordered_list: list
+        followed by children. It can also be preprocessed string.
+        :type job_ordered_list: Union[list, str]
         :param build_number: The number of build to describe.
         :type build_number: str
         :raises Exception
@@ -86,6 +88,8 @@ class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
         return self._query(
             "{}/{}/wfapi/describe".format(
                 jenkins_jobs_from_jobs_ordered_list(
+                    job_ordered_list
+                ) if isinstance(job_ordered_list, list) else str(
                     job_ordered_list
                 ),
                 build_number
@@ -99,8 +103,8 @@ class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
         """
         Describes an execution node for job/subjob from API server
         :param job_ordered_list: The ordered list of jobs, with parents,
-        followed by children
-        :type job_ordered_list: list
+        followed by children. It can also be preprocessed string.
+        :type job_ordered_list: Union[list, str]
         :param build_number:The number of the build to describe.
         :type build_number: str
         :param node_number: The number of the node to describe
@@ -111,6 +115,8 @@ class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
         return self._query(
             "{}/{}/execution/node/{}/wfapi/describe".format(
                 jenkins_jobs_from_jobs_ordered_list(
+                    job_ordered_list
+                ) if isinstance(job_ordered_list, list) else str(
                     job_ordered_list
                 ),
                 build_number,
@@ -125,8 +131,8 @@ class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
         """
         Lets the logs of a jenkins execution node, if possible
         :param job_ordered_list: The ordered list of jobs, with parents,
-        followed by children
-        :type job_ordered_list: list
+        followed by children. It can also be preprocessed string.
+        :type job_ordered_list: Union[list, str]
         :param build_number: The number of the build to describe.
         :type build_number: str
         :param node_number: The number of the node to describe
@@ -137,6 +143,8 @@ class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
         return self._query(
             "{}/{}/execution/node/{}/wfapi/log".format(
                 jenkins_jobs_from_jobs_ordered_list(
+                    job_ordered_list
+                ) if isinstance(job_ordered_list, list) else str(
                     job_ordered_list
                 ),
                 build_number,

@@ -6,6 +6,7 @@ from ccp.lib.clients.jenkins.core_client import OpenshiftJenkinsCoreAPIClient
 from ccp.lib.clients.jenkins.workflow_client import \
     OpenshiftJenkinsWorkflowAPIClient
 from ccp.lib.constants.jenkins import *
+from ccp.lib.exceptions import InformationNotInJenkinsError
 from ccp.lib.processors.base import JSONQueryProcessor
 
 
@@ -67,6 +68,56 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
                 token_from_mount=token_from_mount
             )
 
+    def get_unlisted_info_from_core_jenkins(
+            self, ordered_job_list, build_number, keys
+    ):
+        """
+        Gets unlisted information from core jenkins
+        :param ordered_job_list: The ordered list of jobs, with parents,
+        followed by children
+        :type ordered_job_list list
+        :param build_number: The number of the build whose information you want
+        :type build_number str
+        :param keys: The list containing jenkins keys whose information you want
+        :type keys dict
+        :return:
+        """
+        data = {}
+        try:
+            response = self.jenkins_core_client.get_build_info(
+                job_ordered_list=ordered_job_list,
+                build_number=build_number
+            )
+            # build result/status possible values = SUCCESS/FAILURE
+            data["RESULT"] = response.get("result")
+
+            # now parsing other details
+            actions = response.get("actions")
+            # actions contains a list of dictionaries
+
+            for each in actions:
+                # here each might be empty dict too
+                if not each.get("_class"):
+                    continue
+
+                if each.get("_class") == "hudson.model.ParametersAction":
+                    # parameters is a list of dict
+                    for param in each.get("parameters"):
+                        data[param["name"]] = param["value"]
+        except KeyError as e:
+            print ("Error parsing build details.")
+            raise e
+
+        # check if required_fields are in build_info
+        if not set(keys).issubset(data.keys()):
+            raise InformationNotInJenkinsError(
+                "Could not retrieve required field(s) from build details."
+                "Missing field(s) {}".format(
+                    list(set(keys).difference(data.keys()))
+                )
+            )
+        return data
+
     def get_builds_count(self, ordered_job_list, test_data_set=None):
         """
         Get the count of build in the project. Helps indeciding id to query.
@@ -98,7 +149,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets the overall status of a particular build
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list Union[list, str]
         :param build_number: The id of the build.
         :type build_number str
         :param test_data_set: data that is to be used for test run.
@@ -126,7 +177,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets the cause of that triggered the build.
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list Union[list, str]
         :param build_number: The id of the build.
         :type build_number str
         :param test_data_set: ata that is to be used for test run.
@@ -196,7 +247,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets the number of stages in a build of a project.
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list Union[list, str]
         :param build_number: The id of the build.
         :type build_number str
         :param test_data_set: data set to be used for test run.
@@ -232,7 +283,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         project
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list Union[list, str]
         :param build_number: The id of the build.
         :type build_number str
         :param stage: The name of the pipeline stage of the build
@@ -279,7 +330,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         project
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list Union[list, str]
         :param build_number: The id of the build.
         :type build_number str
         :param stage_id: The id/number of the pipeline stage of the build
@@ -361,7 +412,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets all the logs of a paticular build
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list Union[list, str]
         :param build_number: The id of the build
         :type build_number str
         :return: A list of dicts where each dict contains stage name, and stage
@@ -401,7 +452,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets the logs of a particular stage of a particular build of a project.
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list Union[list, str]
         :param build_number: The id of the build
         :type build_number str
         :param stage: The name of the stage whole logs are to be fetched

@@ -56,6 +56,9 @@ class OpenShiftJenkinsCoreAPIClient(OpenShiftJenkinsBaseAPIClient):
         :param job_ordered_list: The ordered list of jobs, with parents,
         followed by children
         :type job_ordered_list: list
+        :param job_ordered_list: he ordered list of jobs, with parents,
+        followed by children. It can also be preprocessed string.
+        :type job_ordered_list: Union[list, str]
         :param build_number: The number of the build, whose information is
         neded
         :type build_number: str
@@ -65,6 +68,8 @@ class OpenShiftJenkinsCoreAPIClient(OpenShiftJenkinsBaseAPIClient):
         return self._query(
             "{jobs}/{build_number}/api/json".format(
                 jobs=jenkins_jobs_from_jobs_ordered_list(
+                    job_ordered_list
+                ) if isinstance(job_ordered_list, list) else str(
                     job_ordered_list
                 ),
                 build_number=str(build_number)
