@@ -1,6 +1,7 @@
 import unittest
 
 from ccp import index_reader
+from ccp.lib.exceptions import *
 
 
 class TestProject(unittest.TestCase):
@@ -141,7 +142,7 @@ class TestProject(unittest.TestCase):
         self.entry["app-id"] = "-"
         self.entry["job-id"] = "-"
         self.entry["desired-tag"] = "-"
-        with self.assertRaises(index_reader.InvalidPipelineName):
+        with self.assertRaises(InvalidPipelineName):
             index_reader.Project(self.entry, self.namespace)
 
     def test_load_project_entry_failure_case(self):
@@ -150,7 +151,7 @@ class TestProject(unittest.TestCase):
         """
         self.entry.pop("target-file")
         with self.assertRaises(
-                index_reader.ErrorAccessingIndexEntryAttributes):
+                ErrorAccessingIndexEntryAttributes):
             index_reader.Project(self.entry, self.namespace)
 
 
