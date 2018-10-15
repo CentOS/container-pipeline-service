@@ -159,8 +159,8 @@ class OpenShiftCmdClient(CmdClient):
             password
         )
         command = str.format(
-            "{base_command}{secure_params} login{token_param}{user_param}"
-            "{server_param}",
+            "{base_command} {secure_params} login {token_param} {user_param}"
+            " {server_param}",
             base_command=self.base_command,
             secure_params=secure_params,
             token_param=token_param,
@@ -205,7 +205,7 @@ class OpenShiftCmdClient(CmdClient):
             ns=namespace
         ) if apply_template else ""
         command = str.format(
-            "{base_command} process{params} -f {template_path}{apply_cmd}",
+            "{base_command} process {params} -f {template_path} {apply_cmd}",
             base_command=self.base_command,
             params=p,
             template_path=template_path,
@@ -280,7 +280,7 @@ class OpenShiftCmdClient(CmdClient):
             str(" --selector {k}={v}").format(k, v)
             for k, v in selectors.iteritems()
         )
-        command = "{base_command} get bc -o name -n {namespace}{s}".format(
+        command = "{base_command} get bc -o name -n {namespace} {s}".format(
             base_command=self.base_command,
             namespace=namespace,
             s=selector_params
