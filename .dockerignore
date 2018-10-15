@@ -1,6 +1,10 @@
-# coverage report residues
-.coverage
-htmlcov/
+.travis.yaml
+.swagger-codegen-ignore
+README.md
+tox.ini
+git_push.sh
+test-requirements.txt
+setup.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -66,16 +70,3 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
-
-
-# Mr. Developer
-*.retry
-hosts
-hosts.preprod
-hosts.devcloud
-hosts.prod
-sentry.hosts
-zabbix
-*.pyc
-*.swp
-.vagrant

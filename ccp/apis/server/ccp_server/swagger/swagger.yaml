@@ -1,0 +1,671 @@
+---
+swagger: "2.0"
+info:
+  description: "This document serves as API sepcification design document for CentOS\
+    \ Contianer Pipeline service. Purpose of APIs- Serve the project and build information\
+    \ - viz [names, status, logs, etc]. Consumer of APIs -  Registry UI https://registry.centos.org,\
+    \ This will use the APIs to show build information - viz [build names, logs, Dockerfile,\
+    \ etc]."
+  version: "1.0.0"
+  title: "APIs for CentOS Community Container Pipeline Service"
+host: "registry.centos.org"
+basePath: "/api/v1/"
+tags:
+- name: "infra"
+  description: "APIs serving infra related information as liveness, help."
+- name: "meta"
+  description: "APIs serving meta information for projects, namespaces, etc."
+- name: "projects"
+  description: "APIs serving details about projects indexed for building."
+- name: "builds"
+  description: "APIs serving details about builds of projects in service."
+schemes:
+- "https"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+paths:
+  /liveness:
+    get:
+      tags:
+      - "infra"
+      summary: "Get the liveness of API service"
+      operationId: "liveness"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Returns service liveness status"
+          schema:
+            $ref: "#/definitions/Status"
+      x-swagger-router-controller: "ccp_server.controllers.infra_controller"
+  /namespaces:
+    get:
+      tags:
+      - "meta"
+      summary: "Get all available namespaces accessible over APIs"
+      operationId: "namespaces"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "All the readable namespaces"
+          schema:
+            $ref: "#/definitions/Namespaces"
+      x-swagger-router-controller: "ccp_server.controllers.meta_controller"
+  /namespace/{namespace}/projects:
+    get:
+      tags:
+      - "meta"
+      summary: "Get all the projects in given namespace"
+      description: ""
+      operationId: "namespace_projects"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace to list projects from"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Projects"
+      x-swagger-router-controller: "ccp_server.controllers.meta_controller"
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/metadata:
+    get:
+      tags:
+      - "projects"
+      summary: "Get the metadata of the given project"
+      description: "Get the metadata of project as provided in container index"
+      operationId: "project_metadata"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace to list projects from"
+        required: true
+        type: "string"
+      - name: "app_id"
+        in: "path"
+        description: "app-id"
+        required: true
+        type: "string"
+      - name: "job_id"
+        in: "path"
+        description: "job-id"
+        required: true
+        type: "string"
+      - name: "desired_tag"
+        in: "path"
+        description: "desired-tag"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Build information of project as recorded in index"
+          schema:
+            $ref: "#/definitions/ProjectMetadata"
+      x-swagger-router-controller: "ccp_server.controllers.projects_controller"
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tags:
+    get:
+      tags:
+      - "projects"
+      summary: "Get tags for given $app_id/$job_id with build status and image"
+      description: "Get all the tags defined for given $app_id/$job_id along with\
+        \ latest build status and image name"
+      operationId: "project_desired_tags"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace of the project"
+        required: true
+        type: "string"
+      - name: "app_id"
+        in: "path"
+        description: "app-id of the project"
+        required: true
+        type: "string"
+      - name: "job_id"
+        in: "path"
+        description: "job-id of the project"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "All the desired tags for given project"
+          schema:
+            $ref: "#/definitions/AppIdJobIdTags"
+      x-swagger-router-controller: "ccp_server.controllers.projects_controller"
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/target-file:
+    get:
+      tags:
+      - "projects"
+      summary: "Get Dockerfile for given project"
+      description: "Get Dockerfile for given project"
+      operationId: "project_target_file"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace of the project"
+        required: true
+        type: "string"
+      - name: "app_id"
+        in: "path"
+        description: "app-id of the project"
+        required: true
+        type: "string"
+      - name: "job_id"
+        in: "path"
+        description: "job-id of the project"
+        required: true
+        type: "string"
+      - name: "desired_tag"
+        in: "path"
+        description: "desired-tag of the project"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/TargetFile"
+      x-swagger-router-controller: "ccp_server.controllers.projects_controller"
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag:
+    get:
+      tags:
+      - "builds"
+      summary: "Get all the builds info for given project"
+      description: "Get all the builds number, name and status for given project"
+      operationId: "project_builds"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace of the project"
+        required: true
+        type: "string"
+      - name: "app_id"
+        in: "path"
+        description: "app-id of the project"
+        required: true
+        type: "string"
+      - name: "job_id"
+        in: "path"
+        description: "job-id of the project"
+        required: true
+        type: "string"
+      - name: "desired_tag"
+        in: "path"
+        description: "desired-tag of the project"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Al the builds for given project"
+          schema:
+            $ref: "#/definitions/ProjectBuildsInfo"
+      x-swagger-router-controller: "ccp_server.controllers.builds_controller"
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/wscan-builds:
+    get:
+      tags:
+      - "builds"
+      summary: "Get all the weekly scan builds info for given project"
+      description: "Get all the weekly scan builds info for given project"
+      operationId: "project_wscan_builds"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace of the project"
+        required: true
+        type: "string"
+      - name: "app_id"
+        in: "path"
+        description: "app-id of the project"
+        required: true
+        type: "string"
+      - name: "job_id"
+        in: "path"
+        description: "job-id of the project"
+        required: true
+        type: "string"
+      - name: "desired_tag"
+        in: "path"
+        description: "desired-tag of the project"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "All weekly scan builds for given project"
+          schema:
+            $ref: "#/definitions/WeeklyScanBuildsInfo"
+      x-swagger-router-controller: "ccp_server.controllers.builds_controller"
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/build/{build}/logs:
+    get:
+      tags:
+      - "builds"
+      summary: "Build logs for given build number"
+      description: "Build logs for given build number of the project"
+      operationId: "project_build_logs"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace of the project"
+        required: true
+        type: "string"
+      - name: "app_id"
+        in: "path"
+        description: "app-id of the project"
+        required: true
+        type: "string"
+      - name: "job_id"
+        in: "path"
+        description: "job-id of the project"
+        required: true
+        type: "string"
+      - name: "desired_tag"
+        in: "path"
+        description: "desired-tag of the project"
+        required: true
+        type: "string"
+      - name: "build"
+        in: "path"
+        description: "build number"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Build logs for given build number"
+          schema:
+            $ref: "#/definitions/BuildLogs"
+      x-swagger-router-controller: "ccp_server.controllers.builds_controller"
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/wscan-build/{build}/logs:
+    get:
+      tags:
+      - "builds"
+      summary: "Weekly scan logs for given wscan-build number"
+      description: "Weekly scan logs for given wscan-build number of the"
+      operationId: "project_wscan_build_logs"
+      parameters:
+      - name: "namespace"
+        in: "path"
+        description: "namespace of the project"
+        required: true
+        type: "string"
+      - name: "app_id"
+        in: "path"
+        description: "app-id of the project"
+        required: true
+        type: "string"
+      - name: "job_id"
+        in: "path"
+        description: "job-id of the project"
+        required: true
+        type: "string"
+      - name: "desired_tag"
+        in: "path"
+        description: "desired-tag of the project"
+        required: true
+        type: "string"
+      - name: "build"
+        in: "path"
+        description: "build number"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Weekly scan logs for given wscan-build number"
+          schema:
+            $ref: "#/definitions/WeeklyScanLogs"
+      x-swagger-router-controller: "ccp_server.controllers.builds_controller"
+definitions:
+  Meta:
+    properties:
+      apiVersion:
+        type: "string"
+      timestamp:
+        type: "string"
+    title: "Meta info about APIs"
+    description: "List apiVersion and timestamp of the API request"
+    example:
+      apiVersion: "apiVersion"
+      timestamp: "timestamp"
+  Status:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      status:
+        type: "string"
+    title: "Status of API server"
+    description: "Status of API server"
+    example:
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      status: "status"
+  Namespaces:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      namespaces:
+        type: "array"
+        items:
+          type: "string"
+    title: "List of available OpenShift namespaces"
+    description: "List of readable namespaces by API server"
+    example:
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      namespaces:
+      - "namespaces"
+      - "namespaces"
+  Project:
+    properties:
+      app_id:
+        type: "string"
+      job_id:
+        type: "string"
+      desired_tag:
+        type: "string"
+    title: "Basic information about a project"
+    description: "Basic information about a project"
+    example:
+      desired_tag: "desired_tag"
+      job_id: "job_id"
+      app_id: "app_id"
+  Projects:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      projects:
+        type: "array"
+        items:
+          $ref: "#/definitions/Project"
+    title: "List of all the projects in given namespace"
+    description: "List of all projects in given namespace"
+    example:
+      projects:
+      - desired_tag: "desired_tag"
+        job_id: "job_id"
+        app_id: "app_id"
+      - desired_tag: "desired_tag"
+        job_id: "job_id"
+        app_id: "app_id"
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+  ProjectMetadata:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      app_id:
+        type: "string"
+      job_id:
+        type: "string"
+      desired_tag:
+        type: "string"
+      git_url:
+        type: "string"
+      git_branch:
+        type: "string"
+      git_path:
+        type: "string"
+      target_file:
+        type: "string"
+      build_context:
+        type: "string"
+      notify_email:
+        type: "string"
+      depends_on:
+        type: "string"
+      prebuild_script:
+        type: "string"
+      prebuild_context:
+        type: "string"
+    title: "List all the info about project as provided in container index"
+    description: "List all the info about project as provided in container index"
+    example:
+      desired_tag: "desired_tag"
+      depends_on: "depends_on"
+      git_branch: "git_branch"
+      prebuild_context: "prebuild_context"
+      target_file: "target_file"
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      job_id: "job_id"
+      notify_email: "notify_email"
+      git_path: "git_path"
+      build_context: "build_context"
+      prebuild_script: "prebuild_script"
+      git_url: "git_url"
+      app_id: "app_id"
+  AppIdJobIdTag:
+    properties:
+      desired_tag:
+        type: "string"
+      build_status:
+        type: "string"
+      image:
+        type: "string"
+    title: "Tag for given $app_id/$job_id with build status and image"
+    description: "Info about each tag for given $app_id/$job_id with latest build\
+      \ status"
+    example:
+      image: "image"
+      desired_tag: "desired_tag"
+      build_status: "build_status"
+  AppIdJobIdTags:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      app_id:
+        type: "string"
+      job_id:
+        type: "string"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/AppIdJobIdTag"
+    title: "Tags defined for given $app_id/$job_id"
+    description: "Get all the tags defined for given $app_id/$job_id along with latest\
+      \ build status and image"
+    example:
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      job_id: "job_id"
+      app_id: "app_id"
+      tags:
+      - image: "image"
+        desired_tag: "desired_tag"
+        build_status: "build_status"
+      - image: "image"
+        desired_tag: "desired_tag"
+        build_status: "build_status"
+  TargetFile:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      prebuild:
+        type: "boolean"
+      target_file_link:
+        type: "string"
+    title: "Link to target Dockerfile"
+    description: "Link to target Dockerfile for given project, also return boolean\
+      \ if project has prebuild defined"
+    example:
+      prebuild: true
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      target_file_link: "target_file_link"
+  ProjectBuildNameStatus:
+    properties:
+      build:
+        type: "string"
+      status:
+        type: "string"
+    title: "Build name and status"
+    description: "Build name and status"
+    example:
+      build: "build"
+      status: "status"
+  ProjectWeeklyScanBuildNameStatus:
+    properties:
+      weeklyscan-build:
+        type: "string"
+      status:
+        type: "string"
+    title: "Weekly scan build name and status"
+    description: "Weekly scan build name and status"
+    example:
+      weeklyscan-build: "weeklyscan-build"
+      status: "status"
+  ProjectBuilds:
+    properties:
+      build_number:
+        $ref: "#/definitions/ProjectBuildNameStatus"
+    example:
+      build_number:
+        build: "build"
+        status: "status"
+  ProjectWeeklyScanBuilds:
+    properties:
+      build_number:
+        $ref: "#/definitions/ProjectWeeklyScanBuildNameStatus"
+    example:
+      build_number:
+        weeklyscan-build: "weeklyscan-build"
+        status: "status"
+  ProjectBuildsInfo:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      builds:
+        $ref: "#/definitions/ProjectBuilds"
+    title: "All the builds info for given project"
+    description: "All builds info for given project"
+    example:
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      builds:
+        build_number:
+          build: "build"
+          status: "status"
+  WeeklyScanBuildsInfo:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      wscan-builds:
+        $ref: "#/definitions/ProjectWeeklyScanBuilds"
+    title: "All the weekly scan builds info for given project"
+    description: "All the weekly scan builds info for given project"
+    example:
+      wscan-builds:
+        build_number:
+          weeklyscan-build: "weeklyscan-build"
+          status: "status"
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+  ScannerLogs:
+    properties:
+      logs:
+        type: "string"
+      description:
+        type: "string"
+    title: "Scanner log"
+    description: "All the scanner logs"
+    example:
+      description: "description"
+      logs: "logs"
+  AllScannerLogs:
+    properties:
+      scanner_name:
+        $ref: "#/definitions/ScannerLogs"
+    title: "All scanner logs"
+    description: "All scanner logs"
+    example:
+      scanner_name:
+        description: "description"
+        logs: "logs"
+  PrebuildLintBuildScanLogs:
+    properties:
+      prebuild:
+        type: "string"
+      lint:
+        type: "string"
+      build:
+        type: "string"
+      scan:
+        $ref: "#/definitions/AllScannerLogs"
+    title: "Prebuild, lint, build, scan phase logs"
+    description: "Prebuild, Lint, build, scan phase logs"
+    example:
+      lint: "lint"
+      prebuild: "prebuild"
+      build: "build"
+      scan:
+        scanner_name:
+          description: "description"
+          logs: "logs"
+  BuildLogs:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      build:
+        type: "string"
+      pre-build:
+        type: "boolean"
+      status:
+        type: "string"
+      failed-stage:
+        type: "string"
+      logs:
+        $ref: "#/definitions/PrebuildLintBuildScanLogs"
+    title: "Build info with lint, build, scan phase logs"
+    description: "Build info with lint, build, scan phase logs"
+    example:
+      build: "build"
+      pre-build: true
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      failed-stage: "failed-stage"
+      logs:
+        lint: "lint"
+        prebuild: "prebuild"
+        build: "build"
+        scan:
+          scanner_name:
+            description: "description"
+            logs: "logs"
+      status: "status"
+  WeeklyScanLogs:
+    properties:
+      meta:
+        $ref: "#/definitions/Meta"
+      build:
+        type: "string"
+      status:
+        type: "string"
+      logs:
+        $ref: "#/definitions/AllScannerLogs"
+    title: "Weekly scan info with scan logs"
+    description: "Weekly scan info with scan logs"
+    example:
+      build: "build"
+      meta:
+        apiVersion: "apiVersion"
+        timestamp: "timestamp"
+      logs:
+        scanner_name:
+          description: "description"
+          logs: "logs"
+      status: "status"
