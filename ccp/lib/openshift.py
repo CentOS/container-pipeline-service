@@ -7,28 +7,9 @@ import ssl
 import sys
 import urllib2
 
-from ccp.lib.command import run_cmd
-from ccp.lib.retry import retry
-
-
-@retry(tries=10, delay=3, backoff=2)
-def get_jenkins_access_token(service_account="sa/jenkins"):
-    """
-    For given service account, get the Jenkins API access
-    token using oc secrets
-    """
-    command = """oc get %s --template='{{range .secrets}}\
-{{ .name }} {{end}}' | xargs -n 1 oc get secret --template=\
-'{{ if .data.token }}{{ .data.token }}{{end}}' | head -n 1 | \
-base64 -d -""" % service_account
-    # not using format in above command, as it will convert
-    # {{ --> { i.e. double curly brackets into single
-
-    print ("Get Jenkins service account token\n{}".format(command))
-    # run the oc command
-    token = run_cmd(command, shell=True)
-    # strip any extra characters while reading stdout
-    return token.strip()
+from ccp.lib.utils.command import run_command
+from ccp.lib.clients.openshift.client import OpenShiftCmdClient
+from ccp.lib.utils.retry import retry
 
 
 class BuildInfo(object):
@@ -202,7 +183,11 @@ class BuildInfo(object):
         print ("Opening URL to details of the build\n{}".format(url))
 
         try:
-            token = get_jenkins_access_token(self.service_account)
+            c = OpenShiftCmdClient()
+            token = c.get_sa_token_from_openshift(
+                namespace,
+                sa=self.service_account
+            )
             response = self.get_url(url, token)
             response = json.loads(response.read())
         except Exception as e:

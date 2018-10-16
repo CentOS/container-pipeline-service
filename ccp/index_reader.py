@@ -6,15 +6,15 @@ creates the Jenkins pipeline projects from entries of index.
 import re
 import sys
 import time
-import yaml
-
 from glob import glob
 
-from ccp.exceptions import InvalidPipelineName
-from ccp.exceptions import ErrorAccessingIndexEntryAttributes
-from ccp.lib.retry import retry
-from ccp.lib._print import _print
-from ccp.lib.command import run_cmd
+import yaml
+
+from ccp.lib.exceptions import ErrorAccessingIndexEntryAttributes
+from ccp.lib.exceptions import InvalidPipelineName
+from ccp.lib.utils._print import _print
+from ccp.lib.utils.command import run_command
+from ccp.lib.utils.retry import retry
 
 
 class Project(object):
@@ -262,7 +262,7 @@ class BuildConfigManager(object):
         returns list of buildConfigs available
         """
         command = "oc get bc -o name -n {}".format(self.namespace)
-        bcs = run_cmd(command)
+        bcs, _ = run_command(command, shell=True)
         if not bcs.strip():
             return []
         else:
@@ -316,7 +316,7 @@ class BuildConfigManager(object):
             master_job_memory=self.master_job_memory
         )
         # process and apply buildconfig
-        output = run_cmd(command, shell=True)
+        output, _ = run_command(command, shell=True)
         _print(output)
 
         # if a buildConfig has config update, oc apply returns
@@ -376,7 +376,7 @@ class BuildConfigManager(object):
             registry_alias=self.registry_alias,
         )
         # process and apply buildconfig
-        output = run_cmd(command, shell=True)
+        output, _ = run_command(command, shell=True)
         _print(output)
 
     @retry(tries=10, delay=3, backoff=2)
@@ -398,7 +398,8 @@ class BuildConfigManager(object):
         """
         command = "oc start-build {} -n {}".format(
             pipeline_name, self.namespace)
-        _print(run_cmd(command))
+        out, _ = run_command(command)
+        _print(out)
 
     @retry(tries=10, delay=3, backoff=2)
     def delete_buildconfigs(self, bcs, wait_between_delete=5):
@@ -410,7 +411,7 @@ class BuildConfigManager(object):
 
         for bc in bcs:
             _print("Deleting buildConfig {}".format(bc))
-            run_cmd(command.format(self.namespace, bc))
+            run_command(command.format(self.namespace, bc))
             time.sleep(wait_between_delete)
 
     @retry(tries=5, delay=3, backoff=2)
@@ -421,7 +422,7 @@ class BuildConfigManager(object):
         command = """\
 oc get builds -o name -o template \
 --template='{{range .items }}{{.metadata.name}}:{{.status.phase}} {{end}}'"""
-        output = run_cmd(command, shell=True)
+        output, _ = run_command(command, shell=True)
         return output.strip().split()
 
     @retry(tries=10, delay=3, backoff=2)
@@ -460,7 +461,7 @@ oc get builds -o name -o template --template='{{range .items }} \
 {{if and %s }} {{.metadata.name}}:{{.status.phase}} \
 {{end}}{{end}}'""" % condition
 
-        output = run_cmd(command, shell=True)
+        output, _ = run_command(command, shell=True)
         output = output.strip().split(' ')
         output = [each for each in output
                   if not each.startswith(tuple(filter_builds))

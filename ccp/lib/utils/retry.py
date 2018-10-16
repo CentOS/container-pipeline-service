@@ -7,10 +7,9 @@ https://wiki.python.org/moin/PythonDecoratorLibrary#Retry
 """
 
 import time
-
 from functools import wraps
 
-from ccp.lib._print import _print
+from ccp.lib.utils._print import _print
 
 
 def retry(tries=10, delay=2, backoff=2):
