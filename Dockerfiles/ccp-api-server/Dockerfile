@@ -15,10 +15,10 @@ RUN mkdir -p /opt/ccp_api_server
 
 COPY . /opt/ccp_api_server
 
-WORKDIR /opt/ccp_api_server
+WORKDIR /opt/ccp_api_server/ccp/apis/server/
 
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/bin/python3"]
 
-CMD ["-m", "./ccp/apis/server/ccp_server"]
+CMD ["-m", "ccp_server"]
