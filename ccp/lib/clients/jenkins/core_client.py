@@ -2,36 +2,36 @@
 This file contains ready to use Jenkins Core Client.
 """
 
-from ccp.lib.clients.jenkins.base import OpenshiftJenkinsBaseAPIClient, \
+from ccp.lib.clients.jenkins.base import OpenShiftJenkinsBaseAPIClient, \
     jenkins_jobs_from_jobs_ordered_list
 from ccp.lib.utils.retry import retry
 
 
-class OpenshiftJenkinsCoreAPIClient(OpenshiftJenkinsBaseAPIClient):
+class OpenShiftJenkinsCoreAPIClient(OpenShiftJenkinsBaseAPIClient):
     def __init__(
             self,
             server,
+            namespace,
             secure=True,
             verify_ssl=True,
             token=None,
             token_from_mount=None,
-            sa="sa/jenkins",
-            namespace="default"
+            sa="sa/jenkins"
     ):
         """
-        Initialize Openshift Jenkins Client
-        :param server: The URL/IP of jenkins server on openshift.
+        Initialize OpenShift Jenkins Client
+        :param server: The URL/IP of jenkins server on OpenShift
         :type server: str
-        :param secure: Default True: Use SSL for queries.
+        :param secure: Default True: Use SSL for queries
         :type secure: bool
-        :param verify_ssl: Default True: Verify SSL certificate.
+        :param verify_ssl: Default True: Verify SSL certificate
         :type verify_ssl: bool
         :param token: Default None: If provided then, this is set as the token
         to use to login to OpenShift. Overrides all other ways of providing
         token
         :type token: str
         :param token_from_mount: Default None: Set if you have token mounted
-        at a path. Otherwise, ensure the openshift context is already set.
+        at a path. Otherwise, ensure the openshift context is already set
         :type token_from_mount: str
         :param sa: Default 'sa/jenkins': Name of the service account whose
         token is to be used.
@@ -39,7 +39,7 @@ class OpenshiftJenkinsCoreAPIClient(OpenshiftJenkinsBaseAPIClient):
         :param namespace: The namespace of the Jenkins secret, if not mounted
         :type namespace: str
         """
-        super(OpenshiftJenkinsCoreAPIClient, self).__init__(
+        super(OpenShiftJenkinsCoreAPIClient, self).__init__(
             server=server,
             secure=secure,
             verify_ssl=verify_ssl,

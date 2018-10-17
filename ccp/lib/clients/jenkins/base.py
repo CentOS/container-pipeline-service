@@ -1,3 +1,6 @@
+"""
+This file contains tbe base class for OpenshiftJenkinsClients
+"""
 from ccp.lib.clients.base import APIClient
 from ccp.lib.clients.openshift.client import OpenShiftCmdClient
 from ccp.lib.utils.authorization import Authorization, BearerAuthorization
@@ -13,24 +16,25 @@ def jenkins_jobs_from_jobs_ordered_list(nested_job_ordered_list):
     """
     dest = ""
     for i in nested_job_ordered_list:
-        dest = "{}/job/{}".format(
-            dest,
-            i
-        )
+        dest = "{}/job/{}".format(dest, i)
     return dest
 
 
-class OpenshiftJenkinsBaseAPIClient(APIClient):
+class OpenShiftJenkinsBaseAPIClient(APIClient):
+    """
+    This class acts as the base of all clients that interact with Jenkins
+    running on OpenShift.
+    """
 
     def __init__(
             self,
             server,
+            namespace,
             secure=True,
             verify_ssl=True,
             token=None,
             token_from_mount=None,
-            sa="sa/jenkins",
-            namespace="default"
+            sa="sa/jenkins"
     ):
         """
         Initialize Jenkins APIClient
@@ -60,7 +64,7 @@ class OpenshiftJenkinsBaseAPIClient(APIClient):
                 if token_from_mount else c.get_sa_token_from_openshift(
                 sa=sa, namespace=namespace
             )
-        super(OpenshiftJenkinsBaseAPIClient, self).__init__(
+        super(OpenShiftJenkinsBaseAPIClient, self).__init__(
             server=server,
             secure=secure,
             verify_ssl=verify_ssl,

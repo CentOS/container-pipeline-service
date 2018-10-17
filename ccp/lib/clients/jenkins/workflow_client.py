@@ -2,12 +2,12 @@
 This file contains ready to use Jenkins workflow Client.
 """
 
-from ccp.lib.clients.jenkins.base import OpenshiftJenkinsBaseAPIClient, \
+from ccp.lib.clients.jenkins.base import OpenShiftJenkinsBaseAPIClient, \
     jenkins_jobs_from_jobs_ordered_list
 from ccp.lib.utils.retry import retry
 
 
-class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
+class OpenShiftJenkinsWorkflowAPIClient(OpenShiftJenkinsBaseAPIClient):
     """
     Helps query the jenkins workflow API endpoints.
     """
@@ -15,12 +15,12 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
     def __init__(
             self,
             server,
+            namespace,
             secure=True,
             verify_ssl=True,
             token=None,
             token_from_mount=None,
-            sa="sa/jenkins",
-            namespace="default"
+            sa="sa/jenkins"
     ):
         """
         Initialize Openshift Jenkins Client
@@ -43,7 +43,7 @@ class OpenshiftJenkinsWorkflowAPIClient(OpenshiftJenkinsBaseAPIClient):
         :param namespace: The namespace of the Jenkins secret, if not mounted
         :type namespace: str
         """
-        super(OpenshiftJenkinsWorkflowAPIClient, self).__init__(
+        super(OpenShiftJenkinsWorkflowAPIClient, self).__init__(
             server=server,
             secure=secure,
             verify_ssl=verify_ssl,

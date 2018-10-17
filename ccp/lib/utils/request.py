@@ -1,3 +1,7 @@
+"""
+This file handles API requests and returns the response for given API URL along
+with provided parameters.
+"""
 import requests
 
 
@@ -7,16 +11,16 @@ def request_url(
     """
     Queries a specified URL and returns data, if any
     :param request: The url to send the request to.
-    :type request str
+    :type request: str
     :param params: Any params that are to be passed on to the request
-    :type params dict
+    :type params: dict
     :param verify_ssl: IF False, ssl errors are ignored.
-    :type verify_ssl bool
+    :type verify_ssl: bool
     :param auth: This will be passed along to requests as is. Note: Passing
     auth overrides any Authorization headers passed already.
     :type auth dict
     :param headers: Any extra headers that you wish to pass along.
-    :type headers dict
+    :type headers: dict
     :raises Exception
     :return: The response object, or None upon failure, if any or None
     """
