@@ -47,7 +47,10 @@ class APIClient(Client):
         :type server: str
         :param secure: Default True: Use SSL for queries
         :type secure bool
-        :param verify_ssl: Default True: Verify SSL certificate
+        :param verify_ssl: Default True: Verify SSL certificate. You can also
+        provide path of cert to verify with, if your vert resides outside
+        default location
+        :type verify_ssl: Union[bool, str]
         :param authorization: Set if you want or need to use Authorization
         :type authorization: Authorization
         """
@@ -56,7 +59,7 @@ class APIClient(Client):
             server if server else "localhost"
         )
         self.authorization = authorization
-        self.skip_ssl = verify_ssl
+        self.verify_ssl = verify_ssl
 
     def _query(self, target, headers=None):
         """
@@ -76,6 +79,6 @@ class APIClient(Client):
         if headers and isinstance(headers, dict):
             request_headers.update(headers)
         return request_url(
-            query_url, verify_ssl=self.skip_ssl, headers=request_headers
+            query_url, verify_ssl=self.verify_ssl, headers=request_headers
         )
 
