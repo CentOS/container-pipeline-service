@@ -6,7 +6,8 @@ import requests
 
 
 def request_url(
-        request, params=None, verify_ssl=False, auth=None, headers=None
+        request, params=None, verify_ssl=False, auth=None, headers=None,
+        timeout=5.0
 ):
     """
     Queries a specified URL and returns data, if any
@@ -21,13 +22,17 @@ def request_url(
     :type auth dict
     :param headers: Any extra headers that you wish to pass along.
     :type headers: dict
+    :param timeout: Default 5.0: The timeout, in seconds for a request to be
+    processed
+    :type timeout: float
+    :raises requests.exceptions.RequestException
     :raises Exception
     :return: The response object, or None upon failure, if any or None
     """
 
     response = requests.get(
         request, params=params, verify=verify_ssl, headers=headers,
-        auth=auth
+        auth=auth, timeout=timeout
     )
 
     return response
