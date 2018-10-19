@@ -1,10 +1,13 @@
 import connexion
 import six
 
-from ccp_server.models.app_id_job_id_tags import AppIdJobIdTags  # noqa: E501
-from ccp_server.models.project_metadata import ProjectMetadata  # noqa: E501
-from ccp_server.models.target_file import TargetFile  # noqa: E501
-from ccp_server import util
+from ccp.apis.server.ccp_server.models.app_id_job_id_tags import\
+    AppIdJobIdTags  # noqa: E501
+from ccp.apis.server.ccp_server.models.project_metadata import\
+    ProjectMetadata  # noqa: E501
+from ccp.apis.server.ccp_server.models.target_file import\
+    TargetFile  # noqa: E501
+from ccp.apis.server.ccp_server import util
 
 
 def project_desired_tags(namespace, app_id, job_id):  # noqa: E501

@@ -5,8 +5,8 @@ from __future__ import absolute_import
 from flask import json
 from six import BytesIO
 
-from ccp_server.models.status import Status  # noqa: E501
-from ccp_server.test import BaseTestCase
+from ccp.apis.server.ccp_server.models.status import Status  # noqa: E501
+from ccp.apis.server.ccp_server.test import BaseTestCase
 
 
 class TestInfraController(BaseTestCase):

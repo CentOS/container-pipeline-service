@@ -5,10 +5,13 @@ from __future__ import absolute_import
 from flask import json
 from six import BytesIO
 
-from ccp_server.models.app_id_job_id_tags import AppIdJobIdTags  # noqa: E501
-from ccp_server.models.project_metadata import ProjectMetadata  # noqa: E501
-from ccp_server.models.target_file import TargetFile  # noqa: E501
-from ccp_server.test import BaseTestCase
+from ccp.apis.server.ccp_server.models.app_id_job_id_tags import\
+    AppIdJobIdTags  # noqa: E501
+from ccp.apis.server.ccp_server.models.project_metadata import\
+    ProjectMetadata  # noqa: E501
+from ccp.apis.server.ccp_server.models.target_file import\
+    TargetFile  # noqa: E501
+from ccp.apis.server.ccp_server.test import BaseTestCase
 
 
 class TestProjectsController(BaseTestCase):

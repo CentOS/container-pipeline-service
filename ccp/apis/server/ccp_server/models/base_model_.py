@@ -3,7 +3,7 @@ import pprint
 import six
 import typing
 
-from ccp_server import util
+from ccp.apis.server.ccp_server import util
 
 T = typing.TypeVar('T')
 

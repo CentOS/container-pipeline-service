@@ -3,7 +3,7 @@ import logging
 import connexion
 from flask_testing import TestCase
 
-from ccp_server.encoder import JSONEncoder
+from ccp.apis.server.ccp_server.encoder import JSONEncoder
 
 
 class BaseTestCase(TestCase):

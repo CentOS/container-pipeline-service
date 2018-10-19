@@ -5,9 +5,10 @@ from __future__ import absolute_import
 from flask import json
 from six import BytesIO
 
-from ccp_server.models.namespaces import Namespaces  # noqa: E501
-from ccp_server.models.projects import Projects  # noqa: E501
-from ccp_server.test import BaseTestCase
+from ccp.apis.server.ccp_server.models.namespaces import\
+    Namespaces  # noqa: E501
+from ccp.apis.server.ccp_server.models.projects import Projects  # noqa: E501
+from ccp.apis.server.ccp_server.test import BaseTestCase
 
 
 class TestMetaController(BaseTestCase):
