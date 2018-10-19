@@ -13,6 +13,8 @@ RUN pip3 install --upgrade pip && \
 
 RUN mkdir -p /opt/ccp_api_server
 
+ENV PYTHONPATH="/opt/ccp_api_server"
+
 COPY . /opt/ccp_api_server
 
 WORKDIR /opt/ccp_api_server/ccp/apis/server/
