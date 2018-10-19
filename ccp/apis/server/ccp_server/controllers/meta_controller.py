@@ -1,9 +1,10 @@
 import connexion
 import six
 
-from ccp_server.models.namespaces import Namespaces  # noqa: E501
-from ccp_server.models.projects import Projects  # noqa: E501
-from ccp_server import util
+from ccp.apis.server.ccp_server.models.namespaces import\
+    Namespaces # noqa: E501
+from ccp.apis.server.ccp_server.models.projects import Projects  # noqa: E501
+from ccp.apis.server.ccp_server import util
 
 
 def namespace_projects(namespace):  # noqa: E501

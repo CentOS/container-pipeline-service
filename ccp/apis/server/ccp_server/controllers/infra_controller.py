@@ -1,8 +1,8 @@
 import connexion
 import six
 
-from ccp_server.models.status import Status  # noqa: E501
-from ccp_server import util
+from ccp.apis.server.ccp_server.models.status import Status  # noqa: E501
+from ccp.apis.server.ccp_server import util
 
 
 def liveness():  # noqa: E501

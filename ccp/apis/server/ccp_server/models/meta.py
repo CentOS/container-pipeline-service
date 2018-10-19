@@ -5,8 +5,8 @@ from datetime import date, datetime  # noqa: F401
 
 from typing import List, Dict  # noqa: F401
 
-from ccp_server.models.base_model_ import Model
-from ccp_server import util
+from ccp.apis.server.ccp_server.models.base_model_ import Model
+from ccp.apis.server.ccp_server import util
 
 
 class Meta(Model):

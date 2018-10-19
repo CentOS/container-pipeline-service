@@ -5,11 +5,14 @@ from __future__ import absolute_import
 from flask import json
 from six import BytesIO
 
-from ccp_server.models.build_logs import BuildLogs  # noqa: E501
-from ccp_server.models.project_builds_info import ProjectBuildsInfo  # noqa: E501
-from ccp_server.models.weekly_scan_builds_info import WeeklyScanBuildsInfo  # noqa: E501
-from ccp_server.models.weekly_scan_logs import WeeklyScanLogs  # noqa: E501
-from ccp_server.test import BaseTestCase
+from ccp.apis.server.ccp_server.models.build_logs import BuildLogs  # noqa: E501
+from ccp.apis.server.ccp_server.models.project_builds_info import\
+    ProjectBuildsInfo  # noqa: E501
+from ccp.apis.server.ccp_server.models.weekly_scan_builds_info import\
+    WeeklyScanBuildsInfo  # noqa: E501
+from ccp.apis.server.ccp_server.models.weekly_scan_logs import \
+    WeeklyScanLogs  # noqa: E501
+from ccp.apis.server.ccp_server.test import BaseTestCase
 
 
 class TestBuildsController(BaseTestCase):

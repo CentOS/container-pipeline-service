@@ -1,11 +1,14 @@
 import connexion
 import six
 
-from ccp_server.models.build_logs import BuildLogs  # noqa: E501
-from ccp_server.models.project_builds_info import ProjectBuildsInfo  # noqa: E501
-from ccp_server.models.weekly_scan_builds_info import WeeklyScanBuildsInfo  # noqa: E501
-from ccp_server.models.weekly_scan_logs import WeeklyScanLogs  # noqa: E501
-from ccp_server import util
+from ccp.apis.server.ccp_server.models.build_logs import BuildLogs  # noqa: E501
+from ccp.apis.server.ccp_server.models.project_builds_info import\
+    ProjectBuildsInfo  # noqa: E501
+from ccp.apis.server.ccp_server.models.weekly_scan_builds_info import\
+    WeeklyScanBuildsInfo  # noqa: E501
+from ccp.apis.server.ccp_server.models.weekly_scan_logs import\
+    WeeklyScanLogs  # noqa: E501
+from ccp.apis.server.ccp_server import util
 
 
 def project_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: E501

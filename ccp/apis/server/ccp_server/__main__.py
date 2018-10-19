@@ -2,7 +2,7 @@
 
 import connexion
 
-from ccp_server import encoder
+from ccp.apis.server.ccp_server import encoder
 
 
 def main():
