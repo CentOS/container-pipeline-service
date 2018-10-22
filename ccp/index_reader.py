@@ -398,7 +398,7 @@ class BuildConfigManager(object):
         """
         command = "oc start-build {} -n {}".format(
             pipeline_name, self.namespace)
-        out, _ = run_command(command)
+        out, _ = run_command(command, shell=True)
         _print(out)
 
     @retry(tries=10, delay=3, backoff=2)
@@ -411,7 +411,7 @@ class BuildConfigManager(object):
 
         for bc in bcs:
             _print("Deleting buildConfig {}".format(bc))
-            run_command(command.format(self.namespace, bc))
+            run_command(command.format(self.namespace, bc), shell=True)
             time.sleep(wait_between_delete)
 
     @retry(tries=5, delay=3, backoff=2)
