@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+This file contains utils that allow processing of commands
+"""
 from ccp.lib.exceptions import CommandOutputError
 import subprocess
 
