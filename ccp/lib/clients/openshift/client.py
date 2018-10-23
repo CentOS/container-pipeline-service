@@ -169,6 +169,23 @@ class OpenShiftCmdClient(CmdClient):
         )
         return run_command_exception_on_stderr(cmd=command)
 
+    def get_projects(self):
+        """
+        Gets the list of OpenShift projects, if it is able to retrieve them
+        :return: Output of the command
+        :rtype str
+        :raises Exception
+        :raises subprocess.CalledProcessError
+        :raises ccp.lib.exceptions.CommandOutputError
+        """
+        command = str.format(
+            "{base_command} projects -q",
+            base_command=self.base_command
+        )
+        return run_command_exception_on_stderr(
+            cmd=command, shell=True
+        )
+
     @retry(tries=10, delay=3, backoff=2)
     def process_template(
             self, params, template_path, namespace, apply_template=True
