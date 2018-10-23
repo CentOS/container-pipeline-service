@@ -16,7 +16,7 @@ ENV PYTHONPATH="/opt/ccp_api_server"
 
 COPY . /opt/ccp_api_server
 
-RUN useradd 1001 && usermod -aG 0 1001 && chown 1001:0 /opt/ccp_api_server && chmod -R g+x /opt/ccp_api_server
+RUN useradd 1001 && usermod -aG 0 1001 && chown -R 1001:0 /opt/ccp_api_server && chmod -R g+x /opt/ccp_api_server
 
 WORKDIR /opt/ccp_api_server/ccp/apis/server/
 
