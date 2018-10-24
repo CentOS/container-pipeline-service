@@ -2,6 +2,8 @@
 This file contains base classes of query processor.
 """
 
+import requests
+
 from ccp.lib.utils.parsing import json_to_python, parse_literals
 
 
@@ -18,15 +20,15 @@ class JSONQueryProcessor(QueryProcessor):
     """
 
     @staticmethod
-    def get_data_from_response(response, bad_json=False):
+    def response_data(response, bad_json=False):
         """
         Extracts data from a requests response object
         :param response: The response from which we need to extract information
-        :type response requests.response
+        :type response: requests.response
         :param bad_json: Default False: If true, uses ast eval instead of json
         load
         :type bad_json bool
-        :return: response result in pythonic form, if it can get it, Else None
+        :return: response result in Pythonic form, if it can get it, Else None
         :raises Exception
         """
         data = None

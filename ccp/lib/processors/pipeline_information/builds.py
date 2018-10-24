@@ -2,10 +2,11 @@
 This file contains Jenkins query processors for build information
 """
 
-from ccp.lib.clients.jenkins.core_client import OpenshiftJenkinsCoreAPIClient
+from collections import OrderedDict
+from ccp.lib.clients.jenkins.core_client import OpenShiftJenkinsCoreAPIClient
 from ccp.lib.clients.jenkins.workflow_client import \
-    OpenshiftJenkinsWorkflowAPIClient
-from ccp.lib.constants.jenkins import *
+    OpenShiftJenkinsWorkflowAPIClient
+from ccp.lib.constants.jenkins import JENKINS_SHORT_DESCRIPTION, JENKINS_CLASS
 from ccp.lib.exceptions import InformationNotInJenkinsError
 from ccp.lib.processors.base import JSONQueryProcessor
 
@@ -16,42 +17,40 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
     for requested information.
     """
     def __init__(
-            self, jenkins_server="localhost",
+            self, jenkins_server, namespace,
             verify_ssl=False,
             token=None,
             sa="sa/jenkins",
-            namespace="default",
             token_from_mount=None,
             test=False
     ):
         """
         Initializes the BuildInfo to fetch processed build information.
         :param jenkins_server: The URL/IP of jenkins server on OpenShift.
-        :type jenkins_server str
-        :param verify_ssl: Default True: Verify SSL certificate.
-        :type verify_ssl bool
+        :type jenkins_server: str
+        :param verify_ssl: Default True: Verify SSL certificate
+        :type verify_ssl: bool
         :param token: Default None: If provided then, this is set as the token
         to use to login to OpenShift. Overrides all other ways of providing
         token
-        :type token str
+        :type token: str
         :param sa: Default 'sa/jenkins': Name of the service account whose
         token is to be used.
-        :type sa str
-        :param namespace: Default default : The namespace of the jenkins and
-        builds.
-        :type namespace str
+        :type sa: str
+        :param namespace: The namespace of the jenkins and builds
+        :type namespace: str
         :param token_from_mount: Default None: Set if you have token mounted
-        at a path. Otherwise, ensure the OpenShift context is already set.
-        :type token_from_mount str
-        :param test: Default False: Use only by tests. Instead of fetching data
+        at a path. Otherwise, ensure the OpenShift context is already set
+        :type token_from_mount: str
+        :param test: Default False: Used only by tests. Instead of fetching data
         using the clients, data is expected to be provided and will only be
         parsed
-        :type test bool
+        :type test: bool
         :raises Exception
         """
         self.test = test
         if not test:
-            self.jenkins_core_client = OpenshiftJenkinsCoreAPIClient(
+            self.jenkins_core_client = OpenShiftJenkinsCoreAPIClient(
                 server=jenkins_server,
                 verify_ssl=verify_ssl,
                 token=token,
@@ -59,7 +58,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
                 namespace=namespace,
                 token_from_mount=token_from_mount
             )
-            self.jenkins_workflow_client = OpenshiftJenkinsWorkflowAPIClient(
+            self.jenkins_workflow_client = OpenShiftJenkinsWorkflowAPIClient(
                 server=jenkins_server,
                 verify_ssl=verify_ssl,
                 token=token,
@@ -75,11 +74,19 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets unlisted information from core jenkins
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
+        :type ordered_job_list: Union[list, str]
         :param build_number: The number of the build whose information you want
-        :type build_number str
-        :param keys: The list containing jenkins keys whose information you want
-        :type keys dict
+        :type build:_number str
+        :param keys: The list containing Jenkins keys whose information you want
+        Examples:
+                "NOTIFY_EMAIL",
+                "NOTIFY_CC_EMAILS",
+                "REGISTRY_ALIAS",
+                "DESIRED_TAG",
+                "REGISTRY_URL",
+                "FROM_ADDRESS",
+                "SMTP_SERVER",
+        :type keys: dict
         :return:
         """
         data = {}
@@ -120,17 +127,17 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
 
     def get_builds_count(self, ordered_job_list, test_data_set=None):
         """
-        Get the count of build in the project. Helps indeciding id to query.
+        Get the count of build in the project. Helps in deciding id to query.
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list list
-        :param test_data_set: data set to be used for test run.
-        :type test_data_set list
-        :return: A number representing number of builds in a job.This number
-        will also be id of latest build. -1 is returned on failure.
+        :type ordered_job_list: Union[list, str]
+        :param test_data_set: data set to be used for test run
+        :type test_data_set: list
+        :return: A number representing number of builds in a job. This number
+        will also be id of latest build. -1 is returned on failure
         """
         if not self.test:
-            data_set = self.get_data_from_response(
+            data_set = self.response_data(
                 self.jenkins_workflow_client.get_build_runs(ordered_job_list),
                 bad_json=True
             )
@@ -149,17 +156,17 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets the overall status of a particular build
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list Union[list, str]
-        :param build_number: The id of the build.
-        :type build_number str
-        :param test_data_set: data that is to be used for test run.
-        :type test_data_set dict
+        :type ordered_job_list: Union[list, str]
+        :param build_number: The id of the build
+        :type build_number: str
+        :param test_data_set: data that is to be used for test run
+        :type test_data_set: dict
         :return: The overall result of the build. None is returned on failure
         :raises Exception
         """
         result = None
         if not self.test:
-            data_set = self.get_data_from_response(
+            data_set = self.response_data(
                 self.jenkins_core_client.get_build_info(
                     ordered_job_list, build_number
                 )
@@ -178,10 +185,10 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
         :type ordered_job_list Union[list, str]
-        :param build_number: The id of the build.
-        :type build_number str
-        :param test_data_set: ata that is to be used for test run.
-        :type test_data_set dict
+        :param build_number: The id of the build
+        :type build_number: str
+        :param test_data_set: data set that is to be used for test run
+        :type test_data_set: dict
         :return: The cause that triggered the build. None is returned on
         failure
         :raises KeyError
@@ -191,7 +198,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
             "cause": None
         }
         if not self.test:
-            data_set = self.get_data_from_response(
+            data_set = self.response_data(
                 self.jenkins_core_client.get_build_info(
                     ordered_job_list, build_number
                 )
@@ -247,11 +254,11 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets the number of stages in a build of a project.
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list Union[list, str]
-        :param build_number: The id of the build.
+        :type ordered_job_list: Union[list, str]
+        :param build_number: The id of the build
         :type build_number str
         :param test_data_set: data set to be used for test run.
-        :type test_data_set dict
+        :type test_data_set: dict
         :raises Exception
         :return: The number of stages in the project. None is returned on
         failure
@@ -259,7 +266,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         result = None
         stages = None
         if not self.test:
-            data_set = self.get_data_from_response(
+            data_set = self.response_data(
                 self.jenkins_workflow_client.describe_build_run(
                     ordered_job_list, build_number=build_number
                 ),
@@ -283,16 +290,16 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         project
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list Union[list, str]
-        :param build_number: The id of the build.
-        :type build_number str
+        :type ordered_job_list: Union[list, str]
+        :param build_number: The id of the build
+        :type build_number: str
         :param stage: The name of the pipeline stage of the build
-        :type stage str
+        :type stage: str
         :param stage_is_name: Default True, if true, stage is treated as name
         of stage, else it is treaded as stage number
-        :type stage_is_name bool
+        :type stage_is_name: bool
         :param test_data_set: data set to be used for test run.
-        :type test_data_set dict
+        :type test_data_set: dict
         :raises Exception
         :return: The id of the stage, in build build_id in project
         ordered_job_list. None is returned on failure
@@ -300,7 +307,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         result = None
         stages = None
         if not self.test:
-            data_set = self.get_data_from_response(
+            data_set = self.response_data(
                 self.jenkins_workflow_client.describe_build_run(
                     ordered_job_list, build_number=build_number
                 ),
@@ -330,16 +337,16 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         project
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list Union[list, str]
-        :param build_number: The id of the build.
-        :type build_number str
+        :type ordered_job_list: Union[list, str]
+        :param build_number: The id of the build
+        :type build_number: str
         :param stage_id: The id/number of the pipeline stage of the build
-        :type stage_id str
+        :type stage_id: str
         :param id_is_number: Default is false, if True, stage id is treated as
         stage number
-        :type id_is_number bool
+        :type id_is_number: bool
         :param test_data_set: data set to be used for test run.
-        :type test_data_set dict
+        :type test_data_set: dict
         :raises Exception
         :return: The id of the stage, in build build_id in project
         ordered_job_list. None is returned on failure
@@ -347,7 +354,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         result = None
         stages = None
         if not self.test:
-            data_set = self.get_data_from_response(
+            data_set = self.response_data(
                 self.jenkins_workflow_client.describe_build_run(
                     ordered_job_list, build_number=build_number
                 ),
@@ -364,7 +371,9 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
                         result = item.get("name")
                         break
             else:
-                result = stages[int(stage_id)-1].get("name")
+                if int(stage_id) == 0:
+                    raise Exception("Invalid stage number")
+                result = stages[int(stage_id) - 1].get("name")
 
         return result
 
@@ -373,21 +382,25 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
             test_data_set=None
     ):
         """
-        Gets the stage flow node id the node where where a stage ran for build
-        in project.
+        Gets the stage flow node ids the nodes where where a stage ran for build
+        in project. These are from jenkins perspective.
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :param build_number: The id of the build.
+        :type ordered_job_list: Union[list, str]
+        :param build_number: The id of the build
+        :type build_number: str
         :param node_number: The number of the node, this is usually the stage
         id got from get_stage_id
+        :type node_number: str
         :param test_data_set: data set to be used for test run.
+        :type test_data_set: dict
         :return: The ids of the stage flow nodes, None on failure
         """
         result = None
         stage_flow_nodes = None
         stage_flow_node_ids = []
         if not self.test:
-            data_set = self.get_data_from_response(
+            data_set = self.response_data(
                 self.jenkins_workflow_client.describe_execution_node(
                     ordered_job_list, build_number, node_number
                 ),
@@ -415,10 +428,10 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         :type ordered_job_list Union[list, str]
         :param build_number: The id of the build
         :type build_number str
-        :return: A list of dicts where each dict contains stage name, and stage
-        logs, as returned by get_stage_logs
-        stageflownodes.
-        None is returned on failure
+        :return: An OrderedDict of dicts where each dict contains stage name,
+        and stage logs, as returned by get_stage_logs. None is returned on
+        failure
+        :rtype OrderedDict
         """
         # TODO : Make this testable
         result = None
@@ -426,22 +439,23 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
             ordered_job_list=ordered_job_list, build_number=build_number
         )
         if stage_count:
-            result = []
+            result = OrderedDict()
             for i in range(1, stage_count):
-                result.append(
-                    {
-                        "name": self.get_stage_name(
-                            ordered_job_list=ordered_job_list,
-                            build_number=build_number, stage_id=str(i),
-                            id_is_number=True
-                        ),
-                        "logs": self.get_stage_logs(
-                            ordered_job_list=ordered_job_list,
-                            build_number=build_number, stage=str(i),
-                            stage_is_name=False
-                        )
-                    }
+                sn = self.get_stage_name(
+                    ordered_job_list=ordered_job_list,
+                    build_number=build_number,
+                    stage_id=str(i),
+                    id_is_number=True
                 )
+                sl = self.get_stage_logs(
+                    ordered_job_list=ordered_job_list,
+                    build_number=build_number, stage=str(i),
+                    stage_is_name=False
+                )
+                result[i] = {
+                    "name": sn,
+                    "logs": sl
+                }
         return result
 
     def get_stage_logs(
@@ -452,15 +466,16 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         Gets the logs of a particular stage of a particular build of a project.
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
-        :type ordered_job_list Union[list, str]
+        :type ordered_job_list: Union[list, str]
         :param build_number: The id of the build
-        :type build_number str
+        :type build_number: str
         :param stage: The name of the stage whole logs are to be fetched
-        :type stage str
+        :type stage: str
         :param stage_is_name : Default True, if true, stage is treated as name
         of stage, else it is treaded as stage number
-        :type stage_is_name bool
+        :type stage_is_name: bool
         :param test_data_set: data set to be used for test run.
+        :type test_data_set: dict
         :return: A list of dicts where each dict contains name, desc and log of
         stageflownode.
         None is returned on failure
@@ -492,7 +507,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
             if not self.test:
                 result = []
                 for n in stage_flow_nodes:
-                    r = self.get_data_from_response(
+                    r = self.response_data(
                         self.jenkins_workflow_client.get_logs_of_execution_node(
                             ordered_job_list, build_number=build_number,
                             node_number=n

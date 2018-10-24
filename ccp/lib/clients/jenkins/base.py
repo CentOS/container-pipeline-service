@@ -36,7 +36,7 @@ class OpenShiftJenkinsBaseAPIClient(APIClient):
             verify_ssl=True,
             token=None,
             token_from_mount=None,
-            sa="sa/jenkins",
+            sa="sa/jenkins"
     ):
         """
         Initialize Jenkins APIClient
