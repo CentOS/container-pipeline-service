@@ -440,7 +440,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         )
         if stage_count:
             result = OrderedDict()
-            for i in range(1, stage_count):
+            for i in range(1, stage_count + 1):
                 sn = self.get_stage_name(
                     ordered_job_list=ordered_job_list,
                     build_number=build_number,
