@@ -1,8 +1,9 @@
-import connexion
-import six
+"""
+Controller for /api/v1/liveness
+"""
 
 from ccp.apis.server.ccp_server.models.status import Status  # noqa: E501
-from ccp.apis.server.ccp_server import util
+from ccp.apis.server.ccp_server.backend.v1.infra.liveness import response
 
 
 def liveness():  # noqa: E501
@@ -13,4 +14,4 @@ def liveness():  # noqa: E501
 
     :rtype: Status
     """
-    return 'do some magic!'
+    return response()
