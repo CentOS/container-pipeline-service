@@ -45,4 +45,4 @@ class OpenShiftCommandProcessor(QueryProcessor):
         :raises subprocess.CalledProcessError
         :raises ccp.lib.exceptions.CommandOutputError
         """
-        return self.oc_client.get_projects().split('\n')[-1]
+        return self.oc_client.get_projects().split('\n')[:-1]
