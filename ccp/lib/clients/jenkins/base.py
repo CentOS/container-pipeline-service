@@ -6,7 +6,9 @@ from ccp.lib.clients.openshift.client import OpenShiftCmdClient
 from ccp.lib.utils.authorization import Authorization, BearerAuthorization
 
 
-def jenkins_jobs_from_jobs_ordered_list(nested_job_ordered_list):
+def jenkins_jobs_from_jobs_ordered_list(
+        nested_job_ordered_list
+):
     """
     Formats query part of URL from ordered job list as /job/j1/job/j2
     :param nested_job_ordered_list: The ordered list of jenkins job names,

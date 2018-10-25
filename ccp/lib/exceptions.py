@@ -32,3 +32,11 @@ class ErrorAccessingIndexEntryAttributes(Exception):
     index entry attributes
     """
     pass
+
+
+class InformationNotInJenkinsError(Exception):
+    """
+    Exception to be raised when jenkins is unable to provide requested
+    information
+    """
+    pass
