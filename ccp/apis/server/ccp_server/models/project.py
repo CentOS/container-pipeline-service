@@ -15,7 +15,8 @@ class Project(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, app_id: str=None, job_id: str=None, desired_tag: str=None):  # noqa: E501
+    def __init__(self, app_id: str = None, job_id: str = None,
+                 desired_tag: str = None):  # noqa: E501
         """Project - a model defined in Swagger
 
         :param app_id: The app_id of this Project.  # noqa: E501

@@ -16,7 +16,8 @@ class TargetFile(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, prebuild: bool=None, target_file_link: str=None):  # noqa: E501
+    def __init__(self, meta: Meta = None, prebuild: bool = None,
+                 target_file_link: str = None):  # noqa: E501
         """TargetFile - a model defined in Swagger
 
         :param meta: The meta of this TargetFile.  # noqa: E501

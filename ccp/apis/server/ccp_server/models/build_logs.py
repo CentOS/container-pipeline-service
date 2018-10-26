@@ -7,7 +7,7 @@ from typing import List, Dict  # noqa: F401
 
 from ccp.apis.server.ccp_server.models.base_model_ import Model
 from ccp.apis.server.ccp_server.models.meta import Meta  # noqa: F401,E501
-from ccp.apis.server.ccp_server.models.prebuild_lint_build_scan_logs import\
+from ccp.apis.server.ccp_server.models.prebuild_lint_build_scan_logs import \
     PrebuildLintBuildScanLogs  # noqa: F401,E501
 from ccp.apis.server.ccp_server import util
 
@@ -18,7 +18,10 @@ class BuildLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, build: str=None, pre_build: bool=None, status: str=None, failed_stage: str=None, logs: PrebuildLintBuildScanLogs=None):  # noqa: E501
+    def __init__(self, meta: Meta = None, build: str = None,
+                 pre_build: bool = None, status: str = None,
+                 failed_stage: str = None,
+                 logs: PrebuildLintBuildScanLogs = None):  # noqa: E501
         """BuildLogs - a model defined in Swagger
 
         :param meta: The meta of this BuildLogs.  # noqa: E501

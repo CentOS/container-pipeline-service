@@ -15,7 +15,7 @@ class ScannerLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, logs: str=None, description: str=None):  # noqa: E501
+    def __init__(self, logs: str = None, description: str = None):  # noqa: E501
         """ScannerLogs - a model defined in Swagger
 
         :param logs: The logs of this ScannerLogs.  # noqa: E501

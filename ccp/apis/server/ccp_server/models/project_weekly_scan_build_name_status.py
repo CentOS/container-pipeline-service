@@ -15,7 +15,8 @@ class ProjectWeeklyScanBuildNameStatus(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, weeklyscan_build: str=None, status: str=None):  # noqa: E501
+    def __init__(self, weeklyscan_build: str = None,
+                 status: str = None):  # noqa: E501
         """ProjectWeeklyScanBuildNameStatus - a model defined in Swagger
 
         :param weeklyscan_build: The weeklyscan_build of this ProjectWeeklyScanBuildNameStatus.  # noqa: E501
