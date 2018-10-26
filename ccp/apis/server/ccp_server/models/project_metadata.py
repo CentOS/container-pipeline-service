@@ -16,7 +16,13 @@ class ProjectMetadata(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, app_id: str=None, job_id: str=None, desired_tag: str=None, git_url: str=None, git_branch: str=None, git_path: str=None, target_file: str=None, build_context: str=None, notify_email: str=None, depends_on: str=None, prebuild_script: str=None, prebuild_context: str=None):  # noqa: E501
+    def __init__(self, meta: Meta = None, app_id: str = None,
+                 job_id: str = None, desired_tag: str = None,
+                 git_url: str = None, git_branch: str = None,
+                 git_path: str = None, target_file: str = None,
+                 build_context: str = None, notify_email: str = None,
+                 depends_on: str = None, prebuild_script: str = None,
+                 prebuild_context: str = None):  # noqa: E501
         """ProjectMetadata - a model defined in Swagger
 
         :param meta: The meta of this ProjectMetadata.  # noqa: E501

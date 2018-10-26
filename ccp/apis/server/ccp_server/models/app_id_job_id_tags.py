@@ -6,7 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from ccp.apis.server.ccp_server.models.base_model_ import Model
-from ccp.apis.server.ccp_server.models.app_id_job_id_tag import\
+from ccp.apis.server.ccp_server.models.app_id_job_id_tag import \
     AppIdJobIdTag  # noqa: F401,E501
 from ccp.apis.server.ccp_server.models.meta import Meta  # noqa: F401,E501
 from ccp.apis.server.ccp_server import util
@@ -18,7 +18,9 @@ class AppIdJobIdTags(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, app_id: str=None, job_id: str=None, tags: List[AppIdJobIdTag]=None):  # noqa: E501
+    def __init__(self, meta: Meta = None, app_id: str = None,
+                 job_id: str = None,
+                 tags: List[AppIdJobIdTag] = None):  # noqa: E501
         """AppIdJobIdTags - a model defined in Swagger
 
         :param meta: The meta of this AppIdJobIdTags.  # noqa: E501

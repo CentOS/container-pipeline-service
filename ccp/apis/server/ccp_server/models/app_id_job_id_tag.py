@@ -15,7 +15,8 @@ class AppIdJobIdTag(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, desired_tag: str=None, build_status: str=None, image: str=None):  # noqa: E501
+    def __init__(self, desired_tag: str = None, build_status: str = None,
+                 image: str = None):  # noqa: E501
         """AppIdJobIdTag - a model defined in Swagger
 
         :param desired_tag: The desired_tag of this AppIdJobIdTag.  # noqa: E501

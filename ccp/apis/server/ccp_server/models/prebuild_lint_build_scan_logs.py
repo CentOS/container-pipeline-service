@@ -6,7 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from ccp.apis.server.ccp_server.models.base_model_ import Model
-from ccp.apis.server.ccp_server.models.all_scanner_logs import\
+from ccp.apis.server.ccp_server.models.all_scanner_logs import \
     AllScannerLogs  # noqa: F401,E501
 from ccp.apis.server.ccp_server import util
 
@@ -17,7 +17,8 @@ class PrebuildLintBuildScanLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, prebuild: str=None, lint: str=None, build: str=None, scan: AllScannerLogs=None):  # noqa: E501
+    def __init__(self, prebuild: str = None, lint: str = None,
+                 build: str = None, scan: AllScannerLogs = None):  # noqa: E501
         """PrebuildLintBuildScanLogs - a model defined in Swagger
 
         :param prebuild: The prebuild of this PrebuildLintBuildScanLogs.  # noqa: E501

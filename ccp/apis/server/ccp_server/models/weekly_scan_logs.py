@@ -17,7 +17,8 @@ class WeeklyScanLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, build: str=None, status: str=None, logs: AllScannerLogs=None):  # noqa: E501
+    def __init__(self, meta: Meta = None, build: str = None, status: str = None,
+                 logs: AllScannerLogs = None):  # noqa: E501
         """WeeklyScanLogs - a model defined in Swagger
 
         :param meta: The meta of this WeeklyScanLogs.  # noqa: E501

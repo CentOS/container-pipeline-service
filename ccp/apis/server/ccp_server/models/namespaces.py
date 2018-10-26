@@ -16,7 +16,8 @@ class Namespaces(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, namespaces: List[str]=None):  # noqa: E501
+    def __init__(self, meta: Meta = None,
+                 namespaces: List[str] = None):  # noqa: E501
         """Namespaces - a model defined in Swagger
 
         :param meta: The meta of this Namespaces.  # noqa: E501

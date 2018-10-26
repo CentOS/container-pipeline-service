@@ -15,7 +15,8 @@ class Meta(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, api_version: str=None, timestamp: str=None):  # noqa: E501
+    def __init__(self, api_version: str = None,
+                 timestamp: str = None):  # noqa: E501
         """Meta - a model defined in Swagger
 
         :param api_version: The api_version of this Meta.  # noqa: E501

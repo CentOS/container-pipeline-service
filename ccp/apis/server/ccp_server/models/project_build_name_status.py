@@ -15,7 +15,7 @@ class ProjectBuildNameStatus(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, build: str=None, status: str=None):  # noqa: E501
+    def __init__(self, build: str = None, status: str = None):  # noqa: E501
         """ProjectBuildNameStatus - a model defined in Swagger
 
         :param build: The build of this ProjectBuildNameStatus.  # noqa: E501

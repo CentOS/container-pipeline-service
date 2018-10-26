@@ -7,7 +7,7 @@ from typing import List, Dict  # noqa: F401
 
 from ccp.apis.server.ccp_server.models.base_model_ import Model
 from ccp.apis.server.ccp_server.models.meta import Meta  # noqa: F401,E501
-from ccp.apis.server.ccp_server.models.project_builds import\
+from ccp.apis.server.ccp_server.models.project_builds import \
     ProjectBuilds  # noqa: F401,E501
 from ccp.apis.server.ccp_server import util
 
@@ -18,7 +18,8 @@ class ProjectBuildsInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, builds: ProjectBuilds=None):  # noqa: E501
+    def __init__(self, meta: Meta = None,
+                 builds: ProjectBuilds = None):  # noqa: E501
         """ProjectBuildsInfo - a model defined in Swagger
 
         :param meta: The meta of this ProjectBuildsInfo.  # noqa: E501

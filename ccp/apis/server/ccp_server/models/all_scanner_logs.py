@@ -6,7 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from ccp.apis.server.ccp_server.models.base_model_ import Model
-from ccp.apis.server.ccp_server.models.scanner_logs import\
+from ccp.apis.server.ccp_server.models.scanner_logs import \
     ScannerLogs  # noqa: F401,E501
 from ccp.apis.server.ccp_server import util
 
@@ -17,7 +17,7 @@ class AllScannerLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, scanner_name: ScannerLogs=None):  # noqa: E501
+    def __init__(self, scanner_name: ScannerLogs = None):  # noqa: E501
         """AllScannerLogs - a model defined in Swagger
 
         :param scanner_name: The scanner_name of this AllScannerLogs.  # noqa: E501

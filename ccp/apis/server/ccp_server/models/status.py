@@ -16,7 +16,7 @@ class Status(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, status: str=None):  # noqa: E501
+    def __init__(self, meta: Meta = None, status: str = None):  # noqa: E501
         """Status - a model defined in Swagger
 
         :param meta: The meta of this Status.  # noqa: E501
