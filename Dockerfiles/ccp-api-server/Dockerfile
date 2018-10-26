@@ -10,6 +10,12 @@ COPY ./ccp/apis/server/requirements.txt /
 RUN pip3 install --upgrade pip && \
     pip3 install -r requirements.txt && rm requirements.txt
 
+ENV OPENSHIFT_VERSION="310"
+ENV ORIGIN_SERVER="https://localhost:8443"
+
+RUN yum -y install centos-release-openshift-origin${OPENSHIFT_VERSION} && \
+    yum -y install origin-clients
+
 RUN mkdir -p /opt/ccp_api_server
 
 ENV PYTHONPATH="/opt/ccp_api_server"
