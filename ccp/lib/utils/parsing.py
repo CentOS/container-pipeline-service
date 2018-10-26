@@ -1,6 +1,8 @@
 import ast
 import base64
 import json
+import yaml
+from ccp.lib.utils._print import _print
 
 
 def encode(data):
@@ -44,3 +46,25 @@ def parse_literals(data):
     :return: Pythonic representation of data
     """
     return ast.literal_eval(data)
+
+
+def read_yaml(filepath, verbose=True):
+    """
+    Read the YAML file at specified location
+    raise an exception upon failure reading/load the file
+    :param filepath: The path of the yaml file to load
+    :type filepath str
+    :param verbose: Default True: If true, error is printed
+    :type verbose: bool
+    :return the yaml data on success
+    """
+    try:
+        with open(filepath) as fin:
+            data = yaml.load(fin, Loader=yaml.BaseLoader)
+    except yaml.YAMLError as exc:
+        if verbose:
+            _print("Failed to read {}".format(filepath))
+            _print("Error: {}".format(exc))
+        return None
+    else:
+        return data

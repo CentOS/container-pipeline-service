@@ -8,13 +8,12 @@ import sys
 import time
 from glob import glob
 
-import yaml
-
 from ccp.lib.exceptions import ErrorAccessingIndexEntryAttributes
 from ccp.lib.exceptions import InvalidPipelineName
 from ccp.lib.utils._print import _print
 from ccp.lib.utils.command import run_command
 from ccp.lib.utils.retry import retry
+from ccp.lib.utils.parsing import read_yaml
 
 
 class Project(object):
@@ -148,23 +147,6 @@ class IndexReader(object):
         self.index = index
         self.namespace = namespace
 
-    def read_yaml(self, filepath):
-        """
-        Read the YAML file at specified location
-
-        return the yaml data on success
-        raise an exception upon failure reading/load the file
-        """
-        try:
-            with open(filepath) as fin:
-                data = yaml.load(fin, Loader=yaml.BaseLoader)
-        except yaml.YAMLError as exc:
-            _print("Failed to read {}".format(filepath))
-            _print("Error: {}".format(exc))
-            return None
-        else:
-            return data
-
     def read_projects(self):
         """
         Reads yaml entries from container index and returns
@@ -177,7 +159,7 @@ class IndexReader(object):
             if "index_template" in yamlfile:
                 continue
 
-            app = self.read_yaml(yamlfile)
+            app = read_yaml(yamlfile)
             # if YAML file reading has failed, log the error and
             # filename and continue processing rest of index
             if not app:
