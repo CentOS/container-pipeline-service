@@ -7,7 +7,14 @@ import requests
 from ccp.lib.utils.parsing import json_to_python, parse_literals
 
 
-class QueryProcessor(object):
+class Processor(object):
+    """
+    Acts as base class of all processors
+    """
+    pass
+
+
+class QueryProcessor(Processor):
     """
     Acts as base of all Query Processor
     """
