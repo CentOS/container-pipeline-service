@@ -2,7 +2,7 @@ import ast
 import base64
 import json
 import yaml
-from ccp.lib.utils._print import _print
+from ccp.lib.utils.print_out import print_out
 
 
 def encode(data):
@@ -63,8 +63,8 @@ def read_yaml(filepath, verbose=True):
             data = yaml.load(fin, Loader=yaml.BaseLoader)
     except yaml.YAMLError as exc:
         if verbose:
-            _print("Failed to read {}".format(filepath))
-            _print("Error: {}".format(exc))
+            print_out("Failed to read {}".format(filepath))
+            print_out("Error: {}".format(exc))
         return None
     else:
         return data

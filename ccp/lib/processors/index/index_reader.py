@@ -1,7 +1,7 @@
 from glob import glob
 
 from ccp.lib.models.project import Project
-from ccp.lib.utils._print import _print
+from ccp.lib.utils.print_out import print_out
 from ccp.lib.utils.parsing import read_yaml
 
 
@@ -40,9 +40,9 @@ class IndexReader(object):
                 try:
                     project = Project(entry, self.namespace)
                 except Exception as e:
-                    _print("Error processing index entry {}. "
+                    print_out("Error processing index entry {}. "
                            "Moving on.".format(entry))
-                    _print("Error: {}".format(e))
+                    print_out("Error: {}".format(e))
                 else:
                     # append to the list of projects
                     projects.append(project)

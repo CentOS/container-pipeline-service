@@ -5,57 +5,11 @@ creates the Jenkins pipeline projects from entries of index.
 
 import sys
 import time
-from glob import glob
 
-from ccp.lib.processors.index.project import Project
-from ccp.lib.utils._print import _print
+from ccp.lib.processors.index.index_reader import IndexReader
+from ccp.lib.utils.print_out import print_out
 from ccp.lib.utils.command import run_command
-from ccp.lib.utils.parsing import read_yaml
 from ccp.lib.utils.retry import retry
-
-
-class IndexReader(object):
-    """
-    Class for reading container index and utilities
-    """
-
-    def __init__(self, index, namespace):
-        """
-        Initialize class variable with index location
-        """
-        self.index = index
-        self.namespace = namespace
-
-    def read_projects(self):
-        """
-        Reads yaml entries from container index and returns
-        them as list of objects of type Project
-        """
-        projects = []
-
-        for yamlfile in glob(self.index + "/*.y*ml"):
-            # skip index_template
-            if "index_template" in yamlfile:
-                continue
-
-            app = read_yaml(yamlfile)
-            # if YAML file reading has failed, log the error and
-            # filename and continue processing rest of index
-            if not app:
-                continue
-
-            for entry in app['Projects']:
-                # create a project object here with all properties
-                try:
-                    project = Project(entry, self.namespace)
-                except Exception as e:
-                    _print("Error processing index entry {}. "
-                           "Moving on.".format(entry))
-                    _print("Error: {}".format(e))
-                else:
-                    # append to the list of projects
-                    projects.append(project)
-        return projects
 
 
 class BuildConfigManager(object):
@@ -178,7 +132,7 @@ class BuildConfigManager(object):
         )
         # process and apply buildconfig
         output, _ = run_command(command, shell=True)
-        _print(output)
+        print_out(output)
 
         # if a buildConfig has config update, oc apply returns
         # "buildconfig.build.openshift.io "$PIPELINE_NAME" configured"
@@ -238,7 +192,7 @@ class BuildConfigManager(object):
         )
         # process and apply buildconfig
         output, _ = run_command(command, shell=True)
-        _print(output)
+        print_out(output)
 
     @retry(tries=10, delay=3, backoff=2)
     def apply_buildconfigs(self,
@@ -260,7 +214,7 @@ class BuildConfigManager(object):
         command = "oc start-build {} -n {}".format(
             pipeline_name, self.namespace)
         out, _ = run_command(command, shell=True)
-        _print(out)
+        print_out(out)
 
     @retry(tries=10, delay=3, backoff=2)
     def delete_buildconfigs(self, bcs, wait_between_delete=5):
@@ -271,7 +225,7 @@ class BuildConfigManager(object):
                    "--now=true --include-uninitialized=true")
 
         for bc in bcs:
-            _print("Deleting buildConfig {}".format(bc))
+            print_out("Deleting buildConfig {}".format(bc))
             run_command(command.format(self.namespace, bc), shell=True)
             time.sleep(wait_between_delete)
 
@@ -407,7 +361,7 @@ class Index(object):
         # list all jobs in index, list of project objects
         index_projects = self.index_reader.read_projects()
 
-        _print("Number of projects in index {}".format(len(index_projects)))
+        print_out("Number of projects in index {}".format(len(index_projects)))
 
         # list existing jobs in openshift
         os_projects = self.bc_manager.list_all_buildConfigs()
@@ -421,7 +375,7 @@ class Index(object):
         os_projects = [bc.split("/")[1] for bc in os_projects
                        if bc.split("/")[1] not in filter_list]
 
-        _print("Number of projects in OpenShift {}".format(len(os_projects)))
+        print_out("Number of projects in OpenShift {}".format(len(os_projects)))
 
         # names of pipelines for all projects in container index
         index_project_names = [project.pipeline_name for project in
@@ -438,12 +392,12 @@ class Index(object):
         )
 
         if stale_projects:
-            _print("List of stale projects:\n{}".format(
+            print_out("List of stale projects:\n{}".format(
                 "\n".join(stale_projects)))
             # delete all the stal projects/buildconfigs
             self.bc_manager.delete_buildconfigs(stale_projects)
 
-        _print("Number of projects to be updated/created: {}".format(
+        print_out("Number of projects to be updated/created: {}".format(
             len(index_projects)))
 
         self.batch_process_projects(
@@ -475,7 +429,7 @@ class Index(object):
         # Split the projects to process in equal sized chunks
         generator_obj = self.batch(index_projects, batch_size)
 
-        _print("Starting index processing with\n"
+        print_out("Starting index processing with\n"
                "Batch size={}\nBatch polling Interval (in seconds)={}\n"
                "Batch outstndaing builds cap count={}\n".format(
                    batch_size,
@@ -493,7 +447,7 @@ class Index(object):
             # wait until current outstanding builds are more than
             # configured cap for outstanding builds
             while len(outstanding_builds) > batch_outstanding_builds_cap:
-                _print("Waiting for completion of builds {}\n".format(
+                print_out("Waiting for completion of builds {}\n".format(
                     outstanding_builds))
                 time.sleep(polling_interval)
 
@@ -501,7 +455,7 @@ class Index(object):
                     status=["Complete", "Failed", "Cancelled"],
                     filter_builds=self.infra_projects)
 
-            _print("Processing projects batch: {}\n".format(
+            print_out("Processing projects batch: {}\n".format(
                 [each.pipeline_name for each in batch]))
 
             for project in batch:
@@ -509,21 +463,21 @@ class Index(object):
                 try:
                     self.bc_manager.apply_build_job(project)
                 except Exception as e:
-                    _print("Error applying/creating build config for {}. "
+                    print_out("Error applying/creating build config for {}. "
                            "Moving on.".format(project.pipeline_name))
-                    _print("Error: {}".format(str(e)))
+                    print_out("Error: {}".format(str(e)))
                 else:
                     # grace period of 1 sec between configuring jobs
                     time.sleep(1)
 
-        _print("Processing weekly scan projects..")
+        print_out("Processing weekly scan projects..")
         for project in index_projects:
             try:
                 self.bc_manager.apply_weekly_scan(project)
             except Exception as e:
-                _print("Error applying/creating weekly scan build config "
+                print_out("Error applying/creating weekly scan build config "
                        "for {}. Moving on.".format(project.pipeline_name))
-                _print("Error: {}".format(str(e)))
+                print_out("Error: {}".format(str(e)))
             else:
                 # grace period of 1 sec between configuring jobs
                 time.sleep(1)
@@ -531,7 +485,7 @@ class Index(object):
 
 if __name__ == "__main__":
     if len(sys.argv) != 14:
-        _print("Incomplete set of input variables, please refer README.")
+        print_out("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
     index = sys.argv[1].strip()

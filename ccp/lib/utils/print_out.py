@@ -7,9 +7,10 @@ and not being blocked on stdout buffer for showing the messages.
 import sys
 
 
-def _print(msg):
+def print_out(msg):
     """
-    _prints the given msg
+    prints the given msg
+    :param msg: What to print
     """
     print (msg)
     sys.stdout.flush()
