@@ -59,8 +59,10 @@ objects:
                         }
                         stage("Check pipelines are created")
                         {
-                            bc_id = sh(returnStdout: true, script: "oc get bc/bamachrn-python-release")
-                            checkStageStatus(success_build_id, 2, "success")
+                            checkBuildConfigAvailability("buildconfigs/centos-kubernetes-master","available")
+                            checkBuildConfigAvailability("buildconfigs/bamachrn-python-release", "not_available")
+                            checkBuildConfigAvailability("buildconfigs/nshaikh-build-fail-test-latest", "not_available")
+                            checkBuildConfigAvailability("buildconfigs/gluster-storagesig-heketi-latest", "available"
                         }
                     }
                 }
@@ -106,21 +108,17 @@ objects:
                         }
                     }
                 }
-                def checkStageStatus(build_id, stage_number, expected_status)
+                def checkBuildConfigAvailability(expected_bc_name, expected_status)
                 {
-                    echo "build_id: ${build_id} stage: ${stage_number} expected_status: ${expected_status}"
+                    echo "build_config: ${bc_name} expected_status: ${expected_status}"
                     def actual_status = false
 
-                    if ( expected_status != "not_available" )
-                    {
-                        waitForStageToComplete(build_id,stage_number)
+                    bc_name = sh(returnStdout: true, script: "oc get bc/bamachrn-python-release -o name")
 
-                        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-                        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-                        def stage_name = build_status_obj.stages[stage_number]['name']
-                        def stage_status = build_status_obj.stages[stage_number]['status']
-                        echo "Stage name: ${stage_name}   Stage status: ${stage_status}"
-                        if ( stage_status.toLowerCase() == expected_status.toLowerCase() )
+                    //This function checks for a build config to be existing or not.
+                    if ( expected_status == "available" )
+                    {
+                        if ( bc_name.toLowerCase() == expected_bc_name.toLowerCase() )
                         {
                             echo "Stage assertion passed"
                             actual_status = true
@@ -130,18 +128,16 @@ objects:
                             echo "Stage assertion failed"
                         }
                     }
-                    else
+                    else if(expected_status == "not_available")
                     {
-                        echo "Th stage $stage_number, should not be present in the pipeline, checking for it"
-                        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
-                        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
-                        if ( build_status_obj.stages[stage_number] == null ){
-                            echo "Stage not found as expected, assertion passed"
-                            actual_status = true
+                        if( bc_name.toLowerCase() == expected_bc_name.toLowerCase() )
+                        {
+                            echo "Stage assertion failed"
                         }
                         else
                         {
-                            echo "Assertion failed"
+                            echo "Stage assertion passed"
+                            actual_status = true
                         }
                     }
                     if (!actual_status)
