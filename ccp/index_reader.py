@@ -6,7 +6,7 @@ creates the Jenkins pipeline projects from entries of index.
 import sys
 import time
 
-from ccp.lib.processors.index.index_reader import IndexReader
+from ccp.lib.processors.index.index_processors import IndexProcessor
 from ccp.lib.utils.print_out import print_out
 from ccp.lib.utils.command import run_command
 from ccp.lib.utils.retry import retry
@@ -300,7 +300,7 @@ class Index(object):
                  ci_projects=["ci-success-job", "ci-failure-job"]):
 
         # create index reader object
-        self.index_reader = IndexReader(index, namespace)
+        self.index_reader = IndexProcessor(index, namespace)
 
         # create bc_manager object
         self.bc_manager = BuildConfigManager(
