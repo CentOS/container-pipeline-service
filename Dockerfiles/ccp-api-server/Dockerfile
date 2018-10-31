@@ -16,15 +16,15 @@ ENV ORIGIN_SERVER="https://localhost:8443"
 RUN yum -y install centos-release-openshift-origin${OPENSHIFT_VERSION} && \
     yum -y install origin-clients
 
-RUN mkdir -p /opt/ccp_api_server
+RUN mkdir -p /opt/container-pipeline-service
 
-ENV PYTHONPATH="/opt/ccp_api_server"
+ENV PYTHONPATH="/opt/container-pipeline-service"
 
-COPY . /opt/ccp_api_server
+COPY . /opt/container-pipeline-service
 
-RUN useradd 1001 && usermod -aG 0 1001 && chown -R 1001:0 /opt/ccp_api_server && chmod -R g+x /opt/ccp_api_server
+RUN useradd 1001 && usermod -aG 0 1001 && chown -R 1001:0 /opt/container-pipeline-service && chmod -R g+x /opt/container-pipeline-service
 
-WORKDIR /opt/ccp_api_server/ccp/apis/v1/server/
+WORKDIR /opt/container-pipeline-service/ccp/apis/v1/server/
 
 EXPOSE 8080
 
