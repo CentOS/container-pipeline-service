@@ -11,7 +11,8 @@ RUN pip3 install --upgrade pip && \
     pip3 install -r requirements.txt && rm requirements.txt
 
 ENV OPENSHIFT_VERSION="39"
-ENV ORIGIN_SERVER="https://localhost:8443"
+ENV OPENSHIFT_URL=""
+ENV JENKINS_URL=""
 
 RUN yum -y install centos-release-openshift-origin${OPENSHIFT_VERSION} && \
     yum -y install origin-clients
