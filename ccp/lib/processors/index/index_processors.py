@@ -5,7 +5,7 @@ from ccp.lib.utils.print_out import print_out
 from ccp.lib.utils.parsing import read_yaml
 
 
-class IndexReader(object):
+class IndexProcessor(object):
     """
     Class for reading container index and utilities
     """
@@ -17,6 +17,11 @@ class IndexReader(object):
         self.index = index
         self.namespace = namespace
 
+    def is_valid_entry(self, entry):
+        # TODO : Add validation code here
+        errors = []
+        return errors
+
     def read_projects(self):
         """
         Reads yaml entries from container index and returns
@@ -24,12 +29,12 @@ class IndexReader(object):
         """
         projects = []
 
-        for yamlfile in glob(self.index + "/*.y*ml"):
+        for yaml_file in glob(self.index + "/*.y*ml"):
             # skip index_template
-            if "index_template" in yamlfile:
+            if "index_template" in yaml_file:
                 continue
 
-            app = read_yaml(yamlfile)
+            app = read_yaml(yaml_file)
             # if YAML file reading has failed, log the error and
             # filename and continue processing rest of index
             if not app:
@@ -38,12 +43,16 @@ class IndexReader(object):
             for entry in app['Projects']:
                 # create a project object here with all properties
                 try:
-                    project = Project(entry, self.namespace)
+                    errors = self.is_valid_entry(entry)
+                    if len(errors) == 0:
+                        projects.append(Project(entry, self.namespace))
+                    else:
+                        print_out("Entry has validation errors : ")
+                        for i in errors:
+                            print_out("- {}".format(i))
+                        print_out("Skipping")
                 except Exception as e:
                     print_out("Error processing index entry {}. "
-                           "Moving on.".format(entry))
+                              "Moving on.".format(entry))
                     print_out("Error: {}".format(e))
-                else:
-                    # append to the list of projects
-                    projects.append(project)
         return projects
