@@ -1,5 +1,6 @@
 import os
 
 
-OPENSHIFT_SERVER = os.environ.get("OPENSHIFT_SERVER") or \
-                   "https://localhost:8443"
+OPENSHIFT_VERSION = os.environ.get("OPENSHIFT_VERSION")
+OPENSHIFT_URL = os.environ.get("OPENSHIFT_SERVER")
+JENKINS_URL = os.environ.get("JENKINS_URL")
