@@ -147,6 +147,7 @@ echo "Setting variables for pipeline run"
 export REGISTRY_URL=$nfs_node:5000
 export CONTAINER_INDEX_REPO=https://github.com/CentOS/container-index
 export CONTAINER_INDEX_BRANCH=ci
+export CONTAINER_INDEX_DELETE_CHECK_BRANCH=ci-delete-check
 export FROM_ADDRESS=container-build-reports@centos.org
 export SMTP_SERVER=smtp://mail.centos.org
 export CCP_OPENSHIFT_SLAVE_IMAGE=$nfs_node:5000/pipeline-images/ccp-openshift-slave:latest
@@ -268,6 +269,10 @@ then
 else
     echo "Failed Build check Passed: SUCCESS"
 fi
+
+echo "======================checking for seedjob functions================="
+echo "Creating seedjob pipeline for checking seed job functionalities"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_DELETE_CHECK_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f seed-job/buildtemplate.yaml | oc create -f -"
 
 if [ $CI_DEBUG -eq 0 ]
 then
