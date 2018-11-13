@@ -1,12 +1,12 @@
 apiVersion: "v1"
 kind: "Template"
 metadata:
-  name: "container-pipeline-success-ci-job"
+  name: "container-pipeline-seedjob-check-ci-job"
 objects:
   - apiVersion: "v1"
     kind: "BuildConfig"
     metadata:
-        name: ci-success-job
+        name: ci-seed-job-check
     spec:
       strategy:
         type: "JenkinsPipeline"

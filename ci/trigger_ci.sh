@@ -232,7 +232,7 @@ fi
 echo "create CI failure job build pipeline"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cifailurejob.yaml | oc create -f -"
 
-echo "Start ci pipeline for success job"
+echo "Start ci pipeline for failure job"
 build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-failure-job -n cccp |cut -f 2 -d ' '")
 
 echo "Build started with build id: $build_id"
@@ -272,7 +272,75 @@ fi
 
 echo "======================checking for seedjob functions================="
 echo "Creating seedjob pipeline for checking seed job functionalities"
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_DELETE_CHECK_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f seed-job/buildtemplate.yaml | oc create -f -"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process REGISTRY_URL=${REGISTRY_URL} -p NAMESPACE=cccp -p CONTAINER_INDEX_REPO=${CONTAINER_INDEX_REPO} -p CONTAINER_INDEX_BRANCH=${CONTAINER_INDEX_DELETE_CHECK_BRANCH} -p FROM_ADDRESS=${FROM_ADDRESS} -p SMTP_SERVER=${SMTP_SERVER} -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f seed-job/buildtemplate.yaml | oc replace -f -"
+seed_job_replaced=$?
+
+if [ $seed_job_replaced -ne 0 ]
+then
+    mark_failure "Seed job config is not getting updated"
+fi
+
+echo "Re running the seed job with updated index"
+seed_job_build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build seed-job -n cccp |cut -f 2 -d ' '")
+seed_job_build_id=$(echo $seed_job_build_id|tr -d '"'|tr -d '\r')
+
+echo "Wait for seed job to complete"
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${seed_job_build_id} -o template --template={{.status.phase}}")
+while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
+do
+    sleep 30
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${seed_job_build_id} -o template --template={{.status.phase}}")
+done
+
+echo "==========================Seed job Re-run logs========================"
+ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-seed-job/builds/2/log"
+echo "======================================================================"
+
+if [ $build_status == 'Failed' ]
+then
+    mark_failure "Seed job could not complete: FAILURE"
+fi
+
+echo "Running CI job for seedjob check"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p SEEDJOB_BUILD_ID=${seed_job_build_id} -f ci/ciseedjobcheck.yaml | oc create -f -"
+
+echo "Start ci pipeline for fpailure job"
+build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-seed-job-check -n cccp |cut -f 2 -d ' '")
+
+echo "Build started with build id: $build_id"
+
+build_id=$(echo $build_id|tr -d '"'|tr -d '\r')
+
+echo "Trimmed build id is: ===$build_id==="
+
+echo "Waiting for the ci to start"
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+echo "Current build status: $build_status"
+
+while [[ $build_status != 'Running' ]]
+do
+    sleep 30
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+done
+
+echo "CI for Seed Job check started"
+echo "Seedjob check CI job is: $build_status"
+while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
+do
+    sleep 30
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+done
+
+echo "========================Fail check build logs==========================="
+ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-ci-seed-job-check/builds/lastSuccessfulBuild/log"
+echo "========================================================================"
+
+if [ $build_status == 'Failed' ]
+then
+    mark_failure "CI failed on seed job functionality check: FAILURE"
+else
+    echo "Seed Job check Passed: SUCCESS"
+fi
 
 if [ $CI_DEBUG -eq 0 ]
 then
