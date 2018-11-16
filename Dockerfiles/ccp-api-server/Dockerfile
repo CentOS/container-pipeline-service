@@ -5,7 +5,7 @@ RUN yum -y update && \
     yum install -y gcc git python34-pip python34-requests httpd httpd-devel python34-devel && \
     yum clean all
 
-COPY ./ccp/apis/v1/server/requirements.txt /
+COPY ./ccp/apis/v1/requirements.txt /
 
 RUN pip3 install --upgrade pip && \
     pip3 install -r requirements.txt && rm requirements.txt
@@ -25,7 +25,7 @@ COPY . /opt/container-pipeline-service
 
 RUN useradd 1001 && usermod -aG 0 1001 && chown -R 1001:0 /opt/container-pipeline-service && chmod -R g+x /opt/container-pipeline-service
 
-WORKDIR /opt/container-pipeline-service/ccp/apis/v1/server/
+WORKDIR /opt/container-pipeline-service/ccp/apis/v1/
 
 EXPOSE 8080
 
