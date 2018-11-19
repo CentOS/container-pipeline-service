@@ -65,6 +65,7 @@ objects:
 
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
                     def slave_container_name = "jnlp_ccp-pipeline-master"
+                    def base_image_name= "base/image-with:tag"
 
                     // setting this to ensure the user is notificatied only after the mandatory stages are complete
                     // i.e. (checkout, prebuild) - lint - build - scan - deliver
@@ -111,7 +112,8 @@ objects:
                         stage('Build the container image') {
                             dir("${PIPELINE_NAME}/${GIT_PATH}"){
                                 echo "Cleanup the local parent image if existing"
-                                def output = sh(returnStdout:true, script: "docker rmi `cat ${TARGET_FILE}|awk '/^FROM/ {print $2}'` > image-remove 2>&1", returnStatus: true)
+                                base_image_name = sh(returnStdout:true, script: "cat ${TARGET_FILE}|awk '/^FROM/ {print \$2}'").trim()
+                                def output = sh(returnStdout:true, script: "docker rmi ${base_image_name} > image-remove 2>&1", returnStatus: true)
                                 sh "cat image-remove"
                                 echo "Build the image by always pulling the base image"
                                 sh "docker build --no-cache --pull -t ${image_name} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
@@ -162,11 +164,10 @@ objects:
                         // we need to make sure the image is removed in either case
                         stage('Remove the image') {
                           // don't fail the pipeline if image removal failed due to some error
-                          // the dangling images removal should be handled seprately by some cron etc
                           sh (script: "docker rmi ${image_name_with_registry}; docker rmi ${image_name}", returnStatus: true)
-                          def output = sh(returnStdout:true, script: "docker rmi `cat ${TARGET_FILE}|awk '/^FROM/ {print $2}'` > image-remove 2>&1", returnStatus: true)
+                          def output = sh(returnStdout:true, script: "docker rmi ${base_image_name} > image-remove 2>&1", returnStatus: true)
                           sh "cat image-remove"
-                          sh(script: "docker rmi `docker images -q -f dangling=true`")
+                          sh(script: "docker rmi `docker images -q -f dangling=true`", returnStatus: true)
                         }
                       }
                   }
