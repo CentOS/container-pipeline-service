@@ -73,9 +73,9 @@ def project_wscan_build_logs(namespace, app_id, job_id, desired_tag, build):  # 
 
 
 def project_wscan_builds(namespace, app_id, job_id, desired_tag):  # noqa: E501
-    """Get all the weekly scan builds info for given project
+    """Get all the weekly scan builds information for given project
 
-    Get all the weekly scan builds info for given project # noqa: E501
+    Get all the weekly scan builds information for given project # noqa: E501
 
     :param namespace: namespace of the project
     :type namespace: str
