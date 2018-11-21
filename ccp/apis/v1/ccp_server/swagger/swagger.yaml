@@ -205,7 +205,7 @@ paths:
         type: "string"
       responses:
         200:
-          description: "Al the builds for given project"
+          description: "All the builds for given project"
           schema:
             $ref: "#/definitions/ProjectBuildsInfo"
       x-swagger-router-controller: "ccp_server.controllers.builds_controller"
@@ -213,8 +213,8 @@ paths:
     get:
       tags:
       - "builds"
-      summary: "Get all the weekly scan builds info for given project"
-      description: "Get all the weekly scan builds info for given project"
+      summary: "Get all the weekly scan builds information for given project"
+      description: "Get all the weekly scan builds information for given project"
       operationId: "project_wscan_builds"
       parameters:
       - name: "namespace"
@@ -525,7 +525,7 @@ definitions:
     description: "Weekly scan build name and status"
     example:
       weeklyscan-build: "weeklyscan-build"
-      status: "status"
+      status: "Successful/Failed"
   ProjectBuilds:
     properties:
       build_number:
@@ -533,7 +533,7 @@ definitions:
     example:
       build_number:
         build: "build"
-        status: "status"
+        status: "Successful/Failed"
   ProjectWeeklyScanBuilds:
     properties:
       build_number:
@@ -541,7 +541,7 @@ definitions:
     example:
       build_number:
         weeklyscan-build: "weeklyscan-build"
-        status: "status"
+        status: "Successful/Failed"
   ProjectBuildsInfo:
     properties:
       meta:
@@ -557,7 +557,7 @@ definitions:
       builds:
         build_number:
           build: "build"
-          status: "status"
+          status: "Successful/Failed"
   WeeklyScanBuildsInfo:
     properties:
       meta:
@@ -570,7 +570,7 @@ definitions:
       wscan-builds:
         build_number:
           weeklyscan-build: "weeklyscan-build"
-          status: "status"
+          status: "Successful/Failed"
       meta:
         apiVersion: "apiVersion"
         timestamp: "timestamp"
@@ -592,9 +592,12 @@ definitions:
     title: "All scanner logs"
     description: "All scanner logs"
     example:
-      scanner_name:
-        description: "description"
-        logs: "logs"
+      scanner_name1:
+        description: "Scanner 1 description"
+        logs: "Scanner 2 logs"
+      scanner_name2:
+        description: "Scanner 2 description"
+        logs: "Scanner 2 logs"
   PrebuildLintBuildScanLogs:
     properties:
       prebuild:
