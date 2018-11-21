@@ -175,7 +175,7 @@ paths:
           schema:
             $ref: "#/definitions/TargetFile"
       x-swagger-router-controller: "ccp_server.controllers.projects_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag:
+  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/builds:
     get:
       tags:
       - "builds"
