@@ -56,7 +56,7 @@ paths:
           schema:
             $ref: "#/definitions/Namespaces"
       x-swagger-router-controller: "ccp_server.controllers.meta_controller"
-  /namespace/{namespace}/projects:
+  /namespaces/{namespace}/projects:
     get:
       tags:
       - "meta"
@@ -77,7 +77,7 @@ paths:
           schema:
             $ref: "#/definitions/Projects"
       x-swagger-router-controller: "ccp_server.controllers.meta_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/metadata:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/metadata:
     get:
       tags:
       - "projects"
@@ -111,7 +111,7 @@ paths:
           schema:
             $ref: "#/definitions/ProjectMetadata"
       x-swagger-router-controller: "ccp_server.controllers.projects_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tags:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags:
     get:
       tags:
       - "projects"
@@ -141,7 +141,7 @@ paths:
           schema:
             $ref: "#/definitions/AppIdJobIdTags"
       x-swagger-router-controller: "ccp_server.controllers.projects_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/target-file:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/target-file:
     get:
       tags:
       - "projects"
@@ -175,7 +175,7 @@ paths:
           schema:
             $ref: "#/definitions/TargetFile"
       x-swagger-router-controller: "ccp_server.controllers.projects_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/builds:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/builds:
     get:
       tags:
       - "builds"
@@ -209,7 +209,7 @@ paths:
           schema:
             $ref: "#/definitions/ProjectBuildsInfo"
       x-swagger-router-controller: "ccp_server.controllers.builds_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/wscan-builds:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/wscan-builds:
     get:
       tags:
       - "builds"
@@ -243,7 +243,7 @@ paths:
           schema:
             $ref: "#/definitions/WeeklyScanBuildsInfo"
       x-swagger-router-controller: "ccp_server.controllers.builds_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/build/{build}/logs:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/builds/{build}/logs:
     get:
       tags:
       - "builds"
@@ -282,7 +282,7 @@ paths:
           schema:
             $ref: "#/definitions/BuildLogs"
       x-swagger-router-controller: "ccp_server.controllers.builds_controller"
-  /namespace/{namespace}/app-id/{app_id}/job-id/{job_id}/desired-tag/{desired_tag}/wscan-build/{build}/logs:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/wscan-builds/{build}/logs:
     get:
       tags:
       - "builds"
