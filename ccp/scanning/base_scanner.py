@@ -12,6 +12,14 @@ import platform
 import subprocess
 
 
+class BinaryDoesNotExist(Exception):
+    """
+    Exception in cases where the binary needed by the scanner
+    doesn't exist in the system
+    """
+    pass
+
+
 class BaseScanner(object):
     """
     BaseScanner class for sub-scanners to inherit, with needed
@@ -48,9 +56,10 @@ class BaseScanner(object):
         :param binary: Binary name example: npm
         :type binary: str
 
-        :return: Returns the absolute path of binary in system or None
-                 if binary is absent in the system
+        :return: Returns the absolute path of binary in system
         :rtype: str
+        :raise BinaryDoesNotExist: If given binary is invalid or not found
+                                   in the system, this exception is raised.
         """
         def is_executable(fpath):
             """
@@ -80,7 +89,8 @@ class BaseScanner(object):
                 if is_executable(exe_file):
                     return exe_file
         # if not returned above, it means, the file doesn't exist
-        return None
+        raise BinaryDoesNotExist("{} is not installed in the system.".format(
+            binary))
 
     def run(self):
         """
