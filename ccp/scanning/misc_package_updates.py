@@ -15,7 +15,7 @@ class MiscPackageUpdates(BaseScanner):
     NAME = "Misc-package-updates"
     DESCRIPTION = "Find updates available for pip, npm, and gem."
 
-    def __init__(self, image):
+    def __init__(self):
         super(MiscPackageUpdates, self).__init__()
 
     def find_pip_updates(self, binary="pip"):

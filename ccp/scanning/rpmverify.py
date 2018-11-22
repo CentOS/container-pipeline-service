@@ -59,7 +59,7 @@ class RPMVerify(BaseScanner):
         "P": "caPabilities differ",
     }
 
-    def __init__(self, image):
+    def __init__(self):
         super(RPMVerify, self).__init__()
         # figure out the absolute path of binary in target system
         self.rpm_binary = self.which("rpm")
@@ -209,7 +209,7 @@ class RPMVerify(BaseScanner):
 
 if __name__ == "__main__":
     try:
-        rpmverify = RPMVerify('')
+        rpmverify = RPMVerify()
         result = rpmverify.run()
         rpmverify.print_result(result)
     except BinaryDoesNotExist as e:
