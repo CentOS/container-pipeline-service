@@ -202,14 +202,7 @@ echo "Waiting for the ci to start"
 build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
-while [[ $build_status != 'Running' ]]
-do
-    sleep 30
-    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
-done
-
-echo "CI for success check started"
-echo "Success CI job is: $build_status"
+echo "Waiting for the job to complete"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
@@ -245,14 +238,7 @@ echo "Waiting for the ci to start"
 build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
-while [[ $build_status != 'Running' ]]
-do
-    sleep 30
-    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
-done
-
-echo "CI for Fail check started"
-echo "Fail check CI job is: $build_status"
+echo "Waiting CI for Fail check to complate"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
@@ -317,14 +303,7 @@ echo "Waiting for the ci to start"
 build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
-while [[ $build_status != 'Running' ]]
-do
-    sleep 30
-    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
-done
-
-echo "CI for Seed Job check started"
-echo "Seedjob check CI job is: $build_status"
+echo "Wait for CI for Seed Job check to complate"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30

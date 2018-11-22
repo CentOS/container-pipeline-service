@@ -62,7 +62,7 @@ objects:
                             checkBuildConfigAvailability("buildconfigs/centos-kubernetes-master","available")
                             checkBuildConfigAvailability("buildconfigs/bamachrn-python-release", "not_available")
                             checkBuildConfigAvailability("buildconfigs/nshaikh-build-fail-test-latest", "not_available")
-                            checkBuildConfigAvailability("buildconfigs/gluster-storagesig-heketi-latest", "available"
+                            checkBuildConfigAvailability("buildconfigs/gluster-storagesig-heketi-latest", "available")
                         }
                     }
                 }
@@ -110,10 +110,10 @@ objects:
                 }
                 def checkBuildConfigAvailability(expected_bc_name, expected_status)
                 {
-                    echo "build_config: ${bc_name} expected_status: ${expected_status}"
+                    echo "build_config: ${expected_bc_name} expected_status: ${expected_status}"
                     def actual_status = false
 
-                    bc_name = sh(returnStdout: true, script: "oc get bc/bamachrn-python-release -o name")
+                    bc_name = sh(returnStdout: true, script: "oc get ${expected_bc_name} -o name")
 
                     //This function checks for a build config to be existing or not.
                     if ( expected_status == "available" )
