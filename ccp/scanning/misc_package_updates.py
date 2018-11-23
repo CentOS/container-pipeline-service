@@ -110,35 +110,42 @@ class MiscPackageUpdates(BaseScanner):
         else:
             print ("No updates required.")
 
+    def run(self):
+        """
+        Run the scanner
+        """
+        valid_args = ["pip", "gem", "npm", "all"]
+
+        if len(sys.argv) < 2:
+            example = "python self.py npm"
+            print (
+                "Please provide at least one argument as\n{0}".format(example))
+            print ("Valid arguments: {0}".format(valid_args))
+            sys.exit(1)
+
+        cli_arg = sys.argv[1].strip()
+
+        if cli_arg not in valid_args:
+            print ("Please provide valid args among {0}".format(valid_args))
+            sys.exit(1)
+
+        try:
+            if cli_arg == "all":
+                self.print_updates("pip")
+                self.print_updates("npm")
+                self.print_updates("gem")
+            else:
+                self.print_updates(cli_arg)
+        except BinaryDoesNotExist as e:
+            print (e)
+            print ("Scan is aborted!")
+            sys.exit(1)
+        except Exception as e:
+            print ("Error occurred in Misc Package Updates scanner execution.")
+            print ("Error: {0}".format(e))
+            sys.exit(1)
+
 
 if __name__ == "__main__":
-    valid_args = ["pip", "gem", "npm", "all"]
-
-    if len(sys.argv) < 2:
-        example = "python misc_package_updates.py npm"
-        print ("Please provide at least one argument as\n{0}".format(example))
-        print ("Valid arguments: {0}".format(valid_args))
-        sys.exit(1)
-
-    cli_arg = sys.argv[1].strip()
-
-    if cli_arg not in valid_args:
-        print ("Please provide valid args among {0}".format(valid_args))
-        sys.exit(1)
-
-    try:
-        misc_pkg_updates = MiscPackageUpdates()
-        if cli_arg == "all":
-            misc_pkg_updates.print_updates("pip")
-            misc_pkg_updates.print_updates("npm")
-            misc_pkg_updates.print_updates("gem")
-        else:
-            misc_pkg_updates.print_updates(cli_arg)
-    except BinaryDoesNotExist as e:
-        print (e)
-        print ("Scan is aborted!")
-        sys.exit(1)
-    except Exception as e:
-        print ("Error occurred in Misc Package Updates scanner execution.")
-        print ("Error: {0}".format(e))
-        sys.exit(1)
+    misc_pkg_updates = MiscPackageUpdates()
+    misc_pkg_updates.run()
