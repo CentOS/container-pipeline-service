@@ -185,7 +185,7 @@ class RPMVerify(BaseScanner):
             print ("All the RPM installed libraries and "
                    "binaries are intact in image.")
             return
-        for line in result:
+        for line in result["logs"]:
             print ("\nFile: {0}".format(line.get("filename")))
 
             # find out what all issues with file are
