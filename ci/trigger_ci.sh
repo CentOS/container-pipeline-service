@@ -311,7 +311,7 @@ do
 done
 
 echo "========================Fail check build logs==========================="
-ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-ci-seed-job-check/builds/lastSuccessfulBuild/log"
+ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-ci-seed-job-check/builds/1/log"
 echo "========================================================================"
 
 if [ $build_status == 'Failed' ]
