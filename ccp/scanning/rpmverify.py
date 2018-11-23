@@ -16,7 +16,7 @@ class RPMVerify(BaseScanner):
     """
     Verify installed RPMs
     """
-    NAME = "RPM-verify"
+    NAME = "rpm-verify-scanner"
     DESCRIPTION = 'Verify installed RPMs and report issues if any.'
     # Filter the paths you know the resulting image or base image itself
     # has issue about and need to be filtered
