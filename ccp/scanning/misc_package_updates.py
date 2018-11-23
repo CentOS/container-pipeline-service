@@ -12,7 +12,7 @@ class MiscPackageUpdates(BaseScanner):
     """
     Misc package updates scanner
     """
-    NAME = "Misc-package-updates"
+    NAME = "Misc-package-updates-scanner"
     DESCRIPTION = "Find updates available for pip, npm, and gem."
 
     def __init__(self):
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        misc_pkg_updates = MiscPackageUpdates('')
+        misc_pkg_updates = MiscPackageUpdates()
         if cli_arg == "all":
             misc_pkg_updates.print_updates("pip")
             misc_pkg_updates.print_updates("npm")
