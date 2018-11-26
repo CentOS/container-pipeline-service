@@ -108,6 +108,50 @@ objects:
                         }
                     }
                 }
+                def checkStageStatus(build_id, stage_number, expected_status)
+                {
+                    echo "build_id: ${build_id} stage: ${stage_number} expected_status: ${expected_status}"
+                    def actual_status = false
+
+                    if ( expected_status != "not_available" )
+                    {
+                        waitForStageToComplete(build_id,stage_number)
+
+                        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+                        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+                        def stage_name = build_status_obj.stages[stage_number]['name']
+                        def stage_status = build_status_obj.stages[stage_number]['status']
+                        echo "Stage name: ${stage_name}   Stage status: ${stage_status}"
+                        if ( stage_status.toLowerCase() == expected_status.toLowerCase() )
+                        {
+                            echo "Stage assertion passed"
+                            actual_status = true
+                        }
+                        else
+                        {
+                            echo "Stage assertion failed"
+                        }
+                    }
+                    else
+                    {
+                        echo "Th stage $stage_number, should not be present in the pipeline, checking for it"
+                        build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
+                        def build_status_obj = new JsonSlurperClassic().parseText(build_status)
+                        if ( build_status_obj.stages[stage_number] == null ){
+                            echo "Stage not found as expected, assertion passed"
+                            actual_status = true
+                        }
+                        else
+                        {
+                            echo "Assertion failed"
+                        }
+                    }
+                    if (!actual_status)
+                    {
+                        currentBuild.result = 'FAILURE'
+                        error "Check failed: Going to fail state"
+                    }
+                }
                 def checkBuildConfigAvailability(expected_bc_name, expected_status)
                 {
                     echo "build_config: ${expected_bc_name} expected_status: ${expected_status}"
@@ -120,23 +164,23 @@ objects:
                     {
                         if ( bc_name.toLowerCase() == expected_bc_name.toLowerCase() )
                         {
-                            echo "Stage assertion passed"
+                            echo "Build Config is existing assertion passed"
                             actual_status = true
                         }
                         else
                         {
-                            echo "Stage assertion failed"
+                            echo "BC availabilty assertion failed"
                         }
                     }
                     else if(expected_status == "not_available")
                     {
                         if( bc_name.toLowerCase() == expected_bc_name.toLowerCase() )
                         {
-                            echo "Stage assertion failed"
+                            echo "BC availability assertion failed"
                         }
                         else
                         {
-                            echo "Stage assertion passed"
+                            echo "BC does not exists assertion passed"
                             actual_status = true
                         }
                     }
