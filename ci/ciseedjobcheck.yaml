@@ -59,7 +59,7 @@ objects:
                         }
                         stage("Check pipelines are created")
                         {
-                            checkBuildConfigAvailability("buildconfigs/centos-kubernetes-master","available")
+                            checkBuildConfigAvailability("buildconfigs/centos-kubernetes-master-latest","available")
                             checkBuildConfigAvailability("buildconfigs/bamachrn-python-release", "not_available")
                             checkBuildConfigAvailability("buildconfigs/nshaikh-build-fail-test-latest", "not_available")
                             checkBuildConfigAvailability("buildconfigs/gluster-storagesig-heketi-latest", "available")
