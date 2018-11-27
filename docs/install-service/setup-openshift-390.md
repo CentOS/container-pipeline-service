@@ -417,29 +417,6 @@ project/namespace’s homepage on OpenShift console.
 
 ### Deploy the application
 
-#### Configuring DaemonSet
-
-Scanning is one of the build pipeline phase the service
-offers. In scanning, we introspect the image built. In order to make scanning
-module available on all the possible builder nodes, we configure and deploy
-DaemonSet. The DeamonSet spins up a pod per builder node, which avails a docker
-volume for all the containers on the node. The scan stage in pipeline uses the
-volume for performing scan phase. DaemonSet needs to be deployed using cluster
-admin. Configure it with cluster admin user:
-
-```bash
-$ git clone https://github.com/centos/container-pipeline-service.git
-$ cd container-pipeline-service
-$ git checkout openshift
-$ oc login -u system:admin
-$ oc create -f daemon-set/scan_data.yaml
-$ oc annotate namespace <openshift-namespace> openshift.io/node-selector=""
-```
-
-Note: The labels defined for DaemonSet are used in pipeline seed-job/template.yaml
-to identify the container created using DaemonSet. Please keep the labels
-intact in DaemonSet template.
-
 #### Build and push the slave image with code
 
 If this is a production deployment for CentOS Container Pipeline Service, you
