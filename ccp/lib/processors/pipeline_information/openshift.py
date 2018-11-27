@@ -36,7 +36,7 @@ class OpenShiftCommandProcessor(QueryProcessor):
             client_key_path=openshift_client_key_path
         )
 
-    def get_projects(self):
+    def get_namespaces(self):
         """
         Gets the list of OpenShift namespaces/projects
         :return: List of namespaces

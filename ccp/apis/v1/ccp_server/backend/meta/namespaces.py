@@ -20,5 +20,5 @@ def response():
     ocp = OpenShiftCommandProcessor()
     return Namespaces(
         meta=meta_obj("v1"),
-        namespaces=ocp.get_projects()
+        namespaces=ocp.get_namespaces()
     )

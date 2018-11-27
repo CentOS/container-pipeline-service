@@ -52,6 +52,10 @@ objects:
               value: "${OPENSHIFT_URL}"
             - name: JENKINS_URL
               value: "${JENKINS_URL}"
+            - name: INDEX_GIT_URL
+              value: "${INDEX_GIT_URL}"
+            - name: INDEX_GIT_BRANCH
+              value: INDEX_GIT_BRANCH
             ports:
             - name: "api-server-port"
               containerPort: 8080
@@ -111,6 +115,14 @@ parameters:
   required: true
   displayName: OpenShift URL
   description: URL of OpenShift origin server
+- name: INDEX_GIT_URL
+  required: true
+  displayName: Index Git Repo URL
+  description: Git URL of index repository
+- name: INDEX_GIT_BRANCH
+  required: true
+  displayName: Git branch of the index
+  description: Git branch of the index repository
 - name: MEMORY_LIMT
   value: 512Mi
   required: true

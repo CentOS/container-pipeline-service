@@ -3,6 +3,10 @@ import six
 
 from ccp.apis.v1.ccp_server.models.namespaces import\
     Namespaces # noqa: E501
+from ccp.apis.v1.ccp_server.backend.meta.namespaces import response as \
+    ns_response
+from ccp.apis.v1.ccp_server.backend.meta.projects import response as \
+    projects_response
 from ccp.apis.v1.ccp_server.models.projects import Projects  # noqa: E501
 from ccp.apis.v1.ccp_server import util
 
@@ -17,7 +21,7 @@ def namespace_projects(namespace):  # noqa: E501
 
     :rtype: Projects
     """
-    return 'do some magic!'
+    return projects_response(namespace=namespace)
 
 
 def namespaces():  # noqa: E501
@@ -28,4 +32,4 @@ def namespaces():  # noqa: E501
 
     :rtype: Namespaces
     """
-    return 'do some magic!'
+    return ns_response()
