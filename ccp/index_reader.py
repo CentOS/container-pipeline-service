@@ -3,198 +3,13 @@ This script parses the container index specified and
 creates the Jenkins pipeline projects from entries of index.
 """
 
-import re
 import sys
 import time
-from glob import glob
 
-import yaml
-
-from ccp.lib.exceptions import ErrorAccessingIndexEntryAttributes
-from ccp.lib.exceptions import InvalidPipelineName
-from ccp.lib.utils._print import _print
+from ccp.lib.processors.index.index_processors import IndexProcessor
+from ccp.lib.utils.print_out import print_out
 from ccp.lib.utils.command import run_command
 from ccp.lib.utils.retry import retry
-
-
-class Project(object):
-    """
-    Class for storing and processing a container index project
-    """
-
-    def __init__(self, entry, namespace):
-        """
-        Initialize project object with an entry in container index
-        """
-        self.namespace = namespace
-        self.load_project_entry(entry)
-        self.pipeline_name = self.get_pipeline_name()
-
-    def __str__(self):
-        """
-        Returns the string representation of the project object
-        It returns the pipeline-name, which is constructed
-        based on parameters of the project indexed.
-        """
-        return self.pipeline_name
-
-    def replace_dot_slash_colon_(self, value):
-        """
-        Given a value with either dot slash or underscore,
-        replace each with hyphen
-        """
-        return value.replace("_", "-").replace("/", "-").replace(
-            ".", "-").replace(":", "-")
-
-    def process_depends_on(self, depends_on=None):
-        """
-        Process depends_on for given project based on entry index
-        and namespace
-        """
-        if not depends_on or depends_on == "null":
-            return None
-
-        if isinstance(depends_on, list):
-            return ",".join("{}-{}".format(
-                self.namespace,
-                self.replace_dot_slash_colon_(d))
-                for d in depends_on)
-        else:
-            return "{}-{}".format(
-                self.namespace,
-                self.replace_dot_slash_colon_(depends_on))
-
-    def process_desired_tag(self, desired_tag=None):
-        """
-        Process desired_tag for given project
-        """
-        if not desired_tag:
-            return "latest"
-        return desired_tag
-
-    def process_pre_build_script(self, prebuild_script=None):
-        """
-        Process prebuild_script for given project
-        """
-        if not prebuild_script:
-            return None
-        return prebuild_script
-
-    def process_pre_build_context(self, prebuild_context=None):
-        """
-        Process prebuild_context for given project
-        """
-        if not prebuild_context:
-            return None
-        return prebuild_context
-
-    def load_project_entry(self, entry):
-        """
-        Loads a container index entry in class objects
-        """
-        try:
-            self.app_id = self.replace_dot_slash_colon_(entry['app-id'])
-            self.job_id = self.replace_dot_slash_colon_(entry['job-id'])
-
-            self.git_url = entry['git-url']
-            self.git_path = entry['git-path']
-            self.git_branch = entry['git-branch']
-            self.target_file = entry['target-file']
-            self.build_context = entry.get('build-context', "./")
-            self.depends_on = self.process_depends_on(entry['depends-on'])
-            self.notify_email = entry['notify-email']
-            self.desired_tag = self.process_desired_tag(entry["desired-tag"])
-            self.pre_build_context = self.process_pre_build_context(
-                entry.get("prebuild-context", None))
-            self.pre_build_script = self.process_pre_build_script(
-                entry.get("prebuild-script", None))
-        except Exception as e:
-            raise(ErrorAccessingIndexEntryAttributes(str(e)))
-
-    def get_pipeline_name(self):
-        """
-        Returns the pipeline name based on appid, jobid and desired_tag
-        and also converts it to lower case
-        """
-        pipeline_name = "{}-{}-{}".format(
-            self.app_id, self.job_id, self.desired_tag).lower()
-
-        # pipeline name which becomes value for metadata.name field in template
-        # must confront to following regex as per oc
-        # We tried to make the string acceptable by converting it to lower case
-        # Below we are adding another gate to make sure the pipeline_name is as
-        # per requirement, otherwise raising an exception with proper message
-        # to indicate the issue
-        pipeline_name_regex = ("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]"
-                               "([-a-z0-9]*[a-z0-9])?)*$")
-        match = re.match(pipeline_name_regex, pipeline_name)
-
-        if not match:
-            msg = ("The pipeline name populated {} can't be used in OpenShift "
-                   "template in metadata.name field. ".format(pipeline_name))
-            raise(InvalidPipelineName(msg))
-        return pipeline_name
-
-
-class IndexReader(object):
-    """
-    Class for reading container index and utilities
-    """
-
-    def __init__(self, index, namespace):
-        """
-        Initialize class variable with index location
-        """
-        self.index = index
-        self.namespace = namespace
-
-    def read_yaml(self, filepath):
-        """
-        Read the YAML file at specified location
-
-        return the yaml data on success
-        raise an exception upon failure reading/load the file
-        """
-        try:
-            with open(filepath) as fin:
-                data = yaml.load(fin, Loader=yaml.BaseLoader)
-        except yaml.YAMLError as exc:
-            _print("Failed to read {}".format(filepath))
-            _print("Error: {}".format(exc))
-            return None
-        else:
-            return data
-
-    def read_projects(self):
-        """
-        Reads yaml entries from container index and returns
-        them as list of objects of type Project
-        """
-        projects = []
-
-        for yamlfile in glob(self.index + "/*.y*ml"):
-            # skip index_template
-            if "index_template" in yamlfile:
-                continue
-
-            app = self.read_yaml(yamlfile)
-            # if YAML file reading has failed, log the error and
-            # filename and continue processing rest of index
-            if not app:
-                continue
-
-            for entry in app['Projects']:
-                # create a project object here with all properties
-                try:
-                    project = Project(entry, self.namespace)
-                except Exception as e:
-                    _print("Error processing index entry {}. "
-                           "Moving on.".format(entry))
-                    _print("Error: {}".format(e))
-                else:
-                    # append to the list of projects
-                    projects.append(project)
-        return projects
 
 
 class BuildConfigManager(object):
@@ -317,7 +132,7 @@ class BuildConfigManager(object):
         )
         # process and apply buildconfig
         output, _ = run_command(command, shell=True)
-        _print(output)
+        print_out(output)
 
         # if a buildConfig has config update, oc apply returns
         # "buildconfig.build.openshift.io "$PIPELINE_NAME" configured"
@@ -377,7 +192,7 @@ class BuildConfigManager(object):
         )
         # process and apply buildconfig
         output, _ = run_command(command, shell=True)
-        _print(output)
+        print_out(output)
 
     @retry(tries=10, delay=3, backoff=2)
     def apply_buildconfigs(self,
@@ -399,7 +214,7 @@ class BuildConfigManager(object):
         command = "oc start-build {} -n {}".format(
             pipeline_name, self.namespace)
         out, _ = run_command(command, shell=True)
-        _print(out)
+        print_out(out)
 
     @retry(tries=10, delay=3, backoff=2)
     def delete_buildconfigs(self, bcs, wait_between_delete=5):
@@ -410,7 +225,7 @@ class BuildConfigManager(object):
                    "--now=true --include-uninitialized=true")
 
         for bc in bcs:
-            _print("Deleting buildConfig {}".format(bc))
+            print_out("Deleting buildConfig {}".format(bc))
             run_command(command.format(self.namespace, bc), shell=True)
             time.sleep(wait_between_delete)
 
@@ -485,7 +300,7 @@ class Index(object):
                  ci_projects=["ci-success-job", "ci-failure-job"]):
 
         # create index reader object
-        self.index_reader = IndexReader(index, namespace)
+        self.index_reader = IndexProcessor(index, namespace)
 
         # create bc_manager object
         self.bc_manager = BuildConfigManager(
@@ -546,7 +361,7 @@ class Index(object):
         # list all jobs in index, list of project objects
         index_projects = self.index_reader.read_projects()
 
-        _print("Number of projects in index {}".format(len(index_projects)))
+        print_out("Number of projects in index {}".format(len(index_projects)))
 
         # list existing jobs in openshift
         os_projects = self.bc_manager.list_all_buildConfigs()
@@ -560,7 +375,7 @@ class Index(object):
         os_projects = [bc.split("/")[1] for bc in os_projects
                        if bc.split("/")[1] not in filter_list]
 
-        _print("Number of projects in OpenShift {}".format(len(os_projects)))
+        print_out("Number of projects in OpenShift {}".format(len(os_projects)))
 
         # names of pipelines for all projects in container index
         index_project_names = [project.pipeline_name for project in
@@ -577,12 +392,12 @@ class Index(object):
         )
 
         if stale_projects:
-            _print("List of stale projects:\n{}".format(
+            print_out("List of stale projects:\n{}".format(
                 "\n".join(stale_projects)))
             # delete all the stal projects/buildconfigs
             self.bc_manager.delete_buildconfigs(stale_projects)
 
-        _print("Number of projects to be updated/created: {}".format(
+        print_out("Number of projects to be updated/created: {}".format(
             len(index_projects)))
 
         self.batch_process_projects(
@@ -614,7 +429,7 @@ class Index(object):
         # Split the projects to process in equal sized chunks
         generator_obj = self.batch(index_projects, batch_size)
 
-        _print("Starting index processing with\n"
+        print_out("Starting index processing with\n"
                "Batch size={}\nBatch polling Interval (in seconds)={}\n"
                "Batch outstndaing builds cap count={}\n".format(
                    batch_size,
@@ -632,7 +447,7 @@ class Index(object):
             # wait until current outstanding builds are more than
             # configured cap for outstanding builds
             while len(outstanding_builds) > batch_outstanding_builds_cap:
-                _print("Waiting for completion of builds {}\n".format(
+                print_out("Waiting for completion of builds {}\n".format(
                     outstanding_builds))
                 time.sleep(polling_interval)
 
@@ -640,7 +455,7 @@ class Index(object):
                     status=["Complete", "Failed", "Cancelled"],
                     filter_builds=self.infra_projects)
 
-            _print("Processing projects batch: {}\n".format(
+            print_out("Processing projects batch: {}\n".format(
                 [each.pipeline_name for each in batch]))
 
             for project in batch:
@@ -648,21 +463,21 @@ class Index(object):
                 try:
                     self.bc_manager.apply_build_job(project)
                 except Exception as e:
-                    _print("Error applying/creating build config for {}. "
+                    print_out("Error applying/creating build config for {}. "
                            "Moving on.".format(project.pipeline_name))
-                    _print("Error: {}".format(str(e)))
+                    print_out("Error: {}".format(str(e)))
                 else:
                     # grace period of 1 sec between configuring jobs
                     time.sleep(1)
 
-        _print("Processing weekly scan projects..")
+        print_out("Processing weekly scan projects..")
         for project in index_projects:
             try:
                 self.bc_manager.apply_weekly_scan(project)
             except Exception as e:
-                _print("Error applying/creating weekly scan build config "
+                print_out("Error applying/creating weekly scan build config "
                        "for {}. Moving on.".format(project.pipeline_name))
-                _print("Error: {}".format(str(e)))
+                print_out("Error: {}".format(str(e)))
             else:
                 # grace period of 1 sec between configuring jobs
                 time.sleep(1)
@@ -670,7 +485,7 @@ class Index(object):
 
 if __name__ == "__main__":
     if len(sys.argv) != 14:
-        _print("Incomplete set of input variables, please refer README.")
+        print_out("Incomplete set of input variables, please refer README.")
         sys.exit(1)
 
     index = sys.argv[1].strip()

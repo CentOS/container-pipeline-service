@@ -9,7 +9,7 @@ https://wiki.python.org/moin/PythonDecoratorLibrary#Retry
 import time
 from functools import wraps
 
-from ccp.lib.utils._print import _print
+from ccp.lib.utils.print_out import print_out
 
 
 def retry(tries=10, delay=2, backoff=2):
@@ -35,7 +35,7 @@ def retry(tries=10, delay=2, backoff=2):
                 except Exception as e:
                     msg = "Error {0}, retrying in {1} seconds".format(
                         str(e), mdelay)
-                    _print(msg)
+                    print_out(msg)
                     time.sleep(mdelay)
                     mtries -= 1
                     # (backoff * mdelay) seconds in next retry
