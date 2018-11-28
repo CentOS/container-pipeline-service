@@ -59,10 +59,10 @@ objects:
                         }
                         stage("Check pipelines are created")
                         {
-                            checkBuildConfigAvailability("buildconfigs/centos-kubernetes-master-latest","available")
-                            checkBuildConfigAvailability("buildconfigs/bamachrn-python-release", "not_available")
-                            checkBuildConfigAvailability("buildconfigs/nshaikh-build-fail-test-latest", "not_available")
-                            checkBuildConfigAvailability("buildconfigs/gluster-storagesig-heketi-latest", "available")
+                            checkBuildConfigAvailability("centos-kubernetes-master-latest","available")
+                            checkBuildConfigAvailability("bamachrn-python-release", "not_available")
+                            checkBuildConfigAvailability("nshaikh-build-fail-test-latest", "not_available")
+                            checkBuildConfigAvailability("gluster-storagesig-heketi-latest", "available")
                         }
                     }
                 }
@@ -157,12 +157,12 @@ objects:
                     echo "build_config: ${expected_bc_name} expected_status: ${expected_status}"
                     def actual_status = false
 
-                    bc_name = sh(returnStdout: true, script: "oc get ${expected_bc_name} -o name")
+                    bc_name = sh(returnStdout: true, script: "oc get bc ${expected_bc_name} -o name --ignore-not-found")
 
                     //This function checks for a build config to be existing or not.
                     if ( expected_status == "available" )
                     {
-                        if ( bc_name.toLowerCase() == expected_bc_name.toLowerCase() )
+                        if (bc_name.contains(expected_bc_name))
                         {
                             echo "Build Config is existing assertion passed"
                             actual_status = true
@@ -174,7 +174,7 @@ objects:
                     }
                     else if(expected_status == "not_available")
                     {
-                        if( bc_name.toLowerCase() == expected_bc_name.toLowerCase() )
+                        if( bc_name.contains(expected_bc_name) )
                         {
                             echo "BC availability assertion failed"
                         }
