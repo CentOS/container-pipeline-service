@@ -1,3 +1,8 @@
+/*** This template is for checking the functionality of seed job
+**   it runs after the seed job is updated with a separate index from CI.
+**   first the stages are checked for successfull or not
+**   Build Configs are checked and validated for checking the seed-job rendered them properly
+***/
 apiVersion: "v1"
 kind: "Template"
 metadata:
@@ -38,8 +43,9 @@ objects:
                 )
                 {
                     node('ccp-pipeline-ci') {
-                        /** *this variable is ment for storing complete build id for the triggred build
-                        * it would be a string in format <build-config-name>-<build-number> */
+                        /** *this variable is meant for storing complete build id for the triggred build
+                        * it would be a string in format <build-config-name>-<build-number> for
+                        * example seedjob_build_id = 'seed-job-2'*/
                         def seedjob_build_id = "${SEEDJOB_BUILD_ID}"
                         stage("Wait for build to start")
                         {

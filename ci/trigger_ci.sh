@@ -186,10 +186,10 @@ then
     mark_failure "ERROR: seed-job failed to process the index"
 fi
 
-echo "create CI success job build pipeline"
+echo "create CI success build pipeline for master job"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cisuccessjob.yaml | oc create -f -"
 
-echo "Start ci pipeline for success job"
+echo "Start ci success pipeline for master job"
 build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-success-job -n cccp |cut -f 2 -d ' '")
 
 echo "Build started with build id: $build_id"
@@ -222,10 +222,10 @@ else
     echo "Success Build check Passed: SUCCESS"
 fi
 
-echo "create CI failure job build pipeline"
+echo "create CI failure build pipeline for master job"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cifailurejob.yaml | oc create -f -"
 
-echo "Start ci pipeline for failure job"
+echo "Start ci failure pipeline for master job"
 build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-failure-job -n cccp |cut -f 2 -d ' '")
 
 echo "Build started with build id: $build_id"
@@ -245,7 +245,7 @@ do
     build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
 done
 
-echo "========================Fail check build logs==========================="
+echo "========================Master Job Fail check build logs==========================="
 ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-nshaikh-build-fail-test-latest/builds/lastFailedBuild/log"
 echo "========================================================================"
 
@@ -266,7 +266,7 @@ then
     mark_failure "Seed job config is not getting updated"
 fi
 
-echo "Re running the seed job with updated index"
+echo "Re-running the seed job with updated index"
 seed_job_build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build seed-job -n cccp |cut -f 2 -d ' '")
 seed_job_build_id=$(echo $seed_job_build_id|tr -d '"'|tr -d '\r')
 
