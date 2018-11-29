@@ -1,8 +1,8 @@
-/*** This template is for checking the functionality of seed job
-**   it runs after the seed job is updated with a separate index from CI.
-**   first the stages are checked for successfull or not
-**   Build Configs are checked and validated for checking the seed-job rendered them properly
-***/
+##   This template is for checking the functionality of seed job
+##   it runs after the seed job is updated with a separate index from CI.
+##   first the stages are checked for successfull or not
+##   Build Configs are checked and validated for checking the seed-job rendered them properly
+
 apiVersion: "v1"
 kind: "Template"
 metadata:
