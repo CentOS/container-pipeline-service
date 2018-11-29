@@ -42,16 +42,9 @@ objects:
             )
             {
                 node('ccp-pipeline-weekly') {
-                    if (${APP_ID} == "library"){
-                      def image_name = "${JOB_ID}:${DESIRED_TAG}"
-                      def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
-                      def image_tags = "http://${REGISTRY_URL}/v2/${JOB_ID}/tags/list"
-
-                    } else {
-                      def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
-                      def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
-                      def image_tags = "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
-                    }
+                    def image_name = (env.APP_ID == "library")? "${JOB_ID}:${DESIRED_TAG}": "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
+                    def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
+                    def image_tags = (env.APP_ID == "library")? "http://${REGISTRY_URL}/v2/${JOB_ID}/tags/list": "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
                     def slave_container_name = "jnlp_ccp-pipeline-weekly"
                     def image_in_registry = false
                     // setting this to ensure the user is notified correctly if the required stages in weekly scan are complete
