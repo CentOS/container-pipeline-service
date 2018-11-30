@@ -29,6 +29,10 @@ class MiscPackageUpdates(BaseScanner):
 
         try:
             out, err = self.run_cmd_out_err(command)
+
+        except BinaryDoesNotExist as e:
+            return str(e)
+
         except Exception as e:
             err = e
 
@@ -51,6 +55,10 @@ class MiscPackageUpdates(BaseScanner):
 
         try:
             out, err = self.run_cmd_out_err(command)
+
+        except BinaryDoesNotExist as e:
+            return str(e)
+
         except Exception as e:
             err = e
 
@@ -73,6 +81,10 @@ class MiscPackageUpdates(BaseScanner):
 
         try:
             out, err = self.run_cmd_out_err(command)
+
+        except BinaryDoesNotExist as e:
+            return str(e)
+
         except Exception as e:
             err = e
 
