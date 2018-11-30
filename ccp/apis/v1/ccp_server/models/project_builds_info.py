@@ -18,8 +18,7 @@ class ProjectBuildsInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta = None,
-                 builds: ProjectBuilds = None):  # noqa: E501
+    def __init__(self, builds: ProjectBuilds, meta: Meta = None):  # noqa: E501
         """ProjectBuildsInfo - a model defined in Swagger
 
         :param meta: The meta of this ProjectBuildsInfo.  # noqa: E501
@@ -29,7 +28,7 @@ class ProjectBuildsInfo(Model):
         """
         self.swagger_types = {
             'meta': Meta,
-            'builds': ProjectBuilds
+            'builds': List[ProjectBuilds]
         }
 
         self.attribute_map = {
@@ -73,17 +72,17 @@ class ProjectBuildsInfo(Model):
         self._meta = meta
 
     @property
-    def builds(self) -> ProjectBuilds:
+    def builds(self) -> List[ProjectBuilds]:
         """Gets the builds of this ProjectBuildsInfo.
 
 
         :return: The builds of this ProjectBuildsInfo.
         :rtype: ProjectBuilds
         """
-        return self._builds
+        return List[ProjectBuilds](self._builds) if self.builds else []
 
     @builds.setter
-    def builds(self, builds: ProjectBuilds):
+    def builds(self, builds: List[ProjectBuilds]):
         """Sets the builds of this ProjectBuildsInfo.
 
 
