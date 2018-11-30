@@ -111,6 +111,32 @@ class Project(object):
         except Exception as e:
             raise(ErrorAccessingIndexEntryAttributes(str(e)))
 
+    @staticmethod
+    def pipeline_name(app_id, job_id, desired_tag):
+        """
+        Returns the pipeline name based on appid, jobid and desired_tag
+        and also converts it to lower case
+        """
+        pipeline_name = "{}-{}-{}".format(
+            app_id, job_id, desired_tag
+        )
+
+        # pipeline name which becomes value for metadata.name field in template
+        # must confront to following regex as per oc
+        # We tried to make the string acceptable by converting it to lower case
+        # Below we are adding another gate to make sure the pipeline_name is as
+        # per requirement, otherwise raising an exception with proper message
+        # to indicate the issue
+        pipeline_name_regex = ("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]"
+                               "([-a-z0-9]*[a-z0-9])?)*$")
+        match = re.match(pipeline_name_regex, pipeline_name)
+
+        if not match:
+            msg = ("The pipeline name populated {} can't be used in OpenShift "
+                   "template in metadata.name field. ".format(pipeline_name))
+            raise(InvalidPipelineName(msg))
+        return pipeline_name
+
     def get_pipeline_name(self):
         """
         Returns the pipeline name based on appid, jobid and desired_tag
