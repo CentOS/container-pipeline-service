@@ -24,14 +24,14 @@ class AllScannerLogs(Model):
         :type scanner_name: ScannerLogs
         """
         self.swagger_types = {
-            'scanner_name': ScannerLogs
+            'scanner_name': List[ScannerLogs]
         }
 
         self.attribute_map = {
             'scanner_name': 'scanner_name'
         }
 
-        self._scanner_name = scanner_name
+        self._scanner_name = List[scanner_name]
 
     @classmethod
     def from_dict(cls, dikt) -> 'AllScannerLogs':
@@ -45,22 +45,22 @@ class AllScannerLogs(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def scanner_name(self) -> ScannerLogs:
+    def scanner_name(self) -> List[ScannerLogs]:
         """Gets the scanner_name of this AllScannerLogs.
 
 
         :return: The scanner_name of this AllScannerLogs.
-        :rtype: ScannerLogs
+        :rtype: List[ScannerLogs]
         """
         return self._scanner_name
 
     @scanner_name.setter
-    def scanner_name(self, scanner_name: ScannerLogs):
+    def scanner_name(self, scanner_name: List[ScannerLogs]):
         """Sets the scanner_name of this AllScannerLogs.
 
 
         :param scanner_name: The scanner_name of this AllScannerLogs.
-        :type scanner_name: ScannerLogs
+        :type scanner_name: List[ScannerLogs]
         """
 
         self._scanner_name = scanner_name
