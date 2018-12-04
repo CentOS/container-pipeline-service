@@ -23,8 +23,15 @@ def response(namespace, appid, jobid, desired_tag):
     job_name = Project.pipeline_name(
         app_id=appid, job_id=jobid, desired_tag=desired_tag
     )
+    jenkins_job_name = "{}-{}".format(
+        namespace,
+        job_name
+    )
     bns = ojbi.get_build_numbers(
-        ordered_job_list=job_name
+        ordered_job_list=[
+            namespace,
+            jenkins_job_name
+        ]
     )
     pbi = List[ProjectBuilds]
     for k, v in bns:

@@ -9,6 +9,10 @@ from ccp.apis.v1.ccp_server.models.weekly_scan_builds_info import\
 from ccp.apis.v1.ccp_server.models.weekly_scan_logs import\
     WeeklyScanLogs  # noqa: E501
 from ccp.apis.v1.ccp_server import util
+from ccp.apis.v1.ccp_server.backend.builds.builds import \
+    response as builds_response
+from ccp.apis.v1.ccp_server.backend.builds.build_logs import response as\
+    build_logs_response
 
 
 def project_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: E501
@@ -29,7 +33,13 @@ def project_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: 
 
     :rtype: BuildLogs
     """
-    return 'do some magic!'
+    return build_logs_response(
+        namespace=namespace,
+        appid=app_id,
+        jobid=job_id,
+        desired_tag=desired_tag,
+        build=build
+    )
 
 
 def project_builds(namespace, app_id, job_id, desired_tag):  # noqa: E501
@@ -48,7 +58,12 @@ def project_builds(namespace, app_id, job_id, desired_tag):  # noqa: E501
 
     :rtype: ProjectBuildsInfo
     """
-    return 'do some magic!'
+    return builds_response(
+        namespace=namespace,
+        appid=app_id,
+        jobid=job_id,
+        desired_tag=desired_tag
+    )
 
 
 def project_wscan_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: E501
