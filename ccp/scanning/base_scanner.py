@@ -6,10 +6,14 @@ for sub-scanners.
 
 from datetime import datetime
 
+import json
 import logging
 import os
 import platform
 import subprocess
+import sys
+
+import requests
 
 
 class BinaryDoesNotExist(Exception):
@@ -147,3 +151,146 @@ class BaseScanner(object):
         """
         return subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE).communicate()
+
+    def post_request(self, endpoint, api, data, headers=None):
+        """
+        Make a post call to analytics server with given data
+        :param endpoint: API server end point
+        :param api: API to make POST call against
+        :param data: JSON data needed for POST call to api endpoint
+        :return: Tuple (status, error_if_any, status_code)
+                 where status = True/False
+                       error_if_any = string message on error, "" on success
+                       status_code = status_code returned by server
+        """
+        url = requests.compat.urljoin(endpoint, api)
+        # TODO: check if we need API key in data
+        try:
+            r = requests.post(
+                url,
+                json.dumps(data),
+                headers=headers)
+        except requests.exceptions.RequestException as e:
+            error = ("Could not send POST request to URL {0}, "
+                     "with data: {1}.").format(url, str(data))
+            return False, error + " Error: " + str(e), 0
+        else:
+            # requests.codes.ok == 200
+            if r.status_code == requests.codes.ok:
+                return True, json.loads(r.text), r.status_code
+            else:
+                return False, "Returned {} status code for {}".format(
+                    r.status_code, url), r.status_code
+
+    def get_request(self, endpoint, api, data, headers=None):
+        """
+        Make a get call to analytics server
+        :param endpoint: API server end point
+        :param api: API to make GET call against
+        :param data: JSON data needed for GET call
+        :return: Tuple (status, error_if_any, status_code)
+                 where status = True/False
+                       error_if_any = string message on error, "" on success
+                       status_code = status_code returned by server
+        """
+        url = requests.compat.urljoin(endpoint, api)
+        # TODO: check if we need API key in data
+        try:
+            r = requests.get(
+                url,
+                params=data,
+                headers=headers)
+
+        except requests.exceptions.RequestException as e:
+            error = "Failed to process URL: {} with params {}".format(
+                    url, data)
+            return False, error + " Error: " + str(e), 0
+        else:
+            # requests.codes.ok == 200 or
+            # check for 400 code - as this is a valid response
+            # as per the workflow
+            if r.status_code in [requests.codes.ok, 400]:
+                return True, json.loads(r.text), r.status_code
+            else:
+                msg = "Returned {} status code for {}. {}".format(
+                    r.status_code, url, r.json().get(
+                        "summary", "no summary returned from server."))
+                return False, msg, r.status_code
+
+    def export_json_results(self, results, output_dir, output_file):
+        """
+        Export given results JSON data in output_dir/output_file
+
+        :param results: JSON results to be exported
+        :type results: dict
+        :param output_dir: Output directory
+        :type output_dir: str
+        :param output_file: Output file name
+        :type output_file: str
+        """
+        os.makedirs(output_dir)
+
+        result_filename = os.path.join(output_dir, output_file)
+
+        with open(result_filename, "w") as f:
+            json.dump(results, f, indent=4, separators=(",", ": "))
+
+    def template_json_data(self, scanner, scan_type='', uuid=''):
+        """
+        Populate and return a template standard json data out for scanner.
+        """
+        current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
+        json_out = {
+            "Start Time": current_time,
+            "Successful": False,
+            "Scan Type": scan_type,
+            "UUID": uuid,
+            "Scanner": scanner,
+            "Scan Results": {},
+            "Summary": ""
+        }
+        return json_out
+
+    def configure_stdout_logging(
+            self, logger_name, logging_level=logging.DEBUG):
+        """
+        Configures stdout logging and returns logger object
+
+        :param logger_name: Logger name
+        :type logger_name: str
+        :param logging_level: Logging level
+        :type logging_level: str or int
+
+        :return: Logger object
+        """
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging_level)
+        # add sys.stdout stream
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.DEBUG)
+        # add logging formatter
+        formatter = logging.Formatter(
+            "%(asctime)s %(levelname)s p%(process)s %(name)s %(lineno)d "
+            "%(levelname)s - %(message)s"
+        )
+        # set formatter to stream handler
+        ch.setFormatter(formatter)
+        # set handler to logger
+        logger.addHandler(ch)
+        return logger
+
+    def get_env_var(self, env_var):
+        """
+        Gets the given configured env_var
+        :param env_var: Environment variable to be accessed
+        :type env_var: str
+
+        :return: Value of given env_var
+        :rtype: str
+        """
+        if not os.environ.get(env_var, False):
+            raise ValueError(
+                "No value for {0} env var. Please re-run with: "
+                "{0}=<VALUE> [..] atomic scan [..] ".format(env_var)
+            )
+        return os.environ.get(env_var)
