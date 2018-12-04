@@ -187,7 +187,7 @@ then
 fi
 
 echo "create CI success build pipeline for master job"
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cisuccessjob.yaml | oc create -f -"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f ci/cisuccessjob.yaml | oc create -f -"
 
 echo "Start ci success pipeline for master job"
 build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-success-job -n cccp |cut -f 2 -d ' '")
@@ -223,7 +223,7 @@ else
 fi
 
 echo "create CI failure build pipeline for master job"
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -f ci/cifailurejob.yaml | oc create -f -"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f ci/cifailurejob.yaml | oc create -f -"
 
 echo "Start ci failure pipeline for master job"
 build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-failure-job -n cccp |cut -f 2 -d ' '")
@@ -288,7 +288,7 @@ then
 fi
 
 echo "Running CI job for seedjob check"
-ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p SEEDJOB_BUILD_ID=${seed_job_build_id} -f ci/ciseedjobcheck.yaml | oc create -f -"
+ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p SEEDJOB_BUILD_ID=${seed_job_build_id} -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f ci/ciseedjobcheck.yaml | oc create -f -"
 
 echo "Start ci pipeline for fpailure job"
 build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-seed-job-check -n cccp |cut -f 2 -d ' '")

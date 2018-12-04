@@ -21,7 +21,7 @@ objects:
                     containers: [
                       containerTemplate(
                         name: 'jnlp',
-                        image: 'registry.centos.org/pipeline-images/ccp-openshift-slave',
+                        image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
                         ttyEnabled: true,
                         alwaysPullImage: true,
                         workingDir: '/tmp',
@@ -180,3 +180,8 @@ objects:
                         error "Check failed: Going to fail state"
                     }
                 }
+parameters:
+- description: ccp-openshift-slave container image name (with registry name)
+  displayName: ccp-openshift-slave container image
+  name: CCP_OPENSHIFT_SLAVE_IMAGE
+  required: true
