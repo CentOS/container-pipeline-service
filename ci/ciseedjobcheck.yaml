@@ -1,12 +1,17 @@
+##   This template is for checking the functionality of seed job
+##   it runs after the seed job is updated with a separate index from CI.
+##   first the stages are checked for successfull or not
+##   Build Configs are checked and validated for checking the seed-job rendered them properly
+
 apiVersion: "v1"
 kind: "Template"
 metadata:
-  name: "container-pipeline-failure-ci-job"
+  name: "container-pipeline-seedjob-check-ci-job"
 objects:
   - apiVersion: "v1"
     kind: "BuildConfig"
     metadata:
-        name: ci-failure-job
+        name: ci-seed-job-check
     spec:
       strategy:
         type: "JenkinsPipeline"
@@ -38,68 +43,41 @@ objects:
                 )
                 {
                     node('ccp-pipeline-ci') {
-                         /** *this variable is ment for storing complete build id for the triggred build
-                        * it would be a string in format <build-config-name>-<build-number> */
-                        def failure_build_id = "failure_build_id"
-                        stage("Trigger builds"){
-                            failure_build_id = sh(returnStdout: true, script: "oc start-build nshaikh-build-fail-test-latest -n cccp|cut -f 2 -d ' '").trim()
-                            echo "Failure check build id: ${failure_build_id}"
-                        }
+                        /** *this variable is meant for storing complete build id for the triggred build
+                        * it would be a string in format <build-config-name>-<build-number> for
+                        * example seedjob_build_id = 'seed-job-2'*/
+                        def seedjob_build_id = "${SEEDJOB_BUILD_ID}"
                         stage("Wait for build to start")
                         {
                             //Wait for the build to get a slave allocated and move from wait queue
-                            waitForFailureBuildToStart(failure_build_id)
+                            waitForSuccessBuildToStart(seedjob_build_id)
                         }
-                        stage("Check checkout status")
+                        stage("Check Index is checked out")
                         {
-                            /** *Checking for first stage (i.e.  Checkout Source) expected to be 'Successful'
+                            /** *Checking for first stage (i.e.  Checkout index) expected to be 'Successful'
                             * this is first stage of the pipeline so index starts with '0' */
-                            checkStageStatus(failure_build_id, 0, "success")
+                            checkStageStatus(seedjob_build_id, 0, "success")
                         }
-                        stage("Check pre-build status")
+                        stage("Check parse index status")
                         {
-                            //Checking second stage (i.e. Pre build source) expected to be 'Successful'
-                            checkStageStatus(failure_build_id, 1, "success")
+                            //Checking second stage (i.e. parse index) expected to be 'Successful'
+                            checkStageStatus(seedjob_build_id, 1, "success")
                         }
-                        stage("Check Dockerfile linter status")
+                        stage("Check pipelines are created")
                         {
-                            //Checking third stage (i.e. Lint the Dockerfile) expected to be 'Successful'
-                            checkStageStatus(failure_build_id, 2, "success")
+                            checkBuildConfigAvailability("centos-kubernetes-master-latest","available")
+                            checkBuildConfigAvailability("bamachrn-python-release", "not_available")
+                            checkBuildConfigAvailability("nshaikh-build-fail-test-latest", "not_available")
+                            checkBuildConfigAvailability("gluster-storagesig-heketi-latest", "available")
                         }
-                        stage("Check image build status")
-                        {
-                            //Checking fourth stage (i.e. Build container image) expected to be 'Failure' as we are checking for failure case
-                            checkStageStatus(failure_build_id, 3, "failed")
-                        }
-                        stage("Check image scan status")
-                        {
-                             //Checking sixth stage (i.e. Scan the image) should not be present in the failed pipeline
-                            checkStageStatus(failure_build_id, 5, "not_available")
-                        }
-                        stage("Check image delivery status")
-                        {
-                             //Checking Seventh stage (i.e. Push image to registry) should not be present in the failed pipeline
-                            checkStageStatus(failure_build_id, 6, "not_available")
-                        }
-                        stage("Check image cleanup status")
-                        {
-                            //Checking Eighth stage (i.e. Remove the image from builder) should not be present in the failed pipeline
-                            checkStageStatus(failure_build_id, 7, "not_available")
-                        }
-                        stage("Check notification status")
-                        {
-                            //Checking fifth stage (i.e. Notify User) expected to be 'Successful'
-                            checkStageStatus(failure_build_id, 4, "success")
-                        }
-
                     }
                 }
-                def waitForFailureBuildToStart(build_id)
+                def waitForSuccessBuildToStart(build_id)
                 {
                     waitUntil{
                         def build_started = sh(returnStdout: true, script: "oc get builds ${build_id} -o template --template={{.status.phase}}")
                         echo "Build status: ${build_started}"
-                        if (build_started == 'New' || build_started == 'Pending'){
+                        if (build_started == 'New'|| build_started == 'Pending'){
                             echo "Build is in ${build_started} state waiting..."
                             sleep 10
                             echo "Rechecking the status"
@@ -162,7 +140,7 @@ objects:
                     }
                     else
                     {
-                        echo "The stage $stage_number, should not be present in the pipeline, checking for it"
+                        echo "Th stage $stage_number, should not be present in the pipeline, checking for it"
                         build_status = sh(returnStdout: true, script: "oc get builds ${build_id} -o template  --template='{{index .metadata.annotations \"openshift.io/jenkins-status-json\"}}'").trim()
                         def build_status_obj = new JsonSlurperClassic().parseText(build_status)
                         if ( build_status_obj.stages[stage_number] == null ){
@@ -180,7 +158,52 @@ objects:
                         error "Check failed: Going to fail state"
                     }
                 }
+                def checkBuildConfigAvailability(expected_bc_name, expected_status)
+                {
+                    echo "build_config: ${expected_bc_name} expected_status: ${expected_status}"
+                    def actual_status = false
+
+                    bc_name = sh(returnStdout: true, script: "oc get bc ${expected_bc_name} -o name --ignore-not-found")
+
+                    //This function checks for a build config to be existing or not.
+                    if ( expected_status == "available" )
+                    {
+                        if (bc_name.contains(expected_bc_name))
+                        {
+                            echo "Build Config is existing assertion passed"
+                            actual_status = true
+                        }
+                        else
+                        {
+                            echo "BC availabilty assertion failed"
+                        }
+                    }
+                    else if(expected_status == "not_available")
+                    {
+                        if( bc_name.contains(expected_bc_name) )
+                        {
+                            echo "BC availability assertion failed"
+                        }
+                        else
+                        {
+                            echo "BC does not exists assertion passed"
+                            actual_status = true
+                        }
+                    }
+                    if (!actual_status)
+                    {
+                        currentBuild.result = 'FAILURE'
+                        error "Check failed: Going to fail state"
+                    }
+                }
+          env:
+          - name: SEEDJOB_BUILD_ID
+            value: ${SEEDJOB_BUILD_ID}
 parameters:
+- description: ID for the seed job run with updated index
+  displayName: Seedjob build ID
+  name: SEEDJOB_BUILD_ID
+  required: true
 - description: ccp-openshift-slave container image name (with registry name)
   displayName: ccp-openshift-slave container image
   name: CCP_OPENSHIFT_SLAVE_IMAGE
