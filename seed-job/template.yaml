@@ -47,6 +47,10 @@ objects:
                 ],
                 volumes: [
                   hostPathVolume(
+                    hostPath: '/tmp/containers',
+                    mountPath: '/var/lib/containers'
+                  ),
+                  hostPathVolume(
                     hostPath: '/var/run/docker.sock',
                     mountPath: '/var/run/docker.sock'
                   )
@@ -116,7 +120,7 @@ objects:
                             dir("${PIPELINE_NAME}/${GIT_PATH}"){
                                 base_image_name = sh(returnStdout:true, script: "cat ${TARGET_FILE}|awk '/^FROM/ {print \$2}'").trim()
                                 // Build the image by always pulling the base image
-                                sh "docker build --no-cache --pull -t ${image_name} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
+                                sh "buildah bud --no-cache --pull -t ${image_name} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
                             }
                             image_is_built = true
                         }
@@ -142,8 +146,8 @@ objects:
                             )
                         }
                         stage("Push image to registry") {
-                            sh "docker tag ${image_name} ${image_name_with_registry}"
-                            sh "docker push ${image_name_with_registry}"
+                            sh "buildah tag ${image_name} ${image_name_with_registry}"
+                            sh "buildah push ${image_name_with_registry}"
                             // image lint - build - scan - deliver is successful
                             success = true
                         }
