@@ -1,6 +1,6 @@
 FROM registry.centos.org/openshift/jenkins-slave-base-centos7
 
-ADD build_buildah.sh /tmp
+ADD Dockerfiles/ccp-openshift-slave/build_buildah.sh /tmp
 
 RUN yum update -y && \
     yum install -y PyYAML python-requests docker mailx postfix epel-release && \
