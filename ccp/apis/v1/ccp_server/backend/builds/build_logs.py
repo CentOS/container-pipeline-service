@@ -7,7 +7,9 @@ from ccp.apis.v1.ccp_server.models.prebuild_lint_build_scan_logs import \
     PrebuildLintBuildScanLogs
 from ccp.apis.v1.ccp_server.models.scanner_logs import ScannerLogs
 from ccp.apis.v1.ccp_server.models.all_scanner_logs import AllScannerLogs
-from ccp.index_reader import Project
+from ccp.index_reader import Project, IndexReader
+from ccp.lib.clients.git.client import GitClient
+from os import path
 from ccp.apis.v1.ccp_server.env_config import *
 
 from typing import List, Dict  # noqa: F401
@@ -49,8 +51,23 @@ def response(namespace, appid, jobid, desired_tag, build):
         ],
         build_number=build
     )
-    prebuild_logs = process_log(logs_info, "Prebuild source repo")
-    prebuild_exists = True if prebuild_logs else False
+
+    gc = GitClient(
+        git_url=INDEX_GIT_URL,
+        git_branch=INDEX_GIT_BRANCH
+    )
+    gc.fresh_clone()
+    index_location = path.join(gc.clone_location, "index.d")
+    ir = IndexReader(index_location, namespace)
+    prjs = ir.read_projects()
+    prebuild_exists = False
+    for p in prjs:
+        if p.app_id == appid and p.job_id == jobid and \
+                p.desired_tag == desired_tag:
+            prebuild_exists = p.pre_build_context and p.pre_build_script
+            break
+    prebuild_logs = process_log(logs_info, "Prebuild source repo") if \
+        prebuild_exists else "Prebuild not requested"
     lint_logs = process_log(logs_info, "Lint the Dockerfile")
     build_logs = process_log(logs_info, "Build the container image")
 
