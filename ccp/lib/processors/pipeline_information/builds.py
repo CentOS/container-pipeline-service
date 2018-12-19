@@ -125,6 +125,30 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
             )
         return data
 
+    def get_build_numbers(self, ordered_job_list, test_data_set=None):
+        """
+        Gets the list of all builds in projects
+        :param ordered_job_list: The ordered list of jobs, with parents,
+        followed by children
+        :type ordered_job_list: Union[list, str]
+        :param test_data_set: data set to be used for test run
+        :type test_data_set: list
+        :return: A dict of all the build numbers and statuses. Empty dict is
+        returned on failure
+        """
+        if not self.test:
+            data_set = self.response_data(
+                self.jenkins_workflow_client.get_build_runs(ordered_job_list),
+                bad_json=True
+            )
+        else:
+            data_set = test_data_set
+
+        builds = {}
+        for r in data_set:
+            builds[r["name"]] = r["status"]
+        return builds
+
     def get_builds_count(self, ordered_job_list, test_data_set=None):
         """
         Get the count of build in the project. Helps in deciding id to query.
