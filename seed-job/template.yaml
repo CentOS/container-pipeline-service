@@ -120,33 +120,33 @@ objects:
                             dir("${PIPELINE_NAME}/${GIT_PATH}"){
                                 base_image_name = sh(returnStdout:true, script: "cat ${TARGET_FILE}|awk '/^FROM/ {print \$2}'").trim()
                                 // Build the image by always pulling the base image
-                                sh "buildah bud --no-cache --pull -t ${image_name} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
+                                sh "buildah bud --no-cache --pull -t ${image_name_with_registry} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
                             }
                             image_is_built = true
                         }
                         stage('Scan the image') {
                             parallel (
                                 "RPM updates": {
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/yumupdates.py > yum-check-update 2>&1")
+                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/ccp-openshift/ccp/scanning/yumupdates.py > yum-check-update 2>&1")
                                   sh "cat yum-check-update"
                                 },
                                 "Verify RPMs": {
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/rpmverify.py > rpm-verify 2>&1")
+                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/ccp-openshift/ccp/scanning/rpmverify.py > rpm-verify 2>&1")
                                   sh "cat rpm-verify"
                                 },
                                 "Miscellaneous updates": {
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/misc_package_updates.py all > misc-updates 2>&1")
+                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/ccp-openshift/ccp/scanning/misc_package_updates.py all > misc-updates 2>&1")
                                   sh "cat misc-updates"
                                 },
                                 "Container capabilities": {
-                                  def run_label = sh (script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
-                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
+                                  def run_label = sh (script: "docker inspect ${image_name_with_registry} --format '{{ index .Config.Labels \"RUN\" }}'")
+                                  sh (returnStdout: true, script: "docker run --user root --rm --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name_with_registry} /opt/ccp-openshift/ccp/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
                                   sh "cat capabilities"
                                 }
                             )
                         }
                         stage("Push image to registry") {
-                            sh "buildah tag ${image_name} ${image_name_with_registry}"
+                            // sh "buildah tag ${image_name} ${image_name_with_registry}"
                             sh "buildah push ${image_name_with_registry}"
                             // image lint - build - scan - deliver is successful
                             success = true
@@ -168,7 +168,7 @@ objects:
                         // we need to make sure the image is removed in either case
                         stage('Remove the image') {
                           // don't fail the pipeline if image removal failed due to some error
-                          sh (script: "docker rmi ${image_name_with_registry}; docker rmi ${image_name}", returnStatus: true)
+                          sh (script: "docker rmi ${image_name_with_registry}; docker rmi ${image_name_with_registry}", returnStatus: true)
                           def output = sh(returnStdout:true, script: "docker rmi ${base_image_name} > image-remove 2>&1", returnStatus: true)
                           sh "cat image-remove"
                           sh(script: "docker rmi `docker images -q -f dangling=true`", returnStatus: true)
