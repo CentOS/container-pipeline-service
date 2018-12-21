@@ -148,7 +148,7 @@ objects:
                         }
                         stage("Push image to registry") {
                             // sh "buildah tag ${image_name} ${image_name_with_registry}"
-                            sh "buildah push ${image_name_with_registry}"
+                            sh "buildah push --tls-verify=false ${image_name_with_registry}"
                             // image lint - build - scan - deliver is successful
                             success = true
                         }
