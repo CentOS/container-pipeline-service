@@ -116,11 +116,12 @@ objects:
                                 sh "cat result"
                             }
                         }
-                        stage('Build the container image') {
+                        stage('Build the container image and push to Docker daemon') {
                             dir("${PIPELINE_NAME}/${GIT_PATH}"){
                                 base_image_name = sh(returnStdout:true, script: "cat ${TARGET_FILE}|awk '/^FROM/ {print \$2}'").trim()
                                 // Build the image by always pulling the base image
                                 sh "buildah bud --no-cache --pull -t ${image_name_with_registry} -f ${TARGET_FILE} ${BUILD_CONTEXT}"
+                                sh "buildah push ${image_name_with_registry} docker-daemon:${image_name_with_registry}"
                             }
                             image_is_built = true
                         }
