@@ -26,6 +26,9 @@
 - name: Login as cccp
   shell: oc login --username="{{ oc_login_user }}" --password="{{ oc_login_pass }}"
 
+- name: Remove default node selector for cccp project
+  shell: oc annotate namespace cccp openshift.io/node-selector=""
+
 - name: Deploy Jenkins service
   shell: oc process -p MEMORY_LIMIT=8Gi openshift//jenkins-persistent | oc create -f -
 
@@ -34,7 +37,7 @@
 
 - name: Wait for jenkins to come up
   pause:
-      minutes: 4
+      minutes: 5
 
 - name: Login as system admin
   shell: oc login -u system:admin
@@ -44,6 +47,3 @@
 
 - name: Add jenkins sa to builder
   shell: oc adm policy add-role-to-user system:image-builder system:serviceaccount:cccp:jenkins
-
-- name: Remove default node selector for cccp project
-  shell: oc annotate namespace cccp openshift.io/node-selector=""
