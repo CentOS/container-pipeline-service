@@ -21,7 +21,7 @@
             - NetworkManager
             - firewalld
             - python-rhsm-certificates
-            - centos-release-openshift-origin39.noarch
+            - centos-release-openshift-origin311.noarch
             - python-ipaddress
             - rsync
             - PyYAML
