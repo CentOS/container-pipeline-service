@@ -91,9 +91,13 @@ do
     ssh $sshopts $ansible_node "ssh-keyscan -t rsa,dsa $node 2>/dev/null >> ~/.ssh/known_hosts"
 done
 
-echo "Setup ansible controller node for running openshift 39 deployment"
+echo "Setup ansible controller node for running openshift 311 deployment"
 # setup ansible node
 ssh $sshopts $ansible_node 'yum install -y git && yum install -y rsync && yum install -y gcc libffi-devel python-devel openssl-devel && yum install -y epel-release && yum install -y PyYAML python-networkx python-nose python-pep8 python-jinja2 rsync centos-release-openshift-origin311.noarch && yum install -y ansible openshift-ansible' >> /dev/null
+
+#fix for python-docker-py issue in openshift-ansible
+#https://github.com/openshift/openshift-ansible/issues/10440
+ssh $sshopts $ansible_node sed -i "s/python-docker\'/python-docker-py\'/g" /usr/share/ansible/openshift-ansible/playbooks/init/base_packages.yml
 
 echo "Copy source code to ansible controller node"
 rsync -e "ssh -t -o LogLevel=error -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root" -Ha $(pwd)/ $ansible_node:/opt/ccp-openshift
