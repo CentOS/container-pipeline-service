@@ -10,28 +10,35 @@ nfs_registry
 # SSH user, this user should allow ssh based auth without requiring a password
 ansible_ssh_user=root
 
+openshift_node_groups=[{'name': 'ccp-openshift-master', 'labels': ['node-role.kubernetes.io/master=true', 'node-role.kubernetes.io/node-type=metrics', 'node-role.kubernetes.io/infra=true', 'node-role.kubernetes.io/size=large'], 'edits': []}, {'name': 'ccp-openshift-node', 'labels': ['node-role.kubernetes.io/zone=default'], 'edits': []}, {'name': 'ccp-openshift-large-node', 'labels': ['node-role.kubernetes.io/zone=default', 'node-role.kubernetes.io/size=large']}]
+
 # If ansible_ssh_user is not root, ansible_become must be set to true
 debug_level=4
 
 openshift_master_api_port=8443
 openshift_deployment_type=origin
-openshift_release=v3.9
+openshift_release=v3.11
 os_firewall_use_firewalld=true
-openshift_clock_enabled=false
-openshift_pkg_version=-3.9.0
+openshift_disable_swap=false
+#openshift_clock_enabled=false
+openshift_pkg_version=-3.11.0
 openshift_enable_service_catalog=false
 openshift_master_cluster_hostname=openshift_1
 openshift_docker_insecure_registries=nfs_serv:5000
-openshift_docker_additional_registries=nfs_serv:5000
+openshift_docker_additional_registries=nfs_serv:5000, registry.centos.org
 openshift_master_default_subdomain=openshift_ip_1.nip.io
+openshift_rolling_restart_mode=system
 cluster_subnet=cluster_subnet_ip/8
 
+
+openshift_cluster_monitoring_operator_install=false
+
 # uncomment the following to enable htpasswd authentication; defaults to DenyAllPasswordIdentityProvider
-openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+#openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # default selectors for router and registry services
-openshift_router_selector='region=infra'
-openshift_registry_selector='region=infra'
+openshift_router_selector='node-role.kubernetes.io/master=true'
+openshift_registry_selector='node-role.kubernetes.io/master=true'
 openshift_disable_check=docker_storage,memory_availability
 
 setup_nfs=true
@@ -50,8 +57,8 @@ openshift_1
 
 # host group for nodes, includes region info
 [nodes]
-openshift_1 openshift_node_labels="{'region': 'infra','zone': 'default','purpose':'infra'}" openshift_schedulable=true openshift_ip=openshift_ip_1
-openshift_2 openshift_node_labels="{'region':'primary','zone': 'default','purpose':'prod'}" openshift_schedulable=true openshift_ip=openshift_ip_2
+openshift_1 openshift_node_group_name='ccp-openshift-master' openshift_schedulable=true openshift_ip=openshift_ip_1
+openshift_2 openshift_node_group_name='ccp-openshift-large-node' openshift_schedulable=true openshift_ip=openshift_ip_2
 
 [nfs_registry]
 nfs_serv
