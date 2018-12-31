@@ -17,6 +17,9 @@
 - name: Login as system admin
   shell: oc login -u system:admin
 
+- name: Remove default node selector for cccp project
+  shell: oc annotate namespace cccp openshift.io/node-selector=""
+
 - name: Get Jenkins PV yeaml
   template: src=jenkins-pv.yaml.j2 dest=/tmp/jenkins-pv.yaml
 
@@ -25,9 +28,6 @@
 
 - name: Login as cccp
   shell: oc login --username="{{ oc_login_user }}" --password="{{ oc_login_pass }}"
-
-- name: Remove default node selector for cccp project
-  shell: oc annotate namespace cccp openshift.io/node-selector=""
 
 - name: Deploy Jenkins service
   shell: oc process -p MEMORY_LIMIT=8Gi openshift//jenkins-persistent | oc create -f -
