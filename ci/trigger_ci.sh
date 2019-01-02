@@ -220,11 +220,13 @@ then
     ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-bamachrn-python-release/builds/lastFailedBuild/log"
     echo "===================================================================="
     mark_failure "Success build check failed: FAILURE"
+    echo "===================================================================="
 else
     echo "=========================Success check build logs==================="
     ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-bamachrn-python-release/builds/lastSuccessfulBuild/log"
     echo "===================================================================="
     echo "Success Build check Passed: SUCCESS"
+    echo "===================================================================="
 fi
 
 echo "create CI failure build pipeline for master job"
@@ -243,7 +245,7 @@ echo "Waiting for the ci to start"
 build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
-echo "Waiting CI for Fail check to complate"
+echo "Waiting CI for Fail check to complete"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
@@ -308,14 +310,14 @@ echo "Waiting for the ci to start"
 build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
-echo "Wait for CI for Seed Job check to complate"
+echo "Wait for CI for Seed Job check to complete"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
     build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 done
 
-echo "========================Fail check build logs==========================="
+echo "========================Seed job check logs==========================="
 ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-ci-seed-job-check/builds/1/log"
 echo "========================================================================"
 
@@ -325,6 +327,8 @@ then
 else
     echo "Seed Job check Passed: SUCCESS"
 fi
+
+echo "========================================================================"
 
 if [ $CI_DEBUG -eq 0 ]
 then
