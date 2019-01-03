@@ -3,7 +3,12 @@ This file contains all the base classes for clients
 """
 from ccp.lib.utils.request import request_url
 from ccp.lib.utils.authorization import Authorization
-from urlparse import urljoin
+import sys
+
+if sys.version_info[0] >= 3:
+    import urllib.parse as urlparse
+else:
+    import urlparse
 
 
 class Client(object):
@@ -72,7 +77,7 @@ class APIClient(Client):
         :type headers: dict
         :return: The response object and exception object, if any was raised.
         """
-        query_url = urljoin(self.server_endpoint, target)
+        query_url = urlparse.urljoin(self.server_endpoint, target)
         request_headers = {}
         if self.authorization and isinstance(self.authorization, Authorization):
             self.authorization.add_header(request_headers)
