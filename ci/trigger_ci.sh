@@ -13,6 +13,7 @@ mark_failure()
         echo "DEBUG mode is set for CI, keeping the nodes for 2 hour for debugging."
         echo "====================================================================="
         sleep $DEBUG_PERIOD
+        cico node done $cico_node_key
     fi
     exit 1
 }
@@ -91,9 +92,13 @@ do
     ssh $sshopts $ansible_node "ssh-keyscan -t rsa,dsa $node 2>/dev/null >> ~/.ssh/known_hosts"
 done
 
-echo "Setup ansible controller node for running openshift 39 deployment"
+echo "Setup ansible controller node for running openshift 311 deployment"
 # setup ansible node
-ssh $sshopts $ansible_node 'yum install -y git && yum install -y rsync && yum install -y gcc libffi-devel python-devel openssl-devel && yum install -y epel-release && yum install -y PyYAML python-networkx python-nose python-pep8 python-jinja2 rsync centos-release-openshift-origin39.noarch && yum install -y http://cbs.centos.org/kojifiles/packages/ansible/2.5.5/1.el7/noarch/ansible-2.5.5-1.el7.noarch.rpm && yum install -y openshift-ansible' >> /dev/null
+ssh $sshopts $ansible_node 'yum install -y git && yum install -y rsync && yum install -y gcc libffi-devel python-devel openssl-devel && yum install -y epel-release && yum install -y PyYAML python-networkx python-nose python-pep8 python-jinja2 rsync centos-release-openshift-origin311.noarch && yum install -y ansible openshift-ansible' >> /dev/null
+
+#fix for python-docker-py issue in openshift-ansible
+#https://github.com/openshift/openshift-ansible/issues/10440
+ssh $sshopts $ansible_node sed -i "s/python-docker\'/python-docker-py\'/g" /usr/share/ansible/openshift-ansible/playbooks/init/base_packages.yml
 
 echo "Copy source code to ansible controller node"
 rsync -e "ssh -t -o LogLevel=error -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root" -Ha $(pwd)/ $ansible_node:/opt/ccp-openshift
@@ -190,7 +195,7 @@ echo "create CI success build pipeline for master job"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f ci/cisuccessjob.yaml | oc create -f -"
 
 echo "Start ci success pipeline for master job"
-build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-success-job -n cccp |cut -f 2 -d ' '")
+build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-success-job -n cccp -o name")
 
 echo "Build started with build id: $build_id"
 
@@ -199,14 +204,14 @@ build_id=$(echo $build_id|tr -d '"'|tr -d '\r')
 echo "Trimmed build id is: ===$build_id==="
 
 echo "Waiting for the ci to start"
-build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
 echo "Waiting for the job to complete"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
-    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 done
 
 if [ $build_status == 'Failed' ]
@@ -215,18 +220,20 @@ then
     ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-bamachrn-python-release/builds/lastFailedBuild/log"
     echo "===================================================================="
     mark_failure "Success build check failed: FAILURE"
+    echo "===================================================================="
 else
     echo "=========================Success check build logs==================="
     ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-bamachrn-python-release/builds/lastSuccessfulBuild/log"
     echo "===================================================================="
     echo "Success Build check Passed: SUCCESS"
+    echo "===================================================================="
 fi
 
 echo "create CI failure build pipeline for master job"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f ci/cifailurejob.yaml | oc create -f -"
 
 echo "Start ci failure pipeline for master job"
-build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-failure-job -n cccp |cut -f 2 -d ' '")
+build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-failure-job -n cccp -o name")
 
 echo "Build started with build id: $build_id"
 
@@ -235,14 +242,14 @@ build_id=$(echo $build_id|tr -d '"'|tr -d '\r')
 echo "Trimmed build id is: ===$build_id==="
 
 echo "Waiting for the ci to start"
-build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
-echo "Waiting CI for Fail check to complate"
+echo "Waiting CI for Fail check to complete"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
-    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 done
 
 echo "========================Master Job Fail check build logs==========================="
@@ -267,15 +274,15 @@ then
 fi
 
 echo "Re-running the seed job with updated index"
-seed_job_build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build seed-job -n cccp |cut -f 2 -d ' '")
+seed_job_build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build seed-job -n cccp -o name")
 seed_job_build_id=$(echo $seed_job_build_id|tr -d '"'|tr -d '\r')
 
 echo "Wait for seed job to complete"
-build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${seed_job_build_id} -o template --template={{.status.phase}}")
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${seed_job_build_id} -o template --template={{.status.phase}}")
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
-    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${seed_job_build_id} -o template --template={{.status.phase}}")
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${seed_job_build_id} -o template --template={{.status.phase}}")
 done
 
 echo "==========================Seed job Re-run logs========================"
@@ -291,7 +298,7 @@ echo "Running CI job for seedjob check"
 ssh $sshoptserr $openshift_1_node_ip "cd /opt/ccp-openshift && oc process -p SEEDJOB_BUILD_ID=${seed_job_build_id} -p CCP_OPENSHIFT_SLAVE_IMAGE=${CCP_OPENSHIFT_SLAVE_IMAGE} -f ci/ciseedjobcheck.yaml | oc create -f -"
 
 echo "Start ci pipeline for fpailure job"
-build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-seed-job-check -n cccp |cut -f 2 -d ' '")
+build_id=$(ssh $sshoptserr $openshift_1_node_ip "oc start-build ci-seed-job-check -n cccp -o name")
 
 echo "Build started with build id: $build_id"
 
@@ -300,17 +307,17 @@ build_id=$(echo $build_id|tr -d '"'|tr -d '\r')
 echo "Trimmed build id is: ===$build_id==="
 
 echo "Waiting for the ci to start"
-build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 echo "Current build status: $build_status"
 
-echo "Wait for CI for Seed Job check to complate"
+echo "Wait for CI for Seed Job check to complete"
 while [[ $build_status != 'Complete' && $build_status != 'Failed' ]]
 do
     sleep 30
-    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get builds ${build_id} -o template --template={{.status.phase}}")
+    build_status=$(ssh $sshopts $openshift_1_node_ip "oc get ${build_id} -o template --template={{.status.phase}}")
 done
 
-echo "========================Fail check build logs==========================="
+echo "========================Seed job check logs==========================="
 ssh $sshoptserr $nfs_node_ip "cat /jenkins/jobs/cccp/jobs/cccp-ci-seed-job-check/builds/1/log"
 echo "========================================================================"
 
@@ -321,6 +328,8 @@ else
     echo "Seed Job check Passed: SUCCESS"
 fi
 
+echo "========================================================================"
+
 if [ $CI_DEBUG -eq 0 ]
 then
     echo "Functional CI is complete, releasing the nodes."
@@ -330,4 +339,5 @@ else
     echo "DEBUG mode is set for CI, keeping nodes for debugging"
     echo "============================================================"
     sleep $DEBUG_PERIOD
+    cico node done $cico_node_key
 fi
