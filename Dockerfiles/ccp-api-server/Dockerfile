@@ -23,7 +23,7 @@ ENV PYTHONPATH="/opt/container-pipeline-service"
 
 COPY . /opt/container-pipeline-service
 
-RUN useradd 1001 && usermod -aG 0 1001 && chown -R 1001:0 /opt/container-pipeline-service && chmod -R g+x /opt/container-pipeline-service
+RUN useradd -r -u 1001 -g 0 apirunner && chown -R 1001:0 /opt/container-pipeline-service && chmod -R g+x /opt/container-pipeline-service
 
 WORKDIR /opt/container-pipeline-service/ccp/apis/v1/
 
@@ -33,4 +33,4 @@ ENTRYPOINT ["/usr/bin/python3"]
 
 CMD ["-m", "ccp_server"]
 
-USER 1001
+USER apirunner

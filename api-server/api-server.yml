@@ -93,12 +93,12 @@ objects:
       type: "ClusterIP"
 parameters:
 - name: API_SERVER_IMAGE
-  value: https://registry.centos.org/navidshaikh/ccp-api-server:latest
+  value: registry.centos.org/pipeline-images/ccp-api-server:latest
   required: true
   displayName: CCCP API server image
   description: CCCP API server image to be used
 - name: API_POD_REPLICAS
-  value: "2"
+  value: "1"
   required: true
   displayName: Replica count of API pods
   description: Number of API server pods to be created
@@ -107,7 +107,7 @@ parameters:
   displayName: Jenkins URL
   description: URL of Jenkins server hosted in OpenShift
 - name: OPENSHIFT_VERSION
-  value: "3.9"
+  value: "3.11"
   required: true
   displayName: OpenShift cluster version
   description: The version of OpenShift cluster deployed.
