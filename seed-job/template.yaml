@@ -47,7 +47,7 @@ objects:
                 ],
                 volumes: [
                   hostPathVolume(
-                    hostPath: '/tmp/containers',
+                    hostPath: '/var/lib/containers',
                     mountPath: '/var/lib/containers'
                   ),
                   hostPathVolume(
