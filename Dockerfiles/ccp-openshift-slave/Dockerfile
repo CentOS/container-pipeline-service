@@ -15,4 +15,4 @@ ENV BASH_ENV=/opt/rh/go-toolset-7/enable \
     PROMPT_COMMAND=". /opt/rh/go-toolset-7/enable"
 
 ADD ./ /opt/ccp-openshift/
-VOLUME ["/opt/ccp-openshift/ccp/scanning"]
+VOLUME ["/opt/ccp-openshift/ccp/scanning", "/var/lib/containers"]
