@@ -73,6 +73,8 @@ objects:
                 memory: "${MEMORY_LIMT}"
         dnsPolicy: "ClusterFirst"
         restartPolicy: "Always"
+        securityContext: {}
+        serviceAccount: "jenkins"
         serviceAccountName: "jenkins"
         triggers:
           - type: "ConfigChange"

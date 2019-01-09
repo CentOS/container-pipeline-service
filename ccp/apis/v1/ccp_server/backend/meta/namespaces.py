@@ -11,12 +11,14 @@ def response():
     """
     """
     ocl = OpenShiftCmdClient()
+    """
     ocl.login(
         server=OPENSHIFT_URL,
         token=ocl.get_token_from_mounted_secret(
             secret_mount_path=SERVICE_ACCOUNT_SECRET_MOUNT_PATH
         )
     )
+    """
     ocp = OpenShiftCommandProcessor()
     return Namespaces(
         meta=meta_obj("v1"),
