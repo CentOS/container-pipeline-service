@@ -39,10 +39,12 @@ class OpenShiftCommandProcessor(QueryProcessor):
     def get_namespaces(self):
         """
         Gets the list of OpenShift namespaces/projects
+        OpenShift returns the values in UTF-8 encoded format
+        we need to decode it before processing
         :return: List of namespaces
         :rtype list
         :raises Exception
         :raises subprocess.CalledProcessError
         :raises ccp.lib.exceptions.CommandOutputError
         """
-        return self.oc_client.get_projects().split('\n')[:-1]
+        return self.oc_client.get_projects().decode('UTF-8').split('\n')[:-1]
