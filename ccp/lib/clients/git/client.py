@@ -8,7 +8,7 @@ import string
 class GitClient(CmdClient):
 
     def __init__(self, git_url, git_branch, clone_location="/tmp/git_clone"):
-        super(CmdClient, self).__init__(base_command="git")
+        super(GitClient, self).__init__(base_command="git")
         self.git_url = git_url
         self.git_branch = git_branch
         self.clone_location = clone_location
