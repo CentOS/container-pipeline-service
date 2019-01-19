@@ -43,7 +43,7 @@ class GitClient(CmdClient):
                 shell=True
             )
             cmd2 = "{base_command} checkout -b {branch_name}" \
-                   " origin/branch_name".format(
+                   " origin/{branch_name}".format(
                 base_command=self.base_command,
                 branch_name=self.git_branch
             )
