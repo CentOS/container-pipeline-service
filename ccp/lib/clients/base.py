@@ -59,9 +59,14 @@ class APIClient(Client):
         :param authorization: Set if you want or need to use Authorization
         :type authorization: Authorization
         """
+        """
         self.server_endpoint = "{}://{}".format(
             "https" if secure else "http",
             server if server else "localhost"
+        )
+        """
+        self.server_endpoint = "{}".format(
+             server if server else "localhost"
         )
         self.authorization = authorization
         self.verify_ssl = verify_ssl
