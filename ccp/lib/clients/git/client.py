@@ -42,8 +42,10 @@ class GitClient(CmdClient):
                 cmd=cmd1,
                 shell=True
             )
+            #need to fix this properly git checkout sends the output to
+            #stderr, but it can result in missing on actual error
             cmd2 = "{base_command} checkout -b {branch_name}" \
-                   " origin/{branch_name}".format(
+                   " origin/{branch_name} 2>&1".format(
                 base_command=self.base_command,
                 branch_name=self.git_branch
             )
