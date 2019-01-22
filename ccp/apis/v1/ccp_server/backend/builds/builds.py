@@ -33,10 +33,11 @@ def response(namespace, appid, jobid, desired_tag):
             jenkins_job_name
         ]
     )
-    pbi = List[ProjectBuilds]
+    pbi = list()
     for k, v in bns:
         t = ProjectBuildNameStatus(str(k), str(v))
         t1 = ProjectBuilds(build_number=t)
+
         pbi += t1
     return ProjectBuildsInfo(
         builds=pbi, meta=meta_obj()

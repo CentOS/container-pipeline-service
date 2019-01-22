@@ -17,7 +17,7 @@ class AllScannerLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, scanner_name: ScannerLogs = None):  # noqa: E501
+    def __init__(self, scanner_name: List[ScannerLogs] = None):  # noqa: E501
         """AllScannerLogs - a model defined in Swagger
 
         :param scanner_name: The scanner_name of this AllScannerLogs.  # noqa: E501

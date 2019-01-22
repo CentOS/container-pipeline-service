@@ -77,7 +77,7 @@ def response(namespace, appid, jobid, desired_tag, build):
         logs=scan_logs, description="All Scanners logs"
     )
     all_scan_logs = AllScannerLogs(
-        scanner_name=List[ScannerLogs]([extracted_scan_logs])
+        scanner_name=[extracted_scan_logs]
     )
     logs = PrebuildLintBuildScanLogs(
         prebuild=str(prebuild_logs),
