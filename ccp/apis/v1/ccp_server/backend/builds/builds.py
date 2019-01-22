@@ -38,7 +38,7 @@ def response(namespace, appid, jobid, desired_tag):
         t = ProjectBuildNameStatus(str(k), str(v))
         t1 = ProjectBuilds(build_number=t)
 
-        pbi += t1
+        pbi.append(t1)
     return ProjectBuildsInfo(
         builds=pbi, meta=meta_obj()
     )
