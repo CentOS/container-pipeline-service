@@ -79,7 +79,7 @@ class ProjectBuildsInfo(Model):
         :return: The builds of this ProjectBuildsInfo.
         :rtype: ProjectBuilds
         """
-        return List[ProjectBuilds](self._builds) if self.builds else []
+        return self._builds if self._builds else []
 
     @builds.setter
     def builds(self, builds: List[ProjectBuilds]):

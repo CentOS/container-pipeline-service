@@ -471,14 +471,15 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
                     stage_id=str(i),
                     id_is_number=True
                 )
-                sl = self.get_stage_logs(
+                rsl = self.get_stage_logs(
                     ordered_job_list=ordered_job_list,
                     build_number=build_number, stage=str(i),
                     stage_is_name=False
                 )
+
                 result[i] = {
                     "name": sn,
-                    "logs": sl
+                    "step-logs": rsl
                 }
         return result
 

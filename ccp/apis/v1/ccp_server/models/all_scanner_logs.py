@@ -31,7 +31,7 @@ class AllScannerLogs(Model):
             'scanner_name': 'scanner_name'
         }
 
-        self._scanner_name = List[scanner_name]
+        self._scanner_name = scanner_name
 
     @classmethod
     def from_dict(cls, dikt) -> 'AllScannerLogs':
