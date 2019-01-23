@@ -36,7 +36,10 @@ def response(namespace, app_id, job_id):
             tags.append(p.desired_tag)
 
     ajtds = []
-    for tag in tags:=`=jedi=0, =`=                     (param *args, *_*param **kwargs*_*) =`=jedi=`=
+    if len(tags) == 0:
+        return {}
+
+    for tag in tags:
         jenkins_job_name = "{}-{}".format(
             namespace,
             Project.pipeline_name(
