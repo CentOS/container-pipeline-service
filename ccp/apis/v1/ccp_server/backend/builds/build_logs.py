@@ -66,7 +66,7 @@ def response(namespace, appid, jobid, desired_tag, build):
         git_branch=INDEX_GIT_BRANCH
     )
     gc.fresh_clone()
-    index_location = path.join(gc.clone_location, "index.d")
+    index_location = path.join(gc.actual_clone_location, "index.d")
     ir = IndexReader(index_location, namespace)
     prjs = ir.read_projects()
     prebuild_exists = False
