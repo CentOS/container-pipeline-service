@@ -1,6 +1,7 @@
 from ccp.lib.clients.base import CmdClient
 from os import path, rmdir, getcwd, chdir
-from ccp.lib.utils.command import run_command_exception_on_stderr
+from ccp.lib.utils.command import run_command_exception_on_stderr, run_command\
+    , CommandOutputError
 import random
 import string
 
@@ -8,7 +9,7 @@ import string
 class GitClient(CmdClient):
 
     def __init__(self, git_url, git_branch, clone_location="/tmp/git_clone"):
-        super(CmdClient, self).__init__(base_command="git")
+        super(GitClient, self).__init__(base_command="git")
         self.git_url = git_url
         self.git_branch = git_branch
         self.clone_location = clone_location
@@ -38,16 +39,23 @@ class GitClient(CmdClient):
             cmd1 = "{base_command} fetch --all".format(
                 base_command=self.base_command
             )
-            run_command_exception_on_stderr(
+            _, e = run_command(
                 cmd=cmd1,
                 shell=True
             )
+            no_err = str.format(
+                "Cloning into '{}'...\n", self.actual_clone_location
+            )
+            if e and e != no_err.decode('UTF-8'):
+                raise CommandOutputError(e)
+            #need to fix this properly git checkout sends the output to
+            #stderr, but it can result in missing on actual error
             cmd2 = "{base_command} checkout -b {branch_name}" \
-                   " origin/branch_name".format(
+                   " origin/{branch_name}".format(
                 base_command=self.base_command,
                 branch_name=self.git_branch
             )
-            run_command_exception_on_stderr(
+            o, e = run_command(
                 cmd=cmd2,
                 shell=True
             )

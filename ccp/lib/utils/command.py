@@ -24,6 +24,8 @@ def run_command(cmd, shell=False, use_pipes=True):
         cmd, shell=shell
     )
     out, err = p.communicate()
+    out=out.decode('UTF-8')
+    err=err.decode('UTF-8')
     return out, err
 
 

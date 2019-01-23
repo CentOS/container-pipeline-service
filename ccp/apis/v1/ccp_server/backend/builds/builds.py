@@ -33,11 +33,19 @@ def response(namespace, appid, jobid, desired_tag):
             jenkins_job_name
         ]
     )
-    pbi = List[ProjectBuilds]
+    pbi = []
     for k, v in bns:
-        t = ProjectBuildNameStatus(str(k), str(v))
+        s = ojbi.get_build_status(
+            ordered_job_list=[
+                namespace,
+                jenkins_job_name
+            ],
+            build_number=str(v)
+        )
+        t = ProjectBuildNameStatus(str(v), str(s))
         t1 = ProjectBuilds(build_number=t)
-        pbi += t1
+
+        pbi.append(t1)
     return ProjectBuildsInfo(
         builds=pbi, meta=meta_obj()
     )

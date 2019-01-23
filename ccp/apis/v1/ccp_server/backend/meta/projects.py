@@ -14,18 +14,20 @@ def response(namespace):
     """
     """
     ocl = OpenShiftCmdClient()
+    """
     ocl.login(
         server=OPENSHIFT_URL,
         token=ocl.get_token_from_mounted_secret(
             secret_mount_path=SERVICE_ACCOUNT_SECRET_MOUNT_PATH
         )
     )
+    """
     gc = GitClient(
         git_url=INDEX_GIT_URL,
         git_branch=INDEX_GIT_BRANCH
     )
     gc.fresh_clone()
-    index_location = path.join(gc.clone_location, "index.d")
+    index_location = path.join(gc.actual_clone_location, "index.d")
     ir = IndexReader(index_location, namespace)
     projects = []
     prjs = ir.read_projects()

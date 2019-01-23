@@ -39,6 +39,8 @@ class OpenShiftCommandProcessor(QueryProcessor):
     def get_namespaces(self):
         """
         Gets the list of OpenShift namespaces/projects
+        OpenShift returns the values in UTF-8 encoded format
+        we need to decode it before processing
         :return: List of namespaces
         :rtype list
         :raises Exception

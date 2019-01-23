@@ -17,7 +17,7 @@ class AllScannerLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, scanner_name: ScannerLogs = None):  # noqa: E501
+    def __init__(self, scanner_name: List[ScannerLogs] = None):  # noqa: E501
         """AllScannerLogs - a model defined in Swagger
 
         :param scanner_name: The scanner_name of this AllScannerLogs.  # noqa: E501
@@ -31,7 +31,7 @@ class AllScannerLogs(Model):
             'scanner_name': 'scanner_name'
         }
 
-        self._scanner_name = List[scanner_name]
+        self._scanner_name = scanner_name
 
     @classmethod
     def from_dict(cls, dikt) -> 'AllScannerLogs':

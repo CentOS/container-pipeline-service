@@ -18,11 +18,20 @@ from typing import List, Dict  # noqa: F401
 def process_log(log_obj, stage):
     logs = None
     if log_obj and len(log_obj.keys()) > 0:
-        for k, v in log_obj:
-            if k == stage:
-                logs = "{}<br />\n{}".format(
-                    k,
-                    v
+        for _, v in log_obj.items():
+            if v["name"] == stage:
+                munged_logs = ""
+                for i in v["step-logs"]:
+                    munged_logs = str.format(
+                        "{}<br />\n ## {} #- {} <br />\n {}  <br />\n",
+                        munged_logs,
+                        i["name"],
+                        i["description"],
+                        i["log"]
+                    )
+                logs = "# {}<br />\n{}<br />\n".format(
+                    v["name"],
+                    munged_logs
                 )
                 break
     return logs
@@ -77,7 +86,7 @@ def response(namespace, appid, jobid, desired_tag, build):
         logs=scan_logs, description="All Scanners logs"
     )
     all_scan_logs = AllScannerLogs(
-        scanner_name=List[ScannerLogs]([extracted_scan_logs])
+        scanner_name=[extracted_scan_logs]
     )
     logs = PrebuildLintBuildScanLogs(
         prebuild=str(prebuild_logs),
@@ -88,7 +97,13 @@ def response(namespace, appid, jobid, desired_tag, build):
     return BuildLogs(
         meta=meta_obj(),
         pre_build=prebuild_exists,
-        status=(lint_logs and build_logs and scan_logs),
+        status=ojbi.get_build_status(
+            ordered_job_list=[
+                namespace,
+                jenkins_job_name
+            ],
+            build_number=build
+        ),
         failed_stage="TODO",
         logs=logs
     )
