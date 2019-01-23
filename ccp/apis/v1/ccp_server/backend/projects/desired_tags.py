@@ -32,7 +32,7 @@ def response(namespace, app_id, job_id):
     prjs = ir.read_projects()
     tags = []
     for p in prjs:
-        if p.app_id == appid and p.job_id == jobid:
+        if p.app_id == app_id and p.job_id == job_id:
             tags.append(p.desired_tag)
 
     ajtds = []
@@ -43,7 +43,7 @@ def response(namespace, app_id, job_id):
         jenkins_job_name = "{}-{}".format(
             namespace,
             Project.pipeline_name(
-                app_id=appid, job_id=jobid, desired_tag=tag
+                app_id=app_id, job_id=job_id, desired_tag=tag
             )
         )
         build_status = ojbi.get_build_status(
@@ -53,13 +53,13 @@ def response(namespace, app_id, job_id):
             ],
             build_number="lastBuild"
         )
-        image = "{}/{}".format(appid, jobid)
+        image = "{}/{}".format(app_id, job_id)
         ajtd = AppIdJobIdTag(image=image, desired_tag=tag,
                              build_status=build_status)
         ajtds.append(ajtd)
 
     return AppIdJobIdTags(
-        meta=meta_obj(), app_id=appid,
-        job_id=jobid, tags=ajtds
+        meta=meta_obj(), app_id=app_id,
+        job_id=job_id, tags=ajtds
     )
 
