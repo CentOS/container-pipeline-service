@@ -46,12 +46,14 @@ def response(namespace, app_id, job_id, desired_tag):
     target_file_link = "{}/{}/{}".format(
         source_repo, source_branch, target_file
     )
+
     if "github.com" in target_file_link:
-        target_file_link.replace("github.com","raw.githubusercontent.com")
+        target_file_link = target_file_link.replace(
+            "github.com","raw.githubusercontent.com")
 
     source_repo_with_branch = "{}/tree/{}".format(source_repo, source_branch)
 
     return TargetFile(
-        meta=meta_obj(), prebuild=pre_build,\
+        meta=meta_obj(), prebuild=pre_build,
         target_file_link=target_file_link, source_repo=source_repo_with_branch
     )
