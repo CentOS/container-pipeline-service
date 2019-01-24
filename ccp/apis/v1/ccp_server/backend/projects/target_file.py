@@ -24,7 +24,7 @@ def response(namespace, app_id, job_id, desired_tag):
     target_file = ""
     source_repo = ""
     source_branch = ""
-    pre_build = False
+    pre_build_exists = False
 
     for p in prjs:
         if p.app_id == app_id and p.job_id == job_id and \
@@ -32,7 +32,7 @@ def response(namespace, app_id, job_id, desired_tag):
             source_repo = p.git_url
             source_branch = p.git_branch
             target_file = "{}/{}".format(p.git_path, p.target_file)
-            pre_build = p.pre_build_script and p.pre_build_context
+            pre_build_exists = p.pre_build_script and p.pre_build_context
             break
 
     try:
@@ -53,7 +53,10 @@ def response(namespace, app_id, job_id, desired_tag):
 
     source_repo_with_branch = "{}/tree/{}".format(source_repo, source_branch)
 
+    if not pre_build_exists:
+        pre_build_exists=False
+
     return TargetFile(
-        meta=meta_obj(), prebuild=pre_build,
+        meta=meta_obj(), prebuild=pre_build_exists,
         target_file_link=target_file_link, source_repo=source_repo_with_branch
     )

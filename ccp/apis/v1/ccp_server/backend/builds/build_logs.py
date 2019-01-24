@@ -76,6 +76,10 @@ def response(namespace, appid, jobid, desired_tag, build):
                 p.desired_tag == desired_tag:
             prebuild_exists = p.pre_build_context and p.pre_build_script
             break
+
+    if not prebuild_exists:
+        prebuild_exists=False
+
     prebuild_logs = process_log(logs_info, "Prebuild source repo") if \
         prebuild_exists else "Prebuild not requested"
     lint_logs = process_log(logs_info, "Lint the Dockerfile")
