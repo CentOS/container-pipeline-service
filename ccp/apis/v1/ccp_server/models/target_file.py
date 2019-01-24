@@ -16,8 +16,8 @@ class TargetFile(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta = None, prebuild: bool = None,
-                 target_file_link: str = None):  # noqa: E501
+    def __init__(self, meta: Meta=None, prebuild: bool=None,
+                 target_file_link: str=None, source_repo: str=None):  # noqa: E501
         """TargetFile - a model defined in Swagger
 
         :param meta: The meta of this TargetFile.  # noqa: E501
@@ -26,22 +26,27 @@ class TargetFile(Model):
         :type prebuild: bool
         :param target_file_link: The target_file_link of this TargetFile.  # noqa: E501
         :type target_file_link: str
+        :param source_repo: The source_repo of this TargetFile.  # noqa: E501
+        :type source_repo: str
         """
         self.swagger_types = {
             'meta': Meta,
             'prebuild': bool,
-            'target_file_link': str
+            'target_file_link': str,
+            'source_repo': str
         }
 
         self.attribute_map = {
             'meta': 'meta',
             'prebuild': 'prebuild',
-            'target_file_link': 'target_file_link'
+            'target_file_link': 'target_file_link',
+            'source_repo': 'source_repo'
         }
 
         self._meta = meta
         self._prebuild = prebuild
         self._target_file_link = target_file_link
+        self._source_repo = source_repo
 
     @classmethod
     def from_dict(cls, dikt) -> 'TargetFile':
@@ -116,3 +121,24 @@ class TargetFile(Model):
         """
 
         self._target_file_link = target_file_link
+
+    @property
+    def source_repo(self) -> str:
+        """Gets the source_repo of this TargetFile.
+
+
+        :return: The source_repo of this TargetFile.
+        :rtype: str
+        """
+        return self._source_repo
+
+    @source_repo.setter
+    def source_repo(self, source_repo: str):
+        """Sets the source_repo of this TargetFile.
+
+
+        :param source_repo: The source_repo of this TargetFile.
+        :type source_repo: str
+        """
+
+        self._source_repo = source_repo

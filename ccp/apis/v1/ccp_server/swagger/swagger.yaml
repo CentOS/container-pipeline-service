@@ -495,6 +495,8 @@ definitions:
         type: "boolean"
       target_file_link:
         type: "string"
+      source_repo:
+        type: "string"
     title: "Link to target Dockerfile"
     description: "Link to target Dockerfile for given project, also return boolean\
       \ if project has prebuild defined"
@@ -504,6 +506,7 @@ definitions:
         apiVersion: "apiVersion"
         timestamp: "timestamp"
       target_file_link: "target_file_link"
+      source_repo: "source_repo"
   ProjectBuildNameStatus:
     properties:
       build:
