@@ -10,6 +10,7 @@ from ccp.apis.v1.ccp_server.models.all_scanner_logs import AllScannerLogs
 from ccp.index_reader import Project, IndexReader
 from ccp.lib.clients.git.client import GitClient
 from os import path
+from shutil import rmtree
 from ccp.apis.v1.ccp_server.env_config import *
 
 from typing import List, Dict  # noqa: F401
@@ -94,6 +95,12 @@ def response(namespace, appid, jobid, desired_tag, build):
         build=str(build_logs),
         scan=all_scan_logs
     )
+
+    try:
+        rmtree(gc.actual_clone_location)
+    except OSError as e:
+        print ("Error: {} - {}".format(e.filename, e.strerror))
+
     return BuildLogs(
         meta=meta_obj(),
         pre_build=prebuild_exists,

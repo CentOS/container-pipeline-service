@@ -4,7 +4,9 @@ from ccp.apis.v1.ccp_server.models.target_file import TargetFile
 
 from ccp.index_reader import Project,IndexReader
 from ccp.lib.clients.git.client import GitClient
-from os import path,rmdir
+from os import path
+from shutil import rmtree
+
 from ccp.apis.v1.ccp_server.env_config import *
 
 def response(namespace, app_id, job_id, desired_tag):
@@ -33,8 +35,10 @@ def response(namespace, app_id, job_id, desired_tag):
             pre_build = p.pre_build_script and p.pre_build_context
             break
 
-
-    rmdir(gc.actual_clone_location)
+    try:
+        rmtree(gc.actual_clone_location)
+    except OSError as e:
+        print ("Error: {} - {}".format(e.filename, e.strerror))
 
     if source_repo == "":
         return {}

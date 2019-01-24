@@ -8,6 +8,7 @@ from ccp.apis.v1.ccp_server.models.app_id_job_id_tag import\
 from ccp.index_reader import Project, IndexReader
 from ccp.lib.clients.git.client import GitClient
 from os import path
+from shutil import rmtree
 from ccp.lib.processors.pipeline_information.builds import \
     OpenshiftJenkinsBuildInfo
 from ccp.apis.v1.ccp_server.env_config import *
@@ -57,6 +58,11 @@ def response(namespace, app_id, job_id):
         ajtd = AppIdJobIdTag(image=image, desired_tag=tag,
                              build_status=build_status)
         ajtds.append(ajtd)
+
+    try:
+        rmtree(gc.actual_clone_location)
+    except OSError as e:
+        print ("Error: {} - {}".format(e.filename, e.strerror))
 
     return AppIdJobIdTags(
         meta=meta_obj(), app_id=app_id,

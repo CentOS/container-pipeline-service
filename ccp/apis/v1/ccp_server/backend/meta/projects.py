@@ -8,6 +8,7 @@ from ccp.apis.v1.ccp_server import meta_obj
 from ccp.index_reader import IndexReader
 from ccp.lib.clients.git.client import GitClient
 from os import path
+from shutil import rmtree
 
 
 def response(namespace):
@@ -43,4 +44,10 @@ def response(namespace):
         meta=meta_obj(),
         projects=projects
     )
+
+    try:
+        rmtree(gc.actual_clone_location)
+    except OSError as e:
+        print ("Error: {} - {}".format(e.filename, e.strerror))
+
     return projects_in_namespace
