@@ -7,6 +7,8 @@ from ccp.apis.v1.ccp_server.models.project_metadata import\
     ProjectMetadata  # noqa: E501
 from ccp.apis.v1.ccp_server.models.target_file import\
     TargetFile  # noqa: E501
+from ccp.apis.v1.ccp_server.backend.projects.desired_tags import\
+    response as desiredtag_response
 from ccp.apis.v1.ccp_server import util
 
 
@@ -24,7 +26,8 @@ def project_desired_tags(namespace, app_id, job_id):  # noqa: E501
 
     :rtype: AppIdJobIdTags
     """
-    return 'do some magic!'
+    return desiredtag_response(namespace=namespace,
+                               app_id=app_id, job_id=job_id)
 
 
 def project_metadata(namespace, app_id, job_id, desired_tag):  # noqa: E501

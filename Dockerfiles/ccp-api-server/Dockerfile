@@ -10,7 +10,7 @@ COPY ./ccp/apis/v1/requirements.txt /
 RUN pip3 install --upgrade pip && \
     pip3 install -r requirements.txt && rm requirements.txt
 
-ENV OPENSHIFT_VERSION="39"
+ENV OPENSHIFT_VERSION="311"
 ENV OPENSHIFT_URL=""
 ENV JENKINS_URL=""
 
