@@ -113,7 +113,7 @@
             if [ ${ghprbTargetBranch} == "openshift" ]
             then
               git rebase origin/${ghprbTargetBranch}
-              sh ci/trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
+              sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
             else
               echo "PR's target branch is not openshift."
             fi
@@ -176,7 +176,7 @@
             if [ ${ghprbTargetBranch} == "openshift" ]
             then
               git rebase origin/${ghprbTargetBranch}
-              sh ci/trigger_ci.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
+              sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
             else
               echo "PRs target branch is not openshift."
             fi
