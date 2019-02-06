@@ -493,9 +493,11 @@ definitions:
         $ref: "#/definitions/Meta"
       prebuild:
         type: "boolean"
-      target_file_link:
+      target_file_path:
         type: "string"
       source_repo:
+        type: "string"
+      source_branch:
         type: "string"
     title: "Link to target Dockerfile"
     description: "Link to target Dockerfile for given project, also return boolean\
@@ -505,8 +507,9 @@ definitions:
       meta:
         apiVersion: "apiVersion"
         timestamp: "timestamp"
-      target_file_link: "target_file_link"
+      target_file_path: "target_file_path"
       source_repo: "source_repo"
+      source_branch: "source_branch"
   ProjectBuildNameStatus:
     properties:
       build:

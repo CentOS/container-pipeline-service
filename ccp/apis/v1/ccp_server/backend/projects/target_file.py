@@ -16,12 +16,12 @@ def response(namespace, app_id, job_id, desired_tag):
         git_url=INDEX_GIT_URL,
         git_branch=INDEX_GIT_BRANCH
     )
-    gc.fresh_clone()
+
     index_location = path.join(gc.actual_clone_location, "index.d")
     ir = IndexReader(index_location, namespace)
     prjs = ir.read_projects()
 
-    target_file = ""
+    target_file_path = ""
     source_repo = ""
     source_branch = ""
     pre_build_exists = False
@@ -31,32 +31,21 @@ def response(namespace, app_id, job_id, desired_tag):
                 p.desired_tag == desired_tag:
             source_repo = p.git_url
             source_branch = p.git_branch
-            target_file = "{}/{}".format(p.git_path, p.target_file)
+            target_file_path = "{}/{}".format(p.git_path, p.target_file)
             pre_build_exists = p.pre_build_script and p.pre_build_context
             break
-
-    try:
-        rmtree(gc.actual_clone_location)
-    except OSError as e:
-        print ("Error: {} - {}".format(e.filename, e.strerror))
 
     if source_repo == "":
         return {}
 
-    target_file_link = "{}/{}/{}".format(
-        source_repo, source_branch, target_file
-    )
-
-    if "github.com" in target_file_link:
-        target_file_link = target_file_link.replace(
-            "github.com","raw.githubusercontent.com")
-
-    source_repo_with_branch = "{}/tree/{}".format(source_repo, source_branch)
+    if source_repo.endswith(".git"):
+        source_repo = source_repo[:-4]
 
     if not pre_build_exists:
         pre_build_exists=False
 
     return TargetFile(
         meta=meta_obj(), prebuild=pre_build_exists,
-        target_file_link=target_file_link, source_repo=source_repo_with_branch
+        target_file_path=target_file_path, source_repo=source_repo,
+        source_branch = source_branch
     )

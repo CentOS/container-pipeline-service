@@ -17,36 +17,42 @@ class TargetFile(Model):
     """
 
     def __init__(self, meta: Meta=None, prebuild: bool=None,
-                 target_file_link: str=None, source_repo: str=None):  # noqa: E501
+                 target_file_path: str=None, source_repo: str=None,
+                 source_branch: str=None):  # noqa: E501
         """TargetFile - a model defined in Swagger
 
         :param meta: The meta of this TargetFile.  # noqa: E501
         :type meta: Meta
         :param prebuild: The prebuild of this TargetFile.  # noqa: E501
         :type prebuild: bool
-        :param target_file_link: The target_file_link of this TargetFile.  # noqa: E501
-        :type target_file_link: str
+        :param target_file_path: The target_file_path of this TargetFile.  # noqa: E501
+        :type target_file_path: str
         :param source_repo: The source_repo of this TargetFile.  # noqa: E501
         :type source_repo: str
+        :param source_branch: The source_branch of this TargetFile.  # noqa: E501
+        :type source_branch: str
         """
         self.swagger_types = {
             'meta': Meta,
             'prebuild': bool,
-            'target_file_link': str,
-            'source_repo': str
+            'target_file_path': str,
+            'source_repo': str,
+            'source_branch': str
         }
 
         self.attribute_map = {
             'meta': 'meta',
             'prebuild': 'prebuild',
-            'target_file_link': 'target_file_link',
-            'source_repo': 'source_repo'
+            'target_file_path': 'target_file_path',
+            'source_repo': 'source_repo',
+            'source_branch': 'source_branch'
         }
 
         self._meta = meta
         self._prebuild = prebuild
-        self._target_file_link = target_file_link
+        self._target_file_path = target_file_path
         self._source_repo = source_repo
+        self._source_branch = source_branch
 
     @classmethod
     def from_dict(cls, dikt) -> 'TargetFile':
@@ -102,25 +108,25 @@ class TargetFile(Model):
         self._prebuild = prebuild
 
     @property
-    def target_file_link(self) -> str:
-        """Gets the target_file_link of this TargetFile.
+    def target_file_path(self) -> str:
+        """Gets the target_file_path of this TargetFile.
 
 
-        :return: The target_file_link of this TargetFile.
+        :return: The target_file_path of this TargetFile.
         :rtype: str
         """
-        return self._target_file_link
+        return self._target_file_path
 
-    @target_file_link.setter
-    def target_file_link(self, target_file_link: str):
-        """Sets the target_file_link of this TargetFile.
+    @target_file_path.setter
+    def target_file_path(self, target_file_path: str):
+        """Sets the target_file_path of this TargetFile.
 
 
-        :param target_file_link: The target_file_link of this TargetFile.
-        :type target_file_link: str
+        :param target_file_path: The target_file_path of this TargetFile.
+        :type target_file_path: str
         """
 
-        self._target_file_link = target_file_link
+        self._target_file_path = target_file_path
 
     @property
     def source_repo(self) -> str:
@@ -142,3 +148,24 @@ class TargetFile(Model):
         """
 
         self._source_repo = source_repo
+
+    @property
+    def source_branch(self) -> str:
+        """Gets the source_branch of this TargetFile.
+
+
+        :return: The source_branch of this TargetFile.
+        :rtype: str
+        """
+        return self._source_branch
+
+    @source_branch.setter
+    def source_branch(self, source_branch: str):
+        """Sets the source_branch of this TargetFile.
+
+
+        :param source_branch: The source_branch of this TargetFile.
+        :type source_branch: str
+        """
+
+        self._source_branch = source_branch
