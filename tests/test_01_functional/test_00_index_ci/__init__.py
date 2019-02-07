@@ -157,13 +157,12 @@ class IndexCITests(BaseTestCase):
                 }
             }
         )
+        base_dir = str(path.join(path.dirname(path.relpath(__file__)),
+                                 "..", "..", ".."))
         cmd = [
+            "export PYTHONPATH={base_dir};".format(base_dir=base_dir),
             "python",
-            str(path.join(
-                path.dirname(path.realpath(__file__)),
-                "..",
-                "..",
-                "..",
+            str(path.join(base_dir,
                 "ci",
                 "container_index",
                 "run.py",
@@ -187,13 +186,12 @@ class IndexCITests(BaseTestCase):
                 }
             }
         )
+        base_dir = str(path.join(path.dirname(path.relpath(__file__)),
+                                 "..", "..", ".."))
         cmd = [
+            "export PYTHONPATH={base_dir};".format(base_dir=base_dir),
             "python",
-            str(path.join(
-                path.dirname(path.realpath(__file__)),
-                "..",
-                "..",
-                "..",
+            str(path.join(base_dir,
                 "ci",
                 "container_index",
                 "run.py",
@@ -229,13 +227,12 @@ class IndexCITests(BaseTestCase):
                 }
             }
         )
+        base_dir = str(path.join(path.dirname(path.relpath(__file__)),
+                                 "..", "..", ".."))
         cmd = [
+            "export PYTHONPATH={base_dir};".format(base_dir=base_dir),
             "python",
-            str(path.join(
-                path.dirname(path.realpath(__file__)),
-                "..",
-                "..",
-                "..",
+            str(path.join(base_dir,
                 "ci",
                 "container_index",
                 "run.py",
