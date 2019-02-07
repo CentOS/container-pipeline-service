@@ -33,12 +33,6 @@ class IndexCITests(BaseTestCase):
         return s, mock_loc
 
     def test_00_setup(self):
-        """Setup the requirements for test"""
-        # Setup node info
-        if SETUP_PACKAGES:
-            self.run_cmd("sudo yum -y install epel-release", stream=True)
-            self.run_cmd("sudo yum -y install PyYAML python-networkx",
-                         stream=True)
         self.setUp()
 
     def test_01_index_ci_success_correct_index(self):
