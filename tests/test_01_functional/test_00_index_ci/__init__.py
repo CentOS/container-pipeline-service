@@ -160,8 +160,8 @@ class IndexCITests(BaseTestCase):
         base_dir = str(path.join(path.dirname(path.relpath(__file__)),
                                  "..", "..", ".."))
         cmd = [
-            "export PYTHONPATH={base_dir};".format(base_dir=base_dir),
-            "python",
+            "export",
+            "PYTHONPATH={base_dir};python".format(base_dir=base_dir),
             str(path.join(base_dir,
                 "ci",
                 "container_index",
@@ -189,8 +189,8 @@ class IndexCITests(BaseTestCase):
         base_dir = str(path.join(path.dirname(path.relpath(__file__)),
                                  "..", "..", ".."))
         cmd = [
-            "export PYTHONPATH={base_dir};".format(base_dir=base_dir),
-            "python",
+            "export"
+            "PYTHONPATH={base_dir};python".format(base_dir=base_dir),
             str(path.join(base_dir,
                 "ci",
                 "container_index",
@@ -230,8 +230,8 @@ class IndexCITests(BaseTestCase):
         base_dir = str(path.join(path.dirname(path.relpath(__file__)),
                                  "..", "..", ".."))
         cmd = [
-            "export PYTHONPATH={base_dir};".format(base_dir=base_dir),
-            "python",
+            "export"
+            "PYTHONPATH={base_dir};python".format(base_dir=base_dir),
             str(path.join(base_dir,
                 "ci",
                 "container_index",
