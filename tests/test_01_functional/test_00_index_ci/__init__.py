@@ -1,6 +1,6 @@
 from os import path, mkdir, utime
 
-from ci.tests.base import BaseTestCase
+from tests.base import BaseTestCase
 from ci.container_index.lib.utils import load_yaml, dump_yaml
 import ci.container_index.lib.state as index_ci_state
 from uuid import uuid4

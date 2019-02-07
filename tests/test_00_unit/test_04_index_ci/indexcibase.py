@@ -1,6 +1,6 @@
 from os import path
 
-from ci.tests.base import BaseTestCase
+from tests.base import BaseTestCase
 import ci.container_index.lib.state as index_ci_state
 
 SETUP_PACKAGES = False

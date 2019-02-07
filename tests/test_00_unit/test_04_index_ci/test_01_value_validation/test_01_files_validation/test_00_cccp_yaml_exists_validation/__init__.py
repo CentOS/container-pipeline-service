@@ -1,4 +1,4 @@
-from ci.tests.test_00_unit.test_00_index_ci.test_01_value_validation.\
+from tests.test_00_unit.test_04_index_ci.test_01_value_validation.\
     test_01_files_validation.file_validation_base import FilesBaseTest
 from tests.test_00_unit.test_04_index_ci.indexcibase import DUMMY_INDEX_FILE
 from ci.container_index.lib.constants import *

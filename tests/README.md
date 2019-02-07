@@ -17,7 +17,7 @@ Add a test package or module for a feature with a name of the form
 
 where
 
-- **index** is used to run tests in order
+- **index** is used to run tests. order
 - **feature** is the name of a feature or project component
 
 
@@ -28,7 +28,7 @@ follow the same patten when adding test modules inside a test package.
 ### How to write tests
 
 ``` python
-from ci.tests.base import BaseTestCase
+from tests.base import BaseTestCase
 
 # utitliy methods
 from ci.lib import _print
