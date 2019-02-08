@@ -1,0 +1,132 @@
+---
+kind: "Template"
+apiVersion: "v1"
+metadata:
+  name: "cccp-api-server-template"
+objects:
+  - apiVersion: "v1"
+    kind: "Route"
+    metadata:
+      annotations:
+        haproxy.router.openshift.io/timeout: "4m"
+        template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
+      labels:
+        app: "cccp-apis"
+        template: "cccp-apis-template"
+      name: "cccp-apis"
+    spec:
+      tls:
+        insecureEdgeTerminationPolicy: "Redirect"
+        termination: "edge"
+      to:
+        kind: "Service"
+        name: "cccp-apis"
+  - apiVersion: "v1"
+    kind: "DeploymentConfig"
+    metadata:
+      name: "cccp-apis"
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: "true"
+      labels:
+        app: "cccp-apis"
+        template: "cccp-apis-template"
+    spec:
+      replicas: "${API_POD_REPLICAS}"
+      selector:
+        name: "cccp-apis"
+      strategy:
+        type: "Recreate"
+      template:
+        metadata:
+          labels:
+            name: "cccp-apis"
+        spec:
+          containers:
+          - name: "cccp-apis"
+            image: "${API_SERVER_IMAGE}"
+            imagePullPolicy: "Always"
+            env:
+            - name: OPENSHIFT_VERSION
+              value: "${OPENSHIFT_VERSION}"
+            - name: OPENSHIFT_URL
+              value: "${OPENSHIFT_URL}"
+            - name: JENKINS_URL
+              value: "${JENKINS_URL}"
+            - name: INDEX_GIT_URL
+              value: "${INDEX_GIT_URL}"
+            - name: INDEX_GIT_BRANCH
+              value: INDEX_GIT_BRANCH
+            ports:
+            - name: "api-server-port"
+              containerPort: 8080
+              protocol: "TCP"
+            livenessProbe:
+              failureThreshold: "2"
+              httpGet:
+                path: "/api/v1/liveness"
+                port: 8080
+              initialDelaySeconds: "30"
+              periodSeconds: "10"
+              timeoutSeconds: "20"
+            resources:
+              limits:
+                memory: "${MEMORY_LIMT}"
+        dnsPolicy: "ClusterFirst"
+        restartPolicy: "Always"
+        securityContext: {}
+        serviceAccount: "jenkins"
+        serviceAccountName: "jenkins"
+        triggers:
+          - type: "ConfigChange"
+  - apiVersion: "v1"
+    kind: "Service"
+    metadata:
+      name: "cccp-apis"
+      labels:
+        app: "cccp-apis"
+        template: "cccp-apis-template"
+    spec:
+      ports:
+      - port: 80
+        targetPort: 8080
+      selector:
+        name: "cccp-apis"
+      sessionAffinity: "None"
+      type: "ClusterIP"
+parameters:
+- name: API_SERVER_IMAGE
+  value: registry.centos.org/pipeline-images/ccp-api-server:latest
+  required: true
+  displayName: CCCP API server image
+  description: CCCP API server image to be used
+- name: API_POD_REPLICAS
+  value: "1"
+  required: true
+  displayName: Replica count of API pods
+  description: Number of API server pods to be created
+- name: JENKINS_URL
+  required: true
+  displayName: Jenkins URL
+  description: URL of Jenkins server hosted in OpenShift
+- name: OPENSHIFT_VERSION
+  value: "3.11"
+  required: true
+  displayName: OpenShift cluster version
+  description: The version of OpenShift cluster deployed.
+- name: OPENSHIFT_URL
+  required: true
+  displayName: OpenShift URL
+  description: URL of OpenShift origin server
+- name: INDEX_GIT_URL
+  required: true
+  displayName: Index Git Repo URL
+  description: Git URL of index repository
+- name: INDEX_GIT_BRANCH
+  required: true
+  displayName: Git branch of the index
+  description: Git branch of the index repository
+- name: MEMORY_LIMT
+  value: 512Mi
+  required: true
+  displayName: Memory limit of api-server pod
+  description: Memory to be given to each api-server pod

@@ -1,0 +1,75 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: weekly-scan-scheduler-template
+labels:
+  type: "scheduler"
+  app: "weekly-scan"
+objects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: weekly-scan-scheduler-script
+    data:
+      script: |-
+        OS_TOKEN=`cat /tmp/jenkins-secret/token`
+        oc login ${OS_MASTER} --insecure-skip-tls-verify=true --token=${OS_TOKEN};
+        if [[ `oc get bc -o name --selector app=weekly-scan --selector type=pipeline | wc -l` == 0 ]]; then
+            echo "No projects to trigger";
+            exit 0
+        fi
+        for item in `oc get bc -o name --selector app=weekly-scan --selector type=pipeline`; do
+            oc start-build ${item};
+            sleep ${BATCH_DELAY}
+        done
+  - apiVersion: batch/v1beta1
+    kind: CronJob
+    metadata:
+      name: weekly-scan-scheduler
+    spec:
+      schedule: "0 23 * * 6"
+      jobTemplate:
+        spec:
+          template:
+            metadata:
+            spec:
+              containers:
+                - name: weekly-scan-scheduler
+                  image: ${CCP_OPENSHIFT_SLAVE_IMAGE}
+                  command: ["/bin/sh",  "/tmp/entry/script"]
+                  volumeMounts:
+                    - name: weeklyscanscript
+                      mountPath: /tmp/entry
+                      readOnly: true
+                    - name: jenkins-secret
+                      mountPath: /tmp/jenkins-secret
+                      readOnly: true
+                  env:
+                    - name: OS_MASTER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: os-master-config
+                          key: url
+              volumes:
+                - name: weeklyscanscript
+                  configMap:
+                    name: weekly-scan-scheduler-script
+                - name: jenkins-secret
+                  secret:
+                    secretName: ${JENKINS_SECRET_NAME}
+              restartPolicy: Never
+parameters:
+  - description: The delay in seconds to give before triggering each weekly scan.
+    displayName: Batch Trigger Delay
+    name: BATCH_DELAY
+    value: "180"
+    required: true
+  - description: The jenkins slave image name.
+    displayName: Jenkins Slave Image
+    name: CCP_OPENSHIFT_SLAVE_IMAGE
+    value: registry.centos.org/pipeline-images/ccp-openshift-slave
+    required: true
+  - description: The name of Jenkins token to mount.
+    displayName: Jenkins token secret name
+    name: JENKINS_SECRET_NAME
+    required: true

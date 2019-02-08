@@ -1,0 +1,196 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "weekly-scan-job-template"
+labels:
+  type: "pipeline"
+  app: "weekly-scan"
+objects:
+  - apiVersion: "v1"
+    kind: "BuildConfig"
+    metadata:
+      name: ${PIPELINE_NAME}
+    spec:
+      strategy:
+        type: "JenkinsPipeline"
+        jenkinsPipelineStrategy:
+          jenkinsfile: |
+            properties([
+            ])
+            podTemplate(
+                cloud: 'openshift',
+                name: 'ccp-pipeline-weekly',
+                label: 'ccp-pipeline-weekly',
+                serviceAccount: 'jenkins',
+                containers: [
+                  containerTemplate(
+                    name: 'jnlp',
+                    image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
+                    ttyEnabled: true,
+                    alwaysPullImage: true,
+                    workingDir: '/tmp',
+                    privileged: true,
+                    args: '${computer.jnlpmac} ${computer.name}'
+                  )
+                ],
+                volumes: [
+                  hostPathVolume(
+                    hostPath: '/var/run/docker.sock',
+                    mountPath: '/var/run/docker.sock'
+                  )
+                ]
+            )
+            {
+                node('ccp-pipeline-weekly') {
+                    def image_name = (env.APP_ID == "library")? "${JOB_ID}:${DESIRED_TAG}": "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
+                    def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
+                    def image_tags = (env.APP_ID == "library")? "http://${REGISTRY_URL}/v2/${JOB_ID}/tags/list": "http://${REGISTRY_URL}/v2/${APP_ID}/${JOB_ID}/tags/list"
+                    def slave_container_name = "jnlp_ccp-pipeline-weekly"
+                    def image_in_registry = false
+                    // setting this to ensure the user is notified correctly if the required stages in weekly scan are complete
+                    def success = false
+                    // setting this to ensure the image is removed from the system if its being pulled or/and scanned
+                    def image_is_pulled = false
+
+                    try{
+                        stage('Check if image exists in registry'){
+                            sh "curl ${image_tags} | grep ${DESIRED_TAG}"
+                            image_in_registry = true
+                        }
+                        stage('Pull the container image'){
+                            sh "docker pull ${image_name_with_registry}"
+                            image_is_pulled = true
+                        }
+                        stage('Scan the image') {
+                            parallel (
+                                "RPM updates": {
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/yumupdates.py > yum-check-update 2>&1")
+                                  sh "cat yum-check-update"
+                                },
+                                "Verify RPMs": {
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/rpmverify.py > rpm-verify 2>&1")
+                                  sh "cat rpm-verify"
+                                },
+                                "Miscellaneous updates": {
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/misc_package_updates.py all > misc-updates 2>&1")
+                                  sh "cat misc-updates"
+                                },
+                                "Container capabilities": {
+                                  def run_label = sh (script: "docker inspect ${image_name} --format '{{ index .Config.Labels \"RUN\" }}'")
+                                  sh (returnStdout: true, script: "docker run --rm --user root --volumes-from `docker ps -qf name=${slave_container_name} | head -n 1` --entrypoint /usr/bin/python ${image_name} /opt/ccp-openshift/ccp/scanning/container-capabilities.py ' ${run_label} ' > capabilities 2>&1")
+                                  sh "cat capabilities"
+                                }
+                            )
+                            // image pull - scan is successful in weeklyscan case
+                            success = true
+                        }
+                    }
+                    finally {
+                        stage("Notify user") {
+                          sh "mkfifo /var/spool/postfix/public/pickup && postfix start"
+                          if (image_in_registry==true) {
+                            if (success==true) {
+                              sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py success ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            } else {
+                              sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py failure ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                            }
+                          } else {
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ${PIPELINE_REPO_DIR}/ccp/notifications/weeklynotify.py image_absent ${NAMESPACE} `oc get route jenkins -o template --template={{.spec.host}}` ${image_name} ${BUILD_NUMBER} ${PIPELINE_NAME}"
+                        }
+
+                          if (image_is_pulled == true) {
+
+                            // this stage should be triggered only if image_is_pulled
+                            // or if image_is_pulled and there are failures in subsequent stage(s) after image is pulled (i.e. scan stage)
+                            // we need to make sure the image is removed in either case
+                            stage('Remove the image') {
+                              sh (script: "docker rmi $image_name_with_registry", returnStatus: true)
+                            }
+                          }
+                        }
+                     }
+                  }
+              }
+          env:
+          - name: NAMESPACE
+            value: ${NAMESPACE}
+          - name: NOTIFY_EMAIL
+            value: ${NOTIFY_EMAIL}
+          - name: NOTIFY_CC_EMAILS
+            value: ${NOTIFY_CC_EMAILS}
+          - name: REGISTRY_URL
+            value: ${REGISTRY_URL}
+          - name: IMAGE_NAME
+            value: ${IMAGE_NAME}
+          - name: PIPELINE_NAME
+            value: ${PIPELINE_NAME}
+          - name: APP_ID
+            value: ${APP_ID}
+          - name: JOB_ID
+            value: ${JOB_ID}
+          - name: DESIRED_TAG
+            value: ${DESIRED_TAG}
+          - name: PIPELINE_REPO_DIR
+            value: ${PIPELINE_REPO_DIR}
+          - name: FROM_ADDRESS
+            value: ${FROM_ADDRESS}
+          - name: SMTP_SERVER
+            value: ${SMTP_SERVER}
+          - name: REGISTRY_ALIAS
+            value: ${REGISTRY_ALIAS}
+parameters:
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true
+- description: Email to send notification to
+  displayName: Notification email
+  name: NOTIFY_EMAIL
+  required: true
+- description: Comma separated email addresses to add in Cc
+  displayName: Notification Cc emails
+  name: NOTIFY_CC_EMAILS
+  required: false
+  value: "null"
+- description: Registry alias to be referenced in email subject and body instead of actual REGISTRY_URL
+  displayName: Registry alias to be referenced in email subject and body
+  name: REGISTRY_ALIAS
+  required: false
+  value: "null"
+- description: Name of the Pipeline as we want to show up on OpenShift console
+  displayName: Pipeline Name
+  name: PIPELINE_NAME
+  required: true
+- description: URL of the registry to which image is to be pushed
+  name: REGISTRY_URL
+  displayName: Registry URL
+- description: app_id is analogoues to username in Docker Hub
+  displayName: App ID
+  name: APP_ID
+  required: true
+- description: job_id is analogoues to repo name in Docker Hub
+  displayName: Job ID
+  name: JOB_ID
+  required: true
+- description: Tag for the resulting image
+  displayName: Desired Tag
+  name: DESIRED_TAG
+  required: true
+- description: From address to be used when sending email
+  displayName: From email address
+  name: FROM_ADDRESS
+  required: true
+- description: SMTP server to use to send emails
+  displayName: SMTP server address
+  name: SMTP_SERVER
+  required: true
+- description: Directory where Pipeline service code is present in slave container
+  displayName: Pipeline service code repo directory
+  name: PIPELINE_REPO_DIR
+  required: true
+  value: /opt/ccp-openshift
+- description: ccp-openshift-slave container image name (with registry name)
+  displayName: ccp-openshift-slave container image
+  name: CCP_OPENSHIFT_SLAVE_IMAGE
+  required: true
+  value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest

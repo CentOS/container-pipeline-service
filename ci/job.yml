@@ -1,188 +1,14 @@
-- builder:
-    name: centos-container-pipeline-service-ci-builder-setup-env
-    builders:
-        - shell: |
-            sh ./ci/setup_env.sh
-        - inject:
-            properties-file: env.properties
-
-- builder:
-    name: centos-container-pipeline-service-ci-builder-tests
-    builders:
-        - shell: |
-            PYTHONPATH="`pwd`" python ./ci/cccp_ci.py
-
-- builder:
-    name: centos-container-pipeline-service-ci-cleanup-builders
-    builders:
-        - python:
-            !include-raw ./cccp_ci_cleanup.py
-
-- builder:
-    name: git-fast-forward-branch
-    builders:
-        - shell: |
-            git rebase origin/${ghprbTargetBranch}
-
-# Custom Trigger. Sets up the Github pull request trigger
-# Accepts a parameter {provider}
-- trigger:
-    name: custom-trigger
-    triggers:
-        - github-pull-request:
-            admin-list:
-              - kbsingh
-              - bamachrn
-              - dharmit
-              - navidshaikh
-              - mohammedzee1000
-              - cdrage
-            white-list:
-              - kbsingh
-              - bamachrn
-              - dharmit
-              - navidshaikh
-              - mohammedzee1000
-              - cdrage
-            build-desc-template: "build description"
-            trigger-phrase: '#dotests'
-            only-trigger-phrase: false
-            github-hooks: true
-            permit-all: false
-            auto-close-on-fail: false
-            status-context: "centos-ci tests"
-            started-status: "centos-ci test started"
-            success-status: "centos-ci test succeeded"
-            failure-status: "centos-ci test failed"
-            error-status: "centos-ci test errored"
-            build-desc-template: ''
-
-- trigger:
-    name: debug-trigger
-    triggers:
-        - github-pull-request:
-            admin-list:
-              - rtnpro
-              - kbsingh
-              - bamachrn
-              - dharmit
-              - navidshaikh
-              - mohammedzee1000
-            white-list:
-              - rtnpro
-              - kbsingh
-              - bamachrn
-              - dharmit
-              - navidshaikh
-              - mohammedzee1000
-            build-desc-template: "build description"
-            trigger-phrase: '#dotests-debug'
-            only-trigger-phrase: true
-            github-hooks: true
-            permit-all: false
-            auto-close-on-fail: false
-            status-context: "centos-ci tests"
-            started-status: "centos-ci test started"
-            success-status: "centos-ci test succeeded"
-            failure-status: "centos-ci test failed"
-            error-status: "centos-ci test errored"
-            build-desc-template: ''
-
-- scm:
-    name: custom-scm-git
-    scm:
-        - git:
-            url: https://github.com/CentOS/container-pipeline-service.git
-            git-tool: ci-git
-            wipe-workspace: false
-            skip-tag: true
-            clean:
-                after: true
-            credentials-id: 1d7dba44-5b34-42b3-886c-4d659ffb2aae
-            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
-            branches:
-                - "${sha1}"
-
 - job:
-    name: 'centos-container-pipeline-service-ci-pr'
-    node: container
-    ci_project: container
-    properties:
-        - github:
-            url: https://github.com/CentOS/container-pipeline-service/
-    builders:
-        - git-fast-forward-branch
-        - centos-container-pipeline-service-ci-builder-setup-env
-        - centos-container-pipeline-service-ci-builder-tests
-    publishers:
-        - trigger-parameterized-builds:
-            - project: 'centos-container-pipeline-service-ci-cleanup'
-              property-file: 'env.properties'
-              condition: 'ALWAYS'
-    scm:
-        - custom-scm-git
-    triggers:
-        - custom-trigger
-    wrappers:
-        - workspace-cleanup
-
-- job:
-    name: 'centos-container-pipeline-service-ci-pr-debug'
-    node: container
-    ci_project: container
-    properties:
-        - github:
-            url: https://github.com/CentOS/container-pipeline-service/
-    builders:
-        - git-fast-forward-branch
-        - centos-container-pipeline-service-ci-builder-setup-env
-        - centos-container-pipeline-service-ci-builder-tests
-    publishers:
-        - trigger-parameterized-builds:
-            - project: 'centos-container-pipeline-service-ci-cleanup'
-              property-file: 'env.properties'
-              condition: 'ALWAYS'
-    scm:
-        - custom-scm-git
-    triggers:
-        - debug-trigger
-    wrappers:
-        - workspace-cleanup
-
-- job:
-    name: 'centos-container-pipeline-service-ci-master'
-    node: container
-    primary-view: container
-    builders:
-        - centos-container-pipeline-service-ci-builder-setup-env
-        - centos-container-pipeline-service-ci-builder-tests
-    publishers:
-        - trigger-parameterized-builds:
-            - project: 'centos-container-pipeline-service-ci-cleanup'
-              property-file: 'env.properties'
-              condition: 'ALWAYS'
-    scm:
-        - git:
-            url: https://github.com/CentOS/container-pipeline-service
-            skip-tag: true
-            branch: master
-    triggers:
-      - pollscm:
-          cron: "0 0 * * *"
-          ignore-post-commit-hooks: True
-    wrappers:
-        - workspace-cleanup
-
-- job:
-    name: 'centos-container-pipeline-service-ci-cleanup'
-    node: container
-    ci_project: container
-    builders:
-        - centos-container-pipeline-service-ci-cleanup-builders
-
-- job:
-    name: centos-container-pipeline-service-container-index
+    name: 'centos-container-index-ci'
     description: |
+        This job is for running the CI jobs for the PRs raised to
+        https://github.com/centos/container-index.git
+        It runs the CI tests from the pipeline service repository
+        (https://github.com/centos/container-pipeline-service)
+
+        This job gets triggered when there is a PR raised to container-index
+        or #dotests on the raised PRs
+
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     properties:
@@ -191,23 +17,27 @@
     triggers:
         - github-pull-request:
             admin-list:
-              - rtnpro
               - kbsingh
               - bamachrn
               - mohammedzee1000
               - dharmit
               - navidshaikh
             white-list:
-              - rtnpro
               - kbsingh
               - bamachrn
               - mohammedzee1000
               - dharmit
               - navidshaikh
-            cron: '* * * * *'
-            github-hooks: false
-            permit-all: true
-
+            trigger-phrase: '#dotests'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci container-index ci tests"
+            started-status: "centos-ci container-index ci tests started"
+            success-status: "centos-ci container-index ci tests succeeded"
+            failure-status: "centos-ci container-index ci tests failed"
+            error-status: "centos-ci container-index ci tests errored"
     wrappers:
         - ansicolor
     scm:
@@ -220,32 +50,259 @@
             branches:
                 - "${ghprbactualcommit}"
     builders:
-        - git-fast-forward-branch
         - shell: |
+            git rebase origin/${ghprbTargetBranch}
             curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/cccp_ci_container_index.sh > cccp_ci_container_index.sh
             sh ./cccp_ci_container_index.sh
 
 - job:
-    name: centos-container-pipeline-service-pre-build-service-job
+    name: 'centos-container-pipeline-service-ci-pr-functional'
     description: |
+        This job is for running the functional CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service.
+
+        This job gets triggered when there is a PR raised to container-pipeline-service
+        or #dotests is commented on the raised PRs.
+
         Managed by Jenkins Job Builder, do not edit manually!
     node: container
     properties:
         - github:
-            url: https://github.com/CentOS/container-index
+            url: https://github.com/CentOS/container-pipeline-service
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            trigger-phrase: '#dotests'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci functional tests"
+            started-status: "centos-ci functional tests started"
+            success-status: "centos-ci functional tests succeeded"
+            failure-status: "centos-ci functional tests failed"
+            error-status: "centos-ci functional tests errored"
+    wrappers:
+        - ansicolor
     scm:
         - git:
-            url: https://github.com/CentOS/container-index.git
+            url: https://github.com/CentOS/container-pipeline-service.git
             skip-tag: True
             git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
             branches:
-              - "master"
+                - "${ghprbactualcommit}"
     builders:
         - shell: |
-            git pull --rebase origin master
-            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/pre_build/cccp_index_pre_build_check.py > cccp_index_pre_build_check.py
-            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/pre_build/pre-build-job.yml > pre-build-job.yml
-            python cccp_index_pre_build_check.py index.d
-            while read config_file; do
-              jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini update $config_file
-            done <job_template_list.txt
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            CI_DEBUG=0
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
+            else
+              echo "PR's target branch is not openshift."
+            fi
+
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-functional-debug'
+    description: |
+        This job is for running the functional CI debug jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service.
+
+        This job triggers when #dotests-debug is commented on a PR. If the functional CI job fails, it keeps the duffy nodes for 2 hours before releasing, so that the devs can debug.
+
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            trigger-phrase: '#dotests-debug'
+            only-trigger-phrase: true
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci functional-debug tests"
+            started-status: "centos-ci functional-debug tests started"
+            success-status: "centos-ci functional-debug tests succeeded"
+            failure-status: "centos-ci functional-debug tests failed"
+            error-status: "centos-ci functional-debug tests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${ghprbactualcommit}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            CI_DEBUG=1
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
+            else
+              echo "PRs target branch is not openshift."
+            fi
+
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-unittests'
+    description: |
+        This job is for running the unit tests CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service
+
+        This job gets triggered when there is a PR raised to container-pipeline-service
+        or #dotests-unittests on the raised PRs
+
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            trigger-phrase: '#dotests-unittests'
+            only-trigger-phrase: false
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci unittests"
+            started-status: "centos-ci unittests started"
+            success-status: "centos-ci unittests succeeded"
+            failure-status: "centos-ci unittests failed"
+            error-status: "centos-ci unittests errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${ghprbactualcommit}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            CI_DEBUG=0
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
+            else
+              echo "PR's target branch is not openshift."
+            fi
+
+- job:
+    name: 'centos-container-pipeline-service-ci-pr-unittests-debug'
+    description: |
+        This job is for running the unit tests CI jobs for the PRs raised to
+        https://github.com/centos/container-pipeline-service.
+
+        This job triggers when #dotests-unittests-debug is commented on a PR. If the unittests CI job fails, it keep the duff node(s) for 2 hours before releasing, so that the devs can debug.
+
+        Managed by Jenkins Job Builder, do not edit manually!
+    node: container
+    properties:
+        - github:
+            url: https://github.com/CentOS/container-pipeline-service
+    triggers:
+        - github-pull-request:
+            admin-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            white-list:
+                - kbsingh
+                - bamachrn
+                - dharmit
+                - navidshaikh
+                - mohammedzee1000
+            trigger-phrase: '#dotests-unittests-debug'
+            only-trigger-phrase: true
+            github-hooks: true
+            permit-all: false
+            auto-close-on-fail: false
+            status-context: "centos-ci unittests-debug"
+            started-status: "centos-ci unittests-debug started"
+            success-status: "centos-ci unittests-debug succeeded"
+            failure-status: "centos-ci unittests-debug failed"
+            error-status: "centos-ci unittests-debug errored"
+    wrappers:
+        - ansicolor
+    scm:
+        - git:
+            url: https://github.com/CentOS/container-pipeline-service.git
+            skip-tag: True
+            git-tool: ci-git
+            branches: master
+            refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+            branches:
+                - "${ghprbactualcommit}"
+    builders:
+        - shell: |
+            echo ${sha1}
+            echo ${GIT_URL}
+            echo ${GIT_BRANCH}
+            CI_DEBUG=1
+            if [ ${ghprbTargetBranch} == "openshift" ]
+            then
+              git rebase origin/${ghprbTargetBranch}
+              bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
+            else
+              echo "PR's target branch is not openshift."
+            fi

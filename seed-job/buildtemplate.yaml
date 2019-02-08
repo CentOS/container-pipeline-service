@@ -1,0 +1,170 @@
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "container-index-seed-pipeline"
+objects:
+  - apiVersion: "v1"
+    kind: "BuildConfig"
+    metadata:
+        name: seed-job
+    spec:
+      source:
+        type: Git
+        git:
+          uri: ${CONTAINER_INDEX_REPO}
+          ref: ${CONTAINER_INDEX_BRANCH}
+        contextDir: "seed-job"
+      strategy:
+        type: "JenkinsPipeline"
+        jenkinsPipelineStrategy:
+          jenkinsfile: |
+            properties([
+                pipelineTriggers([
+                    pollSCM('H/10 * * * *')
+                ])
+            ])
+            podTemplate(
+                cloud: 'openshift',
+                name: 'ccp-pipeline-seed',
+                label: 'ccp-pipeline-seed',
+                namespace: '${NAMESPACE}',
+                serviceAccount: 'jenkins',
+                containers: [
+                  containerTemplate(
+                    name: 'jnlp',
+                    image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
+                    ttyEnabled: true,
+                    alwaysPullImage: true,
+                    workingDir: '/tmp',
+                    privileged: true,
+                    args: '${computer.jnlpmac} ${computer.name}',
+                    resourceRequestCpu: '${SEED_JOB_CPU}',
+                    resourceRequestMemory: '${SEED_JOB_MEMORY}'
+                  )
+                ],
+            )
+            {
+                node ('ccp-pipeline-seed'){
+                    stage('Checkout Sources') {
+                        dir("${CONTAINER_INDEX_DIR}") {
+                            git url: '${CONTAINER_INDEX_REPO}', branch: '${CONTAINER_INDEX_BRANCH}'
+                        }
+                    }
+                    stage('Parse index') {
+                        dir("${PIPELINE_REPO_DIR}") {
+                            sh "PYTHONPATH=${PIPELINE_REPO_DIR} python ccp/index_reader.py ${CONTAINER_INDEX_DIR}/index.d ${REGISTRY_URL} ${NAMESPACE} ${FROM_ADDRESS} ${SMTP_SERVER} ${BATCH_SIZE} ${BATCH_POLLING_INTERVAL} ${BATCH_OUTSTANDING_BUILDS_CAP} ${CCP_OPENSHIFT_SLAVE_IMAGE} ${NOTIFY_CC_EMAILS} ${REGISTRY_ALIAS} ${MASTER_JOB_CPU} ${MASTER_JOB_MEMORY}"
+                        }
+                    }
+                }
+            }
+          env:
+          - name: CONTAINER_INDEX_REPO
+            value: ${CONTAINER_INDEX_REPO}
+          - name: CONTAINER_INDEX_BRANCH
+            value: ${CONTAINER_INDEX_BRANCH}
+          - name: REGISTRY_URL
+            value: ${REGISTRY_URL}
+          - name: PIPELINE_REPO_DIR
+            value: ${PIPELINE_REPO_DIR}
+          - name: NAMESPACE
+            value: ${NAMESPACE}
+          - name: BATCH_SIZE
+            value: ${BATCH_SIZE}
+          - name: BATCH_POLLING_INTERVAL
+            value: ${BATCH_POLLING_INTERVAL}
+          - name: BATCH_OUTSTANDING_BUILDS_CAP
+            value: ${BATCH_OUTSTANDING_BUILDS_CAP}
+          - name: NOTIFY_CC_EMAILS
+            value: ${NOTIFY_CC_EMAILS}
+          - name: REGISTRY_ALIAS
+            value: ${REGISTRY_ALIAS}
+      triggers:
+          - type: ConfigChange
+parameters:
+- description: URL of the registry to which image is to be pushed
+  name: REGISTRY_URL
+  displayName: Registry URL
+- description: "Container Index to use"
+  displayName: Container Index
+  name: CONTAINER_INDEX_REPO
+  required: true
+  value: https://github.com/dharmit/ccp-openshift-index
+- description: "Container Index branch to use"
+  displayName: Container Index branch
+  name: CONTAINER_INDEX_BRANCH
+  required: true
+  value: master
+- description: Directory where Pipeline service code is present in slave container
+  displayName: Pipeline repo directory
+  name: PIPELINE_REPO_DIR
+  required: true
+  value: /opt/ccp-openshift
+- description: Directory where container index is to be cloned
+  displayName: Container index directory
+  name: CONTAINER_INDEX_DIR
+  required: true
+  value: /tmp/container-index
+- description: Namespace to which the resulting Jenkins Pipelines should belong
+  displayName: OpenShift namespace
+  name: NAMESPACE
+  required: true
+- description: From address to be used when sending email
+  displayName: From email address
+  name: FROM_ADDRESS
+  required: true
+- description: Comma separated email addresses to add in Cc
+  displayName: Notification Cc emails
+  name: NOTIFY_CC_EMAILS
+  required: false
+  value: "null"
+- description: SMTP server to use to send emails
+  displayName: SMTP server address
+  name: SMTP_SERVER
+  required: true
+- description: Registry alias to be referenced in email subject and body instead of actual REGISTRY_URL
+  displayName: Registry alias to be referenced in email subject and body
+  name: REGISTRY_ALIAS
+  required: false
+  value: "null"
+- description: Number of builds to process in a batch
+  displayName: Size of batch
+  name: BATCH_SIZE
+  required: true
+  value: "5"
+- description: Polling interval (in seconds) between two batches to check if any builds are outstanding
+  displayName: Polling interval between two batches for check of outstanding build(s)
+  name: BATCH_POLLING_INTERVAL
+  required: true
+  value: "30"
+- description: 'Maximum number of outstanding builds cap before starting next batch.
+                For example setting this to three causes the next batch to be processed
+                if there are at most three builds being processed on OpenShift.'
+  displayName: Maximum outstanding builds cap before scheduling next batch
+  name: BATCH_OUTSTANDING_BUILDS_CAP
+  required: true
+  value: "3"
+- description: ccp-openshift-slave container image name (with registry name)
+  displayName: ccp-openshift-slave container image
+  name: CCP_OPENSHIFT_SLAVE_IMAGE
+  required: true
+  value: registry.centos.org/pipeline-images/ccp-openshift-slave:latest
+- description: Number of CPUs to be requested from OpenShift to start seed-job slave pod
+  displayName: seed job CPU
+  name: SEED_JOB_CPU
+  required: true
+  value: "1"
+- description: Amount of memory to be requested from OpenShift to start seed-job slave pod
+  displayName: seed job memory
+  name: SEED_JOB_MEMORY
+  required: true
+  value: 1Gi
+- description: Number of CPUs to be requested from OpenShift to start master-job slave pod
+  displayName: master job CPU
+  name: MASTER_JOB_CPU
+  required: true
+  value: "1"
+- description: Amount of memory to be requested from OpenShift to start master-job slave pod
+  displayName: master job memory
+  name: MASTER_JOB_MEMORY
+  required: true
+  value: 1Gi

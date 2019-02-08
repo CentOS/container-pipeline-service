@@ -1,0 +1,17 @@
+# Move to top level if used by other people
+apiVersion: "v1"
+kind: "Template"
+metadata:
+  name: "os-master-config"
+objects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: os-master-config
+    data:
+      url: ${OS_MASTER_URL}
+parameters:
+  - description: The URL of OpenShift master, including https and port
+    displayName: Openshift Master URL
+    name: OS_MASTER_URL
+    required: true
