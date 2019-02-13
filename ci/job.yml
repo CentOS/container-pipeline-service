@@ -110,13 +110,8 @@
             echo ${GIT_URL}
             echo ${GIT_BRANCH}
             CI_DEBUG=0
-            if [ ${ghprbTargetBranch} == "openshift" ]
-            then
-              git rebase origin/${ghprbTargetBranch}
-              sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
-            else
-              echo "PR's target branch is not openshift."
-            fi
+            git rebase origin/${ghprbTargetBranch}
+            sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
 
 
 - job:
@@ -173,13 +168,8 @@
             echo ${GIT_URL}
             echo ${GIT_BRANCH}
             CI_DEBUG=1
-            if [ ${ghprbTargetBranch} == "openshift" ]
-            then
-              git rebase origin/${ghprbTargetBranch}
-              sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
-            else
-              echo "PRs target branch is not openshift."
-            fi
+            git rebase origin/${ghprbTargetBranch}
+            sh ci/ccp_ci_functional.sh ${GIT_URL} ${GIT_BRANCH} ${sha1} ${CI_DEBUG}
 
 
 - job:
@@ -237,13 +227,8 @@
             echo ${GIT_URL}
             echo ${GIT_BRANCH}
             CI_DEBUG=0
-            if [ ${ghprbTargetBranch} == "openshift" ]
-            then
-              git rebase origin/${ghprbTargetBranch}
-              bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
-            else
-              echo "PR's target branch is not openshift."
-            fi
+            git rebase origin/${ghprbTargetBranch}
+            bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
 
 - job:
     name: 'centos-container-pipeline-service-ci-pr-unittests-debug'
@@ -299,10 +284,5 @@
             echo ${GIT_URL}
             echo ${GIT_BRANCH}
             CI_DEBUG=1
-            if [ ${ghprbTargetBranch} == "openshift" ]
-            then
-              git rebase origin/${ghprbTargetBranch}
-              bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
-            else
-              echo "PR's target branch is not openshift."
-            fi
+            git rebase origin/${ghprbTargetBranch}
+            bash ci/ccp_ci_unittests.sh ${CI_DEBUG}
