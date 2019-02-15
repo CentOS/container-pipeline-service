@@ -3,10 +3,11 @@
 from ccp.apis.v1.ccp_server.models.projects import Projects
 from ccp.apis.v1.ccp_server.models.project import Project
 from ccp.lib.clients.openshift.client import OpenShiftCmdClient
+from ccp.apis.v1.ccp_server.backend.index_update_checker import \
+    check_index_seed_job_update
 from ccp.apis.v1.ccp_server.env_config import *
 from ccp.apis.v1.ccp_server import meta_obj
 from ccp.index_reader import IndexReader
-from ccp.lib.clients.git.client import GitClient
 from os import path
 from shutil import rmtree
 
@@ -23,11 +24,7 @@ def response(namespace):
         )
     )
     """
-    gc = GitClient(
-        git_url=INDEX_GIT_URL,
-        git_branch=INDEX_GIT_BRANCH
-    )
-    gc.fresh_clone()
+    check_index_seed_job_update(namespace=namespace)
     index_location = path.join(gc.actual_clone_location, "index.d")
     ir = IndexReader(index_location, namespace)
     projects = []
