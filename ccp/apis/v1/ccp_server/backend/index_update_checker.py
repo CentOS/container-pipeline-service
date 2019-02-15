@@ -28,7 +28,7 @@ def check_index_seed_job_update(namespace):
         namespace,
         "seed-job"
     )
-    last_build_details = ojbi.get_build_info(
+    last_build_details = ojbi.get_build_status(
         ordered_job_list=[namespace,job_name],
         build_number="lastBuild"
     )
