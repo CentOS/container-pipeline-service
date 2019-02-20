@@ -1,5 +1,5 @@
 - job:
-    name: 'centos-container-pipeline-service-job-openshift'
+    name: 'centos-container-pipeline-service-job'
     description: |
         This job is a service job for managing all the CI jobs from container-pipeline-service https://github.com/centos/container-pipeline-service
 
@@ -20,7 +20,7 @@
             url: https://github.com/CentOS/container-pipeline-service.git
             skip-tag: True
             branches:
-                - openshift
+                - master
     builders:
         - shell: |
             jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini update ci/job.yml
