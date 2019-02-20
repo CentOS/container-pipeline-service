@@ -169,7 +169,7 @@ objects:
                         // we need to make sure the image is removed in either case
                         stage('Remove the image') {
                           // don't fail the pipeline if image removal failed due to some error
-                          sh (script: "docker rmi ${image_name_with_registry}; docker rmi ${image_name_with_registry}", returnStatus: true)
+                          sh (script: "buildah rmi ${image_name_with_registry}; buildah rmi ${image_name_with_registry}", returnStatus: true)
                           def output = sh(returnStdout:true, script: "docker rmi ${base_image_name} > image-remove 2>&1", returnStatus: true)
                           sh "cat image-remove"
                           sh(script: "docker rmi `docker images -q -f dangling=true`", returnStatus: true)
