@@ -19,6 +19,8 @@ def get_latest_index():
     return "index updated"
 
 def check_index_seed_job_update(namespace):
+    return get_latest_index()
+"""
     ojbi = OpenshiftJenkinsBuildInfo(
         JENKINS_URL,
         token_from_mount=SERVICE_ACCOUNT_SECRET_MOUNT_PATH,
@@ -47,4 +49,4 @@ def check_index_seed_job_update(namespace):
             return get_latest_index()
     except:
         return "could not update index"
-
+"""
