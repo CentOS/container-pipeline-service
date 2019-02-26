@@ -42,9 +42,4 @@ def response(namespace):
         projects=projects
     )
 
-    try:
-        rmtree(gc.actual_clone_location)
-    except OSError as e:
-        print ("Error: {} - {}".format(e.filename, e.strerror))
-
     return projects_in_namespace
