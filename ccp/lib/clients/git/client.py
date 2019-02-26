@@ -27,7 +27,7 @@ class GitClient(CmdClient):
         run_command_exception_on_stderr(cmd=cmd, shell=True)
 
     def checkout_branch(self):
-        if path.exists(self.clone_location):
+        if path.exists(path.join(self.clone_location,".git")):
             get_back = getcwd()
             chdir(self.clone_location)
             cmd1 = "{base_command} fetch --all".format(
@@ -56,7 +56,7 @@ class GitClient(CmdClient):
             chdir(get_back)
 
     def pull_remote(self):
-        if path.exists(self.clone_location):
+        if path.exists(path.join(self.clone_location,".git")):
             self.checkout_branch()
             get_back = getcwd()
             chdir(self.clone_location)
