@@ -25,7 +25,7 @@ def response(namespace):
     )
     """
     check_index_seed_job_update(namespace=namespace)
-    index_location = path.join(gc.actual_clone_location, "index.d")
+    index_location = path.join(INDEX_CLONE_LOCATION, "index.d")
     ir = IndexReader(index_location, namespace)
     projects = []
     prjs = ir.read_projects()
