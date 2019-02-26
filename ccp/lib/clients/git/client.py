@@ -40,7 +40,7 @@ class GitClient(CmdClient):
             no_err = str.format(
                 "Cloning into '{}'...\n", self.clone_location
             )
-            if e and e != no_err.decode('UTF-8'):
+            if e and e != no_err:
                 raise CommandOutputError(e)
             #need to fix this properly git checkout sends the output to
             #stderr, but it can result in missing on actual error
