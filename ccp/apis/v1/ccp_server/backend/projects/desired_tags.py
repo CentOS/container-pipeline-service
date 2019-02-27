@@ -56,11 +56,6 @@ def response(namespace, app_id, job_id):
                              build_status=build_status)
         ajtds.append(ajtd)
 
-    try:
-        rmtree(gc.actual_clone_location)
-    except OSError as e:
-        print ("Error: {} - {}".format(e.filename, e.strerror))
-
     return AppIdJobIdTags(
         meta=meta_obj(), app_id=app_id,
         job_id=job_id, tags=ajtds
