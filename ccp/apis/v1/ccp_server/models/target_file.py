@@ -18,7 +18,7 @@ class TargetFile(Model):
 
     def __init__(self, meta: Meta=None, prebuild: bool=None,
                  target_file_path: str=None, source_repo: str=None,
-                 source_branch: str=None):  # noqa: E501
+                 source_branch: str=None, latest_build_number: str=None):  # noqa: E501
         """TargetFile - a model defined in Swagger
 
         :param meta: The meta of this TargetFile.  # noqa: E501
@@ -31,13 +31,16 @@ class TargetFile(Model):
         :type source_repo: str
         :param source_branch: The source_branch of this TargetFile.  # noqa: E501
         :type source_branch: str
+        :param latest_build_number: The latest_build_number of this TargetFile.  # noqa: E501
+        :type latest_build_number: str
         """
         self.swagger_types = {
             'meta': Meta,
             'prebuild': bool,
             'target_file_path': str,
             'source_repo': str,
-            'source_branch': str
+            'source_branch': str,
+            'latest_build_number': str
         }
 
         self.attribute_map = {
@@ -45,7 +48,8 @@ class TargetFile(Model):
             'prebuild': 'prebuild',
             'target_file_path': 'target_file_path',
             'source_repo': 'source_repo',
-            'source_branch': 'source_branch'
+            'source_branch': 'source_branch',
+            'latest_build_number': 'latest_build_number'
         }
 
         self._meta = meta
@@ -53,6 +57,7 @@ class TargetFile(Model):
         self._target_file_path = target_file_path
         self._source_repo = source_repo
         self._source_branch = source_branch
+        self._latest_build_number = latest_build_number
 
     @classmethod
     def from_dict(cls, dikt) -> 'TargetFile':
@@ -169,3 +174,24 @@ class TargetFile(Model):
         """
 
         self._source_branch = source_branch
+
+    @property
+    def latest_build_number(self) -> str:
+        """Gets the latest_build_number of this TargetFile.
+
+
+        :return: The latest_build_number of this TargetFile.
+        :rtype: str
+        """
+        return self._latest_build_number
+
+    @latest_build_number.setter
+    def latest_build_number(self, latest_build_number: str):
+        """Sets the latest_build_number of this TargetFile.
+
+
+        :param latest_build_number: The latest_build_number of this TargetFile.
+        :type latest_build_number: str
+        """
+
+        self._latest_build_number = latest_build_number

@@ -15,7 +15,7 @@ from ccp.apis.v1.ccp_server.backend.builds.build_logs import response as\
     build_logs_response
 
 
-def project_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: E501
+def project_build_logs(namespace, app_id, job_id, desired_tag, build_number):  # noqa: E501
     """Build logs for given build number
 
     Build logs for given build number of the project # noqa: E501
@@ -28,8 +28,8 @@ def project_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: 
     :type job_id: str
     :param desired_tag: desired-tag of the project
     :type desired_tag: str
-    :param build: build number
-    :type build: str
+    :param build_number: build number
+    :type build_number: str
 
     :rtype: BuildLogs
     """
@@ -38,7 +38,7 @@ def project_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: 
         appid=app_id,
         jobid=job_id,
         desired_tag=desired_tag,
-        build=build
+        build_number=build_number
     )
 
 
@@ -66,7 +66,7 @@ def project_builds(namespace, app_id, job_id, desired_tag):  # noqa: E501
     )
 
 
-def project_wscan_build_logs(namespace, app_id, job_id, desired_tag, build):  # noqa: E501
+def project_wscan_build_logs(namespace, app_id, job_id, desired_tag, build_number):  # noqa: E501
     """Weekly scan logs for given wscan-build number
 
     Weekly scan logs for given wscan-build number of the # noqa: E501
@@ -79,8 +79,8 @@ def project_wscan_build_logs(namespace, app_id, job_id, desired_tag, build):  # 
     :type job_id: str
     :param desired_tag: desired-tag of the project
     :type desired_tag: str
-    :param build: build number
-    :type build: str
+    :param build_number: build number
+    :type build_number: str
 
     :rtype: WeeklyScanLogs
     """
