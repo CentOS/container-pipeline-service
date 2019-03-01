@@ -8,6 +8,8 @@ from shutil import rmtree
 
 from ccp.apis.v1.ccp_server.backend.index_update_checker import \
     check_index_seed_job_update
+from ccp.lib.processors.pipeline_information.builds import \
+    OpenshiftJenkinsBuildInfo
 from ccp.apis.v1.ccp_server.env_config import *
 
 def response(namespace, app_id, job_id, desired_tag):
@@ -17,7 +19,19 @@ def response(namespace, app_id, job_id, desired_tag):
     index_location = path.join(INDEX_CLONE_LOCATION, "index.d")
     ir = IndexReader(index_location, namespace)
     prjs = ir.read_projects()
+    job_name =  Project.pipeline_name(
+        app_id=appid, job_id=jobid, desired_tag=desired_tag
+    )
 
+    latest_build_number = ojbi.get_latest_build_number(
+        ordered_job_list=[
+            namespace,
+            "{}-{}".format(
+                namespace,
+                job_name
+            )
+        ]
+    )
     target_file_path = ""
     source_repo = ""
     source_branch = ""
@@ -44,5 +58,5 @@ def response(namespace, app_id, job_id, desired_tag):
     return TargetFile(
         meta=meta_obj(), prebuild=pre_build_exists,
         target_file_path=target_file_path, source_repo=source_repo,
-        source_branch = source_branch
+        source_branch = source_branch, latest_build_number=latest_build_number
     )
