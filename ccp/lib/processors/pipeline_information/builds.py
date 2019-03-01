@@ -150,7 +150,7 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         return builds
 
     def get_latest_build_number(self, ordered_job_list, test_data_set=None):
-         """
+        """
         Gets the latest build number for the projects
         :param ordered_job_list: The ordered list of jobs, with parents,
         followed by children
