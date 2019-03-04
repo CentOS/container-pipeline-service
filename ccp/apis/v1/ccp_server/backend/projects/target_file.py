@@ -22,7 +22,11 @@ def response(namespace, app_id, job_id, desired_tag):
     job_name =  Project.pipeline_name(
         app_id=appid, job_id=jobid, desired_tag=desired_tag
     )
-
+    ojbi = OpenshiftJenkinsBuildInfo(
+        JENKINS_URL,
+        token_from_mount=SERVICE_ACCOUNT_SECRET_MOUNT_PATH,
+        namespace=namespace
+    )
     latest_build_number = ojbi.get_latest_build_number(
         ordered_job_list=[
             namespace,
