@@ -32,6 +32,10 @@ def response(namespace, app_id, job_id, desired_tag):
             )
         ]
     )
+
+    if not latest_build_number:
+        latest_build_number="0"
+
     target_file_path = ""
     source_repo = ""
     source_branch = ""
