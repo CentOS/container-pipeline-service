@@ -150,16 +150,6 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
         return builds
 
     def get_latest_build_number(self, ordered_job_list, test_data_set=None):
-        """
-        Gets the latest build number for the projects
-        :param ordered_job_list: The ordered list of jobs, with parents,
-        followed by children
-        :type ordered_job_list: Union[list, str]
-        :param test_data_set: data set to be used for test run
-        :type test_data_set: list
-        :return: A number representing latest build for the project
-        None is return in case of failure
-        """
         build_number = None
         if not self.test:
             data_set = self.response_data(
