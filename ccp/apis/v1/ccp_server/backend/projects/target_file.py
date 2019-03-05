@@ -20,7 +20,7 @@ def response(namespace, app_id, job_id, desired_tag):
     ir = IndexReader(index_location, namespace)
     prjs = ir.read_projects()
     job_name =  Project.pipeline_name(
-        app_id=appid, job_id=jobid, desired_tag=desired_tag
+        app_id=app_id, job_id=job_id, desired_tag=desired_tag
     )
     ojbi = OpenshiftJenkinsBuildInfo(
         JENKINS_URL,
