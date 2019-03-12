@@ -27,7 +27,7 @@ def response(namespace, app_id, job_id, desired_tag):
         token_from_mount=SERVICE_ACCOUNT_SECRET_MOUNT_PATH,
         namespace=namespace
     )
-    latest_build_number = ojbi.get_latest_build_number(
+    latest_build_number = str(ojbi.get_latest_build_number(
         ordered_job_list=[
             namespace,
             "{}-{}".format(
@@ -35,7 +35,7 @@ def response(namespace, app_id, job_id, desired_tag):
                 job_name
             )
         ]
-    )
+    ))
 
     if not latest_build_number:
         latest_build_number="0"
