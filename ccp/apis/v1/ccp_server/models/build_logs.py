@@ -8,7 +8,7 @@ from typing import List, Dict  # noqa: F401
 from ccp.apis.v1.ccp_server.models.base_model_ import Model
 from ccp.apis.v1.ccp_server.models.meta import Meta  # noqa: F401,E501
 from ccp.apis.v1.ccp_server.models.prebuild_lint_build_scan_logs import \
-    PrebuildLintBuildScanLogs  # noqa: F401,E501
+        PrebuildLintBuildScanLogs  # noqa: F401,E501
 from ccp.apis.v1.ccp_server import util
 
 
@@ -18,16 +18,15 @@ class BuildLogs(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta = None, build: str = None,
-                 pre_build: bool = None, status: str = None,
-                 failed_stage: str = None,
-                 logs: PrebuildLintBuildScanLogs = None):  # noqa: E501
+    def __init__(self, meta: Meta=None, build_number: str=None,
+                 pre_build: bool=None, status: str=None,
+                 failed_stage: str=None, logs: PrebuildLintBuildScanLogs=None):  # noqa: E501
         """BuildLogs - a model defined in Swagger
 
         :param meta: The meta of this BuildLogs.  # noqa: E501
         :type meta: Meta
-        :param build: The build of this BuildLogs.  # noqa: E501
-        :type build: str
+        :param build_number: The build_number of this BuildLogs.  # noqa: E501
+        :type build_number: str
         :param pre_build: The pre_build of this BuildLogs.  # noqa: E501
         :type pre_build: bool
         :param status: The status of this BuildLogs.  # noqa: E501
@@ -39,7 +38,7 @@ class BuildLogs(Model):
         """
         self.swagger_types = {
             'meta': Meta,
-            'build': str,
+            'build_number': str,
             'pre_build': bool,
             'status': str,
             'failed_stage': str,
@@ -48,7 +47,7 @@ class BuildLogs(Model):
 
         self.attribute_map = {
             'meta': 'meta',
-            'build': 'build',
+            'build_number': 'build_number',
             'pre_build': 'pre-build',
             'status': 'status',
             'failed_stage': 'failed-stage',
@@ -56,7 +55,7 @@ class BuildLogs(Model):
         }
 
         self._meta = meta
-        self._build = build
+        self._build_number = build_number
         self._pre_build = pre_build
         self._status = status
         self._failed_stage = failed_stage
@@ -95,25 +94,25 @@ class BuildLogs(Model):
         self._meta = meta
 
     @property
-    def build(self) -> str:
-        """Gets the build of this BuildLogs.
+    def build_number(self) -> str:
+        """Gets the build_number of this BuildLogs.
 
 
-        :return: The build of this BuildLogs.
+        :return: The build_number of this BuildLogs.
         :rtype: str
         """
-        return self._build
+        return self._build_number
 
-    @build.setter
-    def build(self, build: str):
-        """Sets the build of this BuildLogs.
+    @build_number.setter
+    def build_number(self, build_number: str):
+        """Sets the build_number of this BuildLogs.
 
 
-        :param build: The build of this BuildLogs.
-        :type build: str
+        :param build_number: The build_number of this BuildLogs.
+        :type build_number: str
         """
 
-        self._build = build
+        self._build_number = build_number
 
     @property
     def pre_build(self) -> bool:

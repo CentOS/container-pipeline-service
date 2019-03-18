@@ -9,6 +9,8 @@ from ccp.apis.v1.ccp_server.models.target_file import\
     TargetFile  # noqa: E501
 from ccp.apis.v1.ccp_server.backend.projects.desired_tags import\
     response as desiredtag_response
+from ccp.apis.v1.ccp_server.backend.projects.target_file import\
+    response as target_file_response
 from ccp.apis.v1.ccp_server import util
 
 
@@ -65,4 +67,5 @@ def project_target_file(namespace, app_id, job_id, desired_tag):  # noqa: E501
 
     :rtype: TargetFile
     """
-    return 'do some magic!'
+    return target_file_response(namespace=namespace, app_id=app_id,
+                                job_id=job_id, desired_tag=desired_tag)

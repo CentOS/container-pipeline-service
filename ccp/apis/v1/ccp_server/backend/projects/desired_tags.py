@@ -6,10 +6,12 @@ from ccp.apis.v1.ccp_server.models.app_id_job_id_tags import\
 from ccp.apis.v1.ccp_server.models.app_id_job_id_tag import\
     AppIdJobIdTag
 from ccp.index_reader import Project, IndexReader
-from ccp.lib.clients.git.client import GitClient
 from os import path
+from shutil import rmtree
 from ccp.lib.processors.pipeline_information.builds import \
     OpenshiftJenkinsBuildInfo
+from ccp.apis.v1.ccp_server.backend.index_update_checker import \
+    check_index_seed_job_update
 from ccp.apis.v1.ccp_server.env_config import *
 
 
@@ -22,12 +24,8 @@ def response(namespace, app_id, job_id):
         namespace=namespace
     )
 
-    gc = GitClient(
-        git_url=INDEX_GIT_URL,
-        git_branch=INDEX_GIT_BRANCH
-    )
-    gc.fresh_clone()
-    index_location = path.join(gc.actual_clone_location, "index.d")
+    check_index_seed_job_update(namespace=namespace)
+    index_location = path.join(INDEX_CLONE_LOCATION, "index.d")
     ir = IndexReader(index_location, namespace)
     prjs = ir.read_projects()
     tags = []
