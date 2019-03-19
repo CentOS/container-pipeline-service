@@ -8,8 +8,10 @@ from ccp.apis.v1.ccp_server.models.prebuild_lint_build_scan_logs import \
 from ccp.apis.v1.ccp_server.models.scanner_logs import ScannerLogs
 from ccp.apis.v1.ccp_server.models.all_scanner_logs import AllScannerLogs
 from ccp.index_reader import Project, IndexReader
-from ccp.lib.clients.git.client import GitClient
+from ccp.apis.v1.ccp_server.backend.index_update_checker import \
+    check_index_seed_job_update
 from os import path
+from shutil import rmtree
 from ccp.apis.v1.ccp_server.env_config import *
 
 from typing import List, Dict  # noqa: F401
@@ -37,7 +39,7 @@ def process_log(log_obj, stage):
     return logs
 
 
-def response(namespace, appid, jobid, desired_tag, build):
+def response(namespace, appid, jobid, desired_tag, build_number):
     """
     """
     ojbi = OpenshiftJenkinsBuildInfo(
@@ -58,15 +60,11 @@ def response(namespace, appid, jobid, desired_tag, build):
             namespace,
             jenkins_job_name
         ],
-        build_number=build
+        build_number=build_number
     )
 
-    gc = GitClient(
-        git_url=INDEX_GIT_URL,
-        git_branch=INDEX_GIT_BRANCH
-    )
-    gc.fresh_clone()
-    index_location = path.join(gc.actual_clone_location, "index.d")
+    check_index_seed_job_update(namespace=namespace)
+    index_location = path.join(INDEX_CLONE_LOCATION, "index.d")
     ir = IndexReader(index_location, namespace)
     prjs = ir.read_projects()
     prebuild_exists = False
@@ -75,6 +73,10 @@ def response(namespace, appid, jobid, desired_tag, build):
                 p.desired_tag == desired_tag:
             prebuild_exists = p.pre_build_context and p.pre_build_script
             break
+
+    if not prebuild_exists:
+        prebuild_exists=False
+
     prebuild_logs = process_log(logs_info, "Prebuild source repo") if \
         prebuild_exists else "Prebuild not requested"
     lint_logs = process_log(logs_info, "Lint the Dockerfile")
@@ -94,6 +96,7 @@ def response(namespace, appid, jobid, desired_tag, build):
         build=str(build_logs),
         scan=all_scan_logs
     )
+
     return BuildLogs(
         meta=meta_obj(),
         pre_build=prebuild_exists,
@@ -102,7 +105,7 @@ def response(namespace, appid, jobid, desired_tag, build):
                 namespace,
                 jenkins_job_name
             ],
-            build_number=build
+            build_number=build_number
         ),
         failed_stage="TODO",
         logs=logs

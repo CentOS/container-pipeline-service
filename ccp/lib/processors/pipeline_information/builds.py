@@ -149,6 +149,20 @@ class OpenshiftJenkinsBuildInfo(JSONQueryProcessor):
             builds[r["name"]] = r["status"]
         return builds
 
+    def get_latest_build_number(self, ordered_job_list, test_data_set=None):
+        build_number = None
+        if not self.test:
+            data_set = self.response_data(
+                self.jenkins_core_client.get_build_info(
+                    ordered_job_list, "lastBuild"
+                )
+            )
+        else:
+            data_set = test_data_set
+        if data_set:
+            build_number = data_set.get("number")
+        return build_number
+
     def get_builds_count(self, ordered_job_list, test_data_set=None):
         """
         Get the count of build in the project. Helps in deciding id to query.

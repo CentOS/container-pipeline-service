@@ -27,6 +27,8 @@ RUN useradd -r -u 1001 -g 0 apirunner && chown -R 1001:0 /opt/container-pipeline
 
 WORKDIR /opt/container-pipeline-service/ccp/apis/v1/
 
+RUN mkdir -p /var/index/repo && chmod 777 /var/index/repo
+
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/bin/python3"]

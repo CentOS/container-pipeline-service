@@ -243,7 +243,7 @@ paths:
           schema:
             $ref: "#/definitions/WeeklyScanBuildsInfo"
       x-swagger-router-controller: "ccp_server.controllers.builds_controller"
-  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/builds/{build}/logs:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/builds/{build_number}/logs:
     get:
       tags:
       - "builds"
@@ -271,7 +271,7 @@ paths:
         description: "desired-tag of the project"
         required: true
         type: "string"
-      - name: "build"
+      - name: "build_number"
         in: "path"
         description: "build number"
         required: true
@@ -282,7 +282,7 @@ paths:
           schema:
             $ref: "#/definitions/BuildLogs"
       x-swagger-router-controller: "ccp_server.controllers.builds_controller"
-  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/wscan-builds/{build}/logs:
+  /namespaces/{namespace}/app-ids/{app_id}/job-ids/{job_id}/desired-tags/{desired_tag}/wscan-builds/{build_number}/logs:
     get:
       tags:
       - "builds"
@@ -310,7 +310,7 @@ paths:
         description: "desired-tag of the project"
         required: true
         type: "string"
-      - name: "build"
+      - name: "build_number"
         in: "path"
         description: "build number"
         required: true
@@ -493,9 +493,15 @@ definitions:
         $ref: "#/definitions/Meta"
       prebuild:
         type: "boolean"
-      target_file_link:
+      target_file_path:
         type: "string"
-    title: "Link to target Dockerfile"
+      source_repo:
+        type: "string"
+      source_branch:
+        type: "string"
+      latest_build_number:
+        type: "string"
+    title: "Targetfile and sourcerepo details"
     description: "Link to target Dockerfile for given project, also return boolean\
       \ if project has prebuild defined"
     example:
@@ -503,7 +509,10 @@ definitions:
       meta:
         apiVersion: "apiVersion"
         timestamp: "timestamp"
-      target_file_link: "target_file_link"
+      target_file_path: "target_file_path"
+      source_repo: "source_repo"
+      source_branch: "source_branch"
+      latest_build_number: "latest_build_number"
   ProjectBuildNameStatus:
     properties:
       build:
@@ -622,7 +631,7 @@ definitions:
     properties:
       meta:
         $ref: "#/definitions/Meta"
-      build:
+      build_number:
         type: "string"
       pre-build:
         type: "boolean"
@@ -635,7 +644,7 @@ definitions:
     title: "Build info with lint, build, scan phase logs"
     description: "Build info with lint, build, scan phase logs"
     example:
-      build: "build"
+      build_number: "build_number"
       pre-build: true
       meta:
         apiVersion: "apiVersion"
@@ -654,7 +663,7 @@ definitions:
     properties:
       meta:
         $ref: "#/definitions/Meta"
-      build:
+      build_number:
         type: "string"
       status:
         type: "string"
@@ -663,7 +672,7 @@ definitions:
     title: "Weekly scan info with scan logs"
     description: "Weekly scan info with scan logs"
     example:
-      build: "build"
+      build_number: "build_number"
       meta:
         apiVersion: "apiVersion"
         timestamp: "timestamp"
