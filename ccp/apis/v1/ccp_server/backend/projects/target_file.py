@@ -51,7 +51,8 @@ def response(namespace, app_id, job_id, desired_tag):
             source_repo = p.git_url
             source_branch = p.git_branch
             target_file_path = "{}/{}".format(p.git_path, p.target_file)
-            pre_build_exists = p.pre_build_script and p.pre_build_context
+            if p.pre_build_script and p.pre_build_context:
+                pre_build_exists = True
             break
 
     if source_repo == "":
