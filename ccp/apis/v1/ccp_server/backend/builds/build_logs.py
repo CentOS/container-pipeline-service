@@ -67,15 +67,16 @@ def response(namespace, appid, jobid, desired_tag, build_number):
     index_location = path.join(INDEX_CLONE_LOCATION, "index.d")
     ir = IndexReader(index_location, namespace)
     prjs = ir.read_projects()
-    prebuild_exists = False
+    prebuild_exists = "false"
     for p in prjs:
         if p.app_id == appid and p.job_id == jobid and \
                 p.desired_tag == desired_tag:
-            prebuild_exists = p.pre_build_context and p.pre_build_script
+            if p.pre_build_context and p.pre_build_script:
+                prebuild_exists = "true"
             break
 
-    if not prebuild_exists:
-        prebuild_exists=False
+    if prebuild_exists == "":
+        prebuild_exists="false"
 
     prebuild_logs = process_log(logs_info, "Prebuild source repo") if \
         prebuild_exists else "Prebuild not requested"

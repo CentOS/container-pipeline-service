@@ -43,8 +43,7 @@ def response(namespace, app_id, job_id, desired_tag):
     target_file_path = ""
     source_repo = ""
     source_branch = ""
-    pre_build_exists = False
-
+    pre_build_exists = "false"
     for p in prjs:
         if p.app_id == app_id and p.job_id == job_id and \
                 p.desired_tag == desired_tag:
@@ -52,7 +51,7 @@ def response(namespace, app_id, job_id, desired_tag):
             source_branch = p.git_branch
             target_file_path = "{}/{}".format(p.git_path, p.target_file)
             if p.pre_build_script and p.pre_build_context:
-                pre_build_exists = True
+                pre_build_exists = "true"
             break
 
     if source_repo == "":
@@ -61,8 +60,8 @@ def response(namespace, app_id, job_id, desired_tag):
     if source_repo.endswith(".git"):
         source_repo = source_repo[:-4]
 
-    if not pre_build_exists:
-        pre_build_exists=False
+    if pre_build_exists == "":
+        pre_build_exists="false"
 
     return TargetFile(
         meta=meta_obj(), prebuild=pre_build_exists,

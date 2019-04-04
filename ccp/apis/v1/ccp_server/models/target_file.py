@@ -16,7 +16,7 @@ class TargetFile(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, meta: Meta=None, prebuild: bool=None,
+    def __init__(self, meta: Meta=None, prebuild: str=None,
                  target_file_path: str=None, source_repo: str=None,
                  source_branch: str=None, latest_build_number: str=None):  # noqa: E501
         """TargetFile - a model defined in Swagger
@@ -24,7 +24,7 @@ class TargetFile(Model):
         :param meta: The meta of this TargetFile.  # noqa: E501
         :type meta: Meta
         :param prebuild: The prebuild of this TargetFile.  # noqa: E501
-        :type prebuild: bool
+        :type prebuild: str
         :param target_file_path: The target_file_path of this TargetFile.  # noqa: E501
         :type target_file_path: str
         :param source_repo: The source_repo of this TargetFile.  # noqa: E501
@@ -36,7 +36,7 @@ class TargetFile(Model):
         """
         self.swagger_types = {
             'meta': Meta,
-            'prebuild': bool,
+            'prebuild': str,
             'target_file_path': str,
             'source_repo': str,
             'source_branch': str,
@@ -92,22 +92,22 @@ class TargetFile(Model):
         self._meta = meta
 
     @property
-    def prebuild(self) -> bool:
+    def prebuild(self) -> str:
         """Gets the prebuild of this TargetFile.
 
 
         :return: The prebuild of this TargetFile.
-        :rtype: bool
+        :rtype: str
         """
         return self._prebuild
 
     @prebuild.setter
-    def prebuild(self, prebuild: bool):
+    def prebuild(self, prebuild: str):
         """Sets the prebuild of this TargetFile.
 
 
         :param prebuild: The prebuild of this TargetFile.
-        :type prebuild: bool
+        :type prebuild: str
         """
 
         self._prebuild = prebuild

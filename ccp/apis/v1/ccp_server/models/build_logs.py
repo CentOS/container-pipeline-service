@@ -19,7 +19,7 @@ class BuildLogs(Model):
     """
 
     def __init__(self, meta: Meta=None, build_number: str=None,
-                 pre_build: bool=None, status: str=None,
+                 pre_build: str=None, status: str=None,
                  failed_stage: str=None, logs: PrebuildLintBuildScanLogs=None):  # noqa: E501
         """BuildLogs - a model defined in Swagger
 
@@ -28,7 +28,7 @@ class BuildLogs(Model):
         :param build_number: The build_number of this BuildLogs.  # noqa: E501
         :type build_number: str
         :param pre_build: The pre_build of this BuildLogs.  # noqa: E501
-        :type pre_build: bool
+        :type pre_build: str
         :param status: The status of this BuildLogs.  # noqa: E501
         :type status: str
         :param failed_stage: The failed_stage of this BuildLogs.  # noqa: E501
@@ -39,7 +39,7 @@ class BuildLogs(Model):
         self.swagger_types = {
             'meta': Meta,
             'build_number': str,
-            'pre_build': bool,
+            'pre_build': str,
             'status': str,
             'failed_stage': str,
             'logs': PrebuildLintBuildScanLogs
@@ -115,22 +115,22 @@ class BuildLogs(Model):
         self._build_number = build_number
 
     @property
-    def pre_build(self) -> bool:
+    def pre_build(self) -> str:
         """Gets the pre_build of this BuildLogs.
 
 
         :return: The pre_build of this BuildLogs.
-        :rtype: bool
+        :rtype: str
         """
         return self._pre_build
 
     @pre_build.setter
-    def pre_build(self, pre_build: bool):
+    def pre_build(self, pre_build: str):
         """Sets the pre_build of this BuildLogs.
 
 
         :param pre_build: The pre_build of this BuildLogs.
-        :type pre_build: bool
+        :type pre_build: str
         """
 
         self._pre_build = pre_build

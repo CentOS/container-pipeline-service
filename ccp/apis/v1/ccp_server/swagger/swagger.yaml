@@ -492,7 +492,7 @@ definitions:
       meta:
         $ref: "#/definitions/Meta"
       prebuild:
-        type: "boolean"
+        type: "string"
       target_file_path:
         type: "string"
       source_repo:
@@ -502,10 +502,10 @@ definitions:
       latest_build_number:
         type: "string"
     title: "Targetfile and sourcerepo details"
-    description: "Link to target Dockerfile for given project, also return boolean\
+    description: "Link to target Dockerfile for given project, also returns true\
       \ if project has prebuild defined"
     example:
-      prebuild: true
+      prebuild: "true"
       meta:
         apiVersion: "apiVersion"
         timestamp: "timestamp"
@@ -634,7 +634,7 @@ definitions:
       build_number:
         type: "string"
       pre-build:
-        type: "boolean"
+        type: "string"
       status:
         type: "string"
       failed-stage:
@@ -645,7 +645,7 @@ definitions:
     description: "Build info with lint, build, scan phase logs"
     example:
       build_number: "build_number"
-      pre-build: true
+      pre-build: "true"
       meta:
         apiVersion: "apiVersion"
         timestamp: "timestamp"
