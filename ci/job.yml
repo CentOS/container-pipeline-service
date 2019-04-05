@@ -52,8 +52,8 @@
     builders:
         - shell: |
             git rebase origin/${ghprbTargetBranch}
-            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/cccp_ci_container_index.sh > cccp_ci_container_index.sh
-            sh ./cccp_ci_container_index.sh
+            curl https://raw.githubusercontent.com/CentOS/container-pipeline-service/master/ci/ccp_ci_container_index.sh -o ccp_ci_container_index.sh
+            sh ./ccp_ci_container_index.sh
 
 - job:
     name: 'centos-container-pipeline-service-ci-pr-functional'
