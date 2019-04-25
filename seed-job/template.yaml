@@ -167,6 +167,8 @@ objects:
                                 def external_registry_image_name = "${registry}/${username}/${APP_ID}-${JOB_ID}:${DESIRED_TAG}"
                                 sh(script: "docker tag ${image_name_with_registry} ${external_registry_image_name}")
                                 sh(script: "docker push ${external_registry_image_name}")
+                                echo "Remove the image after pushing to external registry"
+                                sh (script: "docker rmi ${external_registry_image_name}")
                             }
                         }
 
