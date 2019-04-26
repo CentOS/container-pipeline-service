@@ -504,3 +504,38 @@ Now, we need the Jenkins token to be made available. To do this, do the followin
 $ oc get sa/jenkins --template='{{range .secrets}}{{ .name }} {{end}}' # Name will be something like jenkins-token-blah
 $ oc process -p JENKINS_SECRET_NAME=jenkins-token-blah -f weekly-scan/scheduler.yaml | oc apply -f -
 ```
+
+### Push to external registry
+
+Besides pushing to the registry provisioned in private infrastructure, the
+service can also push to an external registry (like quay.io). This is an
+optional feature and service will work just fine if you don't set this up.
+However, if you would like to set this up, you need to do a bit of
+configuration.
+
+An OpenShift secret like below needs to be created and fed to `oc create`
+command:
+
+```bash
+$ cat secret.yml 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: external-registry
+type: Opaque 
+stringData:
+  username: user
+  password: password
+  registry: quay.io
+```
+
+Password should be the encrypted password as generated from the account
+settings on quay.io. 
+
+With that, create the secret using:
+
+```bash
+$ oc create -f secret.yml
+```
+
+Now, trigger a build and see if it managed to push to the external registry.

@@ -147,6 +147,30 @@ objects:
                             // image lint - build - scan - deliver is successful
                             success = true
                         }
+                        stage("Push image to external registry"){
+                            /*
+                            This is an optional stage. We will tag an image with external registry if and only if a secret named "external-registry" is found.
+                            If not, we do nothing in this stage
+                            */
+                            def EXTERNAL_REGISTRY_PUSH = sh (
+                                script: "oc get secret/external-registry",
+                                returnStdout: true,
+                                returnStatus: true
+                            )
+                            if (EXTERNAL_REGISTRY_PUSH == 0) {
+                                def username = sh(script: "oc get secret/external-registry -o yaml | grep 'username'| cut -d' ' -f4 | base64 -d", returnStdout: true)
+                                def password = sh(script: "oc get secret/external-registry -o yaml | grep 'password'| cut -d' ' -f4 | base64 -d", returnStdout: true)
+                                def registry = sh(script: "oc get secret/external-registry -o yaml | grep 'registry:'| cut -d' ' -f4 | base64 -d", returnStdout: true)
+                                echo "Login into external registry"
+                                sh (script: "export DOCKER_USERNAME=${username} && export DOCKER_PASSWORD=${password} && docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD ${registry}", returnStdout: true)
+                                echo "Tagging image to push to external registry"
+                                def external_registry_image_name = "${registry}/${username}/${APP_ID}-${JOB_ID}:${DESIRED_TAG}"
+                                sh(script: "docker tag ${image_name_with_registry} ${external_registry_image_name}")
+                                sh(script: "docker push ${external_registry_image_name}")
+                                echo "Remove the image after pushing to external registry"
+                                sh (script: "docker rmi ${external_registry_image_name}")
+                            }
+                        }
 
                     }
                     finally {
