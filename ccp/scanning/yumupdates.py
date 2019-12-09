@@ -1,5 +1,8 @@
 # scan script for yum list update scanner
 
+
+from scanners.base_scanner import BaseScanner
+
 import sys
 import yum
 
@@ -45,18 +48,21 @@ class SysStdoutSuppressor(object):
         pass
 
 
-class YumUpdates(object):
+class YumUpdates(BaseScanner):
     """
     This class contains methods to find yum updates and print
     information of RPM updates.
     It uses yum python API client to find the updates.
     """
+    NAME = "yum-updates-scanner"
+    DESCRIPTION = "Finds yum updates available."
 
     def __init__(self):
         """
         Instantiate the YumUpdates class and creates
         yum.YumBase class's object
         """
+        super(YumUpdates, self).__init__()
         self.yum_obj = yum.YumBase()
 
     def find_updates(self):
@@ -98,6 +104,9 @@ class YumUpdates(object):
                 }
             )
         return updates
+
+    def run(self):
+        return self.print_updates(self.find_updates())
 
     def print_updates(self, updates):
         """

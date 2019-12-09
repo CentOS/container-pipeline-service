@@ -9,61 +9,66 @@
 import re
 import sys
 
-import scan_lib
-
-# Filter the paths you know the resulting image or base image itself
-# has issue about and need to be filtered
-# out since this is a known issue and it is in progress to get fixed.
-FILTER_PATHS = [
-    "/",   # centos base image has issue with following files
-    "/usr/lib/udev/hwdb.d/20-OUI.hwdb",
-    "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",
-    "/usr/lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb",
-    "/usr/lib/udev/hwdb.d/20-net-ifname.hwdb",
-    "/usr/lib/udev/hwdb.d/20-pci-classes.hwdb",
-    "/usr/lib/udev/hwdb.d/20-pci-vendor-model.hwdb",
-    "/usr/lib/udev/hwdb.d/20-sdio-classes.hwdb",
-    "/usr/lib/udev/hwdb.d/20-sdio-vendor-model.hwdb",
-    "/usr/lib/udev/hwdb.d/20-usb-classes.hwdb",
-    "/usr/lib/udev/hwdb.d/20-usb-vendor-model.hwdb",
-    "/usr/lib/udev/hwdb.d/60-keyboard.hwdb",
-    "/usr/lib/udev/hwdb.d/70-mouse.hwdb",
-    "/usr/lib/udev/hwdb.d/70-touchpad.hwdb",
-    "/usr/lib/udev/hwdb.d/60-evdev.hwdb",
-]
+from scanners.base_scanner import BaseScanner, BinaryDoesNotExist
 
 
-# Filter filepaths starting with following directories listing,
-# since these paths are expected to be modified and should not
-# take into account
-
-FILTER_DIRS = [
-    "/var", "/run", "/media", "/mnt", "/tmp", "/proc", "/sys", "/boot"
-]
-
-file_issues_semantics = {
-    "S": "file Size differs",
-    "M": "Mode differs (includes permissions and file type)",
-    "5": "digest (formerly MD5 sum) differs",
-    "D": "Device major/minor number mismatch",
-    "L": "readLink(2) path mismatch",
-    "U": "User ownership differs",
-    "G": "Group ownership differs",
-    "T": "mTime differs",
-    "P": "caPabilities differ",
-}
-
-
-class RPMVerify(object):
+class RPMVerify(BaseScanner):
     """
     Verify installed RPMs
     """
+    NAME = "rpm-verify-scanner"
+    DESCRIPTION = 'Verify installed RPMs and report issues if any.'
+    # Filter the paths you know the resulting image or base image itself
+    # has issue about and need to be filtered
+    # out since this is a known issue and it is in progress to get fixed.
+    FILTER_PATHS = [
+        "/",   # centos base image has issue with following files
+        "/usr/lib/udev/hwdb.d/20-OUI.hwdb",
+        "/usr/lib/udev/hwdb.d/20-acpi-vendor.hwdb",
+        "/usr/lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb",
+        "/usr/lib/udev/hwdb.d/20-net-ifname.hwdb",
+        "/usr/lib/udev/hwdb.d/20-pci-classes.hwdb",
+        "/usr/lib/udev/hwdb.d/20-pci-vendor-model.hwdb",
+        "/usr/lib/udev/hwdb.d/20-sdio-classes.hwdb",
+        "/usr/lib/udev/hwdb.d/20-sdio-vendor-model.hwdb",
+        "/usr/lib/udev/hwdb.d/20-usb-classes.hwdb",
+        "/usr/lib/udev/hwdb.d/20-usb-vendor-model.hwdb",
+        "/usr/lib/udev/hwdb.d/60-keyboard.hwdb",
+        "/usr/lib/udev/hwdb.d/70-mouse.hwdb",
+        "/usr/lib/udev/hwdb.d/70-touchpad.hwdb",
+        "/usr/lib/udev/hwdb.d/60-evdev.hwdb",
+    ]
 
-    def get_command(self):
+    # Filter filepaths starting with following directories listing,
+    # since these paths are expected to be modified and should not
+    # take into account
+
+    FILTER_DIRS = [
+        "/var", "/run", "/media", "/mnt", "/tmp", "/proc", "/sys", "/boot"
+    ]
+
+    file_issues_semantics = {
+        "S": "file Size differs",
+        "M": "Mode differs (includes permissions and file type)",
+        "5": "digest (formerly MD5 sum) differs",
+        "D": "Device major/minor number mismatch",
+        "L": "readLink(2) path mismatch",
+        "U": "User ownership differs",
+        "G": "Group ownership differs",
+        "T": "mTime differs",
+        "P": "caPabilities differ",
+    }
+
+    def __init__(self):
+        super(RPMVerify, self).__init__()
+        # figure out the absolute path of binary in target system
+        self.rpm_binary = self.which("rpm")
+
+    def get_rpm_verify_command(self):
         """
         Command to run the rpm verify test
         """
-        return ["/bin/rpm", "-Va"]
+        return [self.rpm_binary, "-Va"]
 
     def get_meta_of_rpm(self, rpm):
         """
@@ -72,7 +77,7 @@ class RPMVerify(object):
         """
         qf = "%{SIGPGP:pgpsig}|%{VENDOR}|%{PACKAGER}|%{BUILDHOST}"
         cmd = ["/bin/rpm", "-q", "--qf", qf, rpm]
-        out, _ = scan_lib.run_cmd_out_err(cmd)
+        out, _ = self.run_cmd_out_err(cmd)
         out = out.split("|")
         return {"RPM": rpm,
                 "SIGNATURE": out[0],
@@ -86,7 +91,7 @@ class RPMVerify(object):
         Find source RPM of given filepath
         """
         cmd = ["/bin/rpm", "-qf", filepath]
-        out, _ = scan_lib.run_cmd_out_err(cmd)
+        out, _ = self.run_cmd_out_err(cmd)
         return out.split("\n")[0].strip()
 
     def filter_expected_dirs_modifications(self, filepath):
@@ -95,7 +100,7 @@ class RPMVerify(object):
         /var,/run,/media,/mnt,/tmp
         """
 
-        return filepath.startswith(tuple(FILTER_DIRS))
+        return filepath.startswith(tuple(self.FILTER_DIRS))
 
     def filter_paths_with_known_issues(self, filepath):
         """
@@ -104,7 +109,7 @@ class RPMVerify(object):
         which are being fixed.
         """
 
-        return filepath in FILTER_PATHS
+        return filepath in self.FILTER_PATHS
 
     def process_cmd_output_data(self, data):
         """
@@ -159,9 +164,16 @@ class RPMVerify(object):
         """
         Run the RPM verify test
         """
-        cmd = self.get_command()
-        out, err = scan_lib.run_cmd_out_err(cmd)
-        return self.process_cmd_output_data(out)
+        result = self.output_format.copy()
+        result['start_time'] = self.time_now()
+        cmd = self.get_rpm_verify_command()
+        out, err = self.run_cmd_out_err(cmd)
+        result['logs'] = self.process_cmd_output_data(out)
+        result['successful'] = True
+        result['alert'] = True
+        result['end_time'] = self.time_now()
+        result['os'] = self.linux_distribution()
+        return result
 
     def print_result(self, result):
         """
@@ -173,7 +185,7 @@ class RPMVerify(object):
             print ("All the RPM installed libraries and "
                    "binaries are intact in image.")
             return
-        for line in result:
+        for line in result["logs"]:
             print ("\nFile: {0}".format(line.get("filename")))
 
             # find out what all issues with file are
@@ -183,7 +195,7 @@ class RPMVerify(object):
             if file_issues_encoded == "missing":
                 file_issues = ["The file is missing."]
             else:
-                file_issues = [file_issues_semantics.get(each, each)
+                file_issues = [self.file_issues_semantics.get(each, each)
                                for each in file_issues_encoded]
 
             print ("Issue with file:")
@@ -200,6 +212,10 @@ if __name__ == "__main__":
         rpmverify = RPMVerify()
         result = rpmverify.run()
         rpmverify.print_result(result)
+    except BinaryDoesNotExist as e:
+        print (e)
+        print ("Scan is aborted!")
+        sys.exit(1)
     except Exception as e:
         print ("Error occurred in RPM Verify scanner execution.")
         print ("Error: {0}".format(e))
