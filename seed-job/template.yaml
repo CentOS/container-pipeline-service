@@ -29,9 +29,27 @@ objects:
             podTemplate(
                 cloud: 'openshift',
                 name: 'ccp-pipeline-master',
-                label: 'ccp-pipeline-master',
+                labels: [
+                    ccp-pipeline-build-pod-type: master-job
+                ],
                 namespace: '${NAMESPACE}',
                 serviceAccount: 'jenkins',
+                affinity(
+                    podAntiAffinity(
+                        requiredDuringSchedulingIgnoredDuringExecution:[
+                            labelSelector:(
+                                matchExpressions:([
+                                    key: 'ccp-pipeline-build-pod-type',
+                                    operator: 'In',
+                                    values: [
+                                        'seed-job',
+                                        'master-job'
+                                    ]
+                                ])
+                            )
+                        ],
+                    )
+                )
                 containers: [
                   containerTemplate(
                     name: 'jnlp',
