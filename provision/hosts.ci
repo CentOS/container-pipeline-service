@@ -10,7 +10,7 @@ nfs_registry
 # SSH user, this user should allow ssh based auth without requiring a password
 ansible_ssh_user=root
 
-openshift_node_groups=[{'name': 'ccp-openshift-master', 'labels': ['node-role.kubernetes.io/master=true', 'node-role.kubernetes.io/node-type=metrics', 'node-role.kubernetes.io/infra=true', 'node-role.kubernetes.io/size=large'], 'edits': []}, {'name': 'ccp-openshift-node', 'labels': ['node-role.kubernetes.io/zone=default'], 'edits': []}, {'name': 'ccp-openshift-large-node', 'labels': ['node-role.kubernetes.io/zone=default', 'node-role.kubernetes.io/size=large']}]
+openshift_node_groups=[{'name': 'ccp-openshift-master', 'labels': ['node-role.kubernetes.io/master=true', 'node-role.kubernetes.io/node-type=metrics', 'node-role.kubernetes.io/infra=true', 'node-role.kubernetes.io/size=master-large'], 'edits': []}, {'name': 'ccp-openshift-node', 'labels': ['node-role.kubernetes.io/zone=default', 'node-role.kubernetes.io/size=small'], 'edits': []}, {'name': 'ccp-openshift-large-node', 'labels': ['node-role.kubernetes.io/zone=default', 'node-role.kubernetes.io/size=large']}]
 
 # If ansible_ssh_user is not root, ansible_become must be set to true
 debug_level=4
@@ -59,6 +59,7 @@ openshift_1
 [nodes]
 openshift_1 openshift_node_group_name='ccp-openshift-master' openshift_schedulable=true openshift_ip=openshift_ip_1
 openshift_2 openshift_node_group_name='ccp-openshift-large-node' openshift_schedulable=true openshift_ip=openshift_ip_2
+openshift_3 openshift_node_group_name='ccp-openshift-node' openshift_schedulable=true openshift_ip=openshift_ip_3
 
 [nfs_registry]
 nfs_serv
