@@ -28,50 +28,61 @@ objects:
             ])
             podTemplate(
                 cloud: 'openshift',
-                name: 'ccp-pipeline-master',
-                labels: [
-                    ccp-pipeline-build-pod-type: master-job
-                ],
-                namespace: '${NAMESPACE}',
-                serviceAccount: 'jenkins',
-                affinity(
-                    podAntiAffinity(
-                        requiredDuringSchedulingIgnoredDuringExecution:[
-                            labelSelector:(
-                                matchExpressions:([
-                                    key: 'ccp-pipeline-build-pod-type',
-                                    operator: 'In',
-                                    values: [
-                                        'seed-job',
-                                        'master-job'
-                                    ]
-                                ])
-                            )
-                        ],
-                    )
-                )
-                containers: [
-                  containerTemplate(
-                    name: 'jnlp',
-                    image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
-                    ttyEnabled: true,
-                    alwaysPullImage: true,
-                    workingDir: '/tmp',
-                    privileged: true,
-                    args: '${computer.jnlpmac} ${computer.name}',
-                    resourceRequestCpu: '${MASTER_JOB_CPU}',
-                    resourceRequestMemory: '${MASTER_JOB_MEMORY}'
-                  )
-                ],
-                volumes: [
-                  hostPathVolume(
-                    hostPath: '/var/run/docker.sock',
-                    mountPath: '/var/run/docker.sock'
-                  )
-                ]
+                yaml: """
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                    name: ccp-pipeline-master
+                    labels:
+                        ccp-pipeline-build-pod-type: master
+                spec:
+                    serviceAccount: jenkins
+                    namespace: ${NAMESPACE}
+                    affinity:
+                        nodeAffinity:
+                            requiredDuringSchedulingIgnoredDuringExecution:
+                                nodeSelectorTerms:
+                                    - matchExpressions:
+                                        - key: node-role.kubernetes.io/size
+                                          operator: In
+                                          values:
+                                              - small
+                        podAntiAffinity:
+                            requiredDuringSchedulingIgnoredDuringExecution:
+                                - topologyKey: kubernetes.io/hostname
+                                  namespace: ${NAMESPACE}
+                                  labelSelector:
+                                      matchExpressions:
+                                            - key: ccp-pipeline-build-pod-type
+                                              operator: In
+                                              values:
+                                                  - seed
+                                                  - master
+                    containers:
+                      - name: jnlp
+                        image: ${CCP_OPENSHIFT_SLAVE_IMAGE}
+                        tty: true
+                        imagePullPolicy: Always
+                        workingDir: /tmp
+                        privileged: true
+                        resources:
+                            requests:
+                                cpu: ${MASTER_JOB_CPU}
+                                memory: ${MASTER_JOB_MEMORY}
+                            limits:
+                                cpu: ${MASTER_JOB_CPU}
+                                memory: ${MASTER_JOB_MEMORY}
+                        volumeMounts:
+                            - mountPath: /var/run/docker.sock
+                              name: docker-socket-path
+                    volumes:
+                        - name: docker-socket-path
+                          hostPath:
+                              path: /var/run/docker.sock
+              """
             )
             {
-                node('ccp-pipeline-master') {
+                node(POD_LABEL) {
                     def image_name = "${APP_ID}/${JOB_ID}:${DESIRED_TAG}"
 
                     //For the library images like centos and languages we push the image without an app_id
