@@ -93,7 +93,7 @@ objects:
                     }
 
                     def image_name_with_registry = "${REGISTRY_URL}/${image_name}"
-                    def slave_container_name = POD_LABEL
+                    def slave_container_name = "${APP_ID}-${JOB_ID}-${DESIRED_TAG}-${BUILD_NUMBER}"
                     def slave_container_id = ""
 
                     //base image name is retrieved from the target-file of the source repo
@@ -123,7 +123,7 @@ objects:
                             dir("${PIPELINE_NAME}/${GIT_PATH}"){
                                 //Get the image details for future use
                                 base_image_name = sh(returnStdout:true, script: "cat ${TARGET_FILE}|awk '/^FROM/ {print \$2}'").trim()
-                                slave_container_name = sh(returnStdout:true, script:  "echo ${POD_LABEL} | sed 's/_/-/g'").trim()
+                                slave_container_name = sh(returnStdout:true, script:  "echo ${slave_container_name} | sed 's/_/-/g'").trim()
                                 echo "slave container name: ${slave_container_name}"
                                 slave_container_id = sh(returnStdout:true, script: "docker ps -qf name=${slave_container_name} | head -n 1").trim()
                                 echo "Slave container id: ${slave_container_id}"
