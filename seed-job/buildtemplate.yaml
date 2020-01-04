@@ -54,7 +54,7 @@ objects:
                                           operator: In
                                           values:
                                               - seed
-                                              - master
+                                              - weekly-trigger
                 containers:
                   - name: jnlp
                     image: ${CCP_OPENSHIFT_SLAVE_IMAGE}

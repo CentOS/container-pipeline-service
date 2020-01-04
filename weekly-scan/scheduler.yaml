@@ -32,7 +32,32 @@ objects:
         spec:
           template:
             metadata:
+                name: ccp-pipeline-weekly-trigger
+                labels:
+                    ccp-pipeline-build-pod-type: weekly-trigger
             spec:
+              serviceAccount: jenkins
+              namespace: pipeline
+              affinity:
+                  nodeAffinity:
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                          nodeSelectorTerms:
+                              - matchExpressions:
+                                  - key: node-role.kubernetes.io/size
+                                    operator: In
+                                    values:
+                                        - large
+                  podAntiAffinity:
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                          - topologyKey: kubernetes.io/hostname
+                            namespace: pipeline
+                            labelSelector:
+                                matchExpressions:
+                                      - key: ccp-pipeline-build-pod-type
+                                        operator: In
+                                        values:
+                                            - seed
+                                            - weekly-trigger
               containers:
                 - name: weekly-scan-scheduler
                   image: ${CCP_OPENSHIFT_SLAVE_IMAGE}

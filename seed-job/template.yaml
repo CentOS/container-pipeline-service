@@ -56,8 +56,8 @@ objects:
                                             - key: ccp-pipeline-build-pod-type
                                               operator: In
                                               values:
-                                                  - seed
                                                   - master
+                                                  - weekly-scan
                     containers:
                       - name: jnlp
                         image: ${CCP_OPENSHIFT_SLAVE_IMAGE}
