@@ -24,27 +24,55 @@ objects:
                 ])
             ])
             podTemplate(
-                cloud: 'openshift',
-                name: 'ccp-pipeline-seed',
-                label: 'ccp-pipeline-seed',
-                namespace: '${NAMESPACE}',
-                serviceAccount: 'jenkins',
-                containers: [
-                  containerTemplate(
-                    name: 'jnlp',
-                    image: '${CCP_OPENSHIFT_SLAVE_IMAGE}',
-                    ttyEnabled: true,
-                    alwaysPullImage: true,
-                    workingDir: '/tmp',
-                    privileged: true,
-                    args: '${computer.jnlpmac} ${computer.name}',
-                    resourceRequestCpu: '${SEED_JOB_CPU}',
-                    resourceRequestMemory: '${SEED_JOB_MEMORY}'
-                  )
-                ],
+            cloud: 'openshift',
+            yaml: """
+            apiVersion: v1
+            kind: Pod
+            metadata:
+                name: ccp-pipeline-seed
+                labels:
+                    ccp-pipeline-build-pod-type: seed
+            spec:
+                serviceAccount: jenkins
+                namespace: ${NAMESPACE}
+                affinity:
+                    nodeAffinity:
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                            nodeSelectorTerms:
+                                - matchExpressions:
+                                    - key: node-role.kubernetes.io/size
+                                      operator: In
+                                      values:
+                                          - large
+                    podAntiAffinity:
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                            - topologyKey: kubernetes.io/hostname
+                              namespace: ${NAMESPACE}
+                              labelSelector:
+                                  matchExpressions:
+                                        - key: ccp-pipeline-build-pod-type
+                                          operator: In
+                                          values:
+                                              - seed
+                                              - weekly-trigger
+                containers:
+                  - name: jnlp
+                    image: ${CCP_OPENSHIFT_SLAVE_IMAGE}
+                    tty: true
+                    imagePullPolicy: Always
+                    workingDir: /tmp
+                    privileged: true
+                    resources:
+                        requests:
+                            cpu: ${SEED_JOB_CPU}
+                            memory: ${SEED_JOB_MEMORY}
+                        limits:
+                            cpu: ${SEED_JOB_CPU}
+                            memory: ${SEED_JOB_MEMORY}
+              """
             )
             {
-                node ('ccp-pipeline-seed'){
+                node (POD_LABEL){
                     stage('Checkout Sources') {
                         dir("${CONTAINER_INDEX_DIR}") {
                             git url: '${CONTAINER_INDEX_REPO}', branch: '${CONTAINER_INDEX_BRANCH}'

@@ -25,7 +25,7 @@ rtn_code=0
 DEBUG_PERIOD=7200
 
 echo "Get nodes from duffy pool"
-IFS=' ' read -ra node_details <<< $(cico node get --count 4 -f value -c hostname -c ip_address -c comment)
+IFS=' ' read -ra node_details <<< $(cico node get --count 5 -f value -c hostname -c ip_address -c comment)
 ansible_node_host=${node_details[0]}.ci.centos.org
 ansible_node=${node_details[1]}
 nfs_node=${node_details[3]}.ci.centos.org
@@ -34,7 +34,9 @@ openshift_1_node=${node_details[6]}.ci.centos.org
 openshift_1_node_ip=${node_details[7]}
 openshift_2_node=${node_details[9]}.ci.cento.org
 openshift_2_node_ip=${node_details[10]}
-cico_node_key=${node_details[11]}
+openshift_3_node=${node_details[12]}.ci.centos.org
+openshift_3_node_ip=${node_details[13]}
+cico_node_key=${node_details[14]}
 cluster_subnet_ip="172.19.2.0"
 
 if [ ${#cico_node_key} -le 3 ]
@@ -52,6 +54,8 @@ echo "Openshift Node 1: $openshift_1_node"
 echo "Openshift Node 1 IP: $openshift_1_node_ip"
 echo "Openshift Node 2: $openshift_2_node"
 echo "Openshift Node 2 IP: $openshift_2_node_ip"
+echo "Openshift Node 3: $openshift_3_node"
+echo "Openshift Node 3 IP: $openshift_3_node_ip"
 echo "Node hash: $cico_node_key"
 echo "Cluster subnet: $cluster_subnet_ip"
 echo "=============================================================\n\n"
@@ -73,6 +77,7 @@ export sshoptserr="-tt -o LogLevel=error -o UserKnownHostsFile=/dev/null -o Stri
 echo "Create etc hosts in ansible node"
 ssh $sshopts $ansible_node "echo \"$openshift_1_node_ip $openshift_1_node\" >> /etc/hosts"
 ssh $sshopts $ansible_node "echo \"$openshift_2_node_ip $openshift_2_node\" >> /etc/hosts"
+ssh $sshopts $ansible_node "echo \"$openshift_3_node_ip $openshift_3_node\" >> /etc/hosts"
 ssh $sshopts $ansible_node "echo \"$nfs_node_ip $nfs_node\" >> /etc/hosts"
 
 echo "Add ssh keys to all the nodes"
@@ -81,13 +86,13 @@ ssh $sshopts $ansible_node 'rm -rf ~/.ssh/id_rsa* && ssh-keygen -t rsa -N "" -f 
 public_key=$(ssh $sshopts $ansible_node 'cat ~/.ssh/id_rsa.pub')
 
 # Add public key to all the ci nodes
-for node in {$nfs_node_ip,$openshift_1_node_ip,$openshift_2_node_ip}
+for node in {$nfs_node_ip,$openshift_1_node_ip,$openshift_2_node_ip,$openshift_3_node_ip}
 do
     ssh $sshopts $node "echo \"$public_key\" >> ~/.ssh/authorized_keys"
 done
 
 echo "Add ssh fringer prints for all node to ansible controller"
-for node in {$nfs_node,$openshift_1_node,$openshift_2_node}
+for node in {$nfs_node,$openshift_1_node,$openshift_2_node,$openshift_3_node}
 do
     ssh $sshopts $ansible_node "ssh-keyscan -t rsa,dsa $node 2>/dev/null >> ~/.ssh/known_hosts"
 done
@@ -108,8 +113,10 @@ echo "Prepare ansible inventory for service setup"
 ssh $sshoptserr $ansible_node sed -i "s/nfs_serv/$nfs_node/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_1/$openshift_1_node/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_2/$openshift_2_node/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_3/$openshift_3_node/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_1/$openshift_1_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_3/$openshift_3_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_username/cccp/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshift/provision/hosts.ci
