@@ -113,10 +113,10 @@ echo "Prepare ansible inventory for service setup"
 ssh $sshoptserr $ansible_node sed -i "s/nfs_serv/$nfs_node/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_1/$openshift_1_node/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_2/$openshift_2_node/g" /opt/ccp-openshift/provision/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/openshift_2/$openshift_3_node/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_3/$openshift_3_node/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_1/$openshift_1_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_2_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
-ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_2/$openshift_3_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
+ssh $sshoptserr $ansible_node sed -i "s/openshift_ip_3/$openshift_3_node_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/cluster_subnet_ip/$cluster_subnet_ip/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_username/cccp/g" /opt/ccp-openshift/provision/hosts.ci
 ssh $sshoptserr $ansible_node sed -i "s/oc_passwd/developer/g" /opt/ccp-openshift/provision/hosts.ci
