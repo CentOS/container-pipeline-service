@@ -1,4 +1,4 @@
-FROM registry.centos.org/centos/centos:latest
+FROM registry.centos.org/centos/centos:7
 
 RUN yum -y update && \
     yum install -y epel-release && \
