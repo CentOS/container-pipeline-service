@@ -126,7 +126,7 @@ __Chat (Mattermost):__ Our prefered method to reach the main developers is
 through Mattermost at
 [chat.openshift.io](https://chat.openshift.io/developers/channels/container-apps).
 
-__IRC:__ If you prefer IRC, we can reached at **#centos-devel** on Freenode.
+__IRC:__ If you prefer IRC, we can reached at **#centos-devel** on Libera.chat.
 
 __Email:__ You could always e-mail us as well at centos-devel@centos.org
 
